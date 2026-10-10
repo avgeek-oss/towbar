@@ -200,3 +200,7 @@ MCP share persistent per-key and per-IP limits. The per-IP limit uses the API's
 connection peer, which is the bundled gateway for self-hosted installs. Set both
 YAML values and restart after changes. See [API authentication and rate
 limits](/docs/api/authentication) for bounds, response headers, and examples.
+
+## Installation setup secret
+
+Before creating the first administrator, copy `Towbar installation setup secret` from the API startup logs (`sudo towbar logs api`, or `docker compose logs api` for Compose installations). The setup form requires this secret. It is derived separately from the internal HMAC secret; do not paste the internal secret into the browser. The API prints it only until initial setup is complete. Existing teams continue to sign in normally after upgrading.

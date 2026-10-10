@@ -1,3 +1,4 @@
+import { installationSetupSecret } from "./setup-secret.js";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
@@ -65,7 +66,29 @@ void test(
     const db = getTowbarDatabase();
     const app = createApp();
     try {
+      for (const setupSecret of [undefined, "", "wrong-installation-secret"]) {
+        const response = await app.request("/v1/public/auth/setup", {
+          method: "POST",
+          headers: {
+            origin: "https://app.towbar.test",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            setupSecret,
+            teamName: "Test team",
+            displayName: "Admin",
+            email: "admin@example.test",
+            password: "A secure setup passphrase 2026!",
+            confirmPassword: "A secure setup passphrase 2026!",
+            dateTimePreferences: defaultDateTimePreferences,
+          }),
+        });
+        assert.equal(response.status, setupSecret ? 403 : 400);
+        assert.equal(response.headers.get("set-cookie"), null);
+        assert.equal((await db.select().from(users)).length, 0);
+      }
       const login = await createInitialAdmin({
+        setupSecret: installationSetupSecret(),
         teamName: "Time preferences",
         displayName: "Test admin",
         email: "date-time@example.test",

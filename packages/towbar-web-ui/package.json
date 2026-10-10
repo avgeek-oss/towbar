@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@avgeek-oss/design-system": "1.2.12",
+    "@avgeek-oss/design-system": "1.2.13",
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
     "next": "catalog:",

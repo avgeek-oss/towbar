@@ -52,6 +52,7 @@ const loginSchema = z
   .strict();
 const setupSchema = z
   .object({
+    setupSecret: z.string().min(1).max(1024),
     confirmPassword: z.string().min(15).max(1024),
     dateTimePreferences: dateTimePreferencesSchema,
     displayName: z.string().trim().min(1).max(120),

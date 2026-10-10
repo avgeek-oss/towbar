@@ -110,6 +110,7 @@ check("Anonymous team access is denied", response.status === 401);
 
 const password = `${randomBytes(24).toString("base64url")}Aa1!`;
 const data = {
+  setupSecret: process.env.VERIFY_SETUP_SECRET,
   teamName: "Disposable Verification Team",
   displayName: "Verification Admin",
   email: "verification@example.invalid",
@@ -127,6 +128,11 @@ response = await request(
   "https://untrusted.example.invalid",
 );
 check("Cross-origin setup is rejected", response.status === 403);
+response = await request("/v1/public/auth/setup", {
+  ...data,
+  setupSecret: "incorrect-installation-secret",
+});
+check("Setup rejects incorrect installation proof", response.status === 403);
 response = await request("/v1/public/auth/setup", data);
 check(
   "Production setup creates the first administrator",

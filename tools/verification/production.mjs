@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { createServer } from "node:net";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -84,6 +84,12 @@ try {
     TOWBAR_PASSWORD_BREACH_CHECK: "false",
     SOURCE_COMMIT: await run.capture("git", ["rev-parse", "HEAD"]),
   });
+  run.env.VERIFY_SETUP_SECRET = createHmac(
+    "sha256",
+    run.env.TOWBAR_INTERNAL_HMAC_SECRET,
+  )
+    .update("towbar:installation-setup:v1")
+    .digest("base64url");
   configured = true;
   await run.step("compose-config", "docker", [...compose, "config", "--quiet"]);
   await run.step("compose-build", "docker", [...compose, "build"], {

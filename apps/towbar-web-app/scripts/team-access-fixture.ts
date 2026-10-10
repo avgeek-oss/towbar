@@ -320,6 +320,12 @@ export function createTeamAccessFixture(
         const input = await body(request);
         if (!setupRequired)
           return fail(response, "This instance is already configured", 409);
+        if (input.setupSecret !== "fixture-installation-secret")
+          return fail(
+            response,
+            "The installation setup secret is incorrect",
+            403,
+          );
         if (
           String(input.password).length < 15 ||
           input.password !== input.confirmPassword
@@ -333,7 +339,7 @@ export function createTeamAccessFixture(
         Object.assign(selected, {
           name: input.displayName,
           email: input.email,
-          emailVerified: false,
+          emailVerified: true,
         });
         passwords.set(selected.userId, String(input.password));
         team.name = String(input.teamName);

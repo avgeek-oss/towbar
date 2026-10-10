@@ -38,7 +38,7 @@ The installer verifies the CLI checksum and places it at `/usr/local/bin/towbar`
 
 Existing Docker installations remain managed by the host package manager. Optional integrations stay disabled until configured. See the [CLI guide](/docs/self-hosting/cli/install-upgrade) for version selection and upgrades.
 
-Open the dashboard immediately and enter the team name, your name, email and password. The first successful submission creates the initial team and Admin account, then closes setup. Configure SMTP for invitations and password recovery. See [Team access](/docs/self-hosting/team-access) and [Account recovery](/docs/self-hosting/account-recovery).
+Run `sudo towbar logs api` and copy the line labelled `Towbar installation setup secret`. Open the dashboard and enter that secret, the team name, your name, email and password. The first successful submission creates the initial team and Admin account, then closes setup. Configure SMTP for invitations and password recovery. See [Team access](/docs/self-hosting/team-access) and [Account recovery](/docs/self-hosting/account-recovery).
 
 ## Configure the installation
 

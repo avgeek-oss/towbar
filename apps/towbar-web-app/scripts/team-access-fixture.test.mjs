@@ -342,6 +342,7 @@ test("new-instance and temporary-password fixtures reach the dashboard after set
     assert.equal(
       (
         await request("public/auth/setup", "POST", {
+          setupSecret: "fixture-installation-secret",
           teamName: "Fresh team",
           displayName: "Admin",
           email: "new@example.test",

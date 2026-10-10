@@ -33,7 +33,8 @@ export type TransactionalEmailData = {
 };
 const brand = {
   name: "Towbar",
-  accentColor: "#0866bd",
+  accentColor: "#f3c530",
+  theme: { accentForeground: "#1a1813" },
   logoUrl: "https://www.towbar.dev/assets/towbar-logo.png",
 };
 function message(

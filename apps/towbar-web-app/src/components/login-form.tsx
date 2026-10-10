@@ -125,6 +125,7 @@ function InitialTeamSetup({ options }: { options: DateTimePreferenceOptions }) {
         timeFormats: timeFormatOptions,
       }}
       onSubmit={async ({
+        setupSecret,
         team,
         name,
         email,
@@ -134,6 +135,7 @@ function InitialTeamSetup({ options }: { options: DateTimePreferenceOptions }) {
         if (!team.trim() || !name.trim())
           throw new Error("Team name and your name are required");
         await api.post("/v1/public/auth/setup", {
+          setupSecret,
           teamName: team.trim(),
           displayName: name.trim(),
           email: email.trim(),

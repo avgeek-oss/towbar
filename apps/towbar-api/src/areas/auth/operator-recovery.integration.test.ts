@@ -1,3 +1,4 @@
+import { installationSetupSecret } from "./setup-secret.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { randomUUID } from "node:crypto";
@@ -31,6 +32,7 @@ void test(
     const temporaryPassword = "Temporary recovery test password 519382";
     try {
       const setup = await auth.createInitialAdmin({
+        setupSecret: installationSetupSecret(),
         teamName: "Recovery",
         displayName: "Admin",
         email: "admin@recovery.test",

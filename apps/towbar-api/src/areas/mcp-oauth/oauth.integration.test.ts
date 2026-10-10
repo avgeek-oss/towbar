@@ -1,3 +1,4 @@
+import { installationSetupSecret } from "../auth/setup-secret.js";
 import { assertAdminConsent } from "./admin-consent-test-helper.js";
 import { assertOAuthDiscovery, assertSdkOAuthFlow } from "./sdk-test-helper.js";
 import assert from "node:assert/strict";
@@ -49,6 +50,7 @@ void test(
       uiOrigin = process.env.TOWBAR_APP_BASE_URL;
     const { cookies, request, ok } = settingsTestClient(app, uiOrigin);
     const signup = await auth.createInitialAdmin({
+      setupSecret: installationSetupSecret(),
       teamName: "OAuth tests",
       displayName: "OAuth admin",
       email: "oauth-admin@example.test",

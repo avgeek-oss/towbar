@@ -15,7 +15,7 @@
   "dependencies": {
     "react": "catalog:",
     "react-dom": "catalog:",
-    "@avgeek-oss/design-system": "1.2.12"
+    "@avgeek-oss/design-system": "1.2.13"
   },
   "devDependencies": {
     "@types/node": "catalog:",

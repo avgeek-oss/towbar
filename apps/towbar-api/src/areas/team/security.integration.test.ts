@@ -1,7 +1,7 @@
+import { installationSetupSecret } from "../auth/setup-secret.js";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
-
 const databaseUrl = process.env.TOWBAR_TEAM_TEST_DATABASE_URL;
 void test(
   "team access database security boundaries",
@@ -76,6 +76,7 @@ void test(
         "This suite requires a fresh test schema",
       );
       const setupInput = {
+        setupSecret: installationSetupSecret(),
         teamName: "Test team",
         displayName: "Admin",
         email: "admin@example.test",
@@ -92,12 +93,14 @@ void test(
       const successfulSetup = competingSetup.find(
         (result) => result.status === "fulfilled",
       )!;
-      assert(successfulSetup.status === "fulfilled");
       const setup = successfulSetup.value;
       assert.equal(setup.status, 200);
       let adminHeaders = headersFor(setup);
       const admin = (await auth.findSession(adminHeaders))!.user;
       assert.equal(admin.workspaceRole, "admin");
+      assert.equal(admin.emailVerified, true);
+      const emails = await database.select().from(schema.transactionalEmails);
+      assert.equal(emails.length, 0);
       await t.test(
         "raw enrollment and organization/key APIs cannot bypass the facade",
         async () => {
@@ -117,10 +120,10 @@ void test(
           }
           await assert.rejects(
             auth.createInitialAdmin({
+              ...setupInput,
               teamName: "Other",
               displayName: "Attacker",
               email: "attacker@example.test",
-              password,
             }),
           );
         },

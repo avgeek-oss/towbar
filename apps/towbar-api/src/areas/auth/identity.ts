@@ -195,8 +195,9 @@ function identityOptions(database: AuthDatabase) {
                 ...user,
                 email: user.email.trim().toLowerCase(),
                 emailVerified:
-                  identityProvisioning.getStore()?.reason === "invite" &&
-                  user.emailVerified,
+                  identityProvisioning.getStore()?.reason === "setup" ||
+                  (identityProvisioning.getStore()?.reason === "invite" &&
+                    user.emailVerified),
               },
             });
           },

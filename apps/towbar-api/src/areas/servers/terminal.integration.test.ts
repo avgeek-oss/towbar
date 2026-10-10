@@ -1,3 +1,4 @@
+import { installationSetupSecret } from "../auth/setup-secret.js";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { once } from "node:events";
@@ -58,6 +59,7 @@ void test(
     };
     try {
       const setup = await auth.createInitialAdmin({
+        setupSecret: installationSetupSecret(),
         displayName: "Admin",
         teamName: "Terminal",
         email: "admin@terminal.test",

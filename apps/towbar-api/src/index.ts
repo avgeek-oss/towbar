@@ -1,3 +1,5 @@
+import { installationSetupSecret } from "./areas/auth/setup-secret.js";
+import { getInitialSetupStatus } from "./areas/auth/service.js";
 import { attachServerTerminal } from "./areas/servers/terminal-transport.js";
 import { runTemporalHealthCheck } from "./areas/system-health/service.js";
 import type { Server } from "node:http";
@@ -20,6 +22,8 @@ import {
 const env = getEnv();
 getRuntimeIntegrations();
 getRuntimeNotifications();
+if ((await getInitialSetupStatus()).setupRequired)
+  console.log(`Towbar installation setup secret: ${installationSetupSecret()}`);
 const server = serve(
   {
     fetch: app.fetch,

@@ -1,3 +1,4 @@
+import { validInstallationSetupSecret } from "./setup-secret.js";
 import { passkeyEnabled } from "./passkeys.js";
 import { requireRecentAuthentication } from "./recent-authentication.js";
 import { and, count, desc, eq, gt, isNull, ne, sql } from "drizzle-orm";
@@ -31,12 +32,15 @@ export async function getInitialSetupStatus() {
   return { setupRequired: !workspace?.count };
 }
 export async function createInitialAdmin(input: {
+  setupSecret: string;
   teamName: string;
   displayName: string;
   email: string;
   password: string;
   dateTimePreferences?: DateTimePreferences;
 }) {
+  if (!validInstallationSetupSecret(input.setupSecret))
+    throw forbidden("The installation setup secret is incorrect");
   const email = input.email.trim().toLowerCase();
   await getTowbarDatabase().transaction(async (tx) => {
     await tx.execute(
