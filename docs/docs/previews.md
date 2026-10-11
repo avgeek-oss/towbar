@@ -37,8 +37,8 @@ environments:
 The generated hostname includes the Service ID, pull request number, and a stable
 Repository/PR hash, for example
 `hello-towbar-pr-42-a1b2c3d4.preview.example.com`. With
-`tls.mode: cloudflare-dns`, Towbar creates and removes the exact proxied DNS
-record. With `tls.mode: direct`, route the Preview base domain to the target
+`tls.mode: cloudflare-dns`, Towbar creates and removes the exact DNS
+record, inheriting the Service's `tls.proxied` setting (proxied by default). With `tls.mode: direct`, route the Preview base domain to the target
 server yourself, normally through wildcard DNS. If Cloudflare proxies a nested
 Preview wildcard, confirm that the zone's certificate covers that hostname;
 DNS wildcard support does not by itself extend Universal SSL certificate

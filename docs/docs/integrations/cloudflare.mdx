@@ -13,7 +13,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
   aria-hidden="true"
 />
 
-Towbar uses one installation-wide Cloudflare integration for owned DNS records, DNS-validated TLS, and tunnel ingress. Create a scoped account API token under Cloudflare's **Manage Account → Account API Tokens** with **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read** for the intended zones. Zone Settings Read lets Towbar verify Full (strict) SSL/TLS mode. The token stays in the root-owned control-plane YAML file; workloads choose their routing policy in the manifest.
+Towbar uses one installation-wide Cloudflare integration for owned DNS records, DNS-validated TLS, and tunnel ingress. Create a scoped account API token under Cloudflare's **Manage Account → Account API Tokens** with **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read** for the intended zones. Zone Settings Read lets Towbar verify Full (strict) SSL/TLS mode for proxied records. The token stays in the root-owned control-plane YAML file; workloads choose their routing policy in the manifest.
 
 ```yaml title="/etc/towbar/config.yml"
 integrations:
@@ -29,6 +29,8 @@ integrations:
 ## Use it from a manifest
 
 For a public workload, configure its domain and choose the relevant DNS or tunnel mode in the [Domains and TLS](/docs/domains-tls#cloudflare-tls) guide. The manifest refers to Cloudflare behavior but never contains the API token. A deployment that requests Cloudflare TLS is blocked when the integration is not configured; the configured status alone does not prove that the token can change a particular zone.
+
+Cloudflare DNS validation uses proxied records by default. Set `tls.proxied: false` in the workload manifest, or the individual Compose service, to use DNS-only records with Caddy HTTPS. These routes bypass the Cloudflare proxy and do not require an edge certificate for the hostname.
 
 ## Verify and troubleshoot
 

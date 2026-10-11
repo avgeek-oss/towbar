@@ -8,6 +8,7 @@ export async function checkPublicEndpoint(
   signal?: AbortSignal,
 ) {
   let lastStatus = 0;
+  let lastError: unknown;
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const requestSignal = signal
       ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
@@ -15,14 +16,42 @@ export async function checkPublicEndpoint(
     const response = await fetch(`https://${domain}${healthPath}`, {
       redirect: "manual",
       signal: requestSignal,
-    }).catch(() => null);
+    }).catch((error: unknown) => {
+      if (signal?.aborted) throw signal.reason;
+      lastError = error;
+      return null;
+    });
     if (response?.ok) return;
     lastStatus = response?.status ?? 0;
+    if (response) lastError = undefined;
     await abortableDelay(2_000, signal);
   }
-  throw new Error(
-    `Public endpoint health check failed with status ${lastStatus}`,
-  );
+  throw new Error(publicHealthFailureMessage(domain, lastStatus, lastError), {
+    cause: lastError,
+  });
+}
+
+export function publicHealthFailureMessage(
+  domain: string,
+  status: number,
+  error: unknown,
+) {
+  const prefix = `Public HTTPS health check failed for '${domain}'`;
+  if (status) return `${prefix}: HTTP ${status}`;
+  const details: string[] = [];
+  for (let depth = 0; error instanceof Error && depth < 4; depth += 1) {
+    const code =
+      "code" in error && typeof error.code === "string"
+        ? error.code
+        : undefined;
+    details.push(code ? `${error.message} (${code})` : error.message);
+    error = error.cause;
+  }
+  const detail = details
+    .join(": ")
+    .replace(/[\r\n]/gu, " ")
+    .slice(0, 300);
+  return `${prefix}: ${detail || "connection failed before an HTTP response was received"}`;
 }
 
 export async function checkOriginEndpoint(

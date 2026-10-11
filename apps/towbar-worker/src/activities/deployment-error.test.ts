@@ -64,3 +64,16 @@ void test("safe non-command errors retain their reason and redact bearer credent
     "Registry rejected Bearer [REDACTED]",
   );
 });
+
+void test("public HTTPS failures retain DNS and certificate details in deployment events", () => {
+  for (const detail of [
+    "getaddrinfo ENOTFOUND ds.oss.example.com (ENOTFOUND)",
+    "certificate does not match the hostname (ERR_TLS_CERT_ALTNAME_INVALID)",
+  ]) {
+    const message = `Public HTTPS health check failed for 'ds.oss.example.com': fetch failed: ${detail}`;
+    assert.equal(
+      deploymentErrorMessage(new Error(message), "verifying_endpoint"),
+      message,
+    );
+  }
+});

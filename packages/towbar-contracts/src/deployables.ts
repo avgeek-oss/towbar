@@ -1,3 +1,4 @@
+import type { TlsPolicy } from "./tls.js";
 import type { z } from "zod";
 import type { AnalyticsConfig } from "./analytics.js";
 import type { ManifestNotifications } from "./notifications.js";
@@ -77,7 +78,7 @@ export type NormalizedApp = {
   rollout?: z.infer<typeof rolloutStrategySchema>;
   server: string;
   sourceBranch: string;
-  tls?: { mode: "direct" | "cloudflare-dns" };
+  tls?: TlsPolicy;
 };
 
 export type NormalizedResource = {
@@ -125,7 +126,7 @@ export type NormalizedResource = {
   name: string;
   server: string;
   sourceBranch: string;
-  tls?: { mode: "direct" | "cloudflare-dns" };
+  tls?: TlsPolicy;
 };
 
 export type NormalizedComposeWorkload = Omit<ComposeWorkload, "autoDeploy"> & {

@@ -11,7 +11,10 @@ import type {
   NormalizedServer,
 } from "@workspace/towbar-core";
 import type { SshSession } from "./ssh.js";
-import { deploymentCloudflareDnsDomains } from "@workspace/towbar-core";
+import {
+  deploymentCloudflareDnsDomains,
+  deploymentCloudflareDnsProxy,
+} from "@workspace/towbar-core";
 
 const cloudflareApiBaseUrl = "https://api.cloudflare.com/client/v4";
 const managedCommentPrefix = "Managed by Towbar:";
@@ -588,7 +591,8 @@ export async function reconcileCloudflareForDeployment(input: {
   handoffDns?: DomainDnsCredentials;
   server: NormalizedServer;
 }) {
-  const dnsDomains = deploymentCloudflareDnsDomains(input.app);
+  const proxiedDomains = deploymentCloudflareDnsProxy(input.app);
+  const dnsDomains = Object.keys(proxiedDomains);
   const domains = [
     ...new Set([
       ...dnsDomains,
@@ -601,7 +605,7 @@ export async function reconcileCloudflareForDeployment(input: {
       throw new Error("Cloudflare DNS credentials were not resolved");
     await verifyCloudflareTlsMode({
       apiToken: input.credentials.apiToken,
-      domains: dnsDomains,
+      domains: dnsDomains.filter((hostname) => proxiedDomains[hostname]),
     });
   }
   return await reconcileCloudflareDns({
@@ -617,6 +621,7 @@ export async function reconcileCloudflareForDeployment(input: {
       (hostname) => !dnsDomains.includes(hostname),
     ),
     serverIp: input.server.ip,
+    proxiedDomains,
   });
 }
 
@@ -632,6 +637,7 @@ export async function reconcileCloudflareDns(input: {
   domains: string[];
   fetcher?: CloudflareFetch;
   serverIp: string;
+  proxiedDomains?: Record<string, boolean>;
 }) {
   const changes: CloudflareDnsChange[] = [];
   const rollback = () => rollbackCloudflareDns(input, changes);
@@ -698,6 +704,7 @@ async function reconcileCloudflareDnsRecords(
     domains: string[];
     fetcher?: CloudflareFetch;
     serverIp: string;
+    proxiedDomains?: Record<string, boolean>;
   },
   changes: CloudflareDnsChange[],
 ) {
@@ -738,7 +745,7 @@ async function reconcileCloudflareDnsRecords(
         : expectedComment,
       content: input.serverIp,
       name: hostname,
-      proxied: true,
+      proxied: input.proxiedDomains?.[hostname] ?? true,
       ttl: 1,
       type: recordType,
     };
@@ -782,12 +789,7 @@ async function reconcileCloudflareDnsRecords(
         `Cloudflare record '${hostname}' is not managed by Towbar for this app`,
       );
     }
-    if (
-      existing.content !== input.serverIp ||
-      existing.type !== recordType ||
-      existing.proxied !== true ||
-      existing.comment !== body.comment
-    ) {
+    if (!sameDnsTarget(existing, body)) {
       changes.push({
         zoneId,
         before: existing,
@@ -875,11 +877,20 @@ function sameDnsRecord(left: CloudflareRecord, right?: CloudflareRecord) {
     right !== undefined &&
     left.id === right.id &&
     normalizeHostname(left.name) === normalizeHostname(right.name) &&
+    sameDnsTarget(left, right) &&
+    (left.ttl ?? 1) === (right.ttl ?? 1)
+  );
+}
+
+function sameDnsTarget(
+  left: CloudflareRecord,
+  right: Pick<CloudflareRecord, "type" | "content" | "comment" | "proxied">,
+) {
+  return (
     left.type === right.type &&
     left.content === right.content &&
     (left.comment ?? "") === (right.comment ?? "") &&
-    (left.proxied ?? false) === (right.proxied ?? false) &&
-    (left.ttl ?? 1) === (right.ttl ?? 1)
+    (left.proxied ?? false) === (right.proxied ?? false)
   );
 }
 

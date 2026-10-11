@@ -72,7 +72,7 @@ async function deploymentFixture(
           console: {
             port: 8080,
             domains: ["console.example.com"],
-            tls: { mode: "cloudflare-dns" },
+            tls: { mode: "cloudflare-dns", proxied: false },
           },
           direct: {
             port: 80,
@@ -313,6 +313,17 @@ void test("Compose DNS TLS prepares Caddy, transfers its token privately and cle
   });
   assert(committed);
   assert.equal(fixture.records.has("obsolete"), false);
+  assert.equal(
+    [...fixture.records.values()].find(
+      ({ name }) => name === "console.example.com",
+    )?.proxied,
+    false,
+  );
+  assert.equal(
+    [...fixture.records.values()].find(({ name }) => name === "api.example.com")
+      ?.proxied,
+    true,
+  );
   assert.deepEqual(
     [...fixture.records.values()].map(({ name }) => name),
     ["api.example.com", "console.example.com"],
@@ -434,7 +445,7 @@ void test("Compose renders Tunnel HTTP and legacy direct TLS alongside DNS TLS",
       domains: ["dns.example.com"],
       ingress: { type: "proxy" },
       upstreams: ["127.0.0.1:40003"],
-      tls: { mode: "cloudflare-dns" },
+      tls: { mode: "cloudflare-dns", proxied: false },
     },
   ]);
   assert.match(caddy, /http:\/\/tunnel\.example\.com/u);

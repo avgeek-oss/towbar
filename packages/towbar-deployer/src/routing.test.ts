@@ -73,6 +73,15 @@ void describe("renderCaddyFragment", () => {
     );
   });
 
+  void it("keeps DNS certificate validation for DNS-only primary and redirect hosts", () => {
+    const deployment = context();
+    deployment.app.tls = { mode: "cloudflare-dns", proxied: false };
+    assert.equal(
+      renderCaddyFragment(deployment, 32_768),
+      renderCaddyFragment(context(), 32_768),
+    );
+  });
+
   void it("lets Caddy use its normal certificate flow in direct mode", () => {
     const fragment = renderCaddyFragment(context("direct"), 32_768);
     assert.doesNotMatch(fragment, /cloudflare/u);

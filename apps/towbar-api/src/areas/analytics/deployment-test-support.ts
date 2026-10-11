@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import {
   type NormalizedApp,
   normalizeServerConfiguration,
 } from "@workspace/towbar-core";
 import {
+  apps,
   deployments,
   previewEnvironments,
 } from "@workspace/towbar-database/schema";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { testDeploymentEnvironment } from "../sources/instance-test-helper.js";
-import { getAnalyticsReport } from "./service.js";
+import { getAnalyticsConfiguration, getAnalyticsReport } from "./service.js";
 
 export async function verifyAnalyticsDeploymentMarkers({
   appId,
@@ -157,4 +159,33 @@ export async function verifyAnalyticsDeploymentMarkers({
     capped.deployments.map((event) => event.id),
     markerRows.slice(0, 20).map((row) => row.id),
   );
+}
+
+export async function verifyAnalyticsProxyConfiguration({
+  appId,
+  serverId,
+  config,
+}: {
+  appId: string;
+  serverId: string;
+  config: NormalizedApp;
+}) {
+  const db = getTowbarDatabase();
+  for (const [tls, proxied] of [
+    [{ mode: "cloudflare-dns" }, true],
+    [{ mode: "cloudflare-dns", proxied: false }, false],
+    [{ mode: "direct" }, false],
+  ] as const) {
+    await db
+      .update(apps)
+      .set({ config: { ...config, tls } })
+      .where(eq(apps.id, appId));
+    assert.equal(
+      (await getAnalyticsConfiguration(serverId)).services.find(
+        ({ id }) => id === appId,
+      )?.cloudflareProxy,
+      proxied,
+    );
+  }
+  await db.update(apps).set({ config }).where(eq(apps.id, appId));
 }

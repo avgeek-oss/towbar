@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { stringify } from "yaml";
-import { deploymentCloudflareDnsDomains } from "./cloudflare-dns.js";
+import {
+  deploymentCloudflareDnsDomains,
+  deploymentCloudflareDnsProxy,
+} from "./cloudflare-dns.js";
 import { normalizeDeploymentManifest } from "./manifest.js";
 import type { DeploymentManifestInput } from "./manifest.js";
 import { resolveRepositoryEnvironment } from "./manifest-v2.js";
@@ -148,5 +151,111 @@ void test("Compose DNS routes retain domain ownership checks across services and
         },
       ],
     }),
+  );
+});
+
+void test("Compose DNS-only overrides preserve TLS mode and proxied siblings", () => {
+  const { server: _server, ...defaults } = compose;
+  const { manifest } = resolveRepositoryEnvironment({
+    root: stringify({ version: 2, environments: { production: {} } }),
+    branch: "main",
+    environment: "production",
+    files: [
+      {
+        path: ".towbar/services/stack.compose.yml",
+        content: stringify({
+          ...defaults,
+          services: {
+            ...defaults.services,
+            web: { ...defaults.services.web, tls: { mode: "cloudflare-dns" } },
+          },
+          environments: {
+            production: {
+              server: compose.server,
+              services: { api: { tls: { proxied: false } } },
+            },
+          },
+        }),
+      },
+    ],
+  });
+  const app = manifest.compose![0]!;
+  assert.deepEqual(app.services.api?.tls, {
+    mode: "cloudflare-dns",
+    proxied: false,
+  });
+  assert.deepEqual(deploymentCloudflareDnsProxy(app), {
+    "api.example.com": false,
+    "web.example.com": true,
+  });
+});
+
+void test("services and datastores preserve DNS-only policy for primary and redirect domains", () => {
+  const route = {
+    server: "192.0.2.10",
+    container: { port: 8080 },
+    health: { type: "http", path: "/" },
+    domains: {
+      primary: "app.example.com",
+      redirects: [{ host: "www.app.example.com" }],
+    },
+    tls: { mode: "cloudflare-dns", proxied: false },
+  } satisfies Pick<
+    NonNullable<DeploymentManifestInput["apps"]>[number],
+    "server" | "container" | "health" | "domains" | "tls"
+  >;
+  const manifest = normalizeDeploymentManifest({
+    version: 2,
+    apps: [{ ...route, id: "app", name: "App", dockerfile: "Dockerfile" }],
+    resources: [
+      {
+        ...route,
+        id: "store",
+        name: "Store",
+        type: "clickhouse",
+        domains: { primary: "store.example.com" },
+      },
+    ],
+  });
+  assert.deepEqual(deploymentCloudflareDnsProxy(manifest.apps[0]!), {
+    "app.example.com": false,
+    "www.app.example.com": false,
+  });
+  assert.deepEqual(deploymentCloudflareDnsProxy(manifest.resources![0]!), {
+    "store.example.com": false,
+  });
+  assert.throws(
+    () =>
+      normalizeDeploymentManifest({
+        version: 2,
+        apps: [
+          {
+            ...route,
+            id: "app",
+            name: "App",
+            dockerfile: "Dockerfile",
+            tls: { mode: "direct", proxied: false },
+          },
+        ],
+      }),
+    /only supported with cloudflare-dns/,
+  );
+  assert.throws(
+    () =>
+      normalizeDeploymentManifest({
+        version: 2,
+        compose: [
+          {
+            ...compose,
+            services: {
+              api: {
+                ...compose.services.api,
+                tls: { mode: "direct", proxied: true },
+              },
+            },
+          },
+        ],
+      }),
+    /only supported with cloudflare-dns/,
   );
 });

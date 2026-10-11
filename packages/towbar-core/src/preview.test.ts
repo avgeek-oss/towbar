@@ -91,3 +91,14 @@ void test("builds Preview snapshots without production or shared secrets", () =>
     "post-deploy.js",
   ]);
 });
+
+void test("Preview snapshots retain the service's DNS-only policy", () => {
+  const snapshot = createPreviewAppSnapshot(
+    { ...app, tls: { mode: "cloudflare-dns", proxied: false } },
+    {
+      branch: "feature/dns-only",
+      hostname: "example-pr-42.preview.example.com",
+    },
+  );
+  assert.deepEqual(snapshot.tls, { mode: "cloudflare-dns", proxied: false });
+});

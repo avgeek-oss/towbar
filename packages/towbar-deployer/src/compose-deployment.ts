@@ -39,6 +39,7 @@ import { collectSensitiveValues } from "./secrets.js";
 import { configureCaddyScript } from "./remote-scripts.js";
 import { validateComposeRepository } from "./compose-security.js";
 import {
+  type NormalizedComposeWorkload,
   deploymentCloudflareDnsDomains,
   isNormalizedCompose,
 } from "@workspace/towbar-core";
@@ -791,7 +792,7 @@ export async function executeComposeDeployment(input: {
       domains: string[];
       ingress: { type: "proxy" | "cloudflare-tunnel" };
       service: string;
-      tls?: { mode: "direct" | "cloudflare-dns" };
+      tls?: NormalizedComposeWorkload["services"][string]["tls"];
       upstreams: string[];
     }>;
     const servicesLine = stdout
@@ -1010,7 +1011,7 @@ export function renderComposeCaddy(
     domains: string[];
     ingress: { type: "proxy" | "cloudflare-tunnel" };
     upstreams: string[];
-    tls?: { mode: "direct" | "cloudflare-dns" } | null;
+    tls?: NormalizedComposeWorkload["services"][string]["tls"] | null;
   }>,
 ) {
   const lines: string[] = [];
