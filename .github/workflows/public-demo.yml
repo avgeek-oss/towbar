@@ -41,7 +41,7 @@ jobs:
           git merge-base --is-ancestor "$commit" origin/main
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
           git checkout --detach "$commit"
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version-file: .nvmrc
       - run: node --test tools/demo-deploy.test.mjs
@@ -52,7 +52,7 @@ jobs:
         run: |
           docker build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN --target demo --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
           bash tools/test-public-demo.sh
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

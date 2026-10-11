@@ -23,6 +23,6 @@
     "@workspace/typescript-config": "workspace:*",
     "tsx": "^4.23.15",
     "typescript": "catalog:",
-    "react-email": "6.11.0"
+    "react-email": "6.11.1"
   }
 }
