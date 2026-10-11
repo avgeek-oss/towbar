@@ -129,7 +129,7 @@ export async function assertAdminConsent(
         const response = await request(
           `/v1/oauth/consent/${started.id}`,
           headers,
-          { allow: true },
+          { allow: true, accessLevel: "admin" },
         );
         assert.equal(response.status, 403);
         assert.equal(
@@ -152,6 +152,7 @@ export async function assertAdminConsent(
         const approved = await ok(
           await request(`/v1/oauth/consent/${started.id}`, headers, {
             allow: true,
+            accessLevel: "admin",
           }),
         );
         assert(
@@ -177,6 +178,7 @@ export async function assertAdminConsent(
             (
               await request(`/v1/oauth/consent/${denied.id}`, headers, {
                 allow: true,
+                accessLevel: "admin",
               })
             ).status,
             400,
@@ -205,21 +207,7 @@ export async function assertAdminConsent(
         .set({ role: "member" })
         .where(eq(workspaceMembers.userId, user.id));
       try {
-        const current = await keys.findApiKey(issued.access_token);
-        assert(current);
-        assert(!current.user.capabilities.includes("deployment.create"));
-        const mcp = await connectTestMcpClient(issued.access_token, (r) =>
-          app.fetch(r),
-        );
-        try {
-          assert(
-            !(await mcp.listTools()).tools.some(
-              (tool) => tool.name === "towbar_workload_deploy",
-            ),
-          );
-        } finally {
-          await mcp.close();
-        }
+        assert.equal(await keys.findApiKey(issued.access_token), null);
       } finally {
         await db
           .update(workspaceMembers)
@@ -227,6 +215,69 @@ export async function assertAdminConsent(
           .where(eq(workspaceMembers.userId, user.id));
       }
       await keys.revokeApiKey(user, principal.key.id);
+    },
+  );
+}
+
+export async function assertUserSelectedConsent<Grant>(
+  t: TestContext,
+  context: {
+    db: ReturnType<typeof getTowbarDatabase>;
+    user: AuthenticatedUser;
+    consent: (
+      extra: Record<string, string>,
+      selected: "read" | "write" | "admin",
+    ) => Promise<Grant>;
+    token: (grant: Grant) => Promise<Response>;
+    ok: ReturnType<typeof settingsTestClient>["ok"];
+  },
+) {
+  const { db, user, consent, token, ok } = context;
+  await t.test(
+    "user choice overrides requested scope and promotion permanently revokes access and pending codes",
+    async () => {
+      const adminGrant = await consent({ scope: "mcp:read" }, "admin");
+      const adminTokens = (await (
+        await ok(await token(adminGrant))
+      ).json()) as { access_token: string; scope: string };
+      assert.equal(adminTokens.scope, "mcp:read mcp:write mcp:admin");
+      assert(
+        (
+          await keys.findApiKey(adminTokens.access_token)
+        )?.user.capabilities.includes("deployment.create"),
+      );
+      const readGrant = await consent(
+        { scope: "mcp:read mcp:write mcp:admin" },
+        "read",
+      );
+      const readTokens = (await (await ok(await token(readGrant))).json()) as {
+        access_token: string;
+        scope: string;
+      };
+      assert.equal(readTokens.scope, "mcp:read");
+      assert(
+        !(
+          await keys.findApiKey(readTokens.access_token)
+        )?.user.capabilities.includes("deployment.create"),
+      );
+      await db
+        .update(workspaceMembers)
+        .set({ role: "member" })
+        .where(eq(workspaceMembers.userId, user.id));
+      assert.equal(await keys.findApiKey(adminTokens.access_token), null);
+      const memberGrant = await consent({}, "read");
+      const memberTokens = (await (
+        await ok(await token(memberGrant))
+      ).json()) as { access_token: string };
+      const pending = await consent({}, "read");
+      await db
+        .update(workspaceMembers)
+        .set({ role: "admin" })
+        .where(eq(workspaceMembers.userId, user.id));
+      assert.equal(await keys.findApiKey(memberTokens.access_token), null);
+      assert.equal((await token(pending)).status, 400);
+      assert.equal(await keys.findApiKey(adminTokens.access_token), null);
+      assert.equal(await keys.findApiKey(readTokens.access_token), null);
     },
   );
 }

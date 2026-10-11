@@ -1,11 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ButtonLink } from "@avgeek-oss/design-system/buttons/button";
 import { Alert } from "@avgeek-oss/design-system/feedback/alert";
 import { QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { AuthFrame, AuthBrand } from "./auth-frame";
-import { McpAuthorization } from "@avgeek-oss/design-system";
+import {
+  McpAuthorization,
+  type McpAccessLevel,
+} from "@avgeek-oss/design-system";
 import { McpClientLogo } from "./mcp-client-logo";
 import { config } from "@/lib/config";
 import { api } from "@/lib/api";
@@ -35,6 +38,8 @@ function ConsentRequest({ id }: { id: string | null }) {
   const [error, setError] = useState<string>();
   const [login, setLogin] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [accessLevel, setAccessLevel] = useState<McpAccessLevel>("read");
+  const inFlight = useRef(false);
   const endpoint = `${config.apiBaseUrl}/v1/oauth/consent/${encodeURIComponent(id ?? "")}`;
   const self = `/oauth/consent?request=${encodeURIComponent(id ?? "")}`;
   useEffect(() => {
@@ -64,12 +69,14 @@ function ConsentRequest({ id }: { id: string | null }) {
     return () => controller.abort();
   }, [endpoint, id]);
   async function decide(allow: boolean) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(undefined);
     try {
       const body = await api.post<{ redirectTo: string }>(
         new URL(endpoint).pathname,
-        { allow },
+        allow ? { allow, accessLevel } : { allow },
       );
       window.location.assign(body.redirectTo);
     } catch (cause) {
@@ -77,10 +84,9 @@ function ConsentRequest({ id }: { id: string | null }) {
         cause instanceof Error ? cause.message : "Unable to connect this app",
       );
       setBusy(false);
+      inFlight.current = false;
     }
   }
-  const write = details?.scope.includes("mcp:write");
-  const admin = details?.scope.includes("mcp:admin");
   if (details && !login)
     return (
       <>
@@ -92,43 +98,21 @@ function ConsentRequest({ id }: { id: string | null }) {
           productName="Towbar"
           isPending={busy}
           error={error}
-          approvalBlockedReason={
-            admin && details.user.role !== "admin"
-              ? "Only an Administrator can grant administrative access. Reconnect with a lower access level."
-              : write && details.user.role === "viewer"
-                ? "Your Viewer role cannot grant edit access. Reconnect with read-only access."
-                : undefined
+          clientName={details.clientName}
+          clientLogo={
+            <McpClientLogo client={details.clientLogo ?? "unknown"} />
           }
-          onAllow={() => void decide(true)}
+          accessLevel={accessLevel}
+          availableAccessLevels={
+            details.user.role === "admin"
+              ? ["read", "write", "admin"]
+              : details.user.role === "viewer"
+                ? ["read"]
+                : ["read", "write"]
+          }
+          onAccessLevelChange={setAccessLevel}
+          onApprove={() => void decide(true)}
           onDeny={() => void decide(false)}
-          details={{
-            ...details,
-            clientLogo: (
-              <McpClientLogo client={details.clientLogo ?? "unknown"} />
-            ),
-            account: details.user,
-            permissionSummary: admin
-              ? "Wants administrative access to Towbar."
-              : `Wants to ${write ? "read and edit" : "read"} your Towbar data.`,
-            accessDescription: `${admin ? "Can deploy and operate services, sync repositories, manage servers, change secrets, and create or restore backups. These actions can change or remove infrastructure." : write ? "Can view and make changes allowed by your Towbar role, including updating secrets." : "Can only view data allowed by your Towbar role."} Cannot manage accounts, open SSH terminals, or reveal stored credentials.`,
-            accessLifetime: "30 days",
-            revocationDescription:
-              "Revoke it anytime in Account Settings → MCP Connections.",
-            restrictions: admin
-              ? "Only your approved permissions are granted. They remain limited by your current team role. Confirm your identity if prompted."
-              : "Administrative access is excluded.",
-            identityDescription:
-              details.clientTrust === "metadata-document"
-                ? `App details published by ${new URL(details.clientId).hostname}. This does not verify the app making this request.`
-                : "The app supplied its own name. Towbar has not verified its identity.",
-            deviceConnectionNotice: [
-              "localhost",
-              "127.0.0.1",
-              "[::1]",
-            ].includes(new URL(details.redirectUri).hostname)
-              ? "This opens an app on your device. Only continue if you started this connection yourself."
-              : undefined,
-          }}
         />
       </>
     );

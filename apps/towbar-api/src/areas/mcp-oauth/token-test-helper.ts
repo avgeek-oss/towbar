@@ -27,7 +27,15 @@ export async function issueTestMcpToken(
   };
   const started = await beginAuthorization(params);
   assert(started.requestId);
-  const callback = new URL(await decideConsent(started.requestId, user, true));
+  const callback = new URL(
+    await decideConsent(
+      started.requestId,
+      user,
+      true,
+      null,
+      access === "edit" ? "write" : "read",
+    ),
+  );
   const issued = await exchangeCode(client.client_id, {
     ...params,
     grant_type: "authorization_code",

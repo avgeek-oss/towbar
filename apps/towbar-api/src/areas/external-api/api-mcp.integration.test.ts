@@ -120,8 +120,8 @@ void test(
       name: "Read",
       access: "read",
     });
-    const mcpRead = await issueTestMcpToken(user, "read");
-    const mcpWrite = await issueTestMcpToken(user, "edit");
+    let mcpRead = await issueTestMcpToken(user, "read");
+    let mcpWrite = await issueTestMcpToken(user, "edit");
     const request = async (
       path: string,
       token?: string,
@@ -473,37 +473,18 @@ void test(
               (await request("/integrations", write.token)).status,
               403,
             );
-            const memberClient = await connect(mcpWrite.token);
-            try {
-              const available = await memberClient.listTools();
-              assert(
-                !available.tools.some(
-                  (tool) => tool.name === "towbar_secrets_update",
-                ),
-              );
-              await assert.rejects(
-                () =>
-                  memberClient.callTool({
-                    name: "towbar_secrets_update",
-                    arguments: {
-                      scope: "workspace",
-                      environment: "preview",
-                      stage: "build",
-                      expectedRevision: null,
-                      set: { DENIED: "No" },
-                    },
-                  }),
-                /403|insufficient_scope/,
-              );
-            } finally {
-              await memberClient.close();
-            }
+            await assert.rejects(() => connect(mcpWrite.token), { code: 401 });
+            await assert.rejects(() => connect(mcpRead.token), { code: 401 });
           } finally {
             await db
               .update(workspaceMembers)
               .set({ role: "admin" })
               .where(eq(workspaceMembers.userId, userId));
           }
+          await assert.rejects(() => connect(mcpWrite.token), { code: 401 });
+          await assert.rejects(() => connect(mcpRead.token), { code: 401 });
+          mcpRead = await issueTestMcpToken(user, "read");
+          mcpWrite = await issueTestMcpToken(user, "edit");
           await db
             .update(users)
             .set({ disabledAt: new Date() })
@@ -517,11 +498,13 @@ void test(
       );
       await t.test(
         "Scout rules enforce role writes, read-only keys, and tenant boundaries through REST and MCP",
-        () =>
-          assertScoutApiAccess({
+        async () => {
+          await assertScoutApiAccess({
             request,
             connect,
             mcpWrite,
+            issueMemberToken: () =>
+              issueTestMcpToken({ ...user, workspaceRole: "member" }, "edit"),
             read,
             write,
             ownedServerId,
@@ -531,7 +514,10 @@ void test(
                 .update(workspaceMembers)
                 .set({ role })
                 .where(eq(workspaceMembers.userId, userId)),
-          }),
+          });
+          mcpRead = await issueTestMcpToken(user, "read");
+          mcpWrite = await issueTestMcpToken(user, "edit");
+        },
       );
       await t.test(
         "MCP inspects a Compose service through the app read path",

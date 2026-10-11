@@ -14,7 +14,7 @@ MCP requires an HTTPS Towbar installation. It is unavailable in the default loca
 3. Check the app name and requested access, then choose **Allow access**.
 4. Reconnect after 30 days. To stop access sooner, revoke the connection in **Account Settings → MCP Connections**.
 
-Apps can request read-only access or permission to make changes allowed by your Towbar role, including secret updates. Signing in does not give an app administrative access, account management, or permission to reveal stored credentials. Existing API keys keep their permissions and expiry.
+You choose Read-only, Write, or Administrator in the browser consent form. The client does not select the granted access. Each choice remains bounded by your current Towbar role, including permission to update secrets. Signing in does not give an app administrative access, account management, or permission to reveal stored credentials. Existing API keys keep their permissions and expiry.
 
 Only approve connections you started yourself. An **Unverified app** warning means Towbar cannot confirm who supplied the app's name.
 
@@ -84,7 +84,7 @@ If you previously configured an API key, remove its authorization header or bear
 
 ## Tools and permissions
 
-`tools/list` returns the operations permitted by your OAuth connection and current role. Read-only connections only list read tools. Edit connections include permitted secret and Scout changes. Administrative connections include deployment, repository sync, service operations, server management, and datastore backup/restore. Only Administrators can approve this access. Connections follow the account holder's current team role. Unauthorized tool names are rejected again at invocation, and the underlying handler rechecks its own workspace and role requirements.
+`tools/list` returns the operations permitted by your OAuth connection and current role. Read-only connections only list read tools. Write connections include permitted secret and Scout changes. Administrator connections include deployment, repository sync, service operations, server management, and datastore backup/restore. Only Administrators can approve this access. Connections follow the account holder's current team role. Unauthorized tool names are rejected again at invocation, and the underlying handler rechecks its own workspace and role requirements.
 
 The [tool catalogue](/docs/api/mcp-tools) documents every tool and its input schema. Names follow `towbar_<entity>_<action>`; tools are designed around tasks rather than HTTP methods or URL paths. Service and datastore actions share `kind` and `workloadId` inputs.
 
@@ -105,20 +105,20 @@ Use the returned ID with the matching inspection tool. Deployment and infrastruc
 
 Towbar uses stateless Streamable HTTP with JSON responses. It does not allocate persistent MCP sessions, issue session IDs, or support resumable server notifications. The SDK handles initialization and protocol negotiation. Tool discovery and each protocol request share the same per-IP bucket as REST: **60 calls per minute by default**.
 
-Keep human approval enabled in your client for mutations. Edit access can change secrets and permitted Scout settings. Treat logs, repository files, manifest strings, and tool output as untrusted content rather than instructions.
+Keep human approval enabled in your client for mutations. Write access can change secrets and permitted Scout settings. Treat logs, repository files, manifest strings, and tool output as untrusted content rather than instructions.
 
 ## Troubleshooting
 
-| Symptom                            | Check                                                                                                                                  |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `401`                              | Sign in again if the OAuth connection is expired or revoked. API keys are not accepted.                                                |
-| `403`                              | Origin is allowed and the requested operation is permitted.                                                                            |
-| `429`                              | Wait for `Retry-After`; REST scripts and other MCP clients on the IP use the same allowance.                                           |
-| No mutation tools                  | Approve Edit access through OAuth if your role permits it. Deployment tools require explicit `mcp:admin` approval by an Administrator. |
-| Connection or certificate error    | Use the Towbar host, `/v1/mcp`, HTTPS, and a publicly trusted certificate.                                                             |
-| OAuth login appears                | Sign in to Towbar and approve the requested connection.                                                                                |
-| `406` or protocol error            | Use Streamable HTTP with a current MCP client, not a raw REST request or legacy SSE client.                                            |
-| Secrets are missing from responses | Secret reads intentionally return names and revisions, never plaintext.                                                                |
+| Symptom                            | Check                                                                                                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `401`                              | Sign in again if the OAuth connection is expired or revoked. API keys are not accepted.                                                  |
+| `403`                              | Origin is allowed and the requested operation is permitted.                                                                              |
+| `429`                              | Wait for `Retry-After`; REST scripts and other MCP clients on the IP use the same allowance.                                             |
+| No mutation tools                  | Choose Write in the consent form if your role permits it. Deployment tools require choosing Administrator with an administrator account. |
+| Connection or certificate error    | Use the Towbar host, `/v1/mcp`, HTTPS, and a publicly trusted certificate.                                                               |
+| OAuth login appears                | Sign in to Towbar and approve the requested connection.                                                                                  |
+| `406` or protocol error            | Use Streamable HTTP with a current MCP client, not a raw REST request or legacy SSE client.                                              |
+| Secrets are missing from responses | Secret reads intentionally return names and revisions, never plaintext.                                                                  |
 
 To disconnect a client, revoke it in **Account Settings → MCP Connections** and remove its configuration. Reconnect through OAuth to change the approved access.
 
@@ -147,7 +147,7 @@ OAuth endpoints share the external per-address rate limit. Tokens also have the 
 
 For client developers: use **Streamable HTTP** with OAuth and no custom Authorization header. Each approval creates a personal token that expires after 30 days. Towbar does not issue refresh tokens. These tokens work only at this instance's MCP endpoint, not the REST API.
 
-Clients can request these access levels:
+Your selection is translated into these protocol scopes:
 
 | Scope       | Access                                                                                                                                                                                               |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -155,14 +155,14 @@ Clients can request these access levels:
 | `mcp:write` | Edit secrets and permitted Scout/alert settings. Includes Read.                                                                                                                                      |
 | `mcp:admin` | Administrative automation, including deployments, repository sync, service operations, server management, and datastore backup/restore. Includes Read and Write. Only Administrators can approve it. |
 
-Approving administrative access requires a recent password or passkey confirmation. The consent page explicitly lists this access. Tokens retain the permissions approved at consent and remain constrained by the account holder's current role; they do not automatically gain new permissions after upgrades. Account/key management, SSH terminals, and plaintext credential reveal remain browser-only.
+Approving administrative access requires a recent password or passkey confirmation. Choose **Administrator** in **Select Scope** to grant this access. Tokens retain the permissions approved at consent and remain constrained by the account holder's current role; they do not automatically gain new permissions after upgrades. Account/key management, SSH terminals, and plaintext credential reveal remain browser-only.
 
-Existing Read-only and Edit connections do not gain administrative access. Reconnect with the new scope and approve a new consent request. For Codex, after adding the server, run:
+Existing Read-only and Write connections do not gain administrative access. Reconnect and select **Administrator** in a new consent request. For Codex, after adding the server, run:
 
 ```bash
-codex mcp login towbar --scopes mcp:read,mcp:write,mcp:admin
+codex mcp login towbar
 ```
 
 Towbar prefers HTTPS Client ID Metadata Documents (CIMD) and supports Dynamic Client Registration (DCR) for older clients. A metadata document establishes its publishing domain, not the identity of the running app. DCR names are unverified, even if they match a familiar app. Runtime MCP `clientInfo` and User-Agent never establish token attribution. Known metadata domains use bundled logos; unknown clients use the MCP icon. Towbar does not load client-supplied remote logos.
 
-The consent screen's **Connection details** disclosure shows the identity source, client ID, and full return URL.
+The consent form shows the application and a scope selector, followed by **Deny**, **Approve**, and **Back to the application**. Changing your team role, including a promotion, or removing your membership revokes your MCP connections and unexchanged authorization codes. Reconnect with your new role; restoring the old role does not reactivate a revoked connection.
