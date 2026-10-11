@@ -220,7 +220,13 @@ test(
       });
       const [{ count }] =
         await client`select count(*)::int as count from drizzle.__drizzle_migrations`;
-      assert.equal(count, 25);
+      assert.equal(count, 26);
+      const roleTriggers =
+        await client`select tgname from pg_trigger where tgname = 'towbar_revoke_mcp_on_role_change' and not tgisinternal`;
+      assert.deepEqual(
+        roleTriggers.map((row) => row.tgname),
+        ["towbar_revoke_mcp_on_role_change"],
+      );
       const roles =
         await client`select enumlabel from pg_enum join pg_type on pg_type.oid = enumtypid where typname = 'towbar_workspace_role' order by enumsortorder`;
       assert.deepEqual(
