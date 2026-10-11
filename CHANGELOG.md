@@ -3,6 +3,24 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.41] - 2026-10-12
+
+### Added
+
+- Support DNS-only Cloudflare routing with `tls.proxied: false` while retaining
+  automatic DNS records and Caddy certificates.
+
+### Changed
+
+- Show consistent MCP client names, icons, and connection tables on desktop
+  and mobile.
+- Include deployment status in the deployment overview.
+
+### Fixed
+
+- Report the underlying DNS, connection, or TLS failure when public endpoint
+  health checks cannot connect, instead of reporting HTTP status 0.
+
 ## [2.0.40] - 2026-10-11
 
 ### Fixed
