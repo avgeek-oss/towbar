@@ -344,6 +344,12 @@ export function DeploymentDetail() {
               <div className="content-grid">
                 <div className="content-grid lg:grid-cols-2">
                   <Attributes columns={2} title="Deployment" variant="card">
+                    <Attributes.Item label="Status">
+                      <StatusBadge
+                        status={displayStatus}
+                        tooltip={deploymentStatusTooltip(item)}
+                      />
+                    </Attributes.Item>
                     <Attributes.Item label="Action">
                       {item.kind === "rollback" ? "Rollback" : "Deploy"}
                     </Attributes.Item>
