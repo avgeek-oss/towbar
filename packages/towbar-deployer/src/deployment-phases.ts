@@ -19,6 +19,7 @@ import {
   createSourceContextArchive,
 } from "./build-context.js";
 import { parseCandidatePort } from "./candidate-port.js";
+import { rollingMemoryHeadroomScript } from "./rolling-headroom.js";
 import {
   deploymentCleanupId,
   deploymentRuntimeId,
@@ -693,40 +694,8 @@ async function preflightRollingHeadroom(
   );
   if (additionalContainers === 0) return;
   await input.session.run(
-    String.raw`set -euo pipefail
-memory="$1"
-cpus="$2"
-surge="$3"
-required_memory="$(python3 - "$memory" "$surge" <<'PYTHON'
-import re, sys
-value = sys.argv[1].lower()
-match = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)([kmgt]i?b?|b)", value)
-if not match:
-    raise SystemExit("Invalid memory limit")
-amount = float(match.group(1))
-unit = match.group(2)
-powers = {"b": 0, "k": 1, "kb": 1, "kib": 1, "m": 2, "mb": 2, "mib": 2, "g": 3, "gb": 3, "gib": 3, "t": 4, "tb": 4, "tib": 4}
-print(int(amount * (1024 ** powers[unit]) * int(sys.argv[2])))
-PYTHON
-)"
-available_memory="$(( $(awk '/MemAvailable:/ {print $2}' /proc/meminfo) * 1024 ))"
-test "$available_memory" -ge "$required_memory" || {
-  echo "Insufficient memory headroom for the declared rolling surge" >&2
-  exit 75
-}
-required_cpu_millis="$(python3 - "$cpus" "$surge" <<'PYTHON'
-import math, sys
-print(math.ceil(float(sys.argv[1]) * int(sys.argv[2]) * 1000))
-PYTHON
-)"
-used_cpu_millis="$(docker ps -q | xargs -r docker inspect --format '{{.HostConfig.NanoCpus}}' | awk '{ total += $1 / 1000000 } END { printf "%.0f", total }')"
-available_cpu_millis="$(( $(nproc) * 1000 - used_cpu_millis ))"
-test "$available_cpu_millis" -ge "$required_cpu_millis" || {
-  echo "Insufficient CPU headroom for the declared rolling surge" >&2
-  exit 75
-}
-`,
-    [resources.memory, String(resources.cpus), String(additionalContainers)],
+    rollingMemoryHeadroomScript,
+    [resources.memory, String(additionalContainers)],
     { signal: input.signal, timeoutMs: 30_000 },
   );
 }

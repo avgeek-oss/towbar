@@ -38,6 +38,12 @@ flowchart LR
 
 The details vary by workload and configured hooks. Use the operation's actual stage output when diagnosing a failure.
 
+## Resource limits during rolling deployments
+
+Container CPU limits cap usage; they do not reserve cores. The combined CPU limits of workloads on a server can exceed its CPU count. When workloads are busy at the same time, they share the available CPU capacity. Towbar keeps each container’s CPU limit in place without blocking deployment based on the sum of those limits.
+
+Before starting rolling candidates, Towbar checks available host memory against the memory limits of the additional containers. Candidate health checks must still pass before promotion.
+
 ## Automatic deployments
 
 Services and datastores are manual unless `autoDeploy` is enabled. `autoDeploy: true` treats commits as deployment inputs. Services can narrow their inputs with repository globs:
