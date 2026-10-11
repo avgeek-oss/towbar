@@ -41,11 +41,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0023_analytics_storage_samples.sql",
     "0024_server_lifecycle_events.sql",
     "0025_mcp_admin_consent.sql",
+    "0026_mcp_role_revocation.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 25);
+  assert.equal(journal.entries.length, 26);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");
@@ -72,6 +73,7 @@ test("migration journal keeps notification destinations and failure subscription
   assert.equal(journal.entries[17].tag, "0018_domain_claims");
   assert.equal(journal.entries[23].tag, "0024_server_lifecycle_events");
   assert.equal(journal.entries[24].tag, "0025_mcp_admin_consent");
+  assert.equal(journal.entries[25].tag, "0026_mcp_role_revocation");
   const failureSubscriptions = await readFile(
     `${migrationsFolder}/0011_notification_deployment_failures.sql`,
     "utf8",

@@ -60,7 +60,7 @@ export async function assertSdkOAuthFlow(
   const approval = await app.request(`/v1/oauth/consent/${id}`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ allow: true }),
+    body: JSON.stringify({ allow: true, accessLevel: "read" }),
   });
   assert.equal(approval.status, 200, await approval.clone().text());
   const callback = new URL(

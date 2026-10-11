@@ -176,6 +176,13 @@
       "when": 1791650000000,
       "tag": "0025_mcp_admin_consent",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791730000000,
+      "tag": "0026_mcp_role_revocation",
+      "breakpoints": true
     }
   ]
 }

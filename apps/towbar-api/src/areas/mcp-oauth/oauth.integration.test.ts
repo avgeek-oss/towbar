@@ -1,5 +1,8 @@
 import { installationSetupSecret } from "../auth/setup-secret.js";
-import { assertAdminConsent } from "./admin-consent-test-helper.js";
+import {
+  assertAdminConsent,
+  assertUserSelectedConsent,
+} from "./admin-consent-test-helper.js";
 import { assertOAuthDiscovery, assertSdkOAuthFlow } from "./sdk-test-helper.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -103,7 +106,10 @@ void test(
             : "",
       };
     };
-    const consent = async (extra: Record<string, string> = {}) => {
+    const consent = async (
+      extra: Record<string, string> = {},
+      selected?: "read" | "write" | "admin",
+    ) => {
       const started = await start(extra);
       assert.equal(started.response.status, 302, await started.response.text());
       assert.equal(
@@ -113,6 +119,13 @@ void test(
       const response = await ok(
         await request(`/v1/oauth/consent/${started.id}`, headers, {
           allow: true,
+          accessLevel:
+            selected ??
+            (extra.scope?.includes("mcp:admin")
+              ? "admin"
+              : extra.scope?.includes("mcp:write")
+                ? "write"
+                : "read"),
         }),
       );
       const callback = new URL(
@@ -154,6 +167,7 @@ void test(
       return { ...body, grant };
     };
     try {
+      await assertUserSelectedConsent(t, { db, user, consent, token, ok });
       await t.test(
         "installed MCP SDK completes discovery, DCR, PKCE, consent, and tool access",
         () => assertSdkOAuthFlow(app, origin, headers),
@@ -266,6 +280,7 @@ void test(
             (
               await request(`/v1/oauth/consent/${started.id}`, new Headers(), {
                 allow: true,
+                accessLevel: "read",
               })
             ).status,
             401,
@@ -276,6 +291,7 @@ void test(
             (
               await request(`/v1/oauth/consent/${started.id}`, crossOrigin, {
                 allow: true,
+                accessLevel: "read",
               })
             ).status,
             403,
@@ -304,6 +320,7 @@ void test(
             (
               await request(`/v1/oauth/consent/${started.id}`, headers, {
                 allow: true,
+                accessLevel: "read",
               })
             ).status,
             400,
@@ -514,13 +531,13 @@ void test(
             .where(eq(workspaceMembers.userId, user.id));
           try {
             const current = await keys.findApiKey(issued.access_token);
-            assert(current);
-            assert(!current.user.capabilities.includes("secret.update"));
+            assert.equal(current, null);
             const started = await start({ scope: "mcp:write" });
             assert.equal(
               (
                 await request(`/v1/oauth/consent/${started.id}`, headers, {
                   allow: true,
+                  accessLevel: "write",
                 })
               ).status,
               400,

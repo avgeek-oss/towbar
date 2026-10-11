@@ -201,8 +201,13 @@ mcpOAuthRoutes.post("/v1/oauth/consent/:id", async (c) => {
   if (!c.req.header("content-type")?.startsWith("application/json"))
     throw new OAuthError("invalid_request", "Use application/json");
   const body = z
-    .object({ allow: z.boolean() })
-    .strict()
+    .discriminatedUnion("allow", [
+      z.strictObject({
+        allow: z.literal(true),
+        accessLevel: z.enum(["read", "write", "admin"]),
+      }),
+      z.strictObject({ allow: z.literal(false) }),
+    ])
     .safeParse(await c.req.json());
   if (!body.success)
     throw new OAuthError("invalid_request", "Choose whether to allow access");
@@ -212,6 +217,7 @@ mcpOAuthRoutes.post("/v1/oauth/consent/:id", async (c) => {
       sessionUser(c),
       body.data.allow,
       c.get("currentSessionId"),
+      body.data.allow ? body.data.accessLevel : undefined,
     ),
   });
 });

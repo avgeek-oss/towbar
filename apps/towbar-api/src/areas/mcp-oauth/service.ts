@@ -136,6 +136,7 @@ export function decideConsent(
   user: AuthenticatedUser,
   allow: boolean,
   sessionId: string | null = null,
+  accessLevel?: "read" | "write" | "admin",
 ) {
   return getTowbarDatabase().transaction(async (tx) => {
     await lockTeam(tx, user.workspaceId);
@@ -162,7 +163,18 @@ export function decideConsent(
         .where(eq(mcpOAuthRequests.id, id));
       return authorizationResponse(request, { error: "access_denied" });
     }
-    const { access, includeAdmin } = oauthKeyPermissions(request.scope);
+    if (!accessLevel)
+      throw new OAuthError(
+        "invalid_request",
+        "Choose an access level before approving.",
+      );
+    const scope =
+      accessLevel === "admin"
+        ? "mcp:read mcp:write mcp:admin"
+        : accessLevel === "write"
+          ? "mcp:read mcp:write"
+          : "mcp:read";
+    const { access, includeAdmin } = oauthKeyPermissions(scope);
     if (
       !canCreateKey(member.role, {
         scope: "personal",
@@ -181,6 +193,7 @@ export function decideConsent(
       .set({
         userId: user.id,
         workspaceId: user.workspaceId,
+        scope,
         grants: keyCeiling(member.role, access, includeAdmin),
         codeHash: digest(code),
         expiresAt: new Date(Date.now() + 120_000),
