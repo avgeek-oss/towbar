@@ -3,6 +3,14 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.40] - 2026-10-11
+
+### Fixed
+
+- Allow rolling deployments when combined container CPU limits exceed the host
+  CPU count. Keep per-container CPU limits, memory headroom checks, and
+  health-based promotion in place.
+
 ## [2.0.39] - 2026-10-10
 
 ### Fixed
