@@ -38,7 +38,7 @@ Point the hostname at the target server. Allow inbound HTTP and HTTPS traffic re
 
 Set `integrations.cloudflare.enabled: true`, `accountId`, and `apiToken` in `/etc/towbar/config.yml`, then validate and restart Towbar. Each service or datastore selects Cloudflare DNS validation in its manifest. A deployment using `tls.mode: cloudflare-dns` is rejected if the runtime integration is missing. Towbar prepares the server's Caddy DNS module when the first such deployment runs.
 
-Create the token under **Manage Account → Account API Tokens** in Cloudflare. Grant **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read**, restricted to the zones Towbar should manage. Zone Settings Read lets Towbar verify that SSL/TLS mode is Full (strict). Creating account tokens requires the Super Administrator role. See [Cloudflare's account-token guide](https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/).
+Create the token under **Manage Account → Account API Tokens** in Cloudflare. Grant **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read**, restricted to the zones Towbar should manage. Zone Settings Read lets Towbar verify that SSL/TLS mode is Full (strict) for proxied records. Creating account tokens requires the Super Administrator role. See [Cloudflare's account-token guide](https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/).
 
 Use a scoped account token rather than a personal or global API key. `integrations.cloudflare.zoneId` is optional when the token can discover the required zones. Towbar installs the Cloudflare DNS module on the target server when needed.
 
@@ -49,11 +49,25 @@ tls:
   mode: cloudflare-dns
 ```
 
+Cloudflare records are proxied by default. Set `tls.proxied: false` to create DNS-only address records while continuing to obtain Caddy certificates through Cloudflare DNS validation:
+
+```yaml title=".towbar/services/web.service.yml"
+domains:
+  primary: ds.oss.example.com
+tls:
+  mode: cloudflare-dns
+  proxied: false
+```
+
+DNS-only traffic reaches the server directly. Allow inbound HTTPS to Caddy; Cloudflare's proxy, caching, and WAF do not handle these requests, and DNS exposes the origin address. Caddy serves its own publicly trusted certificate, so the hostname does not need Cloudflare edge certificate coverage. Towbar still verifies origin and public HTTPS health before promotion. Full (strict) remains required for proxied routes; DNS-only routes do not use the zone's edge SSL mode.
+
+The same setting applies to datastores with public HTTP routes and to each Compose service's `tls` block. It is supported only with `mode: cloudflare-dns`; Tunnel routes keep their own ingress policy. Existing manifests that omit `proxied` retain their current proxied behavior.
+
 Towbar manages records it owns and completes certificate validation before promotion. Keep unrelated records and services outside that ownership boundary.
 
 ## Preview hostnames
 
-Previews use a generated hostname beneath `preview.domain`. Direct mode needs DNS routing for those generated names, typically a wildcard. Cloudflare DNS mode manages the exact preview records and removes them during cleanup.
+Previews use a generated hostname beneath `preview.domain`. Direct mode needs DNS routing for those generated names, typically a wildcard. Cloudflare DNS mode manages the exact preview records and removes them during cleanup. Previews inherit the service's `tls.proxied` setting.
 
 For proxied nested hostnames, check Cloudflare's certificate coverage as well as DNS. A resolving wildcard does not guarantee that the edge certificate covers every nested hostname.
 
@@ -110,5 +124,7 @@ workload data or persistent volumes.
 ## Diagnose a failed route
 
 Check these in order: domain spelling, DNS resolution, network access to the host, Caddy preparation, TLS mode and credentials, then the workload's health endpoint. A successful Repository sync or image build does not prove that the HTTPS route works.
+
+Public health-check errors identify the hostname and HTTP status when a response arrives. If the connection fails before an HTTP response, the error retains the DNS, TLS, or connection failure detail instead of reporting status zero.
 
 See [Troubleshooting](/docs/troubleshooting) for common failure paths.

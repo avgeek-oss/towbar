@@ -44,7 +44,9 @@ export async function getAnalyticsConfiguration(serverId: string) {
             {
               id,
               host: config.domains.primary,
-              cloudflareProxy: config.tls?.mode === "cloudflare-dns",
+              cloudflareProxy:
+                config.tls?.mode === "cloudflare-dns" &&
+                config.tls.proxied !== false,
               cloudflareTunnel: config.ingress?.type === "cloudflare-tunnel",
               ...config.analytics,
             },

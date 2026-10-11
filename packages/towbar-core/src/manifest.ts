@@ -1,3 +1,4 @@
+import { tlsSchema } from "@workspace/towbar-contracts/tls";
 import type {
   NormalizedApp,
   NormalizedComposeWorkload,
@@ -488,12 +489,7 @@ export const appSchema = z
       })
       .strict()
       .optional(),
-    tls: z
-      .object({
-        mode: z.enum(["direct", "cloudflare-dns"]),
-      })
-      .strict()
-      .optional(),
+    tls: tlsSchema.optional(),
     preview: z
       .object({
         domain: domainSchema,
@@ -882,10 +878,7 @@ export const resourceSchema = z
       })
       .strict()
       .optional(),
-    tls: z
-      .object({ mode: z.enum(["direct", "cloudflare-dns"]) })
-      .strict()
-      .optional(),
+    tls: tlsSchema.optional(),
   })
   .strict()
   .superRefine((resource, context) => {

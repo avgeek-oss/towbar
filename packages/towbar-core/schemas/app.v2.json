@@ -1087,7 +1087,8 @@
     "tls": {
       "type": "object",
       "properties": {
-        "mode": { "type": "string", "enum": ["direct", "cloudflare-dns"] }
+        "mode": { "type": "string", "enum": ["direct", "cloudflare-dns"] },
+        "proxied": { "type": "boolean" }
       },
       "additionalProperties": false
     },
@@ -2394,7 +2395,11 @@
           "tls": {
             "type": "object",
             "properties": {
-              "mode": { "type": "string", "enum": ["direct", "cloudflare-dns"] }
+              "mode": {
+                "type": "string",
+                "enum": ["direct", "cloudflare-dns"]
+              },
+              "proxied": { "type": "boolean" }
             },
             "additionalProperties": false
           }

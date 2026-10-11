@@ -1,3 +1,4 @@
+import { tlsSchema } from "./tls.js";
 import { z } from "zod";
 import { autoDeploySchema } from "./deployment-input-schema.js";
 import { manifestNotificationsSchema } from "./notifications.js";
@@ -348,10 +349,7 @@ const composeServicePolicySchema = z
     domains: z.array(z.string().trim().min(1).max(253)).max(20).optional(),
     port: z.number().int().min(1).max(65_535).optional(),
     ingress: ingressSchema.optional(),
-    tls: z
-      .object({ mode: z.enum(["direct", "cloudflare-dns"]) })
-      .strict()
-      .optional(),
+    tls: tlsSchema.optional(),
   })
   .strict();
 

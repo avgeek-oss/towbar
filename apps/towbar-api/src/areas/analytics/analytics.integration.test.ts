@@ -3,7 +3,10 @@ import {
   verifyDimensionFilters,
 } from "./dimension-filter-test-support.js";
 import { verifyPageEngagement } from "./engagement-test-support.js";
-import { verifyAnalyticsDeploymentMarkers } from "./deployment-test-support.js";
+import {
+  verifyAnalyticsDeploymentMarkers,
+  verifyAnalyticsProxyConfiguration,
+} from "./deployment-test-support.js";
 import { verifyAnalyticsCities } from "./city-test-support.js";
 import { verifyFilterOptionsResponse } from "./filter-options-test-support.js";
 import { verifyReportRanges } from "./short-ranges-test-support.js";
@@ -569,6 +572,7 @@ void test(
         ).length,
         0,
       );
+      await verifyAnalyticsProxyConfiguration({ appId, serverId, config });
       assert.notEqual(
         (await getAnalyticsConfiguration(serverId)).refresh,
         "initial",

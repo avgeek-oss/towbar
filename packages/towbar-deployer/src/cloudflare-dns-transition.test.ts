@@ -431,3 +431,78 @@ void test("a failed pre-write receipt does not make an unwritten DNS create unce
     assert(!fixture.mutations.some(({ method }) => method === "POST"));
   }
 });
+
+void test("DNS-only updates are idempotent and rollback restores the proxy setting", async () => {
+  const proxied = { ...owned, content: input.serverIp, proxied: true };
+  const fixture = dnsFixture([proxied]);
+  const dnsOnly = {
+    ...input,
+    domains: [owned.name, "new.example.com"],
+    proxiedDomains: { [owned.name]: false, "new.example.com": false },
+    fetcher: fixture.fetcher,
+  };
+  const transition = await reconcileCloudflareDns(dnsOnly);
+  assert([...fixture.records.values()].every(({ proxied }) => !proxied));
+  assert.deepEqual(fixture.mutations, [
+    { method: "PATCH", name: owned.name },
+    { method: "POST", name: "new.example.com" },
+  ]);
+  await reconcileCloudflareDns(dnsOnly);
+  assert.equal(fixture.mutations.length, 2);
+  await transition.rollback();
+  assert.deepEqual([...fixture.records.values()], [proxied]);
+});
+
+void test("DNS-only routes skip edge SSL settings while proxied routes still require strict mode", async (t) => {
+  const fixture = dnsFixture();
+  let sslRequests = 0;
+  t.mock.method(
+    globalThis,
+    "fetch",
+    (url: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+      if (String(url).endsWith("/settings/ssl")) {
+        sslRequests += 1;
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({ success: true, result: { value: "flexible" } }),
+          ),
+        );
+      }
+      return fixture.fetcher(url, init);
+    },
+  );
+  const app = normalizeDeploymentManifest({
+    version: 2,
+    apps: [
+      {
+        id: "stack",
+        name: "Stack",
+        dockerfile: "Dockerfile",
+        server: input.serverIp,
+        container: { port: 8080 },
+        domains: { primary: owned.name },
+        tls: { mode: "cloudflare-dns", proxied: false },
+      },
+    ],
+  }).apps[0]!;
+  const deployment = {
+    app,
+    credentials: { apiToken: input.apiToken },
+    server: normalizeServerConfiguration({
+      ip: input.serverIp,
+      ssh: { username: "ubuntu" },
+    }),
+  };
+  await reconcileCloudflareForDeployment(deployment);
+  assert.equal(sslRequests, 0);
+  assert.equal([...fixture.records.values()][0]?.proxied, false);
+  await assert.rejects(
+    reconcileCloudflareForDeployment({
+      ...deployment,
+      app: { ...app, tls: { mode: "cloudflare-dns" } },
+    }),
+    /Full \(strict\)/,
+  );
+  assert.equal(sslRequests, 1);
+  assert.equal(fixture.mutations.length, 1);
+});

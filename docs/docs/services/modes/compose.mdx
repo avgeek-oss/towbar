@@ -102,7 +102,7 @@ are rejected.
 
 ## Route TLS per service
 
-Each public service chooses its own `tls.mode` alongside `port`, `domains`, and `ingress`. Omitting `tls` keeps direct Caddy certificate validation. Choose `cloudflare-dns` to reconcile Cloudflare address records and obtain certificates through the configured runtime integration. Proxy ingress still requires HTTPS access to the server; DNS validation does not create a Tunnel.
+Each public service chooses its own `tls.mode` alongside `port`, `domains`, and `ingress`. Omitting `tls` keeps direct Caddy certificate validation. Choose `cloudflare-dns` to reconcile Cloudflare address records and obtain certificates through the configured runtime integration. Cloudflare records are proxied by default; set `tls.proxied: false` on a service for DNS-only routing. Proxy ingress still requires HTTPS access to the server; DNS validation does not create a Tunnel.
 
 ```yaml title=".towbar/services/platform.compose.yml"
 id: platform
