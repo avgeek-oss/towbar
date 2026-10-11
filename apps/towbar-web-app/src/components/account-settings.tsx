@@ -1,9 +1,8 @@
 "use client";
 import {
-  Link01Icon,
+  McpServerIcon,
   ComputerIcon,
   Key01Icon,
-  BookOpen01Icon,
   UserAccountIcon,
   FingerPrintIcon,
   Mail01Icon,
@@ -59,8 +58,8 @@ export function AccountSettings({ page }: { page: AccountSettingsPage }) {
     sessions: ComputerIcon,
     passkeys: FingerPrintIcon,
     "api-keys": Key01Icon,
-    "mcp-connections": Link01Icon,
-    mcp: BookOpen01Icon,
+    "mcp-connections": McpServerIcon,
+    mcp: McpServerIcon,
   };
   return (
     <DashboardPage
