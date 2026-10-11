@@ -39,8 +39,8 @@ allowBuilds:
   ssh2: false
 
 catalog:
-  "@aws-sdk/client-s3": ^3.1146.0
-  "@aws-sdk/lib-storage": 3.1146.0
+  "@aws-sdk/client-s3": ^3.1147.0
+  "@aws-sdk/lib-storage": 3.1147.0
   "@eslint/js": ^9.39.4
   "@hugeicons/core-free-icons": 4.3.5
   "@hugeicons/react": ^1.1.10
@@ -54,7 +54,7 @@ catalog:
   "@types/react-dom": ^19.3.0
   drizzle-orm: 0.45.3
   eslint: ^9.39.4
-  next: 16.3.8
+  next: 16.4.0
   postgres: ^3.4.9
   prettier: 3.9.9
   react: ^19.3.0
