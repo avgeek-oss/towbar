@@ -3,6 +3,13 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.42] - 2026-10-13
+
+### Changed
+
+- Install the shared design system and Mintlify documentation tools from public npm without GitHub package credentials.
+- Adopt the shared mobile API-key table, consistent MCP client names and icons, and table layouts on mobile.
+
 ## [2.0.41] - 2026-10-12
 
 ### Added
