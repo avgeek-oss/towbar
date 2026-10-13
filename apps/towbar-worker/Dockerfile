@@ -27,7 +27,7 @@ COPY --from=pruner /repo/out/full/ ./
 RUN pnpm exec turbo run build --filter=towbar-worker
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
   pnpm --filter towbar-worker --prod --ignore-scripts \
-    deploy --legacy --offline \
+    deploy --legacy --prefer-offline \
     --store-dir /pnpm/store /prod/towbar-worker
 
 FROM cgr.dev/chainguard/wolfi-base@sha256:238642d42c5613936474d00b900c4e65fb6f637d8991c913403ff09a09cf43a3 AS runner

@@ -21,7 +21,7 @@ COPY --from=pruner /repo/out/full/ ./
 RUN pnpm exec turbo run build --filter=towbar-api
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
   pnpm --filter towbar-api --prod --ignore-scripts \
-    deploy --legacy --offline \
+    deploy --legacy --prefer-offline \
     --store-dir /pnpm/store /prod/towbar-api
 
 FROM base AS runner
