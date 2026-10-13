@@ -102,7 +102,6 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=release-${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=release-${{ matrix.service }}
-          secrets: NODE_AUTH_TOKEN=${{ github.token }}
           build-args: SOURCE_COMMIT=${{ needs.prepare.outputs.commit }}
           labels: |
             org.opencontainers.image.created=${{ needs.prepare.outputs.created }}

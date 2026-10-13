@@ -12,11 +12,7 @@ RUN apk add --no-cache libc6-compat && corepack enable pnpm
 COPY --from=pruner /repo/out/json/ ./
 COPY --from=pruner /repo/.npmrc ./.npmrc
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
-    --mount=type=secret,id=NODE_AUTH_TOKEN,required=true \
-  printf '%s\n' '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}' > /tmp/npmrc \
-  && NODE_AUTH_TOKEN="$(cat /run/secrets/NODE_AUTH_TOKEN)" NPM_CONFIG_USERCONFIG=/tmp/npmrc \
-    pnpm install --store-dir /pnpm/store --frozen-lockfile --config.blockExoticSubdeps=false \
-  && rm /tmp/npmrc
+  pnpm install --store-dir /pnpm/store --frozen-lockfile
 FROM installer AS builder
 ARG SOURCE_COMMIT=development
 ENV NEXT_TELEMETRY_DISABLED=1 \

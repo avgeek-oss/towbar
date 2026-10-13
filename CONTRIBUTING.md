@@ -13,7 +13,7 @@ Thank you for helping improve Towbar.
 
 ## Design system dependency
 
-The dashboard uses `@avgeek-oss/design-system` from GitHub Packages. Shared UI
+The dashboard uses `@avgeek-oss/design-system` from npmjs.org. Shared UI
 belongs in that package; Towbar owns API calls, access checks, routing, and
 product-specific composition in `apps/towbar-web-app` and `packages/towbar-web-ui`.
 Use the package's documented exports and import its stylesheet once. The Next.js
@@ -27,19 +27,7 @@ instead of copying a form into Towbar. Public verification-link requests use
 codes remain separate flows. Do not add authenticator/TOTP code flows. Report
 submission failures through one bottom-center toast.
 
-[GitHub Packages requires authentication](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry)
-for public npm packages. For local installs, sign in with a personal access token
-(classic) with `read:packages`:
-
-```bash
-npm login --scope=@avgeek-oss --auth-type=legacy --registry=https://npm.pkg.github.com
-```
-
-For source Docker builds, export `NODE_AUTH_TOKEN` with the same registry read
-permission. Compose passes it as a BuildKit secret only to the web installer.
-Do not put tokens in `.npmrc`, build arguments, tracked files, or image layers.
-Installed Towbar hosts pulling release images do not need this npm token.
-GitHub Actions uses its scoped `GITHUB_TOKEN` with package read permission.
+The shared packages are public on npmjs.org. Local installs, CI and source Docker builds do not require a package-registry token. The repository maps `@avgeek-oss` to npmjs.org; refresh the lockfile when migrating an older checkout.
 
 ## Local checks
 
@@ -71,12 +59,12 @@ Changes to fixture routes must be reviewed against the public gateway allowlist.
 ## Documentation
 
 The Mintlify project lives in `docs/`, with dropdown categories and grouped pages.
-[Avgeek OSS Docs](https://github.com/avgeek-oss/oss-docs) owns the shared homepage
+[Avgeek OSS Mintlify Docs](https://github.com/avgeek-oss/oss-docs) owns the shared homepage
 layouts, header behavior, screenshots, and authoring conventions. Towbar owns
 `docs/site.json`, product content, navigation destinations, assets, and generated
 API schemas. The kit dependency lives in the `towbar-docs` workspace so runtime
 Docker builds do not install or package documentation tooling. Upgrade it with
-`pnpm --filter towbar-docs add -D @avgeek-oss/docs@<version>`.
+`pnpm --filter towbar-docs add -D @avgeek-oss/mintlify-docs@<version>`.
 Write task pages around prerequisites, the action, and a way to verify
 the result. Keep manifest field details in the reference and link to them from guides.
 Use documentation-only IPs and domains, and never include credentials in examples

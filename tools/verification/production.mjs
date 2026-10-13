@@ -45,17 +45,6 @@ try {
     "--format",
     "{{.ServerVersion}}",
   ]);
-  if (!run.env.NODE_AUTH_TOKEN) {
-    try {
-      run.env.NODE_AUTH_TOKEN = await run.capture("gh", ["auth", "token"]);
-    } catch {
-      throw new Error(
-        "Production image verification needs NODE_AUTH_TOKEN or an authenticated gh CLI for GitHub Packages",
-      );
-    }
-  }
-  if (!run.env.NODE_AUTH_TOKEN)
-    throw new Error("GitHub Packages authentication token is empty");
   const [towbarPort, apiPort, temporalPort, temporalApiPort] =
     await availablePorts(4);
   const override = path.join(run.directory, "test-ports.json");

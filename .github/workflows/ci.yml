@@ -9,9 +9,6 @@ permissions:
   contents: read
   packages: read
 
-env:
-  NODE_AUTH_TOKEN: ${{ github.token }}
-
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -74,8 +71,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
-          registry-url: https://npm.pkg.github.com
-          scope: "@avgeek-oss"
           cache: pnpm
       - run: python3 -m unittest discover -s infra/upgrade-runner -v
       - run: bash tools/test-host-upgrade-cli.sh
@@ -131,8 +126,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
-          registry-url: https://npm.pkg.github.com
-          scope: "@avgeek-oss"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build, boot and verify a fresh production installation
@@ -159,8 +152,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
-          registry-url: https://npm.pkg.github.com
-          scope: "@avgeek-oss"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Run required integration coverage without skipped suites
@@ -183,7 +174,7 @@ jobs:
           node-version-file: .nvmrc
       - run: node --test tools/demo-deploy.test.mjs
       - run: shellcheck tools/test-public-demo.sh tools/deploy-public-demo.sh
-      - run: docker build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN --target demo --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
+      - run: docker build --target demo --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
       - run: bash tools/test-public-demo.sh
 
   required-ci:

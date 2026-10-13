@@ -20,18 +20,14 @@ RUN corepack enable pnpm
 COPY --from=pruner /repo/out/json/ ./
 COPY --from=pruner /repo/.npmrc ./.npmrc
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
-    --mount=type=secret,id=NODE_AUTH_TOKEN,required=true \
-  printf '%s\n' '//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}' > /tmp/npmrc \
-  && NODE_AUTH_TOKEN="$(cat /run/secrets/NODE_AUTH_TOKEN)" NPM_CONFIG_USERCONFIG=/tmp/npmrc \
-    pnpm install --store-dir /pnpm/store --frozen-lockfile --config.blockExoticSubdeps=false \
-  && rm /tmp/npmrc
+  pnpm install --store-dir /pnpm/store --frozen-lockfile
 
 FROM installer AS builder
 COPY --from=pruner /repo/out/full/ ./
 RUN pnpm exec turbo run build --filter=towbar-worker
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
   pnpm --filter towbar-worker --prod --ignore-scripts \
-    --config.blockExoticSubdeps=false deploy --legacy --offline \
+    deploy --legacy --prefer-offline \
     --store-dir /pnpm/store /prod/towbar-worker
 
 FROM cgr.dev/chainguard/wolfi-base@sha256:238642d42c5613936474d00b900c4e65fb6f637d8991c913403ff09a09cf43a3 AS runner

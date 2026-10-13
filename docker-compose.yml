@@ -124,7 +124,6 @@ services:
     build:
       context: .
       dockerfile: apps/towbar-api/Dockerfile
-      secrets: [NODE_AUTH_TOKEN]
     restart: unless-stopped
     depends_on:
       migrate:
@@ -212,7 +211,6 @@ services:
     build:
       context: .
       dockerfile: apps/towbar-worker/Dockerfile
-      secrets: [NODE_AUTH_TOKEN]
     restart: unless-stopped
     depends_on:
       api:
@@ -233,7 +231,6 @@ services:
     build:
       context: .
       dockerfile: apps/towbar-web-app/Dockerfile
-      secrets: [NODE_AUTH_TOKEN]
       args:
         SOURCE_COMMIT: ${SOURCE_COMMIT:-development}
     environment:
@@ -311,7 +308,3 @@ volumes:
   postgres-data:
   caddy-data:
   caddy-config:
-
-secrets:
-  NODE_AUTH_TOKEN:
-    environment: NODE_AUTH_TOKEN

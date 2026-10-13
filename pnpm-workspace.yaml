@@ -6,7 +6,8 @@ packages:
 overrides:
   "@simplewebauthn/server@<=13.3.1": 13.3.2
   "js-yaml@>=4.0.0 <4.3.2": 4.3.2
-  "@esbuild-kit/core-utils>esbuild": 0.25.12
+  "@esbuild-kit/core-utils>esbuild": 0.28.2
+  "drizzle-kit>esbuild": 0.28.2
   "@grpc/grpc-js@1.14.3": 1.14.5
   "axios@1.15.2": 1.18.0
   "brace-expansion@>=1.0.0 <1.1.21": 1.1.21
@@ -65,3 +66,4 @@ catalog:
 
 minimumReleaseAgeExclude:
   - "@avgeek-oss/design-system"
+  - "@avgeek-oss/mintlify-docs@0.1.6"
