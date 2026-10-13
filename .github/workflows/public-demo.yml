@@ -48,9 +48,8 @@ jobs:
       - name: Build and verify the public demo artifact
         env:
           SOURCE_COMMIT: ${{ steps.release.outputs.commit }}
-          NODE_AUTH_TOKEN: ${{ github.token }}
         run: |
-          docker build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN --target demo --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
+          docker build --target demo --build-arg "SOURCE_COMMIT=$SOURCE_COMMIT" --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
           bash tools/test-public-demo.sh
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:

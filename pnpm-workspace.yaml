@@ -65,3 +65,4 @@ catalog:
 
 minimumReleaseAgeExclude:
   - "@avgeek-oss/design-system"
+  - "@avgeek-oss/mintlify-docs@0.1.6"

@@ -2,10 +2,10 @@
   "name": "towbar-docs",
   "private": true,
   "scripts": {
-    "sync": "oss-docs sync --config site.json --dir .",
-    "check": "oss-docs check --config site.json --dir ."
+    "sync": "mintlify-docs sync --config site.json --dir .",
+    "check": "mintlify-docs check --config site.json --dir ."
   },
   "devDependencies": {
-    "@avgeek-oss/docs": "github:avgeek-oss/oss-docs#3b16b472e03563b1a15df33a5ada2c5fba81bb87"
+    "@avgeek-oss/mintlify-docs": "0.1.6"
   }
 }

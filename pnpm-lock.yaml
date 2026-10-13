@@ -237,8 +237,8 @@ importers:
   apps/towbar-web-app:
     dependencies:
       "@avgeek-oss/design-system":
-        specifier: 1.2.16
-        version: 1.2.16(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
+        specifier: 1.2.17
+        version: 1.2.17(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
       "@codemirror/commands":
         specifier: ^6.11.1
         version: 6.11.1
@@ -400,9 +400,9 @@ importers:
 
   docs:
     devDependencies:
-      "@avgeek-oss/docs":
-        specifier: github:avgeek-oss/oss-docs#3b16b472e03563b1a15df33a5ada2c5fba81bb87
-        version: https://codeload.github.com/avgeek-oss/oss-docs/tar.gz/3b16b472e03563b1a15df33a5ada2c5fba81bb87
+      "@avgeek-oss/mintlify-docs":
+        specifier: 0.1.6
+        version: 0.1.6
 
   packages/eslint-config:
     devDependencies:
@@ -619,8 +619,8 @@ importers:
   packages/towbar-email:
     dependencies:
       "@avgeek-oss/design-system":
-        specifier: 1.2.16
-        version: 1.2.16(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
+        specifier: 1.2.17
+        version: 1.2.17(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
       react:
         specifier: "catalog:"
         version: 19.3.0
@@ -672,8 +672,8 @@ importers:
   packages/towbar-web-ui:
     dependencies:
       "@avgeek-oss/design-system":
-        specifier: 1.2.16
-        version: 1.2.16(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
+        specifier: 1.2.17
+        version: 1.2.17(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)
       "@hugeicons/core-free-icons":
         specifier: "catalog:"
         version: 4.3.5
@@ -752,26 +752,25 @@ packages:
       }
     engines: { node: ">=10" }
 
-  "@avgeek-oss/design-system@1.2.16":
+  "@avgeek-oss/design-system@1.2.17":
     resolution:
       {
-        integrity: sha512-xZ+akVer/02BYzpfR2KNDAreQhXFqJQxPA1pOkMs8FBh8YoDwWDcbDPQmUmODLH4w8lSJbqN4EkTMH/MSEUc6g==,
-        tarball: https://npm.pkg.github.com/download/@avgeek-oss/design-system/1.2.16/1ad390094ea6f178d15c1f827a993c29da8c56c8,
+        integrity: sha512-oDwOkkCPUQEp5UnNuPoW+F2Hba2xPU1e/YGfSGNB7zslpOtA0Qb7OhjziyxZKaxN5SXJJstfDPRruoGkT0U3MA==,
       }
     engines: { node: ">=24" }
     peerDependencies:
       next: ^16.0.0
       react: ^19.0.0
       react-dom: ^19.0.0
+    peerDependenciesMeta:
+      next:
+        optional: true
 
-  "@avgeek-oss/docs@https://codeload.github.com/avgeek-oss/oss-docs/tar.gz/3b16b472e03563b1a15df33a5ada2c5fba81bb87":
+  "@avgeek-oss/mintlify-docs@0.1.6":
     resolution:
       {
-        gitHosted: true,
-        integrity: sha512-J8LdsbCuCJdRAPFoYBskZqxtVNqHSa9blxFgz/pMwkQZP+1JrV3sLKriE0UoUoQGLS7BpuFYvISqg1Xy/wU0DQ==,
-        tarball: https://codeload.github.com/avgeek-oss/oss-docs/tar.gz/3b16b472e03563b1a15df33a5ada2c5fba81bb87,
+        integrity: sha512-S5q7L/tM6QtZY2O4C0jIkvbXjzE2Qmi+/vxWNFS+vPdlDMPHzKvCziiQifUSaL+wK/7gdridU40fZFCxBWxWbw==,
       }
-    version: 0.1.5
     engines: { node: ">=24" }
     hasBin: true
 
@@ -7897,7 +7896,7 @@ snapshots:
 
   "@alloc/quick-lru@5.2.0": {}
 
-  "@avgeek-oss/design-system@1.2.16(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)":
+  "@avgeek-oss/design-system@1.2.17(@react-spectrum/provider@3.11.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@standard-schema/spec@1.1.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(next@16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react-is@16.13.1)(react@19.3.0)(redux@5.0.1)":
     dependencies:
       "@fontsource-variable/geist-mono": 5.3.0
       "@fontsource-variable/inter": 5.3.0
@@ -7910,7 +7909,6 @@ snapshots:
       "@react-aria/ssr": 3.10.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       "@react-aria/utils": 3.34.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       clsx: 2.1.1
-      next: 16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       prism-react-renderer: 2.4.1(react@19.3.0)
       react: 19.3.0
       react-aria: 3.52.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -7922,6 +7920,8 @@ snapshots:
       tailwind-merge: 3.7.0
       tailwindcss: 4.3.3
       zod: 4.6.5
+    optionalDependencies:
+      next: 16.3.8(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     transitivePeerDependencies:
       - "@react-spectrum/provider"
       - "@sinclair/typebox"
@@ -7955,7 +7955,7 @@ snapshots:
       - vest
       - yup
 
-  "@avgeek-oss/docs@https://codeload.github.com/avgeek-oss/oss-docs/tar.gz/3b16b472e03563b1a15df33a5ada2c5fba81bb87":
+  "@avgeek-oss/mintlify-docs@0.1.6":
     dependencies:
       prettier: 3.9.9
 
