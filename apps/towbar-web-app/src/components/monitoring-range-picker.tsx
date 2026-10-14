@@ -2,14 +2,9 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
-import {
-  FieldDescription,
-  Field,
-  FieldLabel,
-} from "@avgeek-oss/design-system/forms/field";
+import { Field, FieldLabel } from "@avgeek-oss/design-system/forms/field";
 import { Select, ListBox } from "@avgeek-oss/design-system/forms/select";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
-import { QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { api } from "@/lib/api";
 import type { CustomMonitoringRange } from "./monitoring-range";
 import { ScoutIcon } from "./scout-icons";
@@ -39,6 +34,7 @@ export function MonitoringRangePicker({
   onApply,
   onClose,
 }: Props) {
+  const loadingId = useId();
   const [request] = useState(() => ({ ...initial, retentionDays }));
   const [form, setForm] = useState<RangeFormValues>();
   const [error, setError] = useState<string>();
@@ -72,11 +68,15 @@ export function MonitoringRangePicker({
   return (
     <Modal.Backdrop
       isOpen
+      className="data-[entering]:animate-none data-[exiting]:animate-none"
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
     >
-      <Modal.Container size="md">
+      <Modal.Container
+        size="md"
+        className="data-[entering]:animate-none data-[exiting]:animate-none"
+      >
         <Modal.Dialog>
           <Modal.Header>
             <Modal.Heading>Custom time range</Modal.Heading>
@@ -95,7 +95,33 @@ export function MonitoringRangePicker({
                 onClose={onClose}
               />
             ) : (
-              <QueryLoading />
+              <div
+                className="grid gap-4"
+                aria-busy="true"
+                aria-label="Loading time range"
+              >
+                {(["start", "end"] as const).map((field) => (
+                  <Field key={field}>
+                    <FieldLabel htmlFor={`${loadingId}-${field}`} isRequired>
+                      {field === "start" ? "Start" : "End"} date and time
+                    </FieldLabel>
+                    <Input
+                      id={`${loadingId}-${field}`}
+                      variant="secondary"
+                      disabled
+                    />
+                  </Field>
+                ))}
+                <div className="flex justify-end gap-2">
+                  <Button variant="secondary" onPress={onClose}>
+                    Cancel
+                  </Button>
+                  <Button isDisabled>
+                    <ScoutIcon name="date" />
+                    Apply range
+                  </Button>
+                </div>
+              </div>
             )}
           </Modal.Body>
         </Modal.Dialog>
@@ -148,10 +174,6 @@ function RangeForm({
   }
   return (
     <form className="grid gap-4" onSubmit={submit}>
-      <FieldDescription>
-        Time zone: {form.timeZone}. History is retained for {retentionDays}{" "}
-        days.
-      </FieldDescription>
       {(["start", "end"] as const).map((field) => (
         <Field key={field}>
           <FieldLabel htmlFor={`${id}-${field}`} isRequired>
@@ -166,7 +188,7 @@ function RangeForm({
             disabled={busy}
             value={values[field]}
             placeholder={form.example}
-            aria-describedby={`${id}-format${error ? ` ${id}-error` : ""}`}
+            aria-describedby={error ? `${id}-error` : undefined}
             onChange={(event) => {
               setValues((current) => ({
                 ...current,
@@ -214,9 +236,6 @@ function RangeForm({
           ) : null}
         </Field>
       ))}
-      <FieldDescription id={`${id}-format`}>
-        Format: {form.example}
-      </FieldDescription>
       {error ? (
         <p id={`${id}-error`} role="alert" className="text-sm text-danger">
           {error}

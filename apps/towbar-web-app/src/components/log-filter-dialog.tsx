@@ -54,11 +54,15 @@ export function LogFilterDialog({
   return (
     <Modal.Backdrop
       isOpen
+      className="data-[entering]:animate-none data-[exiting]:animate-none"
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
     >
-      <Modal.Container size="lg" className="w-full max-w-6xl sm:w-full">
+      <Modal.Container
+        size="lg"
+        className="w-full max-w-6xl data-[entering]:animate-none data-[exiting]:animate-none sm:w-full"
+      >
         <Modal.Dialog className="max-w-5xl">
           <Modal.Header>
             <Modal.Heading className="flex items-center gap-2">
