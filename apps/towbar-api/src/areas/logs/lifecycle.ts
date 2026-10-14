@@ -65,7 +65,7 @@ export async function getLogCollection(serverId: string, workspaceId: string) {
     Date.now() - collector.lastReportAt.getTime() > 90000;
   const status = offline
     ? "offline"
-    : collector.desiredState === "enabled" && collector.queueBytes > 1024 * 1024
+    : collector.desiredState === "enabled" && collector.queueBytes > 536870912
       ? "backlogged"
       : collector.status;
   return logCollectionStatusSchema.parse({

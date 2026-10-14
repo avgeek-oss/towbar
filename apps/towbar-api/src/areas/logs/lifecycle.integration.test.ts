@@ -33,6 +33,7 @@ import {
 import {
   admitLogCollection,
   finishLogCollectorOperation,
+  getLogCollection,
 } from "./lifecycle.js";
 import {
   authenticateLogCollector,
@@ -169,6 +170,31 @@ void test(
           preparedAt: new Date(),
         },
       ]);
+      await t.test(
+        "queue file allocation is not reported as pending log data",
+        async () => {
+          await db
+            .insert(logCollectors)
+            .values({
+              serverId,
+              desiredState: "enabled",
+              status: "collecting",
+              queueBytes: 2 * 1024 * 1024,
+              lastReportAt: new Date(),
+            });
+          const inspect = () =>
+            withActor(actor, () => getLogCollection(serverId, workspaceId));
+          assert.equal((await inspect()).status, "collecting");
+          await db
+            .update(logCollectors)
+            .set({ queueBytes: 536870913 })
+            .where(eq(logCollectors.serverId, serverId));
+          assert.equal((await inspect()).status, "backlogged");
+          await db
+            .delete(logCollectors)
+            .where(eq(logCollectors.serverId, serverId));
+        },
+      );
       await t.test(
         "concurrent retries preserve one generation and one audit event",
         async () => {

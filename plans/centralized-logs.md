@@ -434,7 +434,7 @@ synthetic workloads. It is not production cutover evidence.
 
 Verified locally:
 
-- 28 focused API/logging checks across contracts, storage, source attribution,
+- 29 focused API/logging checks across contracts, storage, source attribution,
   lifecycle admission, storage readiness, and REST/OAuth MCP. These cover
   parameterized queries, stable pagination, replay deduplication, context,
   preview/Compose/datastore identity, inherited and sticky restrictions,
@@ -462,7 +462,12 @@ Verified locally:
   API/schema/Postman checks, and the complete `pnpm verify` command, including the
   production web build and production dependency audit.
 
-The required API and Docker regression jobs are being run against the final tree.
+The required local API job passed 443 API, nine database, and seven Temporal
+checks with zero skips before the queue-allocation diagnostic correction. Its
+focused lifecycle regression then passed all five checks. The required Docker job
+passed 282 deployer checks and the OCI runtime lifecycle. GitHub CI is the final
+merge gate for the complete branch.
+
 Full 512-MiB queue saturation, long-duration multi-server capacity, deployed
 collector installation on a real Ubuntu host, and production pilot/rollback
 acceptance remain operational sign-off gates before production logging cutover.

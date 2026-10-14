@@ -86,7 +86,9 @@ export function LogCollectorSettings({
                 <dd>
                   {item.status === "waiting"
                     ? "Waiting for first log"
-                    : item.status}
+                    : item.status === "backlogged"
+                      ? "Queue storage at limit"
+                      : item.status}
                 </dd>
               </div>
               <div>
@@ -109,7 +111,7 @@ export function LogCollectorSettings({
                 </dd>
               </div>
               <div>
-                <dt className="text-muted">Buffered data</dt>
+                <dt className="text-muted">Queue storage</dt>
                 <dd>{(item.queueBytes / 1048576).toFixed(1)} MiB</dd>
               </div>
               <div>
