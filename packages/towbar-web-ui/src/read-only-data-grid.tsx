@@ -51,6 +51,7 @@ export function ReadOnlyDataGrid({
     accent = useRef<HTMLSpanElement>(null),
     muted = useRef<HTMLSpanElement>(null);
   const [size, setSize] = useState({ width: 0, height: 400 });
+  const rowHeight = size.width < 640 ? 36 : 28;
   const colors = useRef<Record<string, string>>({});
   const [theme, setTheme] = useState<Partial<Theme>>({});
   const [rowThemes, setRowThemes] = useState<Record<string, Partial<Theme>>>(
@@ -160,7 +161,7 @@ export function ReadOnlyDataGrid({
           ? {
               themeOverride: {
                 cellHorizontalPadding:
-                  renderedColumns[column]?.id === "severity" ? 22 : 34,
+                  renderedColumns[column]?.id === "severity" ? 20 : 34,
               },
             }
           : {}),
@@ -190,7 +191,10 @@ export function ReadOnlyDataGrid({
         .
       </span>
       {leadingHeader ? (
-        <div className="absolute left-0 top-0 z-10 grid size-11 place-items-center bg-surface">
+        <div
+          className="absolute left-0 top-0 z-10 grid w-11 place-items-center bg-surface"
+          style={{ height: rowHeight }}
+        >
           {leadingHeader}
         </div>
       ) : null}
@@ -204,8 +208,8 @@ export function ReadOnlyDataGrid({
           getCellContent={getCellContent}
           getRowThemeOverride={getRowThemeOverride}
           getCellsForSelection
-          rowHeight={size.width < 640 ? 36 : 28}
-          headerHeight={44}
+          rowHeight={rowHeight}
+          headerHeight={rowHeight}
           freezeColumns={leadingHeader ? 1 : 0}
           cellActivationBehavior="double-click"
           drawCell={(args, drawContent) => {
@@ -242,7 +246,7 @@ export function ReadOnlyDataGrid({
                 args.rect.y + (args.rect.height - 16) / 2,
                 4,
                 16,
-                2,
+                1,
               );
               args.ctx.fill();
               args.ctx.restore();

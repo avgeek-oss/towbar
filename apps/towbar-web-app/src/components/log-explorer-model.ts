@@ -30,7 +30,7 @@ export const logLevelBackgrounds = {
 };
 export const logColumns = [
   { id: "timestamp", title: "Time", width: 215 },
-  { id: "severity", title: "Level", width: 100 },
+  { id: "severity", title: "Level", width: 88 },
   { id: "workloadName", title: "Workload", width: 200 },
   { id: "environment", title: "Environment", width: 120 },
   { id: "body", title: "Message", width: 800 },

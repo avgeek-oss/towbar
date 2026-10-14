@@ -104,7 +104,7 @@ function LevelMarker({ level }: { level: LogRecord["severity"] }) {
   return (
     <span
       aria-hidden="true"
-      className="h-4 w-1 shrink-0 rounded-full"
+      className="h-4 w-1 shrink-0 rounded-[1px]"
       style={{
         backgroundColor: logLevelColors[level],
         opacity: level === "fatal" ? 1 : 0.8,
@@ -871,7 +871,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           <Tooltip>
             <Tooltip.Trigger<"button">
               aria-label="Edit columns"
-              className="inline-flex size-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
+              className="inline-flex h-full w-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
               render={(props) => (
                 <button
                   {...props}
