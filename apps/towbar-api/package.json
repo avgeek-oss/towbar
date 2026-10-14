@@ -41,6 +41,7 @@
     "hono": "4.13.12",
     "jose": "^6.2.12",
     "nodemailer": "10.0.14",
+    "parse5": "8.0.1",
     "postgres": "catalog:",
     "ssh2": "1.17.0",
     "undici": "7.29.1",

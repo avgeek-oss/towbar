@@ -44,6 +44,13 @@ export function deploymentSubtitle(
       postgres: "PostgreSQL",
       redis: "Redis",
     }[item.deployableKind];
+  return deploymentLogoDomain(item, productionDomain);
+}
+
+export function deploymentLogoDomain(
+  item: Pick<Deployment, "hostname" | "environment">,
+  productionDomain?: string,
+) {
   return (
     item.hostname ??
     (item.environment === "production" ? productionDomain : undefined)

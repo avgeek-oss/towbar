@@ -3,6 +3,15 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Batch server cleanup route removals into one validated Caddy reload, avoiding restart rate limits and unnecessary reloads for workloads without routes. Preserve staged routes and domain ownership on failure so partial cleanup can be retried safely.
+- Distinguish Caddy validation and apply failures from Docker inspection failures in cleanup results.
+- Discover service and deployment icons from HTML declarations and API Link headers, with a `/favicon.ico` fallback and expiring retries. Keep preview icons scoped to their own hostname.
+- Expose `/favicon.ico` publicly on Towbar's web and API origins, redirecting to the packaged PNG artwork with its correct media type.
+
 ## [2.0.43] - 2026-10-14
 
 ### Changed

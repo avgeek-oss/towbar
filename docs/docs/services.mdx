@@ -37,6 +37,18 @@ to the selected view.
   caption="Group services by environment to review production and staging separately."
 />
 
+## Service icons
+
+Serve `/favicon.ico` publicly on each web and API origin. It can return a real ICO image or redirect to an existing PNG icon served as `image/png`. Keep HTML `<link rel="icon">` metadata pointed at the correct artwork.
+
+Towbar also discovers icons declared in the homepage HTML, including relative PNG, ICO, and SVG links. A JSON API can advertise an icon in its root response header:
+
+```http
+Link: </brand/icon.png>; rel="icon"; type="image/png"
+```
+
+Discovery uses public HTTPS addresses without session cookies or credentials. It follows bounded redirects, limits image size to 128 KiB, and falls back to `/favicon.ico`. A preview uses its own deployment hostname; Towbar does not infer a sibling web origin for an API. Missing icons show the default service symbol and are retried, so a temporary failure does not persist for the whole browser session.
+
 ## Define a Service
 
 Create one file under `.towbar/services` and give it a stable `id`. This minimal Dockerfile Service listens on port 3000 in production:

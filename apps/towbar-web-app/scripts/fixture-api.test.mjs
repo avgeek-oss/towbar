@@ -36,6 +36,8 @@ const readRoutes = [
   `/v1/core/sources/${fixtureIds.source}/backups`,
   `/v1/core/sources/${fixtureIds.source}/syncs/${fixtureIds.sync}`,
   `/v1/core/apps/${fixtureIds.app}`,
+  `/v1/core/apps/${fixtureIds.faviconApp}/favicon`,
+  `/v1/core/deployments/${fixtureIds.previewDeployment}/favicon`,
   `/v1/core/apps/${fixtureIds.app}/auto-deploy-control`,
   `/v1/core/apps/${fixtureIds.app}/secrets`,
   `/v1/core/apps/${fixtureIds.app}/deployments`,

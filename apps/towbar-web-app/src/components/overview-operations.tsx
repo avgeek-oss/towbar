@@ -7,7 +7,7 @@ import {
 
 import { DeploymentEnvironmentChip } from "./deployment-environment-chip";
 
-import { deploymentSubtitle } from "@/lib/overview";
+import { deploymentLogoDomain, deploymentSubtitle } from "@/lib/overview";
 import Image from "next/image";
 import { Alert02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -124,7 +124,13 @@ function deploymentColumns(
           <div className="flex min-w-0 items-center gap-2">
             {item.deployableKind === "app" ||
             item.deployableKind === "compose" ? (
-              <AppLogo domain={item.deployableDomain ?? appDomain} />
+              <AppLogo
+                deploymentId={item.id}
+                domain={deploymentLogoDomain(
+                  item,
+                  item.deployableDomain ?? appDomain,
+                )}
+              />
             ) : (
               <ResourceLogo
                 brand={resourceImageBrand(

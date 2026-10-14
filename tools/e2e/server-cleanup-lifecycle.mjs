@@ -15,6 +15,9 @@ try {
     active = randomUUID(),
     pending = randomUUID(),
     foreign = randomUUID();
+  const routed = Array.from({ length: 7 }, () => randomUUID());
+  const noRoute = randomUUID();
+  const preview = `${removed}-preview-abc123`;
   const server = normalizeServerConfiguration({
     ip: "127.0.0.1",
     ssh: { username: "deploy", port: target.port },
@@ -74,7 +77,55 @@ try {
     ':8089 {\n respond "retiring"\n}\n',
   );
   write(`/etc/caddy/towbar/${active}.caddy`, ':8088 {\n respond "active"\n}\n');
-  target.ssh("sudo systemctl reload caddy");
+  for (const [index, id] of [...routed, preview].entries()) {
+    write(
+      `/etc/caddy/towbar/${id}.caddy`,
+      `:${8090 + index} {\n respond "retiring"\n}\n`,
+    );
+  }
+  target.ssh(`sudo mkdir -p /var/lib/towbar/resources/${noRoute}`);
+  write("/etc/caddy/towbar/cloudflare.env", "TOWBAR_TEST_HTTP_PORT=8080\n");
+  write(
+    "/etc/caddy/Caddyfile",
+    "{\n http_port {$TOWBAR_TEST_HTTP_PORT}\n}\nimport /etc/caddy/towbar/*.caddy\n",
+  );
+  write(
+    "/usr/local/bin/towbar-test-caddy-reload",
+    `#!/bin/sh
+set -eu
+test "$TOWBAR_TEST_HTTP_PORT" = 8080
+printf 'reload\\n' >> /run/towbar-caddy-reloads
+if test -f /run/towbar-caddy-reload-fails; then exit 1; fi
+exec /usr/bin/caddy reload --config /etc/caddy/Caddyfile
+`,
+  );
+  target.ssh(
+    "sudo chmod 700 /usr/local/bin/towbar-test-caddy-reload && sudo chmod 600 /etc/caddy/towbar/cloudflare.env && sudo mkdir -p /etc/systemd/system/caddy.service.d",
+  );
+  write(
+    "/etc/systemd/system/caddy.service.d/cleanup-test.conf",
+    `[Unit]
+StartLimitIntervalSec=300
+StartLimitBurst=1
+[Service]
+EnvironmentFile=/etc/caddy/towbar/cloudflare.env
+ExecReload=
+ExecReload=/usr/local/bin/towbar-test-caddy-reload
+`,
+  );
+  target.ssh(
+    "sudo systemctl daemon-reload && sudo systemctl reset-failed caddy && sudo systemctl restart caddy",
+  );
+  target.ssh(
+    "if sudo caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1; then exit 1; fi",
+  );
+  const caddyPid = target.ssh("sudo systemctl show caddy -p MainPID --value");
+  const reloadCount = () =>
+    Number(
+      target.ssh(
+        "sudo sh -c 'if test -f /run/towbar-caddy-reloads; then wc -l < /run/towbar-caddy-reloads; else echo 0; fi'",
+      ),
+    );
   const input = {
     context: {
       operationId: randomUUID(),
@@ -88,7 +139,14 @@ try {
       restoreBackup: null,
       request: { type: "cleanup_orphans", trigger: "manual", items: [] },
       cleanupExpected: {
-        ownedDeployableIds: [removed, shared, active, pending],
+        ownedDeployableIds: [
+          removed,
+          shared,
+          active,
+          pending,
+          ...routed,
+          noRoute,
+        ],
         deployableIds: [active],
         protectedDeployableIds: [pending],
         containerNames: ["active"],
@@ -97,10 +155,15 @@ try {
           {
             deployableId: removed,
             sourceId: "source",
-            runtimeIds: [removed],
+            runtimeIds: [removed, preview],
             composeProjects: [project],
           },
           { deployableId: shared, sourceId: "source", runtimeIds: [shared] },
+          ...[...routed, noRoute].map((id) => ({
+            deployableId: id,
+            sourceId: "source",
+            runtimeIds: [id],
+          })),
         ],
       },
     },
@@ -118,12 +181,56 @@ try {
   await assert.rejects(executeResourceOperation(input), (error) => {
     assert(error.cleanupResult.failures.length > 0);
     assert(!error.cleanupResult.retiredDeployableIds.includes(removed));
+    assert(
+      error.cleanupResult.failures.every((failure) =>
+        failure.reason.includes("Unable to validate Caddy route cleanup"),
+      ),
+    );
+    assert(error.cleanupResult.retiredDeployableIds.includes(noRoute));
     return true;
   });
-  target.ssh(`sudo test -f /etc/caddy/towbar/${removed}.caddy`);
+  assert.equal(reloadCount(), 0);
+  for (const id of [removed, ...routed, preview])
+    target.ssh(`sudo test -f /etc/caddy/towbar/${id}.caddy`);
+  target.ssh(
+    'test -z "$(docker ps -a --filter name=^removed$ -q)" && test -z "$(docker volume ls --filter name=^removed-data$ -q)"',
+  );
+  target.ssh(`sudo test ! -e /var/lib/towbar/resources/${noRoute}`);
   target.ssh("sudo rm /etc/caddy/towbar/broken.caddy");
+  target.ssh("sudo touch /run/towbar-caddy-reload-fails");
+  await assert.rejects(executeResourceOperation(input), (error) => {
+    assert.equal(
+      error.cleanupResult.cleaned.length,
+      0,
+      "already removed Docker objects are not removed again",
+    );
+    assert(
+      error.cleanupResult.failures.every((failure) =>
+        failure.reason.includes("Unable to apply Caddy route cleanup"),
+      ),
+    );
+    assert(!error.cleanupResult.retiredDeployableIds.includes(removed));
+    return true;
+  });
+  assert.equal(reloadCount(), 1);
+  for (const id of [removed, ...routed, preview])
+    target.ssh(`sudo test -f /etc/caddy/towbar/${id}.caddy`);
+  target.ssh(
+    "sudo systemctl is-active --quiet caddy && sudo rm /run/towbar-caddy-reload-fails",
+  );
   const result = await executeResourceOperation(input);
-  assert(result.retiredDeployableIds.includes(removed));
+  for (const id of [removed, ...routed, noRoute])
+    assert(result.retiredDeployableIds.includes(id));
+  assert.equal(
+    reloadCount(),
+    2,
+    "all routes apply through a single reload per attempt",
+  );
+  assert.equal(
+    target.ssh("sudo systemctl show caddy -p MainPID --value"),
+    caddyPid,
+    "cleanup never restarts Caddy",
+  );
   assert(
     !result.retiredDeployableIds.includes(shared),
     "an externally referenced owned volume prevents full retirement",
@@ -179,11 +286,16 @@ try {
   );
   await executeResourceOperation(input);
   assert.equal(
+    reloadCount(),
+    2,
+    "a completed cleanup retry has no route changes",
+  );
+  assert.equal(
     target.ssh("curl --fail --silent http://127.0.0.1:8088"),
     "active",
   );
   console.log(
-    "Server cleanup: non-root SSH, Docker volumes and ownership, external references, pending work, route reload failure/retry, configuration retirement, shared networks and idempotency passed.",
+    "Server cleanup: non-root SSH, Docker ownership and partial-removal retry, batched Caddy reload under a one-start rate limit, service environment validation, no-route cases, rollback, shared networks and idempotency passed.",
   );
 } finally {
   target.close();

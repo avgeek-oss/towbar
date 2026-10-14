@@ -10,6 +10,8 @@ export const expectedBrowserOnlyRoutes = new Set([
   "DELETE /settings/private-keys/:privateKeyId",
   "DELETE /team/invitations/:invitationId",
   "DELETE /team/members/:memberId",
+  "GET /apps/:appId/favicon",
+  "GET /deployments/:deploymentId/favicon",
   "GET /deployments/:deploymentId/source-revision",
   "GET /gitlab/oauth/callback",
   "GET /monitoring/summary",

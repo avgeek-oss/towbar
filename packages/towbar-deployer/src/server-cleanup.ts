@@ -19,9 +19,9 @@ blocked = set()
 def command(*args):
     return subprocess.run(args, check=False, capture_output=True, text=True)
 
-def required(*args):
+def required(*args, failure="Unable to inspect cleanup state"):
     result = command(*args)
-    if result.returncode: raise RuntimeError("Unable to inspect cleanup state: " + " ".join(args[:3]))
+    if result.returncode: raise RuntimeError(failure + ": " + " ".join(args[:3]))
     return result.stdout
 
 def inspect(kind, name):
@@ -135,26 +135,54 @@ def safe_path(path):
         if part.is_symlink(): raise RuntimeError("Cleanup path traverses a symlink")
     return path
 
-def retire_route(runtime):
-    path = safe_path(Path("/etc/caddy/towbar") / (runtime + ".caddy"))
-    backup = safe_path(path.with_suffix(".caddy.retiring"))
-    if not Path("/etc/caddy/Caddyfile").exists() and (path.exists() or backup.exists() or command("systemctl", "is-active", "--quiet", "caddy").returncode == 0):
-        raise RuntimeError("Caddy configuration is missing; route retirement cannot be verified")
-    if path.exists(): os.replace(path, backup)
-    # Reload even on retry: a previous worker may have stopped after moving the file.
-    if Path("/etc/caddy/Caddyfile").exists():
+def apply_route_cleanup(candidates):
+    routed = [candidate for candidate in candidates if candidate["routes"]]
+    if not routed: return
+    staged = []
+    try:
+        if not Path("/etc/caddy/Caddyfile").exists():
+            raise RuntimeError("Caddy configuration is missing; route retirement cannot be verified")
+        for candidate in routed:
+            for path, backup in candidate["routes"]:
+                if path.exists() and backup.exists():
+                    raise RuntimeError("Route cleanup conflicts with an existing retirement backup")
+                if path.exists(): os.replace(path, backup)
+                elif not backup.exists(): raise RuntimeError("Route changed while preparing cleanup")
+                staged.append((path, backup))
+        # A .retiring file also requires a reload: a previous attempt may have
+        # stopped after moving the route, before applying the new configuration.
         args = ["caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
-        cloudflare = Path("/etc/caddy/towbar/cloudflare.env").exists()
-        if cloudflare: args += ["--envfile", "/etc/caddy/towbar/cloudflare.env"]
+        if Path("/etc/caddy/towbar/cloudflare.env").exists():
+            args += ["--envfile", "/etc/caddy/towbar/cloudflare.env"]
+        required(*args, failure="Unable to validate Caddy route cleanup")
+        # Cleanup does not change the service environment or rotate credentials.
+        # ExecReload uses caddy.service's environment; no restart is needed.
+        required("systemctl", "reload", "caddy", failure="Unable to apply Caddy route cleanup")
+    except Exception as error:
+        rollback_failed = False
+        for path, backup in reversed(staged):
+            try:
+                if backup.exists():
+                    if path.exists(): raise RuntimeError("Route was replaced during cleanup")
+                    os.replace(backup, path)
+            except Exception:
+                rollback_failed = True
+        reason = str(error)
+        if rollback_failed: reason += "; staged routes could not all be restored; resolve conflicting files before retrying"
+        for candidate in routed:
+            blocked.add(candidate["deployable"])
+            failures.append({"kind": "container", "name": candidate["deployable"], "reason": reason[:500]})
+        return
+    for candidate in routed:
         try:
-            required(*args)
-            required("systemctl", "restart" if cloudflare else "reload", "caddy")
+            for path, backup in candidate["routes"]:
+                backup.unlink()
+                retired_paths.append(str(path))
         except Exception:
-            if backup.exists(): os.replace(backup, path)
-            raise
-    if backup.exists(): backup.unlink()
-    retired_paths.append(str(path))
+            blocked.add(candidate["deployable"])
+            failures.append({"kind": "container", "name": candidate["deployable"], "reason": "Caddy routes were applied, but retirement backups could not be removed; retry cleanup"})
 
+candidates = []
 for deployable, target in retiring.items():
     if deployable in blocked: continue
     try:
@@ -174,6 +202,7 @@ for deployable, target in retiring.items():
             paths += list(Path("/var/lib/towbar/compose").glob(runtime + ".*"))
         for path in paths:
             safe_path(path)
+            if path.exists() and not path.is_dir(): raise RuntimeError("Expected a Towbar configuration directory")
             if any(mount.get("Source") == str(path) or mount.get("Source", "").startswith(str(path) + "/") or (mount.get("Source") and str(path).startswith(mount["Source"].rstrip("/") + "/"))
                    for container in current for mount in container.get("Mounts", [])):
                 raise RuntimeError("Configuration path is still mounted")
@@ -184,10 +213,24 @@ for deployable, target in retiring.items():
                 identity = json.loads(receipt.read_text())
                 if identity.get("deployableId") != deployable or identity.get("sourceId") != target["sourceId"]:
                     raise RuntimeError("Configuration receipt has different ownership")
-        for runtime in target["runtimeIds"]: retire_route(runtime)
-        for path in paths:
+        routes = []
+        for runtime in dict.fromkeys(target["runtimeIds"]):
+            path = safe_path(Path("/etc/caddy/towbar") / (runtime + ".caddy"))
+            backup = safe_path(path.with_suffix(".caddy.retiring"))
+            if any(value.exists() and not value.is_file() for value in (path, backup)):
+                raise RuntimeError("Expected a Caddy route file")
+            if path.exists() or backup.exists(): routes.append((path, backup))
+        candidates.append({"deployable": deployable, "paths": paths, "routes": routes})
+    except Exception as error:
+        failures.append({"kind": "container", "name": deployable, "reason": str(error)[:500]})
+
+apply_route_cleanup(candidates)
+for candidate in candidates:
+    deployable = candidate["deployable"]
+    if deployable in blocked: continue
+    try:
+        for path in candidate["paths"]:
             if path.exists():
-                if not path.is_dir(): raise RuntimeError("Expected a Towbar configuration directory")
                 shutil.rmtree(path)
                 retired_paths.append(str(path))
         retired.append(deployable)

@@ -1,4 +1,5 @@
 import { listAppJobs, requestAppJob } from "../../../areas/apps/jobs.js";
+import { getAppIcon } from "../../../areas/favicons/service.js";
 import { getAppStorage } from "../../../areas/apps/storage.js";
 import { actorAllows } from "@workspace/towbar-access";
 import {
@@ -86,6 +87,27 @@ appRoutes.get(
     return context.json({
       app: await getApp(context.req.param("appId"), user.workspaceId),
     });
+  },
+);
+
+appRoutes.get(
+  "/:appId/favicon",
+  operation({
+    permissions: ["workload.read"],
+    browserOnly: true,
+    responseSchema: 'apps.ts:get:"/:appId/favicon"',
+    summary: "Discover a service icon",
+    response: "A bounded public favicon image and its cache expiry.",
+    status: 200,
+  }),
+  async (context) => {
+    context.header("Cache-Control", "private, no-store");
+    return context.json(
+      await getAppIcon(
+        context.req.param("appId"),
+        context.get("user").workspaceId,
+      ),
+    );
   },
 );
 
