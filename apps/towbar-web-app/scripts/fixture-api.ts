@@ -33,6 +33,7 @@ import {
   filterServers,
   filterSources,
 } from "@workspace/towbar-core/inventory";
+import { createLogsFixture } from "./logs-fixture.ts";
 import { createScoutFixture } from "./scout-fixture.ts";
 import {
   fixtureServerMonitoringSummary,
@@ -2197,6 +2198,10 @@ export function createFixtureApiServer({
       0,
     ),
   );
+  const logsFixture = createLogsFixture(
+    [...apps, ...resources],
+    teamAccess.getUser,
+  );
   const monitoring = new Map(
     servers.map((server, index) => [
       server.id,
@@ -3168,6 +3173,7 @@ export function createFixtureApiServer({
     }
 
     if (analyticsFixture(request, response, requestUrl)) return;
+    if (await logsFixture(request, response, requestUrl)) return;
     if (scoutFixture(request, response, requestUrl)) return;
     if (
       request.method === "GET" &&

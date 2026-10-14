@@ -1,3 +1,4 @@
+import { drainCentralizedLogsShell } from "./log-drain.js";
 import { containerRuntimeArgumentsScript } from "./container-runtime.js";
 import {
   dockerNetworkLockScript,
@@ -7,6 +8,7 @@ import { hostLogRuntimeArgumentsScript } from "./host-log-collection.js";
 
 export const startRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 container_name="$2"
 image_tag="$3"
@@ -17,7 +19,7 @@ resource_memory="$7"
 network_alias="${"$"}{8:-}"
 previous_container="${"$"}{9:-}"
 ${dockerNetworkLockScript}
-docker rm -f "$container_name" >/dev/null 2>&1 || true
+towbar_drain_logs "$container_name"; docker rm -f "$container_name" >/dev/null 2>&1 || true
 ${validateNetworkAliasScript}
 if test -n "$network_alias"; then
   # An alias has one live owner. Stop the prior release before attaching the

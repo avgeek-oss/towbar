@@ -48,7 +48,7 @@ try {
       ".",
     ]);
   if (["api", "app", "resources"].includes(group))
-    await infrastructure.provision();
+    await infrastructure.provision({ logs: group === "api" });
   if (group === "api") {
     await pnpmTest("api", "towbar-api", ["src/**/*.test.ts"]);
     await run.step(

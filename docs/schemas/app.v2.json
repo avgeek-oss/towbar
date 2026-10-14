@@ -30,6 +30,11 @@
       },
       "additionalProperties": false
     },
+    "logs": {
+      "type": "object",
+      "properties": { "restrict": { "type": "string", "const": "admin" } },
+      "additionalProperties": false
+    },
     "jobs": {
       "maxItems": 20,
       "type": "array",
@@ -1196,6 +1201,13 @@
                   "pattern": "^\\/.*"
                 }
               }
+            },
+            "additionalProperties": false
+          },
+          "logs": {
+            "type": "object",
+            "properties": {
+              "restrict": { "type": "string", "const": "admin" }
             },
             "additionalProperties": false
           },

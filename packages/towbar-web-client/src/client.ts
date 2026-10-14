@@ -80,7 +80,7 @@ export function createTowbarClient(options: TowbarClientOptions) {
       await request<T>(path, { json, method: "PATCH" }),
     post: async <T>(path: string, json?: unknown, headers?: HeadersInit) =>
       await request<T>(path, { headers, json, method: "POST" }),
-    put: async <T>(path: string, json?: unknown) =>
-      await request<T>(path, { json, method: "PUT" }),
+    put: async <T>(path: string, json?: unknown, headers?: HeadersInit) =>
+      await request<T>(path, { headers, json, method: "PUT" }),
   };
 }

@@ -1,0 +1,177 @@
+"use client";
+import { useRef, useState } from "react";
+import { Button } from "@avgeek-oss/design-system/buttons/button";
+import { Widget } from "@avgeek-oss/design-system/data-display/widget";
+import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
+import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
+import { TowbarApiError } from "@workspace/towbar-web-client";
+import type {
+  LogCollectionStatus,
+  LogStorageStatus,
+} from "@workspace/towbar-web-client";
+import { refreshApiQueries, useApiQuery } from "@/hooks/use-api-query";
+import { api } from "@/lib/api";
+import { displayDateTime } from "@/lib/date-time-display";
+
+export function LogCollectorSettings({
+  serverId,
+  canManage,
+  ready,
+  hostAccess,
+}: {
+  serverId: string;
+  canManage: boolean;
+  ready: boolean;
+  hostAccess: boolean;
+}) {
+  const collector = useApiQuery<LogCollectionStatus>(
+    `/v1/core/servers/${serverId}/log-collection`,
+    5000,
+  );
+  const storage = useApiQuery<LogStorageStatus>(
+    "/v1/core/observability/logs/status",
+    15000,
+  );
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState<string | null>(null);
+  const action = useRef<{ enabled: boolean; key: string } | null>(null);
+  async function configure(enabled: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      if (!action.current || action.current.enabled !== enabled)
+        action.current = { enabled, key: crypto.randomUUID() };
+      await api.put(
+        `/v1/core/servers/${serverId}/log-collection`,
+        { enabled },
+        { "Idempotency-Key": action.current.key },
+      );
+      action.current = null;
+      refreshApiQueries();
+    } catch (cause) {
+      if (cause instanceof TowbarApiError && cause.status < 500)
+        action.current = null;
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not update log collection.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  const item = collector.data,
+    pending = busy || ["queued", "installing"].includes(item?.status ?? "");
+  return (
+    <Widget>
+      <Widget.Header>
+        <Widget.Title>Centralized logs</Widget.Title>
+      </Widget.Header>
+      <Widget.Content className="content-grid">
+        <p className="max-w-3xl text-sm text-muted">
+          Collect service, datastore, and preview container logs in your
+          external ClickHouse database. Search retained history in Monitor →
+          Logs.
+        </p>
+        {collector.error || error ? (
+          <QueryError message={collector.error ?? error!} />
+        ) : null}
+        {!item || !storage.data ? (
+          <QueryLoading />
+        ) : (
+          <>
+            <dl className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-3">
+              <div>
+                <dt className="text-muted">Status</dt>
+                <dd>
+                  {item.status === "waiting"
+                    ? "Waiting for first log"
+                    : item.status}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Collector version</dt>
+                <dd>{item.version ?? "Not installed"}</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Last ingestion</dt>
+                <dd>
+                  {item.lastIngestedAt
+                    ? displayDateTime(item.lastIngestedAt)
+                    : "No logs received yet"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Container coverage</dt>
+                <dd>
+                  {item.supportedContainers} supported ·{" "}
+                  {item.unsupportedContainers} unsupported
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Buffered data</dt>
+                <dd>{(item.queueBytes / 1048576).toFixed(1)} MiB</dd>
+              </div>
+              <div>
+                <dt className="text-muted">Rejected records</dt>
+                <dd>{item.droppedRecords}</dd>
+              </div>
+            </dl>
+            {item.errorMessage ? (
+              <QueryError message={item.errorMessage} />
+            ) : null}
+            {storage.data.state !== "ready" ? (
+              <p className="text-sm text-muted">
+                {storage.data.reason ??
+                  "Connect ClickHouse in config.yml before enabling collection."}{" "}
+                <InlineExternalLink href={storage.data.documentationUrl}>
+                  Setup and requirements
+                </InlineExternalLink>
+              </p>
+            ) : null}
+            {!hostAccess ? (
+              <p className="text-sm text-muted">
+                An administrator must allow Docker log collection in this
+                server’s Docker logs settings.
+              </p>
+            ) : null}
+            {item.unsupportedContainers > 0 ? (
+              <p className="text-sm text-warning">
+                Some managed containers cannot be collected. Check the Docker
+                json-file driver, workload ownership, and the 512-container
+                limit.
+              </p>
+            ) : null}
+            {canManage ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  isDisabled={
+                    pending ||
+                    !ready ||
+                    !hostAccess ||
+                    storage.data.state !== "ready"
+                  }
+                  onPress={() => configure(true)}
+                >
+                  {pending
+                    ? "Updating…"
+                    : item.desiredState === "enabled"
+                      ? "Update collector"
+                      : "Install log collection"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  isDisabled={pending || item.desiredState !== "enabled"}
+                  onPress={() => configure(false)}
+                >
+                  Disable collection
+                </Button>
+              </div>
+            ) : null}
+          </>
+        )}
+      </Widget.Content>
+    </Widget>
+  );
+}

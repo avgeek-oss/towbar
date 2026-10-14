@@ -14,6 +14,7 @@ import {
   apps,
   deployments,
   imageVulnerabilityScans,
+  logCollectors,
   managedSecrets,
   monitoringAgents,
   previewEnvironments,
@@ -192,6 +193,16 @@ export async function removeServer(input: {
       .for("update")
       .limit(1);
     if (!server) throw notFound("Server");
+    const [collector] = await transaction
+      .select()
+      .from(logCollectors)
+      .where(eq(logCollectors.serverId, server.id))
+      .for("update");
+    if (collector && collector.status !== "disabled")
+      throw conflict(
+        "Disable centralized log collection and wait for removal before removing this server.",
+        "LOG_COLLECTOR_ACTIVE",
+      );
     const active = await Promise.all([
       transaction
         .select({ id: serverCredentialVerifications.id })

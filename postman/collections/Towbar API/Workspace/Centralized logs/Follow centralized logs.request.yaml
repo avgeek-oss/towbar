@@ -1,0 +1,35 @@
+$kind: http-request
+id: 81351758-f7ad-5b86-bca9-e949611cf3f9
+description:
+  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and
+  server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID.
+  MCP returns a finite snapshot; call again to poll."
+url: "{{baseUrl}}/logs/tail"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "filters": {
+        "from": "2026-01-01T00:00:00.000Z",
+        "to": "2026-01-01T00:00:00.000Z",
+        "workloadIds": [],
+        "serverIds": [],
+        "deploymentIds": [],
+        "previewIds": [],
+        "containerIds": [],
+        "environments": [],
+        "services": [],
+        "severities": [],
+        "stream": "stdout",
+        "search": "",
+        "traceId": "00000000-0000-4000-8000-000000000000",
+        "attributes": []
+      },
+      "cursor": "string"
+    }
+order: 7000

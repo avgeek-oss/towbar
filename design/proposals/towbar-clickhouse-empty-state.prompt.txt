@@ -1,0 +1,7 @@
+Tool: built-in image_gen
+Transparent background: true
+Status: artwork proposal; not wired into the application or Sketch source.
+Reference 1: apps/towbar-web-app/public/mascots/happy.png
+Reference 2: apps/towbar-web-app/public/resource-logos/clickhouse.webp
+
+Use case: compositing / identity-preserve. Asset type: small product empty-state illustration for Towbar centralized logs, usable in both light and dark UI. Image 1 is the exact Towbar bird mascot identity and material reference. Image 2 is the ClickHouse logo to reproduce faithfully. Create one minimal polished 3D illustration: the same fluffy bright yellow bird, same proportions, feather crest, large glossy black eyes, pale orange beak and dark grey feet, standing and holding a small charcoal rounded rectangular plaque in its two wings in front of its lower chest. Place the ClickHouse symbol from Image 2 on the plaque, keeping the four yellow vertical bars, small red bottom on the first bar and yellow square at right recognizable and faithfully proportioned. Keep the expression friendly and gently expectant, with a closed or very subtly smiling beak, suitable both for 'connect ClickHouse' and 'connection needs attention'. Preserve the bird's existing soft fuzzy texture and studio lighting. Center the full-body character with a little clear padding on every edge. Truly transparent background, no ground plane, no cast shadow outside the character, no environment, no cable or plug, no lettering, no caption, no extra objects, no watermark. Keep the result minimal and legible when shown at 200px.

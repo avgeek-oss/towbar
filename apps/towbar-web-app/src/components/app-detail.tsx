@@ -387,7 +387,7 @@ export function AppDetail() {
           },
           {
             value: "logs",
-            label: "Logs",
+            label: "Runtime Logs",
             group: "Monitor",
             icon: <HugeiconsIcon icon={FileViewIcon} />,
             content: (

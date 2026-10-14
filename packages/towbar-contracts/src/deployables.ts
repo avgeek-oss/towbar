@@ -1,3 +1,4 @@
+import type { LogPolicy } from "./logs.js";
 import type { TlsPolicy } from "./tls.js";
 import type { z } from "zod";
 import type { AnalyticsConfig } from "./analytics.js";
@@ -34,6 +35,7 @@ export type NormalizedDeploymentHook = {
 };
 
 export type NormalizedApp = {
+  logs?: LogPolicy;
   analytics?: AnalyticsConfig;
   notifications?: ManifestNotifications;
   jobs?: AppJob[];
@@ -82,6 +84,7 @@ export type NormalizedApp = {
 };
 
 export type NormalizedResource = {
+  logs?: LogPolicy;
   notifications?: ManifestNotifications;
   externalSecrets?: z.infer<typeof externalSecretsSchema>;
   ingress?: z.infer<typeof ingressSchema>;

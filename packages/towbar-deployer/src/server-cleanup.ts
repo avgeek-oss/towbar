@@ -3,7 +3,7 @@ set -euo pipefail
 python=(python3)
 if test "${"$"}{3:-false}" = true; then python=(sudo python3); fi
 "${"$"}{python[@]}" - "$1" "$2" "${"$"}{3:-false}" <<'PYTHON'
-import json, os, re, shutil, subprocess, sys
+import json, os, re, shutil, subprocess, sys, time
 from pathlib import Path
 
 items = json.loads(sys.argv[1])
@@ -15,6 +15,7 @@ protected = set(expected.get("protectedDeployableIds", []))
 retiring = {item["deployableId"]: item for item in expected.get("retiring", [])} if discover else {}
 cleaned, skipped, failures, retired, retired_paths = [], [], [], [], []
 blocked = set()
+log_drain_deadline = None
 
 def command(*args):
     return subprocess.run(args, check=False, capture_output=True, text=True)
@@ -107,6 +108,16 @@ for item in sorted(items, key=lambda value: {"container": 0, "volume": 1, "image
         skipped.append({**item, "reason": reason})
         if deployable in retiring and kind in ("container", "volume"): blocked.add(deployable)
         continue
+    if kind == "container" and Path("/usr/local/lib/towbar-logs/drain.py").is_file():
+        if log_drain_deadline is None: log_drain_deadline = time.monotonic() + 8
+        remaining = log_drain_deadline - time.monotonic()
+        try:
+            if remaining <= 0: raise subprocess.TimeoutExpired("log drain", 8)
+            prefix = [] if os.geteuid() == 0 else ["sudo", "-n"]
+            result = subprocess.run([*prefix, "python3", "/usr/local/lib/towbar-logs/drain.py", name], timeout=remaining, capture_output=True)
+            if result.returncode: raise RuntimeError("Log drain was not confirmed")
+        except (OSError, RuntimeError, subprocess.SubprocessError):
+            print("Centralized logs could not confirm the final record before container cleanup.", file=sys.stderr)
     args = {"container": ("rm", "-f"), "volume": ("volume", "rm"), "image": ("image", "rm")}[kind]
     result = command("docker", *args, name)
     if result.returncode == 0: cleaned.append(item)

@@ -1,3 +1,4 @@
+import { logTools } from "./mcp-log-tools.js";
 import { z } from "zod";
 import {
   type McpTool,
@@ -27,6 +28,7 @@ export type { OperationCall } from "./mcp-toolkit.js";
 
 export const mcpTools: McpTool[] = [
   ...scoutTools,
+  ...logTools,
   tool(
     "integration_list",
     "List available integrations",

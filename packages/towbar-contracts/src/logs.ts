@@ -1,0 +1,196 @@
+import { z } from "zod";
+
+export const logPolicySchema = z
+  .object({ restrict: z.literal("admin") })
+  .strict();
+export type LogPolicy = z.infer<typeof logPolicySchema>;
+
+const identifier = z.string().regex(/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/u);
+export const logStorageConfigurationSchema = z
+  .object({
+    retentionDays: z.number().int().min(1).max(365).default(7),
+    clickhouse: z
+      .object({
+        endpoint: z.url().refine((value) => {
+          const url = new URL(value);
+          return (
+            ["https:", "http:"].includes(url.protocol) &&
+            !url.username &&
+            !url.password &&
+            !url.search &&
+            !url.hash &&
+            url.pathname === "/"
+          );
+        }, "Use an HTTP(S) origin without credentials, path, query, or fragment"),
+        database: identifier,
+        username: z.string().min(1).max(128),
+        password: z.string().min(1).max(4096),
+      })
+      .strict(),
+  })
+  .strict();
+export type LogStorageConfiguration = z.infer<
+  typeof logStorageConfigurationSchema
+>;
+
+const ids = z.array(z.uuid()).max(50).default([]);
+export const logFilterSchema = z
+  .object({
+    from: z.iso.datetime(),
+    to: z.iso.datetime(),
+    workloadIds: ids,
+    serverIds: ids,
+    deploymentIds: ids,
+    previewIds: ids,
+    containerIds: z
+      .array(z.string().regex(/^[a-f0-9]{64}$/u))
+      .max(50)
+      .default([]),
+    environments: z
+      .array(z.enum(["production", "preview"]))
+      .max(2)
+      .default([]),
+    services: z.array(z.string().min(1).max(128)).max(50).default([]),
+    severities: z
+      .array(
+        z.enum(["trace", "debug", "info", "warn", "error", "fatal", "unknown"]),
+      )
+      .max(7)
+      .default([]),
+    stream: z.enum(["stdout", "stderr"]).optional(),
+    search: z.string().max(512).default(""),
+    traceId: z
+      .string()
+      .regex(/^[a-f0-9]{32}$/u)
+      .optional(),
+    attributes: z
+      .array(
+        z
+          .object({
+            key: z.string().min(1).max(128),
+            value: z.string().max(512),
+            operator: z.enum(["equals", "contains"]).default("equals"),
+          })
+          .strict(),
+      )
+      .max(8)
+      .default([]),
+  })
+  .strict()
+  .refine((v) => Date.parse(v.from) < Date.parse(v.to), {
+    message: "The start must precede the end",
+    path: ["to"],
+  })
+  .refine((v) => Date.parse(v.to) - Date.parse(v.from) <= 31 * 86400000, {
+    message: "Query at most 31 days at once",
+    path: ["from"],
+  });
+export type LogFilter = z.infer<typeof logFilterSchema>;
+export const logQuerySchema = z
+  .object({
+    filters: logFilterSchema,
+    limit: z.number().int().min(1).max(500).default(50),
+    cursor: z.string().max(8192).optional(),
+    direction: z.enum(["older", "newer"]).default("older"),
+  })
+  .strict();
+export type LogQuery = z.infer<typeof logQuerySchema>;
+export const logTailSchema = z
+  .object({
+    filters: logFilterSchema,
+    cursor: z.string().max(8192).optional(),
+  })
+  .strict();
+export const logContextSchema = z
+  .object({
+    eventId: z.string().regex(/^[a-f0-9]{64}$/u),
+    timestamp: z.iso.datetime(),
+    workloadId: z.uuid(),
+    limit: z.number().int().min(1).max(100).default(20),
+  })
+  .strict();
+export const logCollectionRequestSchema = z
+  .object({
+    enabled: z.boolean(),
+  })
+  .strict();
+
+export const logRecordSchema = z.object({
+  eventId: z.string().regex(/^[a-f0-9]{64}$/u),
+  timestamp: z.string(),
+  ingestedAt: z.string(),
+  serverId: z.uuid(),
+  workloadId: z.uuid(),
+  workloadName: z.string(),
+  deploymentId: z.uuid().nullable(),
+  previewId: z.uuid().nullable(),
+  environment: z.enum(["production", "preview"]),
+  containerId: z.string(),
+  service: z.string(),
+  severity: z.enum([
+    "trace",
+    "debug",
+    "info",
+    "warn",
+    "error",
+    "fatal",
+    "unknown",
+  ]),
+  stream: z.enum(["stdout", "stderr"]),
+  body: z.string(),
+  attributes: z.record(z.string(), z.string()),
+  traceId: z.string().nullable(),
+  spanId: z.string().nullable(),
+  truncated: z.boolean(),
+});
+export type LogRecord = z.infer<typeof logRecordSchema>;
+
+export const logQueryResultSchema = z.object({
+  accessRevision: z.string(),
+  followCursor: z.string(),
+  records: z.array(logRecordSchema),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
+  partial: z.boolean(),
+  snapshotAt: z.string(),
+});
+export type LogQueryResult = z.infer<typeof logQueryResultSchema>;
+export const logStorageStatusSchema = z.object({
+  state: z.enum(["not_configured", "ready", "unavailable"]),
+  reason: z.string().nullable(),
+  code: z.string().nullable(),
+  retentionDays: z.number().nullable(),
+  checkedAt: z.string(),
+  documentationUrl: z.string(),
+});
+export const logCollectionStatusSchema = z.object({
+  serverId: z.uuid(),
+  desiredState: z.enum(["enabled", "disabled"]),
+  status: z.enum([
+    "disabled",
+    "queued",
+    "installing",
+    "waiting",
+    "collecting",
+    "offline",
+    "backlogged",
+    "failed",
+  ]),
+  generation: z.uuid().nullable(),
+  version: z.string().nullable(),
+  lastReportAt: z.string().nullable(),
+  lastIngestedAt: z.string().nullable(),
+  errorMessage: z.string().nullable(),
+  supportedContainers: z.number(),
+  unsupportedContainers: z.number(),
+  queueBytes: z.number(),
+  droppedRecords: z.number(),
+});
+
+export type LogStorageStatus = z.infer<typeof logStorageStatusSchema>;
+export type LogCollectionStatus = z.infer<typeof logCollectionStatusSchema>;
+export type LogSummary = {
+  buckets: { at: string; severity: string; count: number }[];
+  facets: Record<string, { id: string; name: string; count: number }[]>;
+  partial: boolean;
+};

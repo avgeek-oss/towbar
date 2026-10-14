@@ -45,7 +45,7 @@ test("primary navigation groups settings and preserves role visibility", () => {
     admin.groups
       .find((group) => group.id === "monitoring")
       ?.items.map((item) => item.id),
-    ["incidents", "vulnerabilities", "health"],
+    ["logs", "incidents", "vulnerabilities", "health"],
   );
 
   const member = createApplicationSidebar({}, undefined, fixtureUser("member"));
@@ -78,6 +78,11 @@ test("primary navigation groups settings and preserves role visibility", () => {
   assert.equal(memberSharedSecrets.href, "/manage/shared-secrets");
 
   const viewer = createApplicationSidebar({}, undefined, fixtureUser("viewer"));
+  assert(
+    viewer.groups
+      .find((group) => group.id === "monitoring")
+      ?.items.some((item) => item.id === "logs"),
+  );
   assert.deepEqual(
     viewer.groups
       .find((group) => group.id === "settings")

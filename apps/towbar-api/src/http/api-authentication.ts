@@ -80,7 +80,17 @@ function requireExternalToken(
     if (
       surface === "api" &&
       identity.key.access === "read" &&
-      !["GET", "HEAD"].includes(context.req.method)
+      !["GET", "HEAD"].includes(context.req.method) &&
+      !(
+        context.req.method === "POST" &&
+        [
+          "/v1/api/logs/query",
+          "/v1/api/logs/summary",
+          "/v1/api/logs/context",
+          "/v1/api/logs/tail",
+          "/v1/api/logs/follow",
+        ].includes(context.req.path)
+      )
     )
       throw forbidden("This key has read-only access");
     await next();

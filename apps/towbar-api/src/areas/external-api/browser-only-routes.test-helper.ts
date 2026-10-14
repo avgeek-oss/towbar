@@ -105,7 +105,7 @@ export function assertPublicOperationNames(
     new Set(operations.map((op) => op.name)).size,
     operations.length,
   );
-  assert.equal(operations.length, 142);
+  assert.equal(operations.length, 152);
   assert(
     operations.some(
       (op) => op.name === "post_sources_by_id_actions_change_github_connection",

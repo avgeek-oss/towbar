@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@avgeek-oss/design-system": "1.2.17",
+    "@glideapps/glide-data-grid": "6.0.3",
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
     "next": "catalog:",

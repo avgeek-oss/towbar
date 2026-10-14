@@ -111,6 +111,10 @@ class RuntimeConfigTests(unittest.TestCase):
         values["TOWBAR_NOTIFICATION_CONFIG_JSON"] = json.dumps(
             {"providers": {}, "routes": []}
         )
+        values["TOWBAR_LOGS_CONFIG_JSON"] = json.dumps({
+            "retentionDays": 7,
+            "clickhouse": {"endpoint": "https://logs.example.com:8443", "database": "towbar_logs", "username": "towbar", "password": "test-password"},
+        })
         converted = config_tool.from_env(values)
         self.assertEqual(
             converted["notifications"]["routes"], []

@@ -64,7 +64,7 @@ for (const file of await readdir(resolve(root, "docs/api-reference"))) {
     throw new Error(`Obsolete API page: ${file}. Run pnpm docs:api.`);
   await unlink(path);
 }
-const configPath = resolve(root, "docs/docs.json");
+const configPath = resolve(root, "docs/site.json");
 const config = JSON.parse(await readFile(configPath, "utf8"));
 const navigationItems = config.navigation.dropdowns ?? config.navigation.tabs;
 const navigationLabel = config.navigation.dropdowns ? "dropdown" : "tab";
@@ -120,6 +120,7 @@ const toolGroups: Record<string, string> = {
   deployment: "Deployments",
   server: "Servers",
   monitoring: "Scout Agent",
+  logs: "Centralized logs",
   alerts: "Scout Alerts",
   performance: "Scout Agent",
   secrets: "Secrets",

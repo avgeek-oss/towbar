@@ -1,3 +1,4 @@
+import { logPolicySchema } from "./logs.js";
 import { tlsSchema } from "./tls.js";
 import { z } from "zod";
 import { autoDeploySchema } from "./deployment-input-schema.js";
@@ -355,6 +356,7 @@ const composeServicePolicySchema = z
 
 export const composeWorkloadSchema = z
   .object({
+    logs: logPolicySchema.optional(),
     notifications: manifestNotificationsSchema.optional(),
     id: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/u),
     name: z.string().trim().min(1).max(120),

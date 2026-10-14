@@ -53,6 +53,8 @@ void test(
           script
             .replaceAll("/var/lib/towbar/apps", path.join(root, "state"))
             .replaceAll('"sudo", "install"', '"install"')
+            .replaceAll("sudo python3 -", "python3 -")
+            .replaceAll("/etc/caddy/towbar", path.join(root, "routes"))
             .replaceAll("${hook_name,,}", "${hook_name}")
             .replace(
               /\/usr\/bin\/timeout --signal=TERM --kill-after=10s "\$timeout_seconds" \\\n/g,

@@ -1,0 +1,35 @@
+$kind: http-request
+id: a52e291d-2f7f-59f1-80dd-2090865141ca
+description:
+  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  team keys use explicit grants."
+url: "{{baseUrl}}/logs/query"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "filters": {
+        "from": "2026-01-01T00:00:00.000Z",
+        "to": "2026-01-01T00:00:00.000Z",
+        "workloadIds": [],
+        "serverIds": [],
+        "deploymentIds": [],
+        "previewIds": [],
+        "containerIds": [],
+        "environments": [],
+        "services": [],
+        "severities": [],
+        "stream": "stdout",
+        "search": "",
+        "traceId": "00000000-0000-4000-8000-000000000000",
+        "attributes": []
+      },
+      "limit": 50,
+      "cursor": "string",
+      "direction": "older"
+    }
+order: 3000

@@ -7,11 +7,7 @@
     "href": "/"
   },
   "favicon": "/assets/towbar-favicon.png",
-  "colors": {
-    "primary": "#A16207",
-    "light": "#F2CD51",
-    "dark": "#AA8228"
-  },
+  "colors": { "primary": "#A16207", "light": "#F2CD51", "dark": "#AA8228" },
   "navigation": {
     "dropdowns": [
       {
@@ -168,6 +164,7 @@
             "pages": [
               "docs/operate/health",
               "docs/operate/performance",
+              "docs/operate/centralized-logs",
               "docs/deployment-comparisons"
             ]
           },
@@ -194,10 +191,7 @@
         "dropdown": "Integrations",
         "icon": "plug",
         "groups": [
-          {
-            "group": "Overview",
-            "pages": ["docs/integrations/index"]
-          },
+          { "group": "Overview", "pages": ["docs/integrations/index"] },
           {
             "group": "Source control",
             "icon": "git-branch",
@@ -253,10 +247,7 @@
         "dropdown": "Use cases",
         "icon": "lightbulb",
         "groups": [
-          {
-            "group": "Start here",
-            "pages": ["docs/use-cases/index"]
-          },
+          { "group": "Start here", "pages": ["docs/use-cases/index"] },
           {
             "group": "Open-source software",
             "pages": [
@@ -748,6 +739,14 @@
                 "pages": ["api-reference/get_servers_by_id_capacity"]
               },
               {
+                "group": "Centralized logs",
+                "pages": [
+                  "api-reference/get_servers_by_id_log_collection",
+                  "api-reference/put_servers_by_id_log_collection",
+                  "api-reference/post_servers_by_id_log_collection_actions_update"
+                ]
+              },
+              {
                 "group": "Scout Agent",
                 "pages": [
                   "api-reference/get_servers_by_id_monitoring",
@@ -856,6 +855,18 @@
                 ]
               },
               {
+                "group": "Centralized logs",
+                "pages": [
+                  "api-reference/get_observability_logs_status",
+                  "api-reference/post_observability_logs_actions_verify",
+                  "api-reference/post_logs_query",
+                  "api-reference/post_logs_summary",
+                  "api-reference/post_logs_context",
+                  "api-reference/post_logs_follow",
+                  "api-reference/post_logs_tail"
+                ]
+              },
+              {
                 "group": "Shared secrets",
                 "pages": [
                   "api-reference/get_settings_secrets",
@@ -870,10 +881,7 @@
                   "api-reference/get_version"
                 ]
               },
-              {
-                "group": "Identity",
-                "pages": ["api-reference/get_identity"]
-              }
+              { "group": "Identity", "pages": ["api-reference/get_identity"] }
             ]
           },
           {
@@ -921,29 +929,17 @@
   },
   "navbar": {
     "links": [
-      {
-        "type": "github",
-        "href": "https://github.com/avgeek-oss/towbar"
-      }
+      { "type": "github", "href": "https://github.com/avgeek-oss/towbar" }
     ],
-    "primary": {
-      "type": "button",
-      "label": "Docs",
-      "href": "/docs"
-    }
+    "primary": { "type": "button", "label": "Docs", "href": "/docs" }
   },
   "footer": {
-    "socials": {
-      "github": "https://github.com/avgeek-oss/towbar"
-    },
+    "socials": { "github": "https://github.com/avgeek-oss/towbar" },
     "links": [
       {
         "header": "Documentation",
         "items": [
-          {
-            "label": "Your first deployment",
-            "href": "/docs/getting-started"
-          },
+          { "label": "Your first deployment", "href": "/docs/getting-started" },
           {
             "label": "Install Towbar",
             "href": "/docs/self-hosting/installation"
@@ -952,10 +948,7 @@
             "label": "Connect a repository",
             "href": "/docs/repositories/connect"
           },
-          {
-            "label": "Manifest reference",
-            "href": "/docs/deployment-manifest"
-          }
+          { "label": "Manifest reference", "href": "/docs/deployment-manifest" }
         ]
       },
       {
@@ -991,30 +984,15 @@
       {
         "header": "Project & Legal",
         "items": [
-          {
-            "label": "GitHub",
-            "href": "https://github.com/avgeek-oss/towbar"
-          },
+          { "label": "GitHub", "href": "https://github.com/avgeek-oss/towbar" },
           {
             "label": "Changelog",
             "href": "https://github.com/avgeek-oss/towbar/blob/main/CHANGELOG.md"
           },
-          {
-            "label": "Security",
-            "href": "/docs/self-hosting/security"
-          },
-          {
-            "label": "Privacy",
-            "href": "/privacy"
-          },
-          {
-            "label": "Terms",
-            "href": "/terms"
-          },
-          {
-            "label": "Status",
-            "href": "/status"
-          }
+          { "label": "Security", "href": "/docs/self-hosting/security" },
+          { "label": "Privacy", "href": "/privacy" },
+          { "label": "Terms", "href": "/terms" },
+          { "label": "Status", "href": "/status" }
         ]
       }
     ]
@@ -1025,11 +1003,11 @@
       "og:image": "https://www.towbar.dev/assets/towbar-og.png",
       "og:image:width": "1200",
       "og:image:height": "630",
-      "og:image:alt": "Towbar \u2014 Open-Source Git-native PaaS",
+      "og:image:alt": "Towbar — Open-Source Git-native PaaS",
       "twitter:card": "summary_large_image",
       "twitter:image": "https://www.towbar.dev/assets/towbar-og.png",
       "canonical": "https://www.towbar.dev",
-      "twitter:image:alt": "Towbar \u2014 Open-Source Git-native PaaS"
+      "twitter:image:alt": "Towbar — Open-Source Git-native PaaS"
     },
     "organization": {
       "name": "Towbar",
@@ -1039,10 +1017,7 @@
     }
   },
   "redirects": [
-    {
-      "source": "/docs/managed-databases",
-      "destination": "/docs/databases"
-    },
+    { "source": "/docs/managed-databases", "destination": "/docs/databases" },
     {
       "source": "/docs/reference/deployment-manifest",
       "destination": "/docs/deployment-manifest"
@@ -1056,7 +1031,5 @@
       "destination": "/docs/architecture"
     }
   ],
-  "metadata": {
-    "timestamp": true
-  }
+  "metadata": { "timestamp": true }
 }

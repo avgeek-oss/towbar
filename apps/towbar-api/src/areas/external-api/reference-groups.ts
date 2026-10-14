@@ -11,6 +11,8 @@ export const referenceCategories = [
 
 const categoryByRoot: Record<string, string> = {
   monitoring: "Workspace",
+  logs: "Workspace",
+  observability: "Workspace",
   sources: "Repositories",
   apps: "Services",
   resources: "Datastores",
@@ -43,6 +45,7 @@ export const sectionOrder = [
   "Inventory",
   "Capacity",
   "Monitoring",
+  "Centralized logs",
   "Notifications",
   "Scout Agent",
   "Scout Alerts",
@@ -67,6 +70,8 @@ export const sectionOrder = [
 
 // Match the most specific task before a broader collection or runtime route.
 const rules: Record<string, Array<[string, RegExp]>> = {
+  logs: [["Centralized logs", /^\/logs\//]],
+  observability: [["Centralized logs", /^\/observability\/logs\//]],
   monitoring: [
     [
       "Monitoring",
@@ -118,6 +123,7 @@ const rules: Record<string, Array<[string, RegExp]>> = {
     ],
   ],
   servers: [
+    ["Centralized logs", /\/log-collection(?:\/|$)/],
     ["Overview", /\/name$/],
     ["Scout Alerts", /\/scout-alerts(?:\/|$)/],
     ["Scout Agent", /\/(monitoring|metrics)(?:\/|$)/],

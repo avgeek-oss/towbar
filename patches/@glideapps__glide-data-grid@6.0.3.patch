@@ -1,0 +1,53 @@
+diff --git a/dist/cjs/common/utils.js b/dist/cjs/common/utils.js
+index 01001f7b53b9716e0a0d59bd27c2b3b1108d3071..d7e3698360db3fde56e7bd8c8f9c61ab32613859 100644
+--- a/dist/cjs/common/utils.js
++++ b/dist/cjs/common/utils.js
+@@ -103,8 +103,11 @@ exports.Checkmark = Checkmark;
+ function useDebouncedMemo(factory, deps, time) {
+     const [state, setState] = React.useState(factory);
+     const mountedRef = React.useRef(true);
+-    React.useEffect(() => () => {
+-        mountedRef.current = false;
++    React.useEffect(() => {
++        mountedRef.current = true;
++        return () => {
++            mountedRef.current = false;
++        };
+     }, []);
+     const debouncedSetState = React.useRef((0, debounce_js_1.default)(x => {
+         if (mountedRef.current) {
+diff --git a/dist/esm/common/utils.js b/dist/esm/common/utils.js
+index 58ecd3ca091da0b1b8dfa3cd201d01e5407f40d0..5a543ee0c06bb3daba61621e6444c71fd5986cbb 100644
+--- a/dist/esm/common/utils.js
++++ b/dist/esm/common/utils.js
+@@ -65,8 +65,11 @@ export const Checkmark = (props) => {
+ export function useDebouncedMemo(factory, deps, time) {
+     const [state, setState] = React.useState(factory);
+     const mountedRef = React.useRef(true);
+-    React.useEffect(() => () => {
+-        mountedRef.current = false;
++    React.useEffect(() => {
++        mountedRef.current = true;
++        return () => {
++            mountedRef.current = false;
++        };
+     }, []);
+     const debouncedSetState = React.useRef(debounce(x => {
+         if (mountedRef.current) {
+diff --git a/src/common/utils.tsx b/src/common/utils.tsx
+index 357ff5c0ca3f1c84ed545653d7a8ec9817b7bee9..17b1088a88e3cd13469e28410d28948b1a7d73f6 100644
+--- a/src/common/utils.tsx
++++ b/src/common/utils.tsx
+@@ -137,7 +137,7 @@ export function useDebouncedMemo<T>(factory: () => T, deps: React.DependencyList
+     const mountedRef = React.useRef(true);
+-    React.useEffect(
+-        () => () => {
++    React.useEffect(() => {
++        mountedRef.current = true;
++        return () => {
+             mountedRef.current = false;
+-        },
+-        []
+-    );
++        };
++    }, []);

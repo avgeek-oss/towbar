@@ -11,6 +11,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from urllib.parse import urlsplit
 from pathlib import Path
 
 try:
@@ -28,6 +29,7 @@ def field(path, kind="string"):
 
 
 FIELDS = {
+    "TOWBAR_LOGS_CONFIG_JSON": field("observability.logs", "json-object"),
     "TOWBAR_INSTALL_MODE": field("installation.mode"),
     "TOWBAR_BIND_ADDRESS": field("installation.bindAddress"),
     "TOWBAR_PORT": field("installation.port", "integer"),
@@ -296,6 +298,28 @@ def validate_known_fields(config):
     walk({key: value for key, value in config.items() if key != "version"}, allowed)
 
 
+def validate_logs_configuration(config):
+    present, logs = nested_get(config, ("observability", "logs"))
+    if not present:
+        return
+    if not isinstance(logs, dict) or set(logs) - {"retentionDays", "clickhouse"}:
+        raise ConfigError("observability.logs must contain clickhouse and optional retentionDays")
+    retention = logs.get("retentionDays", 7)
+    if type(retention) is not int or not 1 <= retention <= 365:
+        raise ConfigError("observability.logs.retentionDays must be an integer between 1 and 365")
+    backend = logs.get("clickhouse")
+    required = {"endpoint", "database", "username", "password"}
+    if not isinstance(backend, dict) or set(backend) != required:
+        raise ConfigError("observability.logs.clickhouse requires endpoint, database, username, and password")
+    if any(not isinstance(backend[key], str) or not backend[key] for key in required):
+        raise ConfigError("ClickHouse configuration values must be non-empty strings")
+    url = urlsplit(backend["endpoint"])
+    if url.scheme not in ("http", "https") or not url.hostname or url.username or url.password or url.query or url.fragment or url.path not in ("", "/"):
+        raise ConfigError("ClickHouse endpoint must be an HTTP(S) origin without credentials, path, query, or fragment")
+    if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]{0,62}", backend["database"]):
+        raise ConfigError("ClickHouse database must be a simple SQL identifier")
+
+
 def to_env(config):
     if (
         not isinstance(config, dict)
@@ -304,6 +328,7 @@ def to_env(config):
     ):
         raise ConfigError("YAML must declare version: 1")
     validate_known_fields(config)
+    validate_logs_configuration(config)
     values = {}
     for key, (path, kind) in FIELDS.items():
         if key == "TOWBAR_NOTIFICATION_CONFIG_JSON":
