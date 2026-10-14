@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import type { ResourceOperation } from "@workspace/towbar-web-client";
@@ -63,6 +62,53 @@ const columns: ResourceTableColumn<ResourceOperation>[] = [
   },
 ];
 
+type CleanupAction = {
+  name: string;
+  kind: string;
+  reason: string;
+  status: string;
+  label: string;
+};
+
+const resultColumns: ResourceTableColumn<CleanupAction>[] = [
+  {
+    key: "entity",
+    header: "Entity",
+    headerClassName: "w-[32%]",
+    cell: (item) => (
+      <span className="font-medium text-foreground [overflow-wrap:anywhere]">
+        {item.name}
+      </span>
+    ),
+  },
+  {
+    key: "type",
+    header: "Type",
+    headerClassName: "w-[14%]",
+    cell: (item) => <span className="capitalize">{item.kind}</span>,
+  },
+  {
+    key: "comments",
+    header: "Comments",
+    headerClassName: "w-[38%]",
+    cell: (item) => (
+      <span className="[overflow-wrap:anywhere]">{item.reason}</span>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    headerClassName: "w-[16%]",
+    cell: (item) => (
+      <StatusBadge
+        status={item.status}
+        label={item.label}
+        tooltip={item.reason}
+      />
+    ),
+  },
+];
+
 function CleanupResults({ operation }: { operation: ResourceOperation }) {
   const [open, setOpen] = useState(false);
   const result =
@@ -107,80 +153,37 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
       </Button>
       <Modal.Backdrop isOpen={open} onOpenChange={setOpen}>
         <Modal.Container size="lg" scroll="inside">
-          <Modal.Dialog>
+          <Modal.Dialog className="max-w-5xl">
             <Modal.Header>
               <Modal.Heading>Cleanup result</Modal.Heading>
               <Modal.CloseTrigger />
             </Modal.Header>
-            <Modal.Body className="grid gap-6 text-sm">
-              <Attributes variant="embedded">
-                <Attributes.Item label="Status">
-                  <StatusBadge status={operation.state} />
-                </Attributes.Item>
-                <Attributes.Item label="Trigger">
-                  {operation.request.trigger === "sync"
-                    ? "Repository sync"
-                    : "Manual request"}
-                </Attributes.Item>
-                <Attributes.Item label="Requested">
-                  {formatDate(operation.createdAt)}
-                </Attributes.Item>
-                <Attributes.Item label="Started">
-                  {operation.startedAt ? formatDate(operation.startedAt) : "—"}
-                </Attributes.Item>
-                <Attributes.Item label="Completed">
-                  {operation.finishedAt
-                    ? formatDate(operation.finishedAt)
-                    : "—"}
-                </Attributes.Item>
-              </Attributes>
-              {operation.errorMessage ? (
-                <p className="text-danger [overflow-wrap:anywhere]">
-                  {operation.errorMessage}
-                </p>
-              ) : null}
-              <section aria-label="Cleanup actions" className="grid gap-2">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Actions
-                </h3>
-                {actions.length ? (
-                  <ul className="divide-y divide-separator">
-                    {actions.map((item, index) => (
-                      <li
-                        key={`${item.kind}:${item.name}:${index}`}
-                        className="flex items-start gap-3 py-4"
-                      >
-                        <div className="grid min-w-0 flex-1 gap-1">
-                          <p className="font-medium text-foreground [overflow-wrap:anywhere]">
-                            {item.name}
-                          </p>
-                          <p className="text-xs capitalize text-muted">
-                            {item.kind}
-                          </p>
-                          <p className="text-muted [overflow-wrap:anywhere]">
-                            {item.reason}
-                          </p>
-                        </div>
-                        <StatusBadge
-                          status={item.status}
-                          label={item.label}
-                          tooltip={item.reason}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted">
-                    {operation.state === "queued"
-                      ? "Waiting for the server queue. Actions will appear when cleanup finishes."
-                      : operation.state === "running"
-                        ? "Cleanup is running. Actions will appear when it finishes."
-                        : result
-                          ? "No objects needed cleanup."
-                          : "No cleanup actions were recorded."}
-                  </p>
-                )}
-              </section>
+            <Modal.Body className="min-w-0">
+              <ResourceTable
+                ariaLabel="Cleanup results"
+                columns={resultColumns}
+                getRowKey={(item) => `${item.status}:${item.kind}:${item.name}`}
+                items={actions}
+                tableClassName="min-w-[720px] table-fixed"
+                emptyTitle="No cleanup actions"
+                emptyDescription={
+                  operation.errorMessage ??
+                  (operation.state === "queued"
+                    ? "Waiting for the server queue. Actions will appear when cleanup finishes."
+                    : operation.state === "running"
+                      ? "Cleanup is running. Actions will appear when it finishes."
+                      : result
+                        ? "No objects needed cleanup."
+                        : "No cleanup actions were recorded.")
+                }
+                footer={
+                  operation.errorMessage ? (
+                    <span className="text-danger [overflow-wrap:anywhere]">
+                      {operation.errorMessage}
+                    </span>
+                  ) : undefined
+                }
+              />
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>
