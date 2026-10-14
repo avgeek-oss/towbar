@@ -789,7 +789,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           {following ? " · Live trail" : ""}
         </span>
         {filters ? (
-          <span className="hidden tabular-nums sm:inline">
+          <span className="hidden text-xs tabular-nums sm:inline">
             {logRangeLabel(filters.from, filters.to)}
           </span>
         ) : null}

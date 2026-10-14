@@ -198,7 +198,9 @@ export function logDateTime(value: string | number) {
     : "—";
 }
 export function logRangeLabel(from: string, to: string) {
-  return displayDate(from) === displayDate(to)
-    ? `${displayDate(from)} · ${logTimeWithSeconds(from)} – ${logTimeWithSeconds(to)}`
-    : `${logDateTime(from)} – ${logDateTime(to)}`;
+  return (
+    displayDate(from) === displayDate(to)
+      ? `${displayDate(from)} · ${logTimeWithSeconds(from)} – ${logTimeWithSeconds(to)}`
+      : `${logDateTime(from)} – ${logDateTime(to)}`
+  ).replace(/(\d{1,2}:\d{2}):\d{2}/gu, "$1");
 }

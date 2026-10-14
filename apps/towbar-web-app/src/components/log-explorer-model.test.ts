@@ -153,7 +153,7 @@ void test("logs always show seconds while preserving the user's localized date a
   assert.equal(logDateTime(values.from), "05:25:17, 15 Oct 2026");
   assert.equal(
     logRangeLabel(values.from, values.to),
-    "15 Oct 2026 · 05:25:17 – 05:35:23",
+    "15 Oct 2026 · 05:25 – 05:35",
   );
   clearDateTimeLabels();
   receiveDateTimeLabels(
@@ -162,8 +162,20 @@ void test("logs always show seconds while preserving the user's localized date a
   );
   assert.equal(
     logRangeLabel(values.from, values.to),
-    "23:55:17, 14 Oct 2026 – 00:05:23, 15 Oct 2026",
+    "23:55, 14 Oct 2026 – 00:05, 15 Oct 2026",
   );
+  for (const timeFormat of ["12-hour-seconds", "24-hour-seconds"] as const) {
+    clearDateTimeLabels();
+    receiveDateTimeLabels(
+      localizedResponse(values, { ...defaultDateTimePreferences, timeFormat }),
+      localizationGeneration(),
+    );
+    assert.match(logDateTime(values.from), /\d{1,2}:\d{2}:17/u);
+    assert.doesNotMatch(
+      logRangeLabel(values.from, values.to),
+      /\d{1,2}:\d{2}:\d{2}/u,
+    );
+  }
   clearDateTimeLabels();
 });
 
