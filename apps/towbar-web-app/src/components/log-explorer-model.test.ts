@@ -23,6 +23,7 @@ import {
   reorderLogColumns,
   logDateTime,
   logRangeLabel,
+  logAxisLabel,
 } from "./log-explorer-model";
 
 void test("condition groups preserve repeated fields and the selected match mode", () => {
@@ -175,6 +176,38 @@ void test("logs always show seconds while preserving the user's localized date a
       logRangeLabel(values.from, values.to),
       /\d{1,2}:\d{2}:\d{2}/u,
     );
+  }
+  clearDateTimeLabels();
+});
+
+void test("axis seconds are limited to ranges strictly shorter than 30 minutes", () => {
+  const from = "2026-10-15T00:00:00Z";
+  const values = { tick: "2026-10-15T00:12:34Z" };
+  for (const timeFormat of ["24-hour", "12-hour-seconds"] as const) {
+    clearDateTimeLabels();
+    receiveDateTimeLabels(
+      localizedResponse(values, { ...defaultDateTimePreferences, timeFormat }),
+      localizationGeneration(),
+    );
+    assert.match(
+      logAxisLabel(values.tick, from, "2026-10-15T00:29:59.999Z"),
+      /\d{1,2}:\d{2}:34/u,
+    );
+    for (const to of [
+      "2026-10-15T00:30:00Z",
+      "2026-10-15T01:00:00Z",
+      "2026-10-22T00:00:00Z",
+    ]) {
+      assert.doesNotMatch(
+        logAxisLabel(values.tick, from, to),
+        /\d{1,2}:\d{2}:\d{2}/u,
+      );
+    }
+    assert.match(
+      logAxisLabel(values.tick, from, "2026-10-22T00:00:00Z"),
+      /15 Oct 2026/u,
+    );
+    assert.match(logDateTime(values.tick), /\d{1,2}:\d{2}:34/u);
   }
   clearDateTimeLabels();
 });

@@ -77,6 +77,7 @@ import {
   logLevelBackgrounds,
   logLevels,
   logRangeLabel,
+  logAxisLabel,
   type LogCondition,
   type CustomLogColumn,
   logColumnValue,
@@ -813,10 +814,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             minTickGap={16}
             interval="preserveStartEnd"
             tickFormatter={(value) =>
-              filters &&
-              Date.parse(filters.to) - Date.parse(filters.from) > 86400000
-                ? logDateTime(Number(value))
-                : logTimeWithSeconds(Number(value))
+              logAxisLabel(Number(value), filters.from, filters.to)
             }
           />
           <LineChart.YAxis allowDecimals={false} />

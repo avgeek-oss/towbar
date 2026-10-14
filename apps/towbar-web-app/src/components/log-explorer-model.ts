@@ -204,3 +204,11 @@ export function logRangeLabel(from: string, to: string) {
       : `${logDateTime(from)} – ${logDateTime(to)}`
   ).replace(/(\d{1,2}:\d{2}):\d{2}/gu, "$1");
 }
+export function logAxisLabel(value: string | number, from: string, to: string) {
+  const duration = Date.parse(to) - Date.parse(from);
+  const label =
+    duration > 86400000 ? logDateTime(value) : logTimeWithSeconds(value);
+  return duration < 1800000
+    ? label
+    : label.replace(/(\d{1,2}:\d{2}):\d{2}/gu, "$1");
+}
