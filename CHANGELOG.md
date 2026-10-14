@@ -3,12 +3,13 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.0.43] - 2026-10-14
 
 ### Changed
 
 - Queue one durable cleanup attempt per affected server after a valid sync removes workloads, including deletion of their exclusively owned persistent volumes. Preserve active workloads, rollback artifacts, shared resources, and deployment history.
 - Use the same server cleanup workflow for **Request Cleanup**, and show paginated sync/manual attempt history with results and failures.
+- Show named cleanup results in a wide table modal, with entity type icons and relative timestamps. Improve cleanup pagination and clarify the pending objects column.
 
 ### Fixed
 
