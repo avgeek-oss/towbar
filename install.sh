@@ -4,7 +4,7 @@ set -Eeuo pipefail
 
 TOWBAR_REPOSITORY="avgeek-oss/towbar"
 TOWBAR_RELEASES_URL="https://github.com/$TOWBAR_REPOSITORY/releases"
-INSTALLER_VERSION="v2.0.42"
+INSTALLER_VERSION="v2.0.43"
 TOWBAR_BIN="${TOWBAR_BIN:-/usr/local/bin/towbar}"
 
 fail() {
