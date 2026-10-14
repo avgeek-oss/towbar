@@ -46,18 +46,30 @@ void test("workspaces are isolated and concurrent duplicate requests are shared"
   assert.equal(calls, 2);
 });
 
-void test("discovery concurrency and retained cache size are bounded", async () => {
-  const gates: Array<(value: string) => void> = [];
+void test("queued icons get a turn after a failing batch without exceeding eight active lookups", async () => {
+  const gates: Array<(value: string | null) => void> = [];
   const cache = createIconCache(
-    () => new Promise<string>((resolve) => gates.push(resolve)),
+    () => new Promise<string | null>((resolve) => gates.push(resolve)),
   );
-  const active = Array.from({ length: 8 }, (_, index) =>
+  const active = Array.from({ length: 9 }, (_, index) =>
+    cache("one", `${index}.example.com`),
+  );
+  await Promise.resolve();
+  assert.equal(gates.length, 8);
+  gates.forEach((resolve) => resolve(null));
+  await Promise.all(active.slice(0, 8));
+  assert.equal(gates.length, 9);
+  gates[8]!("icon");
+  assert.equal((await active[8])?.icon, "icon");
+});
+
+void test("pending discovery and retained cache size are bounded", async () => {
+  const cache = createIconCache(() => Promise.resolve("icon"));
+  const active = Array.from({ length: 128 }, (_, index) =>
     cache("one", `${index}.example.com`),
   );
   assert.equal((await cache("one", "overflow.example.com")).icon, null);
-  assert.equal(gates.length, 8);
-  gates.forEach((resolve) => resolve("icon"));
-  await Promise.all(active);
+  assert((await Promise.all(active)).every((result) => result.icon === "icon"));
   let calls = 0;
   const bounded = createIconCache(() => {
     calls++;

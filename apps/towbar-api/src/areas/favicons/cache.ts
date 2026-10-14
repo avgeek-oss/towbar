@@ -5,6 +5,15 @@ export type FaviconResult = { icon: string | null; expiresAt: number };
 export function createIconCache(discover = discoverIcon, now = Date.now) {
   const cached = new Map<string, FaviconResult>();
   const pending = new Map<string, Promise<FaviconResult>>();
+  const waiting: Array<() => void> = [];
+  let running = 0;
+  function acquire() {
+    if (running < 8) {
+      running++;
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => waiting.push(resolve));
+  }
   return async (
     workspaceId: string,
     domain: string | null,
@@ -16,13 +25,18 @@ export function createIconCache(discover = discoverIcon, now = Date.now) {
     if (previous && previous.expiresAt > now()) return previous;
     const active = pending.get(key);
     if (active) return active;
-    if (pending.size >= 8) return missing();
+    if (pending.size >= 128) return missing();
     const request = (async () => {
+      await acquire();
       let icon: string | null;
       try {
         icon = await discover(domain);
       } catch {
         icon = null;
+      } finally {
+        const next = waiting.shift();
+        if (next) next();
+        else running--;
       }
       const result = { icon, expiresAt: now() + (icon ? 300_000 : 30_000) };
       cached.delete(key);
