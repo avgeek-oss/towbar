@@ -127,6 +127,10 @@ export function ReadOnlyDataGrid({
         textMedium: color(mutedStyle.color),
         textLight: color(mutedStyle.color),
         accentColor: color(accentStyle.color),
+        accentLight: resolve(
+          "color-mix(in oklab, var(--accent) 12%, transparent)",
+          "backgroundColor",
+        ),
         fontFamily: style.fontFamily,
         baseFontStyle: "12px",
         headerFontStyle: "500 13px",
