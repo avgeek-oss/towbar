@@ -133,7 +133,7 @@ export function ReadOnlyDataGrid({
         ),
         fontFamily: style.fontFamily,
         baseFontStyle: "12px",
-        headerFontStyle: "500 13px",
+        headerFontStyle: "500 12px",
       });
     };
     updateTheme();
@@ -215,6 +215,7 @@ export function ReadOnlyDataGrid({
           rowHeight={rowHeight}
           headerHeight={rowHeight}
           freezeColumns={leadingHeader ? 1 : 0}
+          columnSelect="none"
           cellActivationBehavior="double-click"
           drawCell={(args, drawContent) => {
             drawContent();
