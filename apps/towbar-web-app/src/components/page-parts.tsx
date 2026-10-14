@@ -79,6 +79,7 @@ export function DashboardPage({
   breadcrumbSwitcher,
   children,
   contentOwnsTitle = false,
+  fullWidth = false,
   icon,
   title,
   titleContent,
@@ -95,6 +96,7 @@ export function DashboardPage({
   };
   children: ReactNode;
   contentOwnsTitle?: boolean;
+  fullWidth?: boolean;
   icon: ComponentProps<typeof HugeiconsIcon>["icon"];
   title: string;
   titleContent?: ReactNode;
@@ -136,6 +138,7 @@ export function DashboardPage({
   return (
     <PageSelectionContext.Provider value={setSelection}>
       <ApplicationPage
+        className={fullWidth ? "[&>div:first-child]:px-4" : undefined}
         actions={selection?.actions ?? actions}
         badge={selection ? selection.badge : badge}
         breadcrumbAncestors={
@@ -180,6 +183,7 @@ export function DashboardPage({
           </SecondaryEntityHeader>
         ) : null}
         <PageSection
+          width={fullWidth ? "full" : "content"}
           className="content-grid pt-0 sm:pt-0"
           xPadding="none"
           yPadding="compact"

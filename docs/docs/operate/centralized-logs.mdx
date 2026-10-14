@@ -120,18 +120,38 @@ Applications should avoid logging credentials or private payloads.
 
 ## Search and follow
 
-Choose a time range, then filter by message, workload, environment, level, or
-stdout/stderr. More filters identify the server, deployment, preview, container,
-Compose service, and trace ID. The grid is read-only and supports horizontal
-scrolling on smaller screens. Select a record to read its full retained message,
-structured attributes, and surrounding output from the same container.
+The explorer defaults to **Production**. Search workloads and servers in the
+**Workload** dropdown; services use their favicons and datastores their engine
+logos. Use **Level** to select a severity, indicated by a colored marker.
+The main search matches messages, trace IDs, and span IDs.
+
+Open **Filters** to match parsed log fields or built-in fields such as Compose
+service, deployment, preview, container, and output stream. Standard output
+(`stdout`) and error output (`stderr`) describe the process output channel;
+they do not necessarily indicate the severity of a message. Available parsed
+field names are discovered only from records the current connection may read.
+
+Drag across the volume graph to narrow the time range, or choose **Custom range**
+from the time-range dropdown. Timestamps include seconds and use your configured
+timezone and date format. On desktop, the selected start and end are shown above
+the graph.
+
+The read-only grid fills the page width and supports horizontal scrolling on
+smaller screens. Scroll down through the grid to automatically load older records.
+The browser retains up to 10,000 search records, with a separate payload budget
+for large messages; narrow the query to explore more.
+Hover over the table header to find the column settings gear, or focus it with
+the keyboard. On touch devices it remains visible. **Edit columns** lets you choose
+built-in columns and add parsed fields. Double-click a record, or press Enter, to
+open details; touch devices support tapping a row. Details include the retained
+message, structured attributes, and surrounding output from the same container.
 
 Search pages have a stable snapshot and an opaque continuation cursor. Each
 request covers at most 31 days, returns at most 500 records, and has response and
 execution budgets. Partial results ask you to narrow the query. A cursor expires
 after 15 minutes; refresh the search to start a new snapshot.
 
-**Follow** shows newly accepted records, including records with older Docker
+**Live trail** shows newly accepted records, including records with older Docker
 timestamps that arrive after a temporary outage. **Pause** keeps the displayed
 records. The browser retains at most 2,000 followed records. A stream closes after
 five minutes and reconnects using its cursor. Revoked sessions, keys, or changed

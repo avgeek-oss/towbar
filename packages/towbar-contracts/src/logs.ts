@@ -190,6 +190,7 @@ export const logCollectionStatusSchema = z.object({
 export type LogStorageStatus = z.infer<typeof logStorageStatusSchema>;
 export type LogCollectionStatus = z.infer<typeof logCollectionStatusSchema>;
 export type LogSummary = {
+  attributeKeys?: string[];
   buckets: { at: string; severity: string; count: number }[];
   facets: Record<string, { id: string; name: string; count: number }[]>;
   partial: boolean;

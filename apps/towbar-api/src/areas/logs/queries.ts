@@ -136,7 +136,9 @@ export function buildLogConditions(input: {
     parameters.traceId = filters.traceId;
   }
   if (filters.search) {
-    conditions.push("positionCaseInsensitiveUTF8(body, {search:String}) > 0");
+    conditions.push(
+      "(positionCaseInsensitiveUTF8(body, {search:String}) > 0 OR positionCaseInsensitiveUTF8(ifNull(traceId, ''), {search:String}) > 0 OR positionCaseInsensitiveUTF8(ifNull(spanId, ''), {search:String}) > 0)",
+    );
     parameters.search = filters.search;
   }
   filters.attributes.forEach((filter, index) => {
@@ -334,14 +336,20 @@ export async function summarizeLogs(
       ] as const;
     }),
   );
+  const keys = await storage.execute<{ key: string }>(
+    `SELECT DISTINCT arrayJoin(mapKeys(attributes)) AS key FROM log_records FINAL WHERE ${conditions.join(" AND ")} ORDER BY key LIMIT 256 FORMAT JSONEachRow`,
+    parameters,
+    { signal, readOnly: true },
+  );
   return {
+    attributeKeys: keys.map(({ key }) => key),
     facets: Object.fromEntries(facetRows),
     buckets: buckets.map((b) => ({
       at: isoTimestamp(b.at),
       severity: b.severity,
       count: Number(b.count),
     })),
-    partial: buckets.length === 3500,
+    partial: buckets.length === 3500 || keys.length === 256,
   };
 }
 

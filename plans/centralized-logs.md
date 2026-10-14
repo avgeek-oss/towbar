@@ -477,6 +477,21 @@ logging cutover.
 The UI evidence above uses local fixtures; it does not establish a deployed
 browser session or a production end-to-end log flow.
 
+## UI review refinements
+
+The October 15 review adds searchable workload/server selection with existing
+entity logos, a Production default, severity markers, and a compact filter modal
+for built-in fields and authorized parsed attributes. Trace and span IDs are
+searchable from the main search. The graph supports drag-to-select time ranges.
+The selected interval replaces the retention caption on desktop.
+
+The grid uses the full page width with square edges, explicit double-click
+activation, automatic continuation, and a column drawer for built-in and parsed
+fields. Log timestamps always include seconds while retaining user localization.
+The redundant refresh, date picker entry, pagination and interaction help were
+removed; Follow is now Live trail. Search results are bounded at 10,000 retained
+rows, while live following retains its existing 2,000-record bound.
+
 ## Acceptance and sign-off
 
 - [ ] Missing YAML keeps the feature optional and shows the mascot/setup guide.

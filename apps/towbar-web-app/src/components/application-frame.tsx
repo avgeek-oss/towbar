@@ -350,8 +350,12 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
           >
             <SecondarySidebarLayout>
               <AppShell.Content
-                className="pt-0 pb-20 sm:pt-0 sm:pb-20"
-                variant="broad"
+                className={
+                  pathname === "/monitoring/logs"
+                    ? "px-0 pt-0 pb-20 sm:pt-0 sm:pb-20"
+                    : "pt-0 pb-20 sm:pt-0 sm:pb-20"
+                }
+                variant={pathname === "/monitoring/logs" ? "full" : "broad"}
               >
                 <RelativeTimeProvider>
                   {routePermission(pathname) &&

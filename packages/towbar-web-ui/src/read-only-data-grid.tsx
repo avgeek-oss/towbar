@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import DataEditor, {
   GridCellKind,
   type Item,
@@ -13,6 +19,11 @@ export type ReadOnlyDataGridProps = {
   columns: readonly { id: string; title: string; width: number }[];
   rows: readonly Record<string, string>[];
   onRowActivated?: (index: number) => void;
+  onEndReached?: () => void;
+  severityColors?: Record<string, string>;
+  headerActions?: ReactNode;
+  cellIcons?: Record<string, readonly (string | undefined)[]>;
+  square?: boolean;
 };
 
 export function ReadOnlyDataGrid({
@@ -20,11 +31,17 @@ export function ReadOnlyDataGrid({
   columns,
   rows,
   onRowActivated,
+  onEndReached,
+  severityColors,
+  headerActions,
+  cellIcons,
+  square = false,
 }: ReadOnlyDataGridProps) {
   const container = useRef<HTMLDivElement>(null),
     accent = useRef<HTMLSpanElement>(null),
     muted = useRef<HTMLSpanElement>(null);
   const [size, setSize] = useState({ width: 0, height: 400 });
+  const colors = useRef<Record<string, string>>({});
   const [theme, setTheme] = useState<Partial<Theme>>({});
   useEffect(() => {
     const element = container.current;
@@ -59,6 +76,14 @@ export function ReadOnlyDataGrid({
       const style = getComputedStyle(element),
         accentStyle = getComputedStyle(accent.current!),
         mutedStyle = getComputedStyle(muted.current!);
+      colors.current = {};
+      for (const [key, value] of Object.entries(severityColors ?? {})) {
+        const probe = document.createElement("span");
+        probe.style.color = value;
+        element.append(probe);
+        colors.current[key] = color(getComputedStyle(probe).color);
+        probe.remove();
+      }
       setTheme({
         bgCell: color(style.backgroundColor),
         bgHeader: color(style.backgroundColor),
@@ -86,7 +111,7 @@ export function ReadOnlyDataGrid({
       resize.disconnect();
       observer.disconnect();
     };
-  }, []);
+  }, [severityColors]);
   const getCellContent = useCallback(
     ([column, row]: Item) => {
       const value = rows[row]?.[columns[column]?.id ?? ""] ?? "";
@@ -96,16 +121,25 @@ export function ReadOnlyDataGrid({
         displayData: value.replace(/\s+/gu, " ").slice(0, 512),
         allowOverlay: false,
         readonly: true,
+        ...((columns[column]?.id === "severity" && severityColors) ||
+        cellIcons?.[columns[column]?.id ?? ""]
+          ? {
+              themeOverride: {
+                cellHorizontalPadding:
+                  columns[column]?.id === "severity" ? 22 : 34,
+              },
+            }
+          : {}),
       };
     },
-    [rows, columns],
+    [rows, columns, severityColors, cellIcons],
   );
   return (
     <div
       ref={container}
       role="region"
       aria-label={label}
-      className="relative h-[65svh] max-h-[680px] min-h-80 min-w-0 overflow-hidden rounded-2xl border border-border bg-surface text-foreground"
+      className={`group relative h-[65svh] max-h-[680px] min-h-80 min-w-0 border-border bg-surface text-foreground ${square ? "border-y" : "rounded-2xl border"}`}
     >
       <span
         ref={accent}
@@ -121,6 +155,11 @@ export function ReadOnlyDataGrid({
       >
         .
       </span>
+      {headerActions ? (
+        <div className="absolute -top-10 right-4 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
+          {headerActions}
+        </div>
+      ) : null}
       {size.width > 0 ? (
         <DataEditor
           width={size.width}
@@ -132,6 +171,47 @@ export function ReadOnlyDataGrid({
           getCellsForSelection
           rowHeight={size.width < 640 ? 44 : 36}
           headerHeight={40}
+          cellActivationBehavior="double-click"
+          drawCell={(args, drawContent) => {
+            drawContent();
+            const icon = cellIcons?.[columns[args.col]?.id ?? ""]?.[args.row];
+            if (icon) {
+              const image = args.imageLoader.loadOrGetImage(
+                icon,
+                args.col,
+                args.row,
+              );
+              if (image)
+                args.ctx.drawImage(
+                  image,
+                  args.rect.x + 9,
+                  args.rect.y + (args.rect.height - 16) / 2,
+                  16,
+                  16,
+                );
+            }
+            if (columns[args.col]?.id === "severity" && severityColors) {
+              const color =
+                colors.current[rows[args.row]?.severity ?? "unknown"];
+              if (!color) return;
+              args.ctx.save();
+              args.ctx.fillStyle = color;
+              args.ctx.beginPath();
+              args.ctx.roundRect(
+                args.rect.x + 9,
+                args.rect.y + (args.rect.height - 16) / 2,
+                4,
+                16,
+                2,
+              );
+              args.ctx.fill();
+              args.ctx.restore();
+            }
+          }}
+          onVisibleRegionChanged={(visible) => {
+            if (rows.length && visible.y + visible.height >= rows.length - 5)
+              onEndReached?.();
+          }}
           rowMarkers="none"
           onCellActivated={([_column, row]) => onRowActivated?.(row)}
           onCellClicked={([_column, row], event) => {

@@ -148,15 +148,20 @@ void test(
         ...overrides,
       });
       const rows = [
-        makeRecord("a".repeat(64)),
+        makeRecord("a".repeat(64), {
+          traceId: "1".repeat(32),
+          spanId: "2".repeat(16),
+        }),
         makeRecord("b".repeat(64), {
           workloadId: restrictedId,
           visibility: "admin",
           body: "Admin only",
+          attributes: { customer: "123", admin_secret: "private" },
         }),
         makeRecord("c".repeat(64), {
           workspaceId: otherWorkspace,
           body: "Other workspace",
+          attributes: { other_workspace_secret: "private" },
         }),
         makeRecord("d".repeat(64), {
           body: "Expired",
@@ -189,9 +194,30 @@ void test(
             const summary = await withActor(actor(role), () =>
               summarizeLogs(workspaceId, filters),
             );
+            assert.deepEqual(
+              summary.attributeKeys,
+              role === "admin" ? ["admin_secret", "customer"] : ["customer"],
+            );
             assert.equal(
               summary.buckets.reduce((sum, bucket) => sum + bucket.count, 0),
               role === "admin" ? 2 : 1,
+            );
+          }
+        },
+      );
+      await t.test(
+        "search finds trace and span IDs within the same authorized scope",
+        async () => {
+          for (const search of ["1".repeat(32), "2".repeat(16)]) {
+            const result = await withActor(actor("viewer"), () =>
+              queryLogs(
+                workspaceId,
+                logQuerySchema.parse({ filters: { ...filters, search } }),
+              ),
+            );
+            assert.deepEqual(
+              result.records.map((record) => record.eventId),
+              ["a".repeat(64)],
             );
           }
         },

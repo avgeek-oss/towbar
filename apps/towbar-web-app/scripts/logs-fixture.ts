@@ -148,7 +148,21 @@ export function createLogsFixture(
         Date.parse(record.timestamp) >= Date.parse(filters.from) &&
         Date.parse(record.timestamp) < Date.parse(filters.to) &&
         (!filters.search ||
-          record.body.toLowerCase().includes(filters.search.toLowerCase())) &&
+          [record.body, record.traceId, record.spanId].some((value) =>
+            value?.toLowerCase().includes(filters.search.toLowerCase()),
+          )) &&
+        (!filters.serverIds.length ||
+          filters.serverIds.includes(record.serverId)) &&
+        (!filters.deploymentIds.length ||
+          (record.deploymentId !== null &&
+            filters.deploymentIds.includes(record.deploymentId))) &&
+        (!filters.previewIds.length ||
+          (record.previewId !== null &&
+            filters.previewIds.includes(record.previewId))) &&
+        (!filters.containerIds.length ||
+          filters.containerIds.includes(record.containerId)) &&
+        (!filters.services.length ||
+          filters.services.includes(record.service)) &&
         (!filters.workloadIds.length ||
           filters.workloadIds.includes(record.workloadId)) &&
         (!filters.environments.length ||
@@ -193,7 +207,14 @@ export function createLogsFixture(
         severity: "info",
         count: Math.floor(found.length / 20),
       }));
-      json(response, 200, { facets, buckets, partial: false });
+      json(response, 200, {
+        facets,
+        buckets,
+        attributeKeys: [
+          ...new Set(found.flatMap((record) => Object.keys(record.attributes))),
+        ],
+        partial: false,
+      });
       return true;
     }
     if (pathname === "/v1/core/logs/tail") {

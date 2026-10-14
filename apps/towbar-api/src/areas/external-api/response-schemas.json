@@ -13430,6 +13430,7 @@
     "Response_10": {
       "type": "object",
       "properties": {
+        "attributeKeys": { "type": "array", "items": { "type": "string" } },
         "facets": { "$ref": "#/components/schemas/Response_11" },
         "buckets": {
           "type": "array",
@@ -13437,7 +13438,7 @@
         },
         "partial": { "type": "boolean" }
       },
-      "required": ["facets", "buckets", "partial"]
+      "required": ["attributeKeys", "facets", "buckets", "partial"]
     },
     "Response_15": {
       "type": "object",
