@@ -700,11 +700,13 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             value={selection.severity}
             options={[
               { id: "all", label: "All levels" },
-              ...logLevels.map((level) => ({
-                id: level,
-                label: level,
-                icon: <LevelMarker level={level} />,
-              })),
+              ...logLevels
+                .filter((level) => level !== "unknown")
+                .map((level) => ({
+                  id: level,
+                  label: level,
+                  icon: <LevelMarker level={level} />,
+                })),
             ]}
             onChange={(severity) =>
               setSelection((current) => ({ ...current, severity }))
