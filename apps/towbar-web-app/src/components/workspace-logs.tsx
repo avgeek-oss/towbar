@@ -952,21 +952,19 @@ function LogDetails({
       }}
     >
       <Drawer.Content placement="right">
-        <Drawer.Dialog className="w-full max-w-3xl">
+        <Drawer.Dialog className="w-full max-w-3xl bg-surface-secondary">
           <Drawer.Header>
             <Drawer.Heading>Log details</Drawer.Heading>
             <Drawer.CloseTrigger aria-label="Close log details" />
           </Drawer.Header>
           <Drawer.Body>
             <div className="grid min-w-0 gap-4">
-              <Attributes title="Attributes" variant="card" columns={2}>
-                {Object.entries(common).map(([label, value]) => (
-                  <Attributes.Item key={label} label={label}>
-                    <span className="break-all">{value}</span>
-                  </Attributes.Item>
-                ))}
-              </Attributes>
-              <CodePanel ariaLabel="Message">{record.body}</CodePanel>
+              <CodePanel
+                ariaLabel="Message"
+                codeClassName="text-accent-soft-foreground"
+              >
+                {record.body}
+              </CodePanel>
               {record.truncated ? (
                 <p className="text-sm text-warning">
                   This log record was truncated during collection.
@@ -975,6 +973,15 @@ function LogDetails({
               <CodePanel ariaLabel="Full log JSON" language="json">
                 {JSON.stringify(record, null, 2)}
               </CodePanel>
+              <Attributes title="Attributes" variant="card" columns={2}>
+                {Object.entries(common).map(([label, value]) => (
+                  <Attributes.Item key={label} label={label}>
+                    <span className="break-all text-accent-soft-foreground">
+                      {value}
+                    </span>
+                  </Attributes.Item>
+                ))}
+              </Attributes>
             </div>
           </Drawer.Body>
         </Drawer.Dialog>

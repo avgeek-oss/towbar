@@ -15,6 +15,7 @@
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
     "next": "catalog:",
+    "prism-react-renderer": "^2.4.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

@@ -696,6 +696,9 @@ importers:
       next:
         specifier: "catalog:"
         version: 16.3.8(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      prism-react-renderer:
+        specifier: ^2.4.1
+        version: 2.4.1(react@19.3.0)
       react:
         specifier: "catalog:"
         version: 19.3.0
