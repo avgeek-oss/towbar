@@ -960,12 +960,12 @@ function LogDetails({
       }}
     >
       <Drawer.Content placement="right">
-        <Drawer.Dialog className="w-full max-w-3xl bg-surface-secondary">
+        <Drawer.Dialog className="w-full max-w-3xl bg-surface-secondary pb-0">
           <Drawer.Header>
             <Drawer.Heading>Log details</Drawer.Heading>
             <Drawer.CloseTrigger aria-label="Close log details" />
           </Drawer.Header>
-          <Drawer.Body>
+          <Drawer.Body className="pb-0">
             <div className="grid min-w-0 gap-4">
               <CodePanel ariaLabel="Message" codeClassName="text-foreground">
                 {record.body}
