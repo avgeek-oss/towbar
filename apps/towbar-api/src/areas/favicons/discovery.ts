@@ -203,10 +203,17 @@ function isIconImage(bytes: Buffer, type: string) {
       bytes.toString("ascii", 8, 12) === "WEBP"
     );
   // SVG is returned only as an image data URL, never as a same-origin document.
-  return (
-    type === "image/svg+xml" &&
-    /^(?:\s|<\?xml[^>]*>|<!--[^]*?-->)*<svg(?:\s|>)/u.test(
-      bytes.toString("utf8"),
-    )
-  );
+  if (type !== "image/svg+xml") return false;
+  let source = bytes.toString("utf8").trimStart();
+  if (source.startsWith("<?xml")) {
+    const end = source.indexOf("?>", 5);
+    if (end === -1) return false;
+    source = source.slice(end + 2).trimStart();
+  }
+  while (source.startsWith("<!--")) {
+    const end = source.indexOf("-->", 4);
+    if (end === -1) return false;
+    source = source.slice(end + 3).trimStart();
+  }
+  return /^<svg(?:\s|>)/u.test(source);
 }

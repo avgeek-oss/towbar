@@ -202,3 +202,27 @@ void test("missing and mislabeled images yield a recoverable placeholder", async
     assert.equal(await discoverIcon("web.example.com", fetcher), null);
   }
 });
+
+void test(
+  "SVG declarations and many comments are scanned without backtracking",
+  { timeout: 1000 },
+  async () => {
+    const valid = `<?xml version="1.0"?>${"<!-- icon -->".repeat(2000)}${svg}`;
+    const { fetcher } = fixture({
+      "https://web.example.com/favicon.ico": () =>
+        image(Buffer.from(valid), "image/svg+xml"),
+    });
+    assert.equal(
+      await discoverIcon("web.example.com", fetcher),
+      `data:image/svg+xml;base64,${Buffer.from(valid).toString("base64")}`,
+    );
+    const invalid = fixture({
+      "https://web.example.com/favicon.ico": () =>
+        image(
+          Buffer.from(`<!--${"--><!--".repeat(2000)}unfinished`),
+          "image/svg+xml",
+        ),
+    });
+    assert.equal(await discoverIcon("web.example.com", invalid.fetcher), null);
+  },
+);
