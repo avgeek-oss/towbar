@@ -93,7 +93,9 @@ void test(
     const suffix = randomBytes(6).toString("hex");
     const sourceName = `towbar-logs-source-${suffix}`,
       collectorName = `towbar-logs-collector-${suffix}`,
-      volume = `towbar-logs-state-${suffix}`;
+      volume = `towbar-logs-state-${suffix}`,
+      sourceVolume = `towbar-logs-source-files-${suffix}`,
+      configurationVolume = `towbar-logs-configuration-${suffix}`;
     const token = `twlg_${randomBytes(32).toString("hex")}`;
     const reports = path.resolve(cwd(), "../../tmp/verification/logs");
     await mkdir(reports, { recursive: true });
@@ -104,6 +106,7 @@ void test(
     const payloads: string[] = [];
     const app = new Hono();
     app.use("*", async (c, next) => {
+      if (c.req.path === "/probe") return c.text("ready");
       requests++;
       if (outage) return c.json({ error: "Test outage" }, 503);
       const body = await c.req.raw.clone().text();
@@ -178,6 +181,36 @@ void test(
       );
       const logPath = await docker("inspect", "--format", "{{.LogPath}}", id);
       assert(logPath.endsWith(`/${id}-json.log`));
+      await docker(
+        "volume",
+        "create",
+        "--driver",
+        "local",
+        "--opt",
+        "type=none",
+        "--opt",
+        `device=${path.posix.dirname(logPath)}`,
+        "--opt",
+        "o=bind,ro,private",
+        sourceVolume,
+      );
+      assert.equal(
+        await docker(
+          "run",
+          "--rm",
+          "--add-host",
+          "host.docker.internal:host-gateway",
+          "--entrypoint",
+          "wget",
+          "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+          "-qO-",
+          "-T",
+          "3",
+          `http://host.docker.internal:${address.port}/probe`,
+        ),
+        "ready",
+        "collector containers must reach the test API",
+      );
       await db.insert(logSources).values({
         workspaceId,
         serverId,
@@ -193,6 +226,19 @@ void test(
       });
       const queue = config.exporters["otlphttp/towbar"].sending_queue;
       await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
+      await docker(
+        "run",
+        "--rm",
+        "--mount",
+        `type=bind,src=${configPath},dst=/source.json,readonly`,
+        "--mount",
+        `type=volume,src=${configurationVolume},dst=/configuration`,
+        "--entrypoint",
+        "sh",
+        "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+        "-c",
+        "umask 077; cat /source.json > /configuration/collector.json",
+      );
       const emit = (body: string) =>
         docker(
           "exec",
@@ -236,13 +282,13 @@ void test(
           "--cpus",
           "0.25",
           "--mount",
-          `type=bind,src=${path.posix.dirname(logPath)},dst=/var/lib/docker/containers/${id},readonly`,
+          `type=volume,src=${sourceVolume},dst=/var/lib/docker/containers/${id},readonly,volume-nocopy`,
           "--mount",
-          `type=bind,src=${configPath},dst=/etc/collector.json,readonly`,
+          `type=volume,src=${configurationVolume},dst=/etc/towbar-logs,readonly,volume-nocopy`,
           "--mount",
           `type=volume,src=${volume},dst=/var/lib/towbar-logs`,
           logCollectorImage,
-          "--config=/etc/collector.json",
+          "--config=/etc/towbar-logs/collector.json",
         );
       await start();
       await until(
@@ -379,12 +425,20 @@ void test(
         "30",
         collectorName,
       ).catch(() => "Collector was not started");
+      const state = await docker(
+        "inspect",
+        "--format",
+        "{{json .State}}",
+        collectorName,
+      ).catch(() => "Collector state unavailable");
       throw new Error(
-        `${error instanceof Error ? error.message : String(error)}\n${diagnostics}`,
+        `${error instanceof Error ? error.message : String(error)}\n${state}\n${diagnostics}`,
         { cause: error },
       );
     } finally {
       await docker("rm", "--force", collectorName).catch(() => undefined);
+      await docker("volume", "rm", sourceVolume).catch(() => undefined);
+      await docker("volume", "rm", configurationVolume).catch(() => undefined);
       await docker("rm", "--force", sourceName).catch(() => undefined);
       await docker("volume", "rm", volume).catch(() => undefined);
       await new Promise<void>((resolve) => http.close(() => resolve()));

@@ -1,10 +1,10 @@
 # Centralized logs with external ClickHouse
 
-Status: implementation in progress on the branch below. The worktree contains the
-collector, storage contracts, ingestion/query services, REST/MCP operations, and
-workspace/server UI. Backend and collector integration checks are running against
-isolated local test services. Browser verification and final repository gates are
-still pending. No package publication or production deployment has been made.
+Status: implemented in [PR #298](https://github.com/avgeek-oss/towbar/pull/298).
+Local storage, authorization, collector, browser, and repository checks have run.
+The collector installation/update/disable path has also passed through trusted
+non-root SSH on the disposable Ubuntu/systemd target. Exact-head CI remains the
+merge gate. Production rollout and capacity sign-off are separate follow-ups.
 
 - Branch: `feat/centralized-logs`.
 - Starting commit: `8c73afd3d942b392ae7c610b7638a8b2abec6040` from freshly fetched
@@ -67,7 +67,7 @@ the `json-file` driver. Current Runtime Logs are bounded Docker tail operations.
 ```mermaid
 flowchart LR
     Containers[Managed containers: stdout and stderr] --> Collector[Towbar-managed collector: parse, redact, buffer]
-    Metadata[Scout and deployment metadata] --> Collector
+    Metadata[Docker labels and registered deployment metadata] --> Collector
     Collector -->|Authenticated HTTPS, OTLP logs| Ingest[Towbar log ingestion]
     Ingest --> ClickHouse[External ClickHouse]
     UI[Monitor > Logs] --> Queries[Authorized query service]
@@ -91,7 +91,7 @@ configuration and retention.
 
 ## Operator configuration
 
-Proposed schema addition, not a currently supported configuration:
+Optional operator configuration implemented by this branch:
 
 ```yaml
 observability:
@@ -450,6 +450,9 @@ Verified locally:
   and 0.66–0.88% Docker CPU, and completed its aggregate query in 6 ms. The sample
   contained 265,890 message bytes. These measurements are a baseline for one
   container, not a supported production capacity claim or full-queue stress test.
+- Real Ubuntu/systemd lifecycle over trusted non-root SSH: server discovery,
+  digest-pinned collector startup, read-only mounts, resource constraints,
+  checkpoint-preserving replacement, and disable retaining local state.
 - Drain helper identity, ownership, fixed-path validation, final-container stop,
   and acknowledgement checks; Bash syntax checks cover the composed cleanup
   scripts, including background cleanup.
@@ -468,9 +471,9 @@ focused lifecycle regression then passed all five checks. The required Docker jo
 passed 282 deployer checks and the OCI runtime lifecycle. GitHub CI is the final
 merge gate for the complete branch.
 
-Full 512-MiB queue saturation, long-duration multi-server capacity, deployed
-collector installation on a real Ubuntu host, and production pilot/rollback
-acceptance remain operational sign-off gates before production logging cutover.
+Full 512-MiB queue saturation, long-duration multi-server capacity, and production
+pilot/rollback acceptance remain operational sign-off gates before production
+logging cutover.
 The UI evidence above uses local fixtures; it does not establish a deployed
 browser session or a production end-to-end log flow.
 

@@ -173,15 +173,13 @@ void test(
       await t.test(
         "queue file allocation is not reported as pending log data",
         async () => {
-          await db
-            .insert(logCollectors)
-            .values({
-              serverId,
-              desiredState: "enabled",
-              status: "collecting",
-              queueBytes: 2 * 1024 * 1024,
-              lastReportAt: new Date(),
-            });
+          await db.insert(logCollectors).values({
+            serverId,
+            desiredState: "enabled",
+            status: "collecting",
+            queueBytes: 2 * 1024 * 1024,
+            lastReportAt: new Date(),
+          });
           const inspect = () =>
             withActor(actor, () => getLogCollection(serverId, workspaceId));
           assert.equal((await inspect()).status, "collecting");

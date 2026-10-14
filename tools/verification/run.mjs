@@ -51,6 +51,7 @@ try {
     await infrastructure.provision({ logs: group === "api" });
   if (group === "api") {
     await pnpmTest("api", "towbar-api", ["src/**/*.test.ts"]);
+    await lifecycle("logs", "log-collector-lifecycle");
     await run.step(
       "database",
       "pnpm",

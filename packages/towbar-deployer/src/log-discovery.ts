@@ -1,3 +1,5 @@
+import { readOnlyHostLogVolumePython } from "./host-log-collection.js";
+
 export const logDiscoveryScript = String.raw`#!/usr/bin/python3
 import hashlib
 import json
@@ -13,6 +15,7 @@ STATE = Path("/var/lib/towbar-logs")
 CONFIG = Path("/etc/towbar-logs/config.json")
 NAME = "towbar-log-collector"
 
+${readOnlyHostLogVolumePython}
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, message, headers, new_url):
         return None
@@ -75,19 +78,21 @@ def stop():
 def run_collector(settings, directory, configuration):
     path = STATE / "collector.json"
     serialized = json.dumps(configuration, separators=(",", ":"), sort_keys=True)
-    digest = hashlib.sha256(serialized.encode()).hexdigest()
+    digest = hashlib.sha256((str(directory) + "\n" + serialized).encode()).hexdigest()
     previous = (STATE / "configuration.sha256").read_text() if (STATE / "configuration.sha256").exists() else ""
     running = docker("ps", "--filter", "name=^/" + NAME + "$", "--format", "{{.Names}}")
     if digest == previous and running == NAME:
         return
     stop()
+    log_volume = "towbar-log-collector-source"
+    ensure_read_only_host_log_volume(log_volume, directory, {"towbar.managed": "true", "towbar.storage": "host-logs", "towbar.component": "log-collector", "towbar.server": settings["serverId"]})
     atomic_json(path, configuration)
     docker("run", "--detach", "--name", NAME, "--restart", "unless-stopped",
         "--label", "towbar.managed=true", "--label", "towbar.component=log-collector",
         "--user", "0:0", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
         "--read-only", "--memory", "256m", "--cpus", "0.25", "--pids-limit", "64",
         "--log-driver", "local", "--log-opt", "max-size=10m", "--log-opt", "max-file=3",
-        "--mount", "type=bind,src=" + str(directory) + ",dst=/var/lib/docker/containers,readonly,bind-propagation=rprivate,bind-recursive=disabled",
+        "--mount", "type=volume,src=" + log_volume + ",dst=/var/lib/docker/containers,readonly,volume-nocopy",
         "--mount", "type=bind,src=" + str(STATE) + ",dst=/var/lib/towbar-logs",
         "--mount", "type=bind,src=" + str(path) + ",dst=/etc/towbar-collector.json,readonly",
         settings["image"], "--config=/etc/towbar-collector.json")
