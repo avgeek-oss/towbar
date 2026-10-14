@@ -977,7 +977,14 @@ function LogDetails({
                 {Object.entries(common).map(([label, value]) => (
                   <Attributes.Item key={label} label={label}>
                     <span className="break-all text-accent-soft-foreground">
-                      {value}
+                      {label === "Level" ? (
+                        <span className="inline-flex items-center gap-2">
+                          <LevelMarker level={record.severity} />
+                          {value}
+                        </span>
+                      ) : (
+                        value
+                      )}
                     </span>
                   </Attributes.Item>
                 ))}

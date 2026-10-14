@@ -18,7 +18,7 @@ export const logLevelColors: Record<LogRecord["severity"], string> = {
   trace: "var(--muted)",
   debug: "var(--log-debug)",
   info: "var(--log-info)",
-  warn: "var(--warning)",
+  warn: "var(--log-warn)",
   error: "var(--log-error)",
   fatal: "var(--log-fatal)",
   unknown: "var(--muted)",
