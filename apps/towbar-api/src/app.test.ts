@@ -30,6 +30,21 @@ void before(async () => {
 });
 
 void describe("Towbar API boundaries", () => {
+  void it("serves its favicon publicly as PNG through the canonical path", async () => {
+    const response = await app.request("/favicon.ico");
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("location"), "/brand/towbar-favicon.png");
+    const image = await app.request(response.headers.get("location")!);
+    assert.equal(image.status, 200);
+    assert.equal(image.headers.get("content-type"), "image/png");
+    assert.match(image.headers.get("cache-control") ?? "", /public/u);
+    assert.equal(
+      Buffer.from(await image.arrayBuffer())
+        .subarray(0, 8)
+        .toString("hex"),
+      "89504e470d0a1a0a",
+    );
+  });
   void it("publishes API-origin OAuth discovery and allows UI-origin consent preflights", async () => {
     const response = await app.request(
       "/.well-known/oauth-authorization-server",

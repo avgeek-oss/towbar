@@ -34,7 +34,7 @@ import { DeploymentDuration } from "./elapsed-time";
 import { RelativeTime } from "./last-synced-time";
 import { AppLogo, ResourceLogo } from "./deployable-identity";
 import { resourceImageBrand } from "./resource-image-brand";
-import { deploymentSubtitle } from "@/lib/overview";
+import { deploymentLogoDomain, deploymentSubtitle } from "@/lib/overview";
 import {
   TableCellDescription,
   TableCellStack,
@@ -89,7 +89,11 @@ const columns: ResourceTableColumn<DeploymentHistoryItem>[] = [
             {item.deployableKind === "app" ||
             item.deployableKind === "compose" ? (
               <AppLogo
-                domain={item.deployableDomain ?? item.hostname ?? undefined}
+                deploymentId={item.id}
+                domain={deploymentLogoDomain(
+                  item,
+                  item.deployableDomain ?? undefined,
+                )}
               />
             ) : (
               <ResourceLogo

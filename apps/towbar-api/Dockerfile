@@ -35,6 +35,7 @@ RUN apk upgrade --no-cache \
   && adduser --system --uid 1001 --ingroup towbar towbar
 COPY --from=builder --chown=towbar:towbar /prod/towbar-api ./
 COPY --from=builder --chown=towbar:towbar /repo/apps/towbar-api/dist ./dist
+COPY --from=builder --chown=towbar:towbar /repo/apps/towbar-api/public ./public
 COPY --from=builder --chown=towbar:towbar /repo/packages/towbar-database/drizzle ./packages/towbar-database/drizzle
 COPY --from=pruner --chown=towbar:towbar /repo/package.json ./release-package.json
 USER towbar

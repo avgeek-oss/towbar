@@ -1,4 +1,5 @@
 import { mcpOAuthRoutes } from "./routes/mcp-oauth.js";
+import { faviconRoutes } from "./routes/favicon.js";
 import { auditRequestContext } from "./infrastructure/audit-context.js";
 import { randomUUID } from "node:crypto";
 
@@ -56,6 +57,7 @@ function createRoutedApp(routeScope: "internal" | "public") {
     }),
   );
 
+  app.route("/", faviconRoutes);
   app.get("/health", async (context) => {
     try {
       await pingDatabase();

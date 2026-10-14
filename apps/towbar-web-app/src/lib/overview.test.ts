@@ -1,6 +1,41 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildDeploymentActivity, deploymentSubtitle } from "./overview";
+import {
+  buildDeploymentActivity,
+  deploymentLogoDomain,
+  deploymentSubtitle,
+} from "./overview";
+
+void test("deployment logos use the recorded hostname and never a production fallback for previews", () => {
+  assert.equal(
+    deploymentLogoDomain(
+      { environment: "preview", hostname: null },
+      "prod.example.com",
+    ),
+    undefined,
+  );
+  assert.equal(
+    deploymentLogoDomain(
+      { environment: "preview", hostname: "pr-12.example.com" },
+      "prod.example.com",
+    ),
+    "pr-12.example.com",
+  );
+  assert.equal(
+    deploymentLogoDomain(
+      { environment: "production", hostname: "old.example.com" },
+      "new.example.com",
+    ),
+    "old.example.com",
+  );
+  assert.equal(
+    deploymentLogoDomain(
+      { environment: "production", hostname: null },
+      "prod.example.com",
+    ),
+    "prod.example.com",
+  );
+});
 
 void test("activity includes exactly seven UTC dates across month boundaries", () => {
   const days = buildDeploymentActivity(

@@ -4521,6 +4521,27 @@ function getFixturePayload(
     webhook: boolean;
   },
 ): unknown {
+  const faviconMatch = path.match(
+    /^\/v1\/core\/(apps|deployments)\/([^/]+)\/favicon$/,
+  );
+  if (faviconMatch) {
+    const entity =
+      faviconMatch[1] === "apps"
+        ? apps.find((app) => app.id === faviconMatch[2])
+        : deployments.find((deployment) => deployment.id === faviconMatch[2]);
+    if (!entity) return undefined;
+    const available =
+      entity.id === fixtureIds.faviconApp ||
+      entity.id === fixtureIds.previewDeployment;
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#128366"/><path d="M8 9h16v4h-6v12h-4V13H8z" fill="white"/></svg>';
+    return {
+      icon: available
+        ? `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`
+        : null,
+      expiresAt: Date.now() + 30_000,
+    };
+  }
   const environmentSource = path.match(
     /^\/v1\/core\/sources\/([^/]+)\/environments$/,
   );

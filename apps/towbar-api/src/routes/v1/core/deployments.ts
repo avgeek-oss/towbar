@@ -1,4 +1,5 @@
 import { streamStillAuthorized } from "../../../http/stream-authorization.js";
+import { getDeploymentIcon } from "../../../areas/favicons/service.js";
 import { localizedResponse } from "@workspace/towbar-core/date-time";
 import { requestDateTimePreferences } from "../../../http/localization.js";
 import { operation } from "../../../http/operation.js";
@@ -81,6 +82,28 @@ deploymentRoutes.get(
       ),
     }),
 );
+deploymentRoutes.get(
+  "/:deploymentId/favicon",
+  operation({
+    permissions: ["deployment.read"],
+    browserOnly: true,
+    responseSchema: 'deployments.ts:get:"/:deploymentId/favicon"',
+    summary: "Discover a deployment icon",
+    response:
+      "A public icon from this deployment's own hostname and its cache expiry.",
+    status: 200,
+  }),
+  async (context) => {
+    context.header("Cache-Control", "private, no-store");
+    return context.json(
+      await getDeploymentIcon(
+        context.req.param("deploymentId"),
+        context.get("user").workspaceId,
+      ),
+    );
+  },
+);
+
 deploymentRoutes.get(
   "/:deploymentId/source-revision",
   operation({

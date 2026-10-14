@@ -185,6 +185,9 @@ importers:
       nodemailer:
         specifier: 10.0.14
         version: 10.0.14
+      parse5:
+        specifier: 8.0.1
+        version: 8.0.1
       postgres:
         specifier: "catalog:"
         version: 3.4.9
@@ -4583,6 +4586,13 @@ packages:
       }
     engines: { node: ">=0.12" }
 
+  entities@8.1.0:
+    resolution:
+      {
+        integrity: sha512-kxL7msIffSuh9aaFAMD7rxAIuTRMAHMeBtgHW2yUdWw732ZNh4MehkF2gdjvtdmikkaIP9bFDDJOPlsvm7avrA==,
+      }
+    engines: { node: ">=20.19.0" }
+
   env-paths@3.0.0:
     resolution:
       {
@@ -6253,6 +6263,12 @@ packages:
         integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==,
       }
     engines: { node: ">=6" }
+
+  parse5@8.0.1:
+    resolution:
+      {
+        integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==,
+      }
 
   parseley@0.12.1:
     resolution:
@@ -10051,6 +10067,8 @@ snapshots:
 
   entities@4.5.0: {}
 
+  entities@8.1.0: {}
+
   env-paths@3.0.0: {}
 
   es-abstract-get@1.0.0:
@@ -11112,6 +11130,10 @@ snapshots:
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
+
+  parse5@8.0.1:
+    dependencies:
+      entities: 8.1.0
 
   parseley@0.12.1:
     dependencies:

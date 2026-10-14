@@ -8,6 +8,7 @@ import {
 
 import Image, { type ImageLoaderProps } from "next/image";
 import { useState } from "react";
+import { useApiQuery } from "@/hooks/use-api-query";
 import bundledFavicons from "./service-favicon-catalog.json";
 import {
   resourceImageBrand,
@@ -32,9 +33,6 @@ import { DomainLink } from "./domain-link";
 function externalImageLoader({ src }: ImageLoaderProps) {
   return src;
 }
-
-const loadedAppLogoDomains = new Set<string>();
-const failedAppLogoDomains = new Set<string>();
 
 export function AppIdentity({
   app,
@@ -127,25 +125,49 @@ export function AppIdentity({
 
 export function AppLogo({
   domain,
+  appId,
+  deploymentId,
   size = "default",
 }: {
   domain: string | undefined;
+  appId?: string;
+  deploymentId?: string;
   size?: "default" | "small" | "compact";
 }) {
-  const [result, setResult] = useState<{
-    domain: string;
-    status: "failed" | "loaded";
-  }>();
-  const loaded = Boolean(
-    domain &&
-    (loadedAppLogoDomains.has(domain) ||
-      (result?.domain === domain && result.status === "loaded")),
+  const bundled = domain
+    ? (bundledFavicons as Record<string, string>)[domain]
+    : undefined;
+  const query = useApiQuery<{ icon: string | null; expiresAt: number }>(
+    deploymentId
+      ? `/v1/core/deployments/${deploymentId}/favicon`
+      : appId
+        ? `/v1/core/apps/${appId}/favicon`
+        : null,
+    60_000,
+    { keepPreviousData: false },
   );
-  const failed = Boolean(
-    domain &&
-    (failedAppLogoDomains.has(domain) ||
-      (result?.domain === domain && result.status === "failed")),
+  return (
+    <AppLogoImage
+      key={`${deploymentId ?? appId ?? domain}:${query.data?.expiresAt ?? "pending"}`}
+      sources={[query.data?.icon, bundled].filter((src): src is string =>
+        Boolean(src),
+      )}
+      size={size}
+    />
   );
+}
+
+function AppLogoImage({
+  sources,
+  size,
+}: {
+  sources: string[];
+  size: "default" | "small" | "compact";
+}) {
+  const [failed, setFailed] = useState<string[]>([]);
+  const [loadedSource, setLoadedSource] = useState<string>();
+  const src = sources.find((source) => !failed.includes(source));
+  const loaded = Boolean(src && loadedSource === src);
   const pixels = size === "compact" ? 16 : size === "small" ? 24 : 32;
   return (
     <span
@@ -164,8 +186,9 @@ export function AppLogo({
           icon={DashboardCircleIcon}
         />
       ) : null}
-      {domain && !failed ? (
+      {src ? (
         <Image
+          key={src}
           alt=""
           className={`object-contain ${size === "compact" ? "size-4" : size === "small" ? "size-6" : "size-8"} ${loaded ? "" : "absolute opacity-0"}`}
           height={pixels}
@@ -174,22 +197,16 @@ export function AppLogo({
           decoding="sync"
           unoptimized
           width={pixels}
-          src={
-            (bundledFavicons as Record<string, string>)[domain] ??
-            `https://${domain}/favicon.ico`
-          }
+          src={src}
           onError={() => {
-            failedAppLogoDomains.add(domain);
-            setResult({ domain, status: "failed" });
+            setFailed((previous) => [...previous, src]);
           }}
           onLoad={(event) => {
             const image = event.currentTarget;
             if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-              loadedAppLogoDomains.add(domain);
-              setResult({ domain, status: "loaded" });
+              setLoadedSource(src);
             } else {
-              failedAppLogoDomains.add(domain);
-              setResult({ domain, status: "failed" });
+              setFailed((previous) => [...previous, src]);
             }
           }}
           referrerPolicy="no-referrer"
@@ -215,7 +232,7 @@ export function ServiceLogo({
   }
   const domain =
     app.config.domains?.primary ?? app.config.domains?.redirects[0]?.host;
-  return <AppLogo key={domain ?? "no-domain"} domain={domain} size={size} />;
+  return <AppLogo key={app.id} appId={app.id} domain={domain} size={size} />;
 }
 
 function DeployableName({
