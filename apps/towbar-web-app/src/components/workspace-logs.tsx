@@ -74,6 +74,7 @@ import {
   logColumns,
   logDateTime,
   logLevelColors,
+  logLevelBackgrounds,
   logLevels,
   logRangeLabel,
   type LogCondition,
@@ -861,6 +862,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             ) ?? [],
         }}
         severityColors={logLevelColors}
+        severityBackgrounds={logLevelBackgrounds}
         onEndReached={() => {
           void loadMore();
         }}

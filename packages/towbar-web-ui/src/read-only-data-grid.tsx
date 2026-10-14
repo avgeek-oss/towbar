@@ -22,6 +22,7 @@ export type ReadOnlyDataGridProps = {
   onRowActivated?: (index: number) => void;
   onEndReached?: () => void;
   severityColors?: Record<string, string>;
+  severityBackgrounds?: Record<string, string>;
   leadingHeader?: ReactNode;
   cellIcons?: Record<string, readonly (string | undefined)[]>;
   square?: boolean;
@@ -34,6 +35,7 @@ export function ReadOnlyDataGrid({
   onRowActivated,
   onEndReached,
   severityColors,
+  severityBackgrounds,
   leadingHeader,
   cellIcons,
   square = false,
@@ -51,6 +53,9 @@ export function ReadOnlyDataGrid({
   const [size, setSize] = useState({ width: 0, height: 400 });
   const colors = useRef<Record<string, string>>({});
   const [theme, setTheme] = useState<Partial<Theme>>({});
+  const [rowThemes, setRowThemes] = useState<Record<string, Partial<Theme>>>(
+    {},
+  );
   useEffect(() => {
     const element = container.current;
     if (!element) return;
@@ -84,14 +89,31 @@ export function ReadOnlyDataGrid({
       const style = getComputedStyle(element),
         accentStyle = getComputedStyle(accent.current!),
         mutedStyle = getComputedStyle(muted.current!);
-      colors.current = {};
-      for (const [key, value] of Object.entries(severityColors ?? {})) {
+      const resolve = (
+        value: string,
+        property: "color" | "backgroundColor",
+      ) => {
         const probe = document.createElement("span");
-        probe.style.color = value;
+        probe.style[property] = value;
         element.append(probe);
-        colors.current[key] = color(getComputedStyle(probe).color);
+        const resolved = color(getComputedStyle(probe)[property]);
         probe.remove();
-      }
+        return resolved;
+      };
+      colors.current = Object.fromEntries(
+        Object.entries(severityColors ?? {}).map(([key, value]) => [
+          key,
+          resolve(value, "color"),
+        ]),
+      );
+      setRowThemes(
+        Object.fromEntries(
+          Object.entries(severityBackgrounds ?? {}).map(([key, value]) => {
+            const background = resolve(value, "backgroundColor");
+            return [key, { bgCell: background, bgCellMedium: background }];
+          }),
+        ),
+      );
       setTheme({
         bgCell: color(style.backgroundColor),
         bgHeader: color(style.backgroundColor),
@@ -119,7 +141,11 @@ export function ReadOnlyDataGrid({
       resize.disconnect();
       observer.disconnect();
     };
-  }, [severityColors]);
+  }, [severityColors, severityBackgrounds]);
+  const getRowThemeOverride = useCallback(
+    (row: number) => rowThemes[rows[row]?.severity ?? ""],
+    [rowThemes, rows],
+  );
   const getCellContent = useCallback(
     ([column, row]: Item) => {
       const value = rows[row]?.[renderedColumns[column]?.id ?? ""] ?? "";
@@ -176,6 +202,7 @@ export function ReadOnlyDataGrid({
           columns={renderedColumns}
           rows={rows.length}
           getCellContent={getCellContent}
+          getRowThemeOverride={getRowThemeOverride}
           getCellsForSelection
           rowHeight={size.width < 640 ? 36 : 28}
           headerHeight={44}

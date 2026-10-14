@@ -16,12 +16,17 @@ export const logLevels = [
 ] as const;
 export const logLevelColors: Record<LogRecord["severity"], string> = {
   trace: "var(--muted)",
-  debug: "var(--color-violet-500)",
-  info: "var(--color-blue-500)",
+  debug: "var(--log-debug)",
+  info: "var(--log-info)",
   warn: "var(--warning)",
-  error: "var(--danger)",
-  fatal: "var(--color-red-800)",
+  error: "var(--log-error)",
+  fatal: "var(--log-fatal)",
   unknown: "var(--muted)",
+};
+export const logLevelBackgrounds = {
+  warn: "var(--log-warn-row)",
+  error: "var(--log-error-row)",
+  fatal: "var(--log-fatal-row)",
 };
 export const logColumns = [
   { id: "timestamp", title: "Time", width: 215 },
