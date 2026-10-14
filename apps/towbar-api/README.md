@@ -82,7 +82,11 @@ and running checks are preserved until they reach a terminal state.
 
 App and Resource lifecycle is manifest-owned. A deployable missing from the
 latest successful Source sync is archived; the same manifest ID reappearing
-restores it. Towbar has no independent decommission action or lifecycle flag.
+restores its inventory identity. Successful removal records durable server cleanup
+requests in the sync transaction, delivered after commit and retried by maintenance.
+Cleanup deletes exclusively owned runtime objects and persistent data, while
+preserving deployment history. Re-adding after retirement requires fresh storage.
+Towbar has no independent decommission action or lifecycle flag.
 
 Runtime actions, database backups, and scoped orphan cleanup are admitted as
 immutable asynchronous operations. Cleanup requires an administrator. Managed

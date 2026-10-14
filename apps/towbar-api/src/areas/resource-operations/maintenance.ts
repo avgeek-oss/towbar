@@ -1,3 +1,4 @@
+import { dispatchServerCleanups } from "./server-cleanup.js";
 import { ensureAnalyticsWorkflow } from "../../infrastructure/temporal.js";
 import { wakeAppJobsWorkflow } from "../../infrastructure/temporal.js";
 import { enqueueDueTransactionalEmails } from "../team/email-delivery.js";
@@ -48,6 +49,7 @@ export async function runMaintenanceSweep() {
   await wakeAppJobsWorkflow().catch(() => undefined);
   // Scheduled deployable work has priority; health checks are maintenance and
   // should enter a server coordinator only after its queue becomes idle.
+  const serverCleanupsQueued = await dispatchServerCleanups();
   const automaticDeploymentsQueued = await admitResumedAutomaticDeployments();
   const backupsQueued = await queueScheduledBackups();
   const backupsAssured = await assureConfiguredResourceBackups();
@@ -107,6 +109,7 @@ export async function runMaintenanceSweep() {
     () => 0,
   );
   return {
+    serverCleanupsQueued,
     monitoring,
     scoutAlerts,
     monitoringOperations,

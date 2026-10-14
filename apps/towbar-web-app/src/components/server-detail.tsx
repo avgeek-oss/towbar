@@ -1,4 +1,8 @@
 "use client";
+import {
+  ServerCleanupHistory,
+  type ServerCleanupPage,
+} from "./server-cleanup-history";
 import { ServerTerminal } from "./server-terminal";
 import { useAccess } from "./access-context";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
@@ -56,7 +60,6 @@ import type {
 } from "@workspace/towbar-web-client";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
-import { Alert } from "@avgeek-oss/design-system/feedback/alert";
 import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
@@ -184,7 +187,7 @@ export function ServerDetail() {
     can("server.remove") ? `/v1/core/servers/${serverId}/orphans` : null,
     5_000,
   );
-  const cleanup = useApiQuery<{ inProgress: boolean }>(
+  const cleanup = useApiQuery<ServerCleanupPage>(
     requestedSettingsTab === "cleanup"
       ? `/v1/core/servers/${serverId}/cleanup`
       : null,
@@ -234,10 +237,6 @@ export function ServerDetail() {
       resource.serverIp === item.canonicalIp && !resource.archivedAt,
   ).length;
   const orphanItems = orphans.data?.orphans ?? [];
-  const orphanVolumes = orphanItems.filter((item) => item.kind === "volume");
-  const disposableOrphans = orphanItems.filter(
-    (item) => item.kind !== "volume",
-  );
   const latestCheck = checks.data.latestCheck;
   const setupStatus = reconcileServerSetupStatus(
     item.setupStatus,
@@ -680,62 +679,34 @@ export function ServerDetail() {
                           </Chip.Label>
                         </Chip>
                       ) : undefined,
+                      actions: server.data.canCleanupOrphans ? (
+                        <CleanupButton
+                          onQueued={cleanup.refresh}
+                          serverId={serverId}
+                        />
+                      ) : undefined,
                       content: (
                         <div className="content-grid">
-                          {orphanItems.length ? (
-                            <Alert status="warning">
-                              <Alert.Indicator />
-                              <Alert.Content>
-                                <Alert.Title>
-                                  Cleanup is explicit and workspace-scoped
-                                </Alert.Title>
-                                <Alert.Description>
-                                  Towbar revalidates every selected object
-                                  against the latest releases and Towbar
-                                  ownership labels immediately before removal.
-                                  Volumes may contain permanent data and are
-                                  never removed automatically.
-                                </Alert.Description>
-                              </Alert.Content>
-                            </Alert>
-                          ) : null}
-                          {server.data.canCleanupOrphans &&
-                          orphanItems.length ? (
-                            <div className="flex flex-wrap gap-2">
-                              {disposableOrphans.length ? (
-                                <CleanupButton
-                                  onQueued={cleanup.refresh}
-                                  description={`Towbar will re-check and remove ${disposableOrphans.length} Towbar-owned containers or images. Objects no longer orphaned will be skipped.`}
-                                  items={disposableOrphans}
-                                  label="Clean containers and images"
-                                  serverId={serverId}
-                                  title="Clean up these containers and images?"
-                                />
-                              ) : null}
-                              {orphanVolumes.length ? (
-                                <CleanupButton
-                                  onQueued={cleanup.refresh}
-                                  description={`This permanently deletes ${orphanVolumes.length} Towbar-owned Docker volumes and all data still stored in them. Towbar will re-check each volume and skip anything currently owned by a deployable.`}
-                                  items={orphanVolumes}
-                                  label="Delete orphan volumes"
-                                  serverId={serverId}
-                                  title="Permanently delete these orphan volumes?"
-                                />
-                              ) : null}
-                            </div>
-                          ) : null}
-                          <FormCard title="Unused Docker objects">
-                            <ResourceTable
-                              ariaLabel={`Unused Docker objects on ${item.canonicalIp}`}
-                              columns={orphanColumns}
-                              emptyDescription="The latest successful server check found no Towbar-owned objects safe to classify as orphaned."
-                              emptyTitle="No unused Docker objects"
-                              getRowKey={(orphan) =>
-                                `${orphan.kind}:${orphan.name}`
-                              }
-                              items={orphanItems}
+                          <ResourceTable
+                            ariaLabel={`Unused Docker objects on ${item.canonicalIp}`}
+                            columns={orphanColumns}
+                            emptyDescription="The latest server check found no unused Towbar objects. Cleanup rechecks current ownership and usage."
+                            emptyTitle="No unused Docker objects"
+                            getRowKey={(orphan) =>
+                              `${orphan.kind}:${orphan.name}`
+                            }
+                            items={orphanItems}
+                          />
+                          {cleanup.error ? (
+                            <QueryError message={cleanup.error} />
+                          ) : cleanup.data ? (
+                            <ServerCleanupHistory
+                              firstPage={cleanup.data}
+                              serverId={serverId}
                             />
-                          </FormCard>
+                          ) : (
+                            <QueryLoading />
+                          )}
                         </div>
                       ),
                     },
@@ -852,32 +823,29 @@ function ServerCheckHistory({
 }
 
 function CleanupButton({
-  description,
-  items,
-  label,
   onQueued,
   serverId,
-  title,
 }: {
-  description: string;
-  items: OrphanItem[];
-  label: string;
   onQueued: () => void;
   serverId: string;
-  title: string;
 }) {
   return (
     <ActionButton<{ operation: ResourceOperation }>
       action={() =>
         api.post<{ operation: ResourceOperation }>(
           `/v1/core/servers/${serverId}/actions/cleanup-orphans`,
-          { items: items.map(({ kind, name }) => ({ kind, name })) },
+          {},
           { "Idempotency-Key": crypto.randomUUID() },
         )
       }
-      confirm={{ actionLabel: label, description, title }}
+      confirm={{
+        actionLabel: "Request Cleanup",
+        title: "Request server cleanup?",
+        description:
+          "Remove unused Towbar objects and retired workloads on this server, including their owned persistent volumes and data. Current workloads, rollback artifacts and shared resources still in use are preserved.",
+      }}
       onSuccess={onQueued}
-      success="Orphan cleanup queued"
+      success="Server cleanup requested"
       variant="danger"
     >
       <HugeiconsIcon
@@ -885,7 +853,7 @@ function CleanupButton({
         icon={Delete02Icon}
         className="size-4 shrink-0"
       />
-      {label}
+      Request Cleanup
     </ActionButton>
   );
 }

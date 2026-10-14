@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -14,7 +14,6 @@ import {
   resourceOperationEvents,
   resourceOperations,
   serverChecks,
-  serverDeployableOwnership,
   servers,
 } from "@workspace/towbar-database/schema";
 
@@ -153,40 +152,7 @@ export async function getDeployableTarget(
   };
 }
 
-export async function getCleanupExpected(serverId: string) {
-  const ownership = await getTowbarDatabase()
-    .select({ id: serverDeployableOwnership.deployableId })
-    .from(serverDeployableOwnership)
-    .where(eq(serverDeployableOwnership.serverId, serverId));
-  const deployables = await getTowbarDatabase()
-    .select({ id: apps.id })
-    .from(apps)
-    .where(and(eq(apps.serverId, serverId), isNull(apps.archivedAt)));
-  const ids = deployables.map((deployable) => deployable.id);
-  const retained = ids.length
-    ? await getTowbarDatabase()
-        .select({
-          containerName: releases.containerName,
-          imageTag: releases.imageTag,
-          status: releases.status,
-        })
-        .from(releases)
-        .where(
-          and(
-            inArray(releases.appId, ids),
-            inArray(releases.status, ["current", "previous"]),
-          ),
-        )
-    : [];
-  return {
-    containerNames: retained
-      .filter((release) => release.status === "current")
-      .map((release) => release.containerName),
-    deployableIds: ids,
-    ownedDeployableIds: ownership.map((item) => item.id),
-    imageTags: retained.map((release) => release.imageTag),
-  };
-}
+export { getCleanupExpected } from "./cleanup-plan.js";
 
 export async function getRetentionBackups(
   resourceId: string,

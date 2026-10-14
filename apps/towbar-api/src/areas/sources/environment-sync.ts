@@ -1,3 +1,8 @@
+import {
+  assertNoRunningCleanup,
+  dispatchServerCleanups,
+  recordSyncCleanups,
+} from "../resource-operations/server-cleanup.js";
 import { actorAllows } from "@workspace/towbar-access";
 import { authorizeQueuedEffect } from "../auth/actor-context.js";
 import { and, eq, isNull, ne } from "drizzle-orm";
@@ -37,6 +42,7 @@ export async function executeEnvironmentSync(
   dependencies?: {
     snapshot: typeof fetchGitHubEnvironmentSnapshot;
     tree: typeof fetchGitHubRepositoryTree;
+    dispatchCleanup?: typeof dispatchServerCleanups;
   },
 ) {
   const database = getTowbarDatabase();
@@ -46,7 +52,10 @@ export async function executeEnvironmentSync(
     .where(eq(sourceSyncs.id, syncId));
   if (!sync?.sourceEnvironmentId) throw notFound("Environment sync");
   const source = await sourceRepository(sync.sourceId, workspaceId);
-  if (sync.status === "succeeded") return sync;
+  if (sync.status === "succeeded") {
+    await (dependencies?.dispatchCleanup ?? dispatchServerCleanups)();
+    return sync;
+  }
   const [environment] = await database
     .select()
     .from(sourceEnvironments)
@@ -114,9 +123,10 @@ export async function executeEnvironmentSync(
         "Repository tree is incomplete",
         "INCOMPLETE_REPOSITORY_TREE",
       );
-    return await database.transaction(async (transaction) => {
+    const completedSync = await database.transaction(async (transaction) => {
       // Domain claims and entity identities must be checked against concurrent environment syncs.
       await lockDomainClaims(transaction, workspaceId);
+      await assertNoRunningCleanup(transaction, workspaceId);
       const [currentEnvironment] = await transaction
         .select()
         .from(sourceEnvironments)
@@ -274,8 +284,26 @@ export async function executeEnvironmentSync(
           updatedAt: new Date(),
         })
         .where(eq(sourceEnvironments.id, environment.id));
+      await recordSyncCleanups(transaction, {
+        workspaceId,
+        syncId: sync.id,
+        removedIds: [
+          ...reconciliation.apps,
+          ...reconciliation.compose,
+          ...reconciliation.resources,
+        ]
+          .filter(
+            (action) =>
+              action.action === "archive" &&
+              action.current &&
+              !action.current.archivedAt,
+          )
+          .map((action) => action.current!.id),
+      });
       return completed;
     });
+    await (dependencies?.dispatchCleanup ?? dispatchServerCleanups)();
+    return completedSync;
   } catch (error) {
     await database
       .update(sourceSyncs)

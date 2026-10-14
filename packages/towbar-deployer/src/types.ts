@@ -232,12 +232,7 @@ export type WorkspaceGcpCredential = {
 };
 
 export type ResourceOperationExecutionContext = {
-  cleanupExpected: {
-    ownedDeployableIds?: string[];
-    containerNames: string[];
-    deployableIds: string[];
-    imageTags: string[];
-  };
+  cleanupExpected: import("@workspace/towbar-core").ServerCleanupPlan;
   currentRelease: {
     containerName: string;
     imageTag: string;

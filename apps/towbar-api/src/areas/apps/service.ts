@@ -1,3 +1,4 @@
+import { assertNoRunningCleanup } from "../resource-operations/server-cleanup.js";
 import {
   lockDomainClaims,
   reserveDeploymentDomains,
@@ -163,6 +164,7 @@ export async function requestAppDeployment(input: {
   try {
     admission = await database.transaction(async (transaction) => {
       await lockDomainClaims(transaction, request.workspaceId);
+      await assertNoRunningCleanup(transaction, request.workspaceId);
       await lockDeploymentEnvironment(target.environment, transaction);
       const [currentApp] = await transaction
         .select({
@@ -396,6 +398,7 @@ export async function requestAppRollback(input: {
   try {
     deployment = await getTowbarDatabase().transaction(async (transaction) => {
       await lockDomainClaims(transaction, input.workspaceId);
+      await assertNoRunningCleanup(transaction, input.workspaceId);
       await lockDeploymentEnvironment(app.environment, transaction);
       const current = await lockRollbackInstance(
         transaction,

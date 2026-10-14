@@ -183,6 +183,13 @@
       "when": 1791730000000,
       "tag": "0026_mcp_role_revocation",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791985000000,
+      "tag": "0027_server_cleanup",
+      "breakpoints": true
     }
   ]
 }

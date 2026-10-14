@@ -132,9 +132,18 @@ void it("inspects multiple sources on one server without adopting foreign object
         Name: `/${name}-old`,
         Config: { Labels: labels },
       };
-      objects[`image:towbar/${name}:current`] = { Config: { Labels: labels } };
-      objects[`image:towbar/${name}:previous`] = { Config: { Labels: labels } };
-      objects[`image:towbar/${name}:old`] = { Config: { Labels: labels } };
+      objects[`image:towbar/${name}:current`] = {
+        Id: `${name}:current`,
+        Config: { Labels: labels },
+      };
+      objects[`image:towbar/${name}:previous`] = {
+        Id: `${name}:previous`,
+        Config: { Labels: labels },
+      };
+      objects[`image:towbar/${name}:old`] = {
+        Id: `${name}:old`,
+        Config: { Labels: labels },
+      };
       objects[`volume:${name}-data`] = { Labels: labels };
       objects[`volume:${name}-removed`] = {
         Labels: { ...labels, "towbar.deployable": "removed" },

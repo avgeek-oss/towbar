@@ -1,3 +1,5 @@
+import { lockDomainClaims } from "../deployments/domain-claims.js";
+import { assertNoRunningCleanup } from "../resource-operations/server-cleanup.js";
 import { captureQueuedActor } from "../auth/actor-context.js";
 import { deploymentEnvironmentSnapshot } from "../apps/instance-environment.js";
 import { randomUUID } from "node:crypto";
@@ -77,6 +79,8 @@ export async function admitPreviewDeployment(input: {
   const expiresAt = new Date(Date.now() + input.ttlHours * 60 * 60_000);
   // eslint-disable-next-line complexity -- Preview admission atomically enforces quotas, identity, source state, and idempotency.
   return await database.transaction(async (transaction) => {
+    await lockDomainClaims(transaction, input.workspaceId);
+    await assertNoRunningCleanup(transaction, input.workspaceId);
     const targetEnvironment = await lockPreviewTarget(transaction, input);
     const admissionLockKey = previewAdmissionLockKey({
       appId: input.appId,

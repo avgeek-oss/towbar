@@ -1,3 +1,5 @@
+import { cleanupOrphansScript } from "./server-cleanup.js";
+import { serverCleanupResultSchema } from "@workspace/towbar-core";
 import { executeAppJob } from "./app-job.js";
 import { requireOperationSource } from "./operation-source.js";
 /* eslint-disable max-lines -- Resource backup and restore providers share one evidence and promotion protocol. */
@@ -10,7 +12,6 @@ import path from "node:path";
 import {
   isNormalizedResource,
   maximumBackupBytes,
-  orphanItemSchema,
 } from "@workspace/towbar-core";
 
 import { redactSensitiveValues } from "./secrets.js";
@@ -29,7 +30,6 @@ import type {
   BackupProvider,
   ManagedResourceType,
   NormalizedResource,
-  OrphanItem,
 } from "@workspace/towbar-core";
 import {
   executeManagedRestore,
@@ -161,70 +161,6 @@ test "$(docker inspect --format '{{index .Config.Labels "towbar.app"}}' "$contai
 docker logs --timestamps --tail "$tail_lines" "$container" 2>&1
 `;
 
-const cleanupOrphansScript = String.raw`
-set -euo pipefail
-items_json="$1"
-expected_json="$2"
-python3 - "$items_json" "$expected_json" <<'PYTHON'
-import json
-import subprocess
-import sys
-
-items = json.loads(sys.argv[1])
-expected = json.loads(sys.argv[2])
-owned_deployables = set(expected.get("ownedDeployableIds", []))
-cleaned = []
-skipped = []
-
-def command(*args):
-    return subprocess.run(args, check=False, capture_output=True, text=True)
-
-def inspect(kind, name):
-    result = command("docker", kind, "inspect", name)
-    if result.returncode != 0:
-        return None
-    values = json.loads(result.stdout)
-    return values[0] if values else None
-
-for item in items:
-    kind = item["kind"]
-    name = item["name"]
-    value = inspect(kind, name)
-    if not value:
-        skipped.append(item)
-        continue
-    labels = ((value.get("Config") or {}).get("Labels") or {}) if kind != "volume" else (value.get("Labels") or {})
-    if labels.get("towbar.managed") != "true" or (not labels.get("towbar.source") or labels.get("towbar.deployable") not in owned_deployables):
-        skipped.append(item)
-        continue
-    if kind == "container" and name in expected["containerNames"]:
-        skipped.append(item)
-        continue
-    if kind == "image" and name in expected["imageTags"]:
-        skipped.append(item)
-        continue
-    if kind == "volume":
-        host_logs = labels.get("towbar.storage") == "host-logs" and name == "towbar-host-logs-" + labels.get("towbar.runtime", "")
-        attached = command("docker", "ps", "-aq", "--filter", "volume=" + name)
-        if (attached.returncode != 0 or attached.stdout.strip()
-            or (labels.get("towbar.deployable") in expected["deployableIds"] and not host_logs)):
-            skipped.append(item)
-            continue
-    removal = {
-        "container": ("docker", "rm", "-f", name),
-        "image": ("docker", "image", "rm", name),
-        "volume": ("docker", "volume", "rm", name),
-    }[kind]
-    result = command(*removal)
-    if result.returncode == 0:
-        cleaned.append(item)
-    else:
-        skipped.append(item)
-
-print(json.dumps({"cleaned": cleaned, "skipped": skipped}, separators=(",", ":")))
-PYTHON
-`;
-
 export async function executeResourceOperation(input: {
   context: ResourceOperationExecutionContext;
   hooks?: ResourceOperationHooks;
@@ -250,17 +186,23 @@ export async function executeResourceOperation(input: {
         [
           JSON.stringify(context.request.items),
           JSON.stringify(context.cleanupExpected),
+          String(
+            Boolean(context.request.trigger) &&
+              context.request.scope !== "selected",
+          ),
         ],
         { signal, timeoutMs: 5 * 60_000 },
       );
-      const result = JSON.parse(stdout) as {
-        cleaned: OrphanItem[];
-        skipped: OrphanItem[];
-      };
-      return {
-        cleaned: result.cleaned.map((item) => orphanItemSchema.parse(item)),
-        skipped: result.skipped.map((item) => orphanItemSchema.parse(item)),
-      };
+      const result = serverCleanupResultSchema.parse(JSON.parse(stdout));
+      if (result.failures?.length) {
+        throw Object.assign(
+          new Error(
+            "Server cleanup could not remove every eligible object. See the attempt results and retry.",
+          ),
+          { cleanupResult: result },
+        );
+      }
+      return result;
     }
 
     if (context.request.type === "restore") {

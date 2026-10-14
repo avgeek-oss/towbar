@@ -45,8 +45,10 @@ Apps/Resources page. Host CPU, memory, Docker disk pressure, and uptime are show
 separately from the runtime inventory, whose CPU and memory values include
 compact usage meters. The owning Source repeats those meters in its Apps and
 Resources inventories without a separate sync-status column. Server pages also
-list workspace server orphan candidates from the latest check; owner-confirmed
-cleanup is destructive and persistent volumes are never removed automatically.
+list unused Docker objects from the latest check and paginated server cleanup
+history. Successful Git removal queues server cleanup, including deletion of
+exclusively owned persistent volumes. Administrators can request the same
+workflow manually and inspect removed objects, skips, and failures.
 Trusted SSH host keys can be explicitly untrusted from the Server's Host Keys
 page after confirmation.
 Deployment details show the immutable Docker image digest and platform together

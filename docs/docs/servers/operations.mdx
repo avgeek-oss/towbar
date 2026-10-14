@@ -15,6 +15,14 @@ Admins can choose **Terminal → Connect** after configuring a verified SSH key.
 
 ## Clean up leftover workloads
 
-After removing a repository, run **Check server**, then open **Settings → Docker cleanup**. Review Towbar-owned containers, images, and volumes before selecting anything. Towbar rechecks ownership and release references before removal; objects now in use are skipped. Volumes are never deleted automatically, and removing a container does not mean its data is backed up.
+Open **Settings → Docker cleanup** to review unused objects from the latest server check. Select **Request Cleanup** to queue a fresh server-level attempt. Cleanup discovers current Towbar-owned objects when it starts; it does not rely on the table's older snapshot.
 
-For removal of the server itself, read [Remove a server](/docs/servers/remove).
+A successful [repository sync](/docs/repositories/sync) that removes workloads also queues one attempt per affected server, combining removals on that server. Automatic and manual requests use the same server queue. Failed fetches, invalid manifests, and failed syncs do not queue removal. If the queue is unavailable, the committed request remains queued and delivery retries. A historical server that was removed from Towbar gets a failed attempt without undoing the sync; register it again and request cleanup to retire anything left there.
+
+Cleanup removes retired workloads' exclusively owned containers, persistent volumes, configuration files, and ingress routes. **Volume deletion permanently deletes the stored data.** Back up data you need before removing a workload from Git. Deployment and audit history remain available.
+
+Towbar rechecks ownership and usage before removal. It preserves active workloads, pending deployments, current and previous release artifacts, shared resources still in use, other workspaces, and external objects. A workload re-added before cleanup starts is protected. Sync and new deployment admission pause while cleanup is running; retry them after it finishes. Shared networks without exclusive workload ownership remain intact. Cleanup never runs an unrestricted Docker prune.
+
+The **Cleanup history** table includes every server-level attempt, with its sync or manual trigger, status, request time, and completion time. Use its pagination to see older attempts and open **Results** to inspect removed or skipped objects, retired paths, and failures. Fix a reported problem, then select **Request Cleanup** to retry using current ownership. Domain ownership is released only after route retirement succeeds; skipped handoffs and referenced volumes can require a later attempt.
+
+Deleting an entire repository is a separate action. After deletion, request cleanup on its former servers to remove eligible owned Docker objects. For removal of the server itself, read [Remove a server](/docs/servers/remove).

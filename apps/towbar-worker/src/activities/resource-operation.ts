@@ -23,16 +23,15 @@ export async function executeResourceOperationActivity(operationId: string) {
   const pulse = setInterval(() => activity.heartbeat({ operationId }), 10_000);
   let s3Client: S3Client | undefined;
   try {
-    const [contextResponse, secretsResponse] = await Promise.all([
-      signedApiRequest<{ context: ResourceOperationExecutionContext }>(
-        "GET",
-        `/v1/internal/resource-operations/${operationId}/context`,
-      ),
-      signedApiRequest<{ secrets: ResourceOperationSecrets }>(
-        "POST",
-        `/v1/internal/resource-operations/${operationId}/secrets/resolve`,
-      ),
-    ]);
+    const contextResponse = await signedApiRequest<{
+      context: ResourceOperationExecutionContext;
+    }>("GET", `/v1/internal/resource-operations/${operationId}/context`);
+    const secretsResponse = await signedApiRequest<{
+      secrets: ResourceOperationSecrets;
+    }>(
+      "POST",
+      `/v1/internal/resource-operations/${operationId}/secrets/resolve`,
+    );
     const { context } = contextResponse;
     const { secrets } = secretsResponse;
 
@@ -198,6 +197,8 @@ export async function runMaintenanceSweepActivity() {
 }
 
 function restoreFailureResult(error: unknown) {
+  if (typeof error === "object" && error !== null && "cleanupResult" in error)
+    return error.cleanupResult;
   if (typeof error === "object" && error !== null && "jobResult" in error)
     return error.jobResult;
   if (typeof error === "object" && error !== null && "restoreResult" in error) {

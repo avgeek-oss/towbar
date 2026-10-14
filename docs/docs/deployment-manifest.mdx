@@ -65,3 +65,7 @@ Read the [Datastore manifest](/docs/datastores/manifest), then choose an [engine
 Commit key names and configuration, but keep secret values outside Git. You can [save values in Towbar](/docs/secrets/towbar) or [import runtime values from Infisical or Doppler](/docs/secrets/external). A missing required value blocks deployment rather than repository sync.
 
 Common settings sit at the top level of each workload file. An entry under `environments` may override supported fields for that environment. Objects merge recursively; arrays replace the common array. Keep an entity's `id` stable when moving or renaming its file so Towbar can retain its history.
+
+## Workload removal
+
+Removing a Service or Datastore file from a valid repository snapshot archives that workload after sync and queues cleanup on every associated server. Cleanup deletes exclusively owned persistent volumes and data, containers, configuration files, and routes. Failed syncs preserve the previous inventory. Back up required data before removal and inspect the server's cleanup history afterward. See [Sync and automation](/docs/repositories/sync) for re-adding workloads, domain handoffs, and cleanup timing.
