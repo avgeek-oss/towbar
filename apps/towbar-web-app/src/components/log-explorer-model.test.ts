@@ -1,4 +1,8 @@
-import { logRecordSchema, logFilterSchema } from "@workspace/towbar-contracts";
+import {
+  logBucketSeconds,
+  logRecordSchema,
+  logFilterSchema,
+} from "@workspace/towbar-contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -145,4 +149,10 @@ void test("logs always show seconds while preserving the user's localized date a
     "23:55:17, 14 Oct 2026 – 00:05:23, 15 Oct 2026",
   );
   clearDateTimeLabels();
+});
+
+void test("log buckets keep minute precision for short ranges and bound wider ranges", () => {
+  const from = "2026-10-14T00:00:00Z";
+  assert.equal(logBucketSeconds(from, "2026-10-14T01:00:00Z"), 60);
+  assert.equal(logBucketSeconds(from, "2026-10-21T00:00:00Z"), 1210);
 });

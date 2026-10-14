@@ -5,6 +5,7 @@ import {
   type LogQuery,
   type LogQueryResult,
   type LogRecord,
+  logBucketSeconds,
   logQuerySchema,
 } from "@workspace/towbar-core";
 import { getEnv } from "../../env.js";
@@ -367,12 +368,7 @@ export async function summarizeLogs(
      GROUP BY at, severity ORDER BY at LIMIT 3500 FORMAT JSONEachRow`,
     {
       ...parameters,
-      bucket: Math.max(
-        60,
-        Math.ceil(
-          (Date.parse(filters.to) - Date.parse(filters.from)) / 1000 / 500,
-        ),
-      ),
+      bucket: logBucketSeconds(filters.from, filters.to),
     },
     { signal, readOnly: true },
   );

@@ -23,6 +23,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { SearchField } from "@avgeek-oss/design-system/pickers/autocomplete";
 import { Bar } from "recharts";
+import { logBucketSeconds } from "@workspace/towbar-contracts";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { CodePanel } from "@workspace/towbar-web-ui/code-panel";
 import { Drawer } from "@avgeek-oss/design-system/overlays/drawer";
@@ -50,13 +51,9 @@ import {
   fallbackLogWorkloadIcon,
 } from "@/hooks/use-log-workload-icons";
 import { useLogFollow } from "@/hooks/use-log-follow";
-import {
-  useLocalizedTimestamps,
-  useLocalizedChartTicks,
-} from "@/hooks/use-localized-timestamps";
+import { useLocalizedTimestamps } from "@/hooks/use-localized-timestamps";
 import { api } from "@/lib/api";
 import {
-  displayTime,
   localizationRevision,
   subscribeLocalization,
   serverLocalizationRevision,
@@ -82,6 +79,7 @@ import {
   type LogCondition,
   type CustomLogColumn,
   logColumnValue,
+  logTimeWithSeconds,
 } from "./log-explorer-model";
 
 const LogGrid = dynamic(
@@ -385,12 +383,39 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     localizationRevision,
     serverLocalizationRevision,
   );
+  const ticks = useMemo(() => {
+    if (!filters) return [];
+    const start = Date.parse(filters.from),
+      end = Date.parse(filters.to);
+    return Array.from({ length: 9 }, (_, index) =>
+      Math.round(start + ((end - start) * index) / 8),
+    );
+  }, [filters]);
+  const bucketRanges = useMemo(() => {
+    if (!filters) return new Map<number, { from: number; to: number }>();
+    const width = logBucketSeconds(filters.from, filters.to) * 1000;
+    return new Map(
+      (summary?.buckets ?? []).map((bucket) => {
+        const at = Date.parse(bucket.at);
+        return [
+          at,
+          {
+            from: Math.max(at, Date.parse(filters.from)),
+            to: Math.min(at + width, Date.parse(filters.to)),
+          },
+        ];
+      }),
+    );
+  }, [filters, summary]);
   const { error: localizationError } = useLocalizedTimestamps(
-    filters ? [filters.from, filters.to] : [],
-  );
-  const { ticks } = useLocalizedChartTicks(
-    filters ? Date.parse(filters.from) : NaN,
-    filters ? Date.parse(filters.to) : NaN,
+    filters
+      ? [
+          filters.from,
+          filters.to,
+          ...ticks,
+          ...[...bucketRanges.values()].flatMap(({ from, to }) => [from, to]),
+        ]
+      : [],
   );
   const attributeKeys = [
     ...new Set([
@@ -774,7 +799,14 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             scale="time"
             domain={[Date.parse(filters.from), Date.parse(filters.to)]}
             ticks={ticks}
-            tickFormatter={(value) => displayTime(Number(value))}
+            minTickGap={16}
+            interval="preserveStartEnd"
+            tickFormatter={(value) =>
+              filters &&
+              Date.parse(filters.to) - Date.parse(filters.from) > 86400000
+                ? logDateTime(Number(value))
+                : logTimeWithSeconds(Number(value))
+            }
           />
           <LineChart.YAxis allowDecimals={false} />
           {logLevels.map((level) => (
@@ -791,7 +823,12 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           <LineChart.Tooltip
             content={
               <LineChart.TooltipContent
-                labelFormatter={(value) => displayTime(Number(value))}
+                labelFormatter={(value) => {
+                  const range = bucketRanges.get(Number(value));
+                  return range
+                    ? `${logTimeWithSeconds(range.from)} – ${logTimeWithSeconds(range.to)}`
+                    : logTimeWithSeconds(Number(value));
+                }}
               />
             }
           />
@@ -845,26 +882,33 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           </Tooltip>
         }
       />
-      <div className="px-4 py-2 text-xs text-muted" role="status">
-        {loadingMore ? "Loading more logs…" : null}
-        {!busy && page && !page.records.length ? (
-          <>
-            No matching logs. Check the filters or{" "}
-            <Link href="/servers" className="underline underline-offset-4">
-              enable collection on a server
-            </Link>
-            .
-          </>
-        ) : null}
-        {historyFull
-          ? "Loaded results reached the browser limit. Narrow the time range or filters to explore more."
-          : null}
-        {page?.partial || summary?.partial ? (
-          <p className="text-warning">
-            Results reached the query budget. Narrow the time range or filters.
-          </p>
-        ) : null}
-      </div>
+      {loadingMore ||
+      (!busy && page && !page.records.length) ||
+      historyFull ||
+      page?.partial ||
+      summary?.partial ? (
+        <div className="px-4 py-2 text-xs text-muted" role="status">
+          {loadingMore ? "Loading more logs…" : null}
+          {!busy && page && !page.records.length ? (
+            <>
+              No matching logs. Check the filters or{" "}
+              <Link href="/servers" className="underline underline-offset-4">
+                enable collection on a server
+              </Link>
+              .
+            </>
+          ) : null}
+          {historyFull
+            ? "Loaded results reached the browser limit. Narrow the time range or filters to explore more."
+            : null}
+          {page?.partial || summary?.partial ? (
+            <p className="text-warning">
+              Results reached the query budget. Narrow the time range or
+              filters.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       {selected ? (
         <LogDetails
           key={selected.eventId}

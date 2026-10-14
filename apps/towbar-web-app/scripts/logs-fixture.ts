@@ -7,7 +7,7 @@ import type {
   LogStorageStatus,
   TowbarUser,
 } from "@workspace/towbar-web-client";
-import { logFilterSchema } from "@workspace/towbar-contracts";
+import { logFilterSchema, logBucketSeconds } from "@workspace/towbar-contracts";
 
 type Workload = { id: string; name: string; serverId: string };
 export function createLogsFixture(
@@ -262,12 +262,7 @@ export function createLogsFixture(
           })),
         ]),
       );
-      const step = Math.max(
-        60000,
-        Math.ceil(
-          (Date.parse(filters.to) - Date.parse(filters.from)) / 500 / 1000,
-        ) * 1000,
-      );
+      const step = logBucketSeconds(filters.from, filters.to) * 1000;
       const counts = new Map<
         string,
         { at: string; severity: string; count: number }

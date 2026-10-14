@@ -128,7 +128,7 @@ export function DashboardPage({
             width={fullWidth ? "full" : "content"}
             className="pt-0 sm:pt-0"
             xPadding="none"
-            yPadding="compact"
+            yPadding={fullWidth ? "none" : "compact"}
           >
             {children}
           </PageSection>

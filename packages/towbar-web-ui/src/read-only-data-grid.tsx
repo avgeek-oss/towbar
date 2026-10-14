@@ -177,7 +177,7 @@ export function ReadOnlyDataGrid({
           rows={rows.length}
           getCellContent={getCellContent}
           getCellsForSelection
-          rowHeight={size.width < 640 ? 44 : 36}
+          rowHeight={size.width < 640 ? 36 : 28}
           headerHeight={44}
           freezeColumns={leadingHeader ? 1 : 0}
           cellActivationBehavior="double-click"

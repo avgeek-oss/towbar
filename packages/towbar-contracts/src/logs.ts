@@ -279,6 +279,13 @@ export const logCollectionStatusSchema = z.object({
 
 export type LogStorageStatus = z.infer<typeof logStorageStatusSchema>;
 export type LogCollectionStatus = z.infer<typeof logCollectionStatusSchema>;
+export function logBucketSeconds(from: string, to: string) {
+  return Math.max(
+    60,
+    Math.ceil((Date.parse(to) - Date.parse(from)) / 1000 / 500),
+  );
+}
+
 export type LogSummary = {
   attributeKeys?: string[];
   buckets: { at: string; severity: string; count: number }[];

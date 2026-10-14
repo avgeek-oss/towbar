@@ -352,7 +352,7 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
               <AppShell.Content
                 className={
                   pathname === "/monitoring/logs"
-                    ? "px-0 pt-0 pb-20 sm:pt-0 sm:pb-20"
+                    ? "px-0 pt-0 pb-0 sm:pt-0 sm:pb-0"
                     : "pt-0 pb-20 sm:pt-0 sm:pb-20"
                 }
                 variant={pathname === "/monitoring/logs" ? "full" : "broad"}
