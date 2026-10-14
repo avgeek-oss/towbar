@@ -1,3 +1,4 @@
+import { logMatchingCases } from "./matching-test-support.js";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
@@ -300,6 +301,61 @@ void test(
               )
             ).records.length,
             0,
+          );
+        },
+      );
+      await t.test(
+        "expanded matching operators execute within the authorized scope",
+        async () => {
+          for (const [field, operator, value, expected] of logMatchingCases(
+            restrictedId,
+          )) {
+            const grouped = logFilterSchema.parse({
+              ...filters,
+              conditionGroup: {
+                match: "and",
+                conditions: [{ field, operator, value }],
+              },
+            });
+            const result = await withActor(actor("viewer"), () =>
+              queryLogs(
+                workspaceId,
+                logQuerySchema.parse({ filters: grouped }),
+              ),
+            );
+            assert.equal(
+              result.records.length,
+              expected,
+              `${field} ${operator}`,
+            );
+            const summary = await withActor(actor("viewer"), () =>
+              summarizeLogs(workspaceId, grouped),
+            );
+            assert.equal(
+              summary.buckets.reduce((sum, bucket) => sum + bucket.count, 0),
+              expected,
+              `${field} ${operator} summary`,
+            );
+          }
+          const withoutTrace = await withActor(actor("admin"), () =>
+            queryLogs(
+              workspaceId,
+              logQuerySchema.parse({
+                filters: {
+                  ...filters,
+                  conditionGroup: {
+                    match: "and",
+                    conditions: [
+                      { field: "traceId", operator: "not_exists", value: "" },
+                    ],
+                  },
+                },
+              }),
+            ),
+          );
+          assert.deepEqual(
+            withoutTrace.records.map((record) => record.eventId),
+            ["b".repeat(64)],
           );
         },
       );

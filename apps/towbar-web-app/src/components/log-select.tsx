@@ -73,9 +73,13 @@ export function LogSelect({
         if (key !== null) onChange(String(key));
       }}
       variant="secondary"
-      className="min-w-0 gap-1.5"
+      className={`min-w-0 ${hideLabel ? "gap-0" : "gap-1"}`}
     >
-      <Label className={hideLabel ? "sr-only" : undefined}>{label}</Label>
+      <Label
+        className={hideLabel ? "sr-only" : "text-xs font-normal text-muted"}
+      >
+        {label}
+      </Label>
       <Select.Trigger>
         <Select.Value className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
           {chosen?.icon}

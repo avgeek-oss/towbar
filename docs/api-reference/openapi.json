@@ -10577,7 +10577,16 @@
                                 },
                                 "operator": {
                                   "type": "string",
-                                  "enum": ["equals", "contains"]
+                                  "enum": [
+                                    "equals",
+                                    "not_equals",
+                                    "contains",
+                                    "not_contains",
+                                    "starts_with",
+                                    "ends_with",
+                                    "exists",
+                                    "not_exists"
+                                  ]
                                 },
                                 "value": { "type": "string", "maxLength": 512 }
                               },
@@ -10877,7 +10886,16 @@
                             },
                             "operator": {
                               "type": "string",
-                              "enum": ["equals", "contains"]
+                              "enum": [
+                                "equals",
+                                "not_equals",
+                                "contains",
+                                "not_contains",
+                                "starts_with",
+                                "ends_with",
+                                "exists",
+                                "not_exists"
+                              ]
                             },
                             "value": { "type": "string", "maxLength": 512 }
                           },
@@ -11305,7 +11323,16 @@
                                 },
                                 "operator": {
                                   "type": "string",
-                                  "enum": ["equals", "contains"]
+                                  "enum": [
+                                    "equals",
+                                    "not_equals",
+                                    "contains",
+                                    "not_contains",
+                                    "starts_with",
+                                    "ends_with",
+                                    "exists",
+                                    "not_exists"
+                                  ]
                                 },
                                 "value": { "type": "string", "maxLength": 512 }
                               },
@@ -11606,7 +11633,16 @@
                                 },
                                 "operator": {
                                   "type": "string",
-                                  "enum": ["equals", "contains"]
+                                  "enum": [
+                                    "equals",
+                                    "not_equals",
+                                    "contains",
+                                    "not_contains",
+                                    "starts_with",
+                                    "ends_with",
+                                    "exists",
+                                    "not_exists"
+                                  ]
                                 },
                                 "value": { "type": "string", "maxLength": 512 }
                               },

@@ -126,12 +126,19 @@ logos. Use **Level** to select a severity, indicated by a colored marker.
 The main search matches messages, trace IDs, and span IDs.
 
 Open **Filters** to match all conditions (AND) or any condition (OR) across parsed
-log fields and built-in fields such as Compose
-service, deployment, preview, container, and output stream. Standard output
+log fields and built-in fields such as Compose service, deployment, preview,
+container, and output stream. Parsed fields support Equals, Does not equal,
+Contains, Does not contain, Starts with, Ends with, Exists, and Does not exist.
+Service names, container IDs, and trace/span IDs also support text matches. Other
+built-in fields support equality, inequality, and existence checks. Text contains,
+prefix, and suffix matches ignore case; equality is exact. Negative value matches
+require the field to be present; use Does not exist to find missing fields.
+Existence checks do not require a value. Standard output
 (`stdout`) and error output (`stderr`) describe the process output channel;
 they do not necessarily indicate the severity of a message. Available parsed
 field names are discovered only from records the current connection may read.
 
+The volume graph stacks counts by log level using the same colors as the grid.
 Drag across the volume graph to narrow the time range, or choose **Custom range**
 from the time-range dropdown. Timestamps include seconds and use your configured
 timezone and date format. On desktop, the selected start and end are shown above

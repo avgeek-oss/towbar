@@ -199,14 +199,32 @@ export function createLogsFixture(
                 const value = condition.field.startsWith("attribute:")
                   ? record.attributes[condition.field.slice(10)]
                   : record[condition.field as keyof LogRecord];
-                return (
-                  typeof value === "string" &&
-                  (condition.operator === "contains"
-                    ? value
-                        .toLocaleLowerCase()
-                        .includes(condition.value.toLocaleLowerCase())
-                    : value === condition.value)
-                );
+                const exists = typeof value === "string" && value.length > 0;
+                if (condition.operator === "exists")
+                  return condition.field.startsWith("attribute:")
+                    ? typeof value === "string"
+                    : exists;
+                if (condition.operator === "not_exists")
+                  return condition.field.startsWith("attribute:")
+                    ? typeof value !== "string"
+                    : !exists;
+                if (typeof value !== "string") return false;
+                const text = value.toLocaleLowerCase(),
+                  query = condition.value.toLocaleLowerCase();
+                switch (condition.operator) {
+                  case "equals":
+                    return value === condition.value;
+                  case "not_equals":
+                    return value !== condition.value;
+                  case "contains":
+                    return text.includes(query);
+                  case "not_contains":
+                    return !text.includes(query);
+                  case "starts_with":
+                    return text.startsWith(query);
+                  case "ends_with":
+                    return text.endsWith(query);
+                }
               },
             );
             return filters.conditionGroup.match === "or"

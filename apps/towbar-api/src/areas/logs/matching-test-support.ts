@@ -1,0 +1,28 @@
+export function logMatchingCases(restrictedId: string) {
+  return [
+    ["attribute:customer", "not_equals", "other", 1],
+    ["attribute:customer", "not_equals", "123", 0],
+    ["attribute:customer", "contains", "2", 1],
+    ["attribute:customer", "not_contains", "9", 1],
+    ["attribute:customer", "not_contains", "2", 0],
+    ["attribute:customer", "starts_with", "12", 1],
+    ["attribute:customer", "ends_with", "23", 1],
+    ["attribute:customer", "exists", "", 1],
+    ["attribute:missing", "not_equals", "anything", 0],
+    ["attribute:missing", "not_exists", "", 1],
+    ["attribute:admin_secret", "exists", "", 0],
+    ["attribute:admin_secret", "not_exists", "", 1],
+    ["workloadId", "not_equals", restrictedId, 1],
+    ["deploymentId", "exists", "", 0],
+    ["deploymentId", "not_exists", "", 1],
+    ["traceId", "exists", "", 1],
+    ["spanId", "not_exists", "", 0],
+    ["service", "not_equals", "worker", 1],
+    ["service", "contains", "AP", 1],
+    ["service", "not_contains", "worker", 1],
+    ["service", "starts_with", "A", 1],
+    ["service", "ends_with", "PI", 1],
+    ["traceId", "starts_with", "111", 1],
+    ["attribute:customer", "starts_with", "' OR 1=1 --", 0],
+  ] as const;
+}

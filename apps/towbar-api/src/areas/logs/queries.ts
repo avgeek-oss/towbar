@@ -158,8 +158,27 @@ export function buildLogConditions(input: {
       if (condition.field.startsWith("attribute:")) {
         const key = `conditionKey${index}`;
         parameters[key] = condition.field.slice(10);
+        const exists = `mapContains(attributes, {${key}:String})`;
         const value = `attributes[{${key}:String}]`;
-        return `(mapContains(attributes, {${key}:String}) AND ${condition.operator === "contains" ? `positionCaseInsensitiveUTF8(${value}, {${parameter}:String}) > 0` : `${value} = {${parameter}:String}`})`;
+        const query = `{${parameter}:String}`;
+        switch (condition.operator) {
+          case "exists":
+            return exists;
+          case "not_exists":
+            return `NOT ${exists}`;
+          case "equals":
+            return `(${exists} AND ${value} = ${query})`;
+          case "not_equals":
+            return `(${exists} AND ${value} != ${query})`;
+          case "contains":
+            return `(${exists} AND positionCaseInsensitiveUTF8(${value}, ${query}) > 0)`;
+          case "not_contains":
+            return `(${exists} AND positionCaseInsensitiveUTF8(${value}, ${query}) = 0)`;
+          case "starts_with":
+            return `(${exists} AND startsWith(lowerUTF8(${value}), lowerUTF8(${query})))`;
+          case "ends_with":
+            return `(${exists} AND endsWith(lowerUTF8(${value}), lowerUTF8(${query})))`;
+        }
       }
       const fields: Record<string, readonly [string, string]> = {
         serverId: ["serverId", "UUID"],
@@ -174,7 +193,26 @@ export function buildLogConditions(input: {
       };
       const field = fields[condition.field];
       if (!field) throw badRequest("Unknown log filter field");
-      return `${field[0]} = {${parameter}:${field[1]}}`;
+      const exists =
+        field[1] === "UUID"
+          ? `isNotNull(${field[0]})`
+          : `notEmpty(ifNull(${field[0]}, ''))`;
+      if (condition.operator === "exists") return exists;
+      if (condition.operator === "not_exists") return `NOT (${exists})`;
+      const value = `ifNull(${field[0]}, '')`,
+        query = `{${parameter}:String}`;
+      switch (condition.operator) {
+        case "contains":
+          return `(${exists} AND positionCaseInsensitiveUTF8(${value}, ${query}) > 0)`;
+        case "not_contains":
+          return `(${exists} AND positionCaseInsensitiveUTF8(${value}, ${query}) = 0)`;
+        case "starts_with":
+          return `(${exists} AND startsWith(lowerUTF8(${value}), lowerUTF8(${query})))`;
+        case "ends_with":
+          return `(${exists} AND endsWith(lowerUTF8(${value}), lowerUTF8(${query})))`;
+        default:
+          return `${field[0]} ${condition.operator === "not_equals" ? "!=" : "="} {${parameter}:${field[1]}}`;
+      }
     });
     conditions.push(
       `(${group.join(filters.conditionGroup.match === "or" ? " OR " : " AND ")})`,

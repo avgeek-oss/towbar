@@ -7,10 +7,15 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
   Delete02Icon,
-  FilterHorizontalIcon,
+  FunnelIcon,
 } from "@hugeicons/core-free-icons";
 import { LogSelect, type LogOption } from "./log-select";
-import { conditionFilters, type LogCondition } from "./log-explorer-model";
+import {
+  conditionFilters,
+  logMatchOptions,
+  logMatchNeedsValue,
+  type LogCondition,
+} from "./log-explorer-model";
 import { logFilterSchema } from "@workspace/towbar-web-client";
 
 export function LogFilterDialog({
@@ -57,7 +62,7 @@ export function LogFilterDialog({
         <Modal.Dialog className="max-w-5xl">
           <Modal.Header className="mb-4">
             <Modal.Heading className="flex items-center gap-2">
-              <HugeiconsIcon icon={FilterHorizontalIcon} size={20} />
+              <HugeiconsIcon icon={FunnelIcon} size={20} />
               Filters
             </Modal.Heading>
             <Modal.CloseTrigger aria-label="Close filters" />
@@ -65,7 +70,7 @@ export function LogFilterDialog({
           <Modal.Body>
             <form
               id={formId}
-              className="grid gap-4"
+              className="grid gap-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 const parsed = logFilterSchema.safeParse({
@@ -84,7 +89,7 @@ export function LogFilterDialog({
                 onClose();
               }}
             >
-              <div className="max-w-xs">
+              <div className="w-full max-w-60">
                 <LogSelect
                   label="Match conditions"
                   value={combination}
@@ -100,9 +105,9 @@ export function LogFilterDialog({
                   {error}
                 </p>
               ) : null}
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 <div
-                  className="hidden grid-cols-[minmax(0,1fr)_minmax(0,.6fr)_minmax(0,1fr)_2.75rem] gap-2 text-sm text-muted sm:grid"
+                  className="hidden grid-cols-[minmax(0,1fr)_minmax(0,.6fr)_minmax(0,1fr)_2.75rem] gap-2 text-xs font-normal text-muted sm:grid"
                   aria-hidden="true"
                 >
                   <span>Attribute</span>
@@ -136,21 +141,33 @@ export function LogFilterDialog({
                         label={`Match ${index + 1}`}
                         hideLabel
                         value={condition.operator}
-                        options={[
-                          { id: "equals", label: "Equals" },
-                          ...(condition.field.startsWith("attribute:")
-                            ? [{ id: "contains", label: "Contains" }]
-                            : []),
-                        ]}
+                        options={logMatchOptions.filter(
+                          (option) =>
+                            condition.field.startsWith("attribute:") ||
+                            [
+                              "service",
+                              "containerId",
+                              "traceId",
+                              "spanId",
+                            ].includes(condition.field) ||
+                            [
+                              "equals",
+                              "not_equals",
+                              "exists",
+                              "not_exists",
+                            ].includes(option.id),
+                        )}
                         onChange={(operator) =>
                           update(condition.id, {
                             operator: operator as LogCondition["operator"],
+                            value: "",
                           })
                         }
                       />
                     </div>
                     <div className="col-start-2 row-start-2 min-w-0 sm:col-start-auto sm:row-start-auto">
-                      {values[condition.field]?.length ? (
+                      {["equals", "not_equals"].includes(condition.operator) &&
+                      values[condition.field]?.length ? (
                         <LogSelect
                           label={`Value ${index + 1}`}
                           hideLabel
@@ -162,7 +179,15 @@ export function LogFilterDialog({
                       ) : (
                         <Input
                           aria-label={`Value ${index + 1}`}
-                          placeholder="Value"
+                          className="w-full min-w-0 text-base sm:text-sm"
+                          placeholder={
+                            logMatchNeedsValue(condition.operator)
+                              ? "Value"
+                              : "No value needed"
+                          }
+                          disabled={!logMatchNeedsValue(condition.operator)}
+                          autoComplete="off"
+                          spellCheck={false}
                           variant="secondary"
                           value={condition.value}
                           maxLength={512}
@@ -174,7 +199,7 @@ export function LogFilterDialog({
                       )}
                     </div>
                     <Button
-                      className="col-start-3 row-span-2 min-h-11 min-w-11 self-center sm:col-start-auto sm:row-span-1"
+                      className="col-start-3 row-span-2 size-9 min-h-9 min-w-9 rounded-lg self-center sm:col-start-auto sm:row-span-1 max-sm:size-11 max-sm:min-h-11 max-sm:min-w-11"
                       variant="danger"
                       isIconOnly
                       aria-label={`Remove condition ${index + 1}`}
@@ -221,7 +246,10 @@ export function LogFilterDialog({
               <Button
                 type="submit"
                 form={formId}
-                isDisabled={draft.some((item) => !item.value.trim())}
+                isDisabled={draft.some(
+                  (item) =>
+                    logMatchNeedsValue(item.operator) && !item.value.trim(),
+                )}
               >
                 Apply
               </Button>

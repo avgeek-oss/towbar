@@ -50,13 +50,51 @@ const logConditionSchema = z
       z.enum(conditionFields),
       z.string().regex(/^attribute:.{1,128}$/u),
     ]),
-    operator: z.enum(["equals", "contains"]),
+    operator: z.enum([
+      "equals",
+      "not_equals",
+      "contains",
+      "not_contains",
+      "starts_with",
+      "ends_with",
+      "exists",
+      "not_exists",
+    ]),
     value: z.string().max(512),
   })
   .strict()
   .superRefine((condition, context) => {
-    if (condition.field.startsWith("attribute:")) return;
+    if (
+      ["exists", "not_exists"].includes(condition.operator) ||
+      condition.field.startsWith("attribute:")
+    )
+      return;
     const field = condition.field;
+    const textMatch = [
+      "contains",
+      "not_contains",
+      "starts_with",
+      "ends_with",
+    ].includes(condition.operator);
+    if (
+      textMatch &&
+      ["service", "containerId", "traceId", "spanId"].includes(field)
+    ) {
+      const maximum =
+        field === "containerId"
+          ? 64
+          : field === "traceId"
+            ? 32
+            : field === "spanId"
+              ? 16
+              : 128;
+      if (
+        condition.value.length > 0 &&
+        condition.value.length <= maximum &&
+        (field === "service" || /^[a-f0-9]+$/u.test(condition.value))
+      )
+        return;
+    }
     const valid =
       field.endsWith("Id") &&
       !["containerId", "traceId", "spanId"].includes(field)
@@ -70,10 +108,10 @@ const logConditionSchema = z
               : field === "stream"
                 ? ["stdout", "stderr"].includes(condition.value)
                 : condition.value.length > 0 && condition.value.length <= 128;
-    if (!valid || condition.operator !== "equals")
+    if (!valid || !["equals", "not_equals"].includes(condition.operator))
       context.addIssue({
         code: "custom",
-        message: `Use a valid ${field} with Equals`,
+        message: `Use a valid ${field} with Equals or Does not equal`,
         path: ["value"],
       });
   });

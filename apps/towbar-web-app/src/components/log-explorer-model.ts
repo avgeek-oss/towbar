@@ -55,9 +55,27 @@ export const builtInLogFields = logColumns.filter(
 export type LogCondition = {
   id: string;
   field: string;
-  operator: "equals" | "contains";
+  operator: NonNullable<
+    LogFilter["conditionGroup"]
+  >["conditions"][number]["operator"];
   value: string;
 };
+export const logMatchOptions: {
+  id: LogCondition["operator"];
+  label: string;
+}[] = [
+  { id: "equals", label: "Equals" },
+  { id: "not_equals", label: "Does not equal" },
+  { id: "contains", label: "Contains" },
+  { id: "not_contains", label: "Does not contain" },
+  { id: "starts_with", label: "Starts with" },
+  { id: "ends_with", label: "Ends with" },
+  { id: "exists", label: "Exists" },
+  { id: "not_exists", label: "Does not exist" },
+];
+export function logMatchNeedsValue(operator: LogCondition["operator"]) {
+  return operator !== "exists" && operator !== "not_exists";
+}
 export function conditionFilters(
   conditions: LogCondition[],
   match: "and" | "or" = "and",

@@ -1,4 +1,4 @@
-import { logRecordSchema } from "@workspace/towbar-contracts";
+import { logRecordSchema, logFilterSchema } from "@workspace/towbar-contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -12,6 +12,7 @@ import {
 } from "../lib/date-time-display";
 import {
   conditionFilters,
+  logMatchNeedsValue,
   logColumnValue,
   validLogColumnPath,
   reorderLogColumns,
@@ -46,6 +47,34 @@ void test("condition groups preserve repeated fields and the selected match mode
     },
   });
   assert.deepEqual(conditionFilters([]), {});
+});
+void test("existence filters need no value and metadata rejects text matching", () => {
+  const base = { from: "2026-10-15T00:00:00Z", to: "2026-10-15T01:00:00Z" };
+  for (const operator of ["exists", "not_exists"] as const) {
+    assert.equal(logMatchNeedsValue(operator), false);
+    assert(
+      logFilterSchema.safeParse({
+        ...base,
+        conditionGroup: {
+          match: "and",
+          conditions: [{ field: "deploymentId", operator, value: "" }],
+        },
+      }).success,
+    );
+  }
+  assert.equal(logMatchNeedsValue("not_contains"), true);
+  assert.equal(
+    logFilterSchema.safeParse({
+      ...base,
+      conditionGroup: {
+        match: "and",
+        conditions: [
+          { field: "deploymentId", operator: "contains", value: "123" },
+        ],
+      },
+    }).success,
+    false,
+  );
 });
 void test("custom columns resolve nested, flattened and JSON-message paths without evaluating input", () => {
   const record = logRecordSchema.parse({

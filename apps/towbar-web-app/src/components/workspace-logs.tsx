@@ -9,17 +9,20 @@ import {
   PauseIcon,
   PlayIcon,
   Search01Icon,
-  FilterHorizontalIcon,
+  FunnelIcon,
   Settings02Icon,
   ServerStack01Icon,
   Layers01Icon,
+  Package01Icon,
+  Rocket01Icon,
+  GitPullRequestIcon,
+  CommandLineIcon,
+  CodeIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Button,
-  buttonVariants,
-} from "@avgeek-oss/design-system/buttons/button";
-import { Input } from "@avgeek-oss/design-system/forms/input";
+import { Button } from "@avgeek-oss/design-system/buttons/button";
+import { SearchField } from "@avgeek-oss/design-system/pickers/autocomplete";
+import { Bar } from "recharts";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { CodePanel } from "@workspace/towbar-web-ui/code-panel";
 import { Drawer } from "@avgeek-oss/design-system/overlays/drawer";
@@ -442,12 +445,27 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       ),
     })) ?? [];
   const chart = useMemo(() => {
-    const buckets = new Map<string, number>();
-    for (const bucket of summary?.buckets ?? [])
-      buckets.set(bucket.at, (buckets.get(bucket.at) ?? 0) + bucket.count);
-    return [...buckets]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([at, count]) => ({ at: Date.parse(at), count }));
+    const buckets = new Map<
+      string,
+      { at: number } & Record<LogRecord["severity"], number>
+    >();
+    for (const bucket of summary?.buckets ?? []) {
+      const entry = buckets.get(bucket.at) ?? {
+        at: Date.parse(bucket.at),
+        trace: 0,
+        debug: 0,
+        info: 0,
+        warn: 0,
+        error: 0,
+        fatal: 0,
+        unknown: 0,
+      };
+      const level =
+        logLevels.find((level) => level === bucket.severity) ?? "unknown";
+      entry[level] += bucket.count;
+      buckets.set(bucket.at, entry);
+    }
+    return [...buckets.values()].sort((a, b) => a.at - b.at);
   }, [summary]);
   const icon = (value: typeof Layers01Icon) => (
     <HugeiconsIcon icon={value} size={18} aria-hidden="true" />
@@ -507,11 +525,23 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       id: column.id,
       label: column.title,
       group: "Log fields",
+      icon: icon(
+        (
+          {
+            service: Layers01Icon,
+            deploymentId: Rocket01Icon,
+            previewId: GitPullRequestIcon,
+            containerId: Package01Icon,
+            stream: CommandLineIcon,
+          } as Record<string, typeof Layers01Icon>
+        )[column.id] ?? CodeIcon,
+      ),
     })),
     ...attributeKeys.map((key) => ({
       id: `attribute:${key}`,
       label: key,
       group: "Parsed attributes",
+      icon: icon(CodeIcon),
     })),
   ];
   const filterValues: Record<string, LogOption[]> = Object.fromEntries(
@@ -582,15 +612,24 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             searchLogs();
           }}
         >
-          <Input
+          <SearchField
             className="col-span-2 min-w-0 lg:col-span-1"
             aria-label="Search logs"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search logs…"
+            onChange={setSearch}
             variant="secondary"
-            maxLength={512}
-          />
+          >
+            <SearchField.Group>
+              <SearchField.Input
+                placeholder="Search logs…"
+                maxLength={512}
+                autoComplete="off"
+                spellCheck={false}
+                className="text-base sm:text-sm"
+              />
+              <SearchField.ClearButton aria-label="Clear search" />
+            </SearchField.Group>
+          </SearchField>
           <LogSelect
             label="Time range"
             hideLabel
@@ -654,11 +693,30 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           />
           <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
             <Button
+              isIconOnly
+              className="relative size-11 lg:size-9"
+              aria-label={
+                conditions.length ? `Filters (${conditions.length})` : "Filters"
+              }
+              variant="secondary"
+              onPress={() => setFilterOpen(true)}
+            >
+              <HugeiconsIcon icon={FunnelIcon} size={18} />
+              {conditions.length ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-0.5 -top-0.5 grid min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 text-accent-foreground"
+                >
+                  {conditions.length}
+                </span>
+              ) : null}
+            </Button>
+            <Button
               type="submit"
               className="size-11 lg:size-9"
               isIconOnly
               aria-label="Search"
-              variant="secondary"
+              variant="primary"
               isDisabled={busy}
             >
               <HugeiconsIcon icon={Search01Icon} size={18} />
@@ -668,7 +726,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               className="hidden size-9 lg:inline-flex"
               isIconOnly
               aria-label={following ? "Pause live trail" : "Live trail"}
-              variant="secondary"
+              variant="primary"
               isDisabled={!page || busy || loadingMore}
               onPress={() => setFollowing((value) => !value)}
             >
@@ -676,25 +734,6 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 icon={following ? PauseIcon : PlayIcon}
                 size={18}
               />
-            </Button>
-            <Button
-              isIconOnly
-              className="relative size-11 lg:size-9"
-              aria-label={
-                conditions.length ? `Filters (${conditions.length})` : "Filters"
-              }
-              variant="secondary"
-              onPress={() => setFilterOpen(true)}
-            >
-              <HugeiconsIcon icon={FilterHorizontalIcon} size={18} />
-              {conditions.length ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute -right-0.5 -top-0.5 grid min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 text-accent-foreground"
-                >
-                  {conditions.length}
-                </span>
-              ) : null}
             </Button>
           </div>
         </form>
@@ -705,7 +744,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         ) : null}
       </div>
       <div
-        className="mt-3 flex items-center justify-between gap-3 px-4 text-xs text-muted"
+        className="mt-3 mb-3 flex items-center justify-between gap-3 px-4 text-xs text-muted"
         role="status"
       >
         <span>
@@ -725,9 +764,9 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           data-range-chart=""
           className="select-none touch-pan-y cursor-crosshair"
           data={chart}
-          height={100}
+          height={160}
           aria-label="Log volume over time"
-          chartMargin={{ top: 4, bottom: 4, right: 16, left: 16 }}
+          chartMargin={{ top: 8, bottom: 8, right: 16, left: 16 }}
         >
           <LineChart.XAxis
             dataKey="at"
@@ -738,12 +777,23 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             tickFormatter={(value) => displayTime(Number(value))}
           />
           <LineChart.YAxis allowDecimals={false} />
-          <LineChart.Area
-            dataKey="count"
-            stroke="var(--accent)"
-            fill="var(--accent)"
-            fillOpacity={0.15}
-            isAnimationActive={false}
+          {logLevels.map((level) => (
+            <Bar
+              key={level}
+              name={level}
+              dataKey={level}
+              stackId="logs"
+              fill={logLevelColors[level]}
+              maxBarSize={24}
+              isAnimationActive={false}
+            />
+          ))}
+          <LineChart.Tooltip
+            content={
+              <LineChart.TooltipContent
+                labelFormatter={(value) => displayTime(Number(value))}
+              />
+            }
           />
           <LineChart.Selection
             domain={[Date.parse(filters.from), Date.parse(filters.to)]}
@@ -780,11 +830,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           <Tooltip>
             <Tooltip.Trigger<"button">
               aria-label="Edit columns"
-              className={buttonVariants({
-                isIconOnly: true,
-                variant: "ghost",
-                className: "size-11",
-              })}
+              className="inline-flex size-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
               render={(props) => (
                 <button
                   {...props}

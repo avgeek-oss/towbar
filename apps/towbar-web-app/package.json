@@ -41,6 +41,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "recharts": "^3.10.1",
     "yaml": "catalog:"
   },
   "devDependencies": {
