@@ -668,11 +668,12 @@ export function ServerDetail() {
                       value: "cleanup",
                       label: "Docker cleanup",
                       badge: cleanup.data?.inProgress ? (
-                        <Chip size="sm" color="warning">
-                          <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                            In progress
-                          </Chip.Label>
-                        </Chip>
+                        <Spinner
+                          color="current"
+                          size="sm"
+                          className="text-warning-soft-foreground"
+                          aria-label="Docker cleanup in progress"
+                        />
                       ) : undefined,
                       titleBadge: cleanup.data?.inProgress ? (
                         <Chip size="sm" color="warning">

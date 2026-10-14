@@ -5,8 +5,11 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.44] - 2026-10-14
+
 ### Fixed
 
+- Show a compact spinner beside Docker cleanup in the sidebar while cleanup is in progress.
 - Batch server cleanup route removals into one validated Caddy reload, avoiding restart rate limits and unnecessary reloads for workloads without routes. Preserve staged routes and domain ownership on failure so partial cleanup can be retried safely.
 - Distinguish Caddy validation and apply failures from Docker inspection failures in cleanup results.
 - Discover service and deployment icons from HTML declarations and API Link headers, with a `/favicon.ico` fallback and expiring retries. Keep preview icons scoped to their own hostname.
