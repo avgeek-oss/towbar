@@ -223,6 +223,87 @@ void test(
         },
       );
       await t.test(
+        "AND/OR groups match attributes and metadata without weakening visibility",
+        async () => {
+          for (const role of ["viewer", "admin"] as const) {
+            for (const match of ["and", "or"] as const) {
+              const grouped = logFilterSchema.parse({
+                ...filters,
+                conditionGroup: {
+                  match,
+                  conditions: [
+                    {
+                      field: "workloadId",
+                      operator: "equals",
+                      value: restrictedId,
+                    },
+                    {
+                      field: "attribute:customer",
+                      operator: "equals",
+                      value: "123",
+                    },
+                  ],
+                },
+              });
+              const result = await withActor(actor(role), () =>
+                queryLogs(
+                  workspaceId,
+                  logQuerySchema.parse({ filters: grouped }),
+                ),
+              );
+              const expected =
+                match === "or"
+                  ? role === "admin"
+                    ? 2
+                    : 1
+                  : role === "admin"
+                    ? 1
+                    : 0;
+              assert.equal(result.records.length, expected);
+              const summary = await withActor(actor(role), () =>
+                summarizeLogs(workspaceId, grouped),
+              );
+              assert.equal(
+                summary.buckets.reduce(
+                  (total, bucket) => total + bucket.count,
+                  0,
+                ),
+                expected,
+              );
+            }
+          }
+          const group = logFilterSchema.parse({
+            ...filters,
+            conditionGroup: {
+              match: "and",
+              conditions: [
+                {
+                  field: "attribute:customer",
+                  operator: "equals",
+                  value: "123",
+                },
+                {
+                  field: "attribute:customer",
+                  operator: "equals",
+                  value: "other",
+                },
+              ],
+            },
+          });
+          assert.equal(
+            (
+              await withActor(actor("viewer"), () =>
+                queryLogs(
+                  workspaceId,
+                  logQuerySchema.parse({ filters: group }),
+                ),
+              )
+            ).records.length,
+            0,
+          );
+        },
+      );
+      await t.test(
         "cursor pagination does not repeat equal-timestamp events",
         async () => {
           const first = await withActor(actor("admin"), () =>
@@ -321,7 +402,7 @@ void test(
             });
           const batch = makeBatch(
             "0",
-            '{"level":50,"msg":"late payment failure","trace_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}',
+            '{"level":50,"msg":"late payment failure","trace_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","meta":{"username":"alex","password":"must-not-retain"}}',
           );
           await ingestLogExport(principal, batch, 512);
           const first = await withActor(actor("admin"), () =>
@@ -330,6 +411,8 @@ void test(
           assert.equal(first.records.length, 1);
           assert.equal(first.records[0]?.body, "late payment failure");
           assert.equal(first.records[0]?.severity, "error");
+          assert.equal(first.records[0]?.attributes["meta.username"], "alex");
+          assert(!JSON.stringify(first.records[0]).includes("must-not-retain"));
           assert.equal(first.records[0]?.traceId, "a".repeat(32));
           await ingestLogExport(principal, batch, 512);
           const replay = await withActor(actor("admin"), () =>

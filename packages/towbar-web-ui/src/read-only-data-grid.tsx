@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useMemo,
   useEffect,
   useRef,
   useState,
@@ -21,7 +22,7 @@ export type ReadOnlyDataGridProps = {
   onRowActivated?: (index: number) => void;
   onEndReached?: () => void;
   severityColors?: Record<string, string>;
-  headerActions?: ReactNode;
+  leadingHeader?: ReactNode;
   cellIcons?: Record<string, readonly (string | undefined)[]>;
   square?: boolean;
 };
@@ -33,10 +34,17 @@ export function ReadOnlyDataGrid({
   onRowActivated,
   onEndReached,
   severityColors,
-  headerActions,
+  leadingHeader,
   cellIcons,
   square = false,
 }: ReadOnlyDataGridProps) {
+  const renderedColumns = useMemo(
+    () =>
+      leadingHeader
+        ? [{ id: "__actions", title: "", width: 44 }, ...columns]
+        : columns,
+    [leadingHeader, columns],
+  );
   const container = useRef<HTMLDivElement>(null),
     accent = useRef<HTMLSpanElement>(null),
     muted = useRef<HTMLSpanElement>(null);
@@ -114,25 +122,25 @@ export function ReadOnlyDataGrid({
   }, [severityColors]);
   const getCellContent = useCallback(
     ([column, row]: Item) => {
-      const value = rows[row]?.[columns[column]?.id ?? ""] ?? "";
+      const value = rows[row]?.[renderedColumns[column]?.id ?? ""] ?? "";
       return {
         kind: GridCellKind.Text as const,
         data: value,
         displayData: value.replace(/\s+/gu, " ").slice(0, 512),
         allowOverlay: false,
         readonly: true,
-        ...((columns[column]?.id === "severity" && severityColors) ||
-        cellIcons?.[columns[column]?.id ?? ""]
+        ...((renderedColumns[column]?.id === "severity" && severityColors) ||
+        cellIcons?.[renderedColumns[column]?.id ?? ""]
           ? {
               themeOverride: {
                 cellHorizontalPadding:
-                  columns[column]?.id === "severity" ? 22 : 34,
+                  renderedColumns[column]?.id === "severity" ? 22 : 34,
               },
             }
           : {}),
       };
     },
-    [rows, columns, severityColors, cellIcons],
+    [rows, renderedColumns, severityColors, cellIcons],
   );
   return (
     <div
@@ -155,9 +163,9 @@ export function ReadOnlyDataGrid({
       >
         .
       </span>
-      {headerActions ? (
-        <div className="absolute -top-10 right-4 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100">
-          {headerActions}
+      {leadingHeader ? (
+        <div className="absolute left-0 top-0 z-10 grid size-11 place-items-center bg-surface">
+          {leadingHeader}
         </div>
       ) : null}
       {size.width > 0 ? (
@@ -165,16 +173,18 @@ export function ReadOnlyDataGrid({
           width={size.width}
           height={size.height}
           theme={theme}
-          columns={columns}
+          columns={renderedColumns}
           rows={rows.length}
           getCellContent={getCellContent}
           getCellsForSelection
           rowHeight={size.width < 640 ? 44 : 36}
-          headerHeight={40}
+          headerHeight={44}
+          freezeColumns={leadingHeader ? 1 : 0}
           cellActivationBehavior="double-click"
           drawCell={(args, drawContent) => {
             drawContent();
-            const icon = cellIcons?.[columns[args.col]?.id ?? ""]?.[args.row];
+            const icon =
+              cellIcons?.[renderedColumns[args.col]?.id ?? ""]?.[args.row];
             if (icon) {
               const image = args.imageLoader.loadOrGetImage(
                 icon,
@@ -190,7 +200,10 @@ export function ReadOnlyDataGrid({
                   16,
                 );
             }
-            if (columns[args.col]?.id === "severity" && severityColors) {
+            if (
+              renderedColumns[args.col]?.id === "severity" &&
+              severityColors
+            ) {
               const color =
                 colors.current[rows[args.row]?.severity ?? "unknown"];
               if (!color) return;
@@ -213,9 +226,12 @@ export function ReadOnlyDataGrid({
               onEndReached?.();
           }}
           rowMarkers="none"
-          onCellActivated={([_column, row]) => onRowActivated?.(row)}
-          onCellClicked={([_column, row], event) => {
-            if (event.isTouch) onRowActivated?.(row);
+          onCellActivated={([column, row]) => {
+            if (!leadingHeader || column > 0) onRowActivated?.(row);
+          }}
+          onCellClicked={([column, row], event) => {
+            if (event.isTouch && (!leadingHeader || column > 0))
+              onRowActivated?.(row);
           }}
           onDelete={() => false}
           onPaste={false}

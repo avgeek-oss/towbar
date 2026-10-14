@@ -1,3 +1,4 @@
+import { parsedLogFields } from "./log-fields.js";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -303,17 +304,7 @@ function parseLogMessage(record: z.infer<typeof otlpRecord>) {
           : record.severityText,
         record.severityNumber,
       );
-      appAttributes = Object.fromEntries(
-        Object.entries(object)
-          .filter(
-            ([key, value]) =>
-              key.length <= 128 &&
-              !/password|authorization|cookie|secret|token/iu.test(key) &&
-              ["string", "number", "boolean"].includes(typeof value),
-          )
-          .slice(0, 50)
-          .map(([key, value]) => [key, String(value).slice(0, 4096)]),
-      );
+      appAttributes = parsedLogFields(object);
     }
   } catch {
     /* Plain text is a supported record format. */

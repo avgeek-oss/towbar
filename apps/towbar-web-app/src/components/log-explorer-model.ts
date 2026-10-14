@@ -60,43 +60,86 @@ export type LogCondition = {
 };
 export function conditionFilters(
   conditions: LogCondition[],
+  match: "and" | "or" = "and",
 ): Partial<LogFilter> {
-  const attributes: LogFilter["attributes"] = [];
-  const result: Partial<LogFilter> = { attributes };
-  for (const condition of conditions) {
-    if (condition.field.startsWith("attribute:")) {
-      attributes.push({
-        key: condition.field.slice(10),
-        value: condition.value,
-        operator: condition.operator,
-      });
-      continue;
-    }
-    switch (condition.field) {
-      case "serverId":
-        result.serverIds = [condition.value];
-        break;
-      case "deploymentId":
-        result.deploymentIds = [condition.value];
-        break;
-      case "previewId":
-        result.previewIds = [condition.value];
-        break;
-      case "containerId":
-        result.containerIds = [condition.value];
-        break;
-      case "service":
-        result.services = [condition.value];
-        break;
-      case "stream":
-        result.stream = condition.value as LogFilter["stream"];
-        break;
-      case "traceId":
-        result.traceId = condition.value;
-        break;
-    }
+  return conditions.length
+    ? {
+        conditionGroup: {
+          match,
+          conditions: conditions.map(({ field, operator, value }) => ({
+            field,
+            operator,
+            value,
+          })),
+        },
+      }
+    : {};
+}
+export type CustomLogColumn = {
+  id: string;
+  title: string;
+  path: string;
+  width: number;
+};
+export function validLogColumnPath(path: string) {
+  const parts = path.split(".");
+  return (
+    path.length > 0 &&
+    path.length <= 256 &&
+    parts.every(
+      (part) =>
+        /^(?:[A-Za-z_$][\w$-]*|\d+)$/u.test(part) &&
+        !["__proto__", "prototype", "constructor"].includes(part),
+    )
+  );
+}
+function parsedValue(value: unknown): unknown {
+  if (
+    typeof value !== "string" ||
+    !(value.trim().startsWith("{") || value.trim().startsWith("["))
+  )
+    return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
   }
-  return result;
+}
+function readPath(value: unknown, parts: string[]): unknown {
+  let current = parsedValue(value);
+  for (let index = 0; index < parts.length; index++) {
+    current = parsedValue(current);
+    if (current === null || typeof current !== "object") return undefined;
+    const remaining = parts.slice(index).join(".");
+    if (Object.hasOwn(current, remaining))
+      return Reflect.get(current, remaining);
+    const part = parts[index]!;
+    if (!Object.hasOwn(current, part)) return undefined;
+    current = Reflect.get(current, part);
+  }
+  return current;
+}
+export function logColumnValue(record: LogRecord, path: string): string {
+  if (!validLogColumnPath(path)) return "";
+  const parts = path.split(".");
+  const value =
+    readPath(record, parts) ??
+    readPath(record.attributes, parts) ??
+    readPath(record.body, parts);
+  return value === undefined || value === null
+    ? ""
+    : typeof value === "object"
+      ? JSON.stringify(value)
+      : String(value);
+}
+export function reorderLogColumns(order: string[], from: string, to: string) {
+  const next = [...order],
+    start = next.indexOf(from),
+    end = next.indexOf(to);
+  if (start < 0 || end < 0 || start === end) return order;
+  next.splice(start, 1);
+  next.splice(end, 0, from);
+  return next;
 }
 export function logTimeWithSeconds(value: string | number) {
   const time = displayTime(value);

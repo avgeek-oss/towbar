@@ -151,6 +151,35 @@ export function buildLogConditions(input: {
         : `mapContains(attributes, {key${index}:String}) AND ${value} = {value${index}:String}`,
     );
   });
+  if (filters.conditionGroup) {
+    const group = filters.conditionGroup.conditions.map((condition, index) => {
+      const parameter = `conditionValue${index}`;
+      parameters[parameter] = condition.value;
+      if (condition.field.startsWith("attribute:")) {
+        const key = `conditionKey${index}`;
+        parameters[key] = condition.field.slice(10);
+        const value = `attributes[{${key}:String}]`;
+        return `(mapContains(attributes, {${key}:String}) AND ${condition.operator === "contains" ? `positionCaseInsensitiveUTF8(${value}, {${parameter}:String}) > 0` : `${value} = {${parameter}:String}`})`;
+      }
+      const fields: Record<string, readonly [string, string]> = {
+        serverId: ["serverId", "UUID"],
+        workloadId: ["workloadId", "UUID"],
+        deploymentId: ["deploymentId", "UUID"],
+        previewId: ["previewId", "UUID"],
+        containerId: ["containerId", "String"],
+        service: ["service", "String"],
+        stream: ["stream", "String"],
+        traceId: ["traceId", "String"],
+        spanId: ["spanId", "String"],
+      };
+      const field = fields[condition.field];
+      if (!field) throw badRequest("Unknown log filter field");
+      return `${field[0]} = {${parameter}:${field[1]}}`;
+    });
+    conditions.push(
+      `(${group.join(filters.conditionGroup.match === "or" ? " OR " : " AND ")})`,
+    );
+  }
   return { conditions, parameters };
 }
 

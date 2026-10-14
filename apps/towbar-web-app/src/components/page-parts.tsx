@@ -125,6 +125,7 @@ export function DashboardPage({
         <AppShellBreadcrumb items={items} title={title} />
         <Page>
           <PageSection
+            width={fullWidth ? "full" : "content"}
             className="pt-0 sm:pt-0"
             xPadding="none"
             yPadding="compact"

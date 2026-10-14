@@ -1,3 +1,4 @@
+import { logRecordSchema } from "@workspace/towbar-contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -11,44 +12,84 @@ import {
 } from "../lib/date-time-display";
 import {
   conditionFilters,
+  logColumnValue,
+  validLogColumnPath,
+  reorderLogColumns,
   logDateTime,
   logRangeLabel,
 } from "./log-explorer-model";
 
-void test("built-in filters preserve their typed selectors and parsed fields remain attributes", () => {
-  assert.deepEqual(
-    conditionFilters([
-      { id: "a", field: "service", operator: "equals", value: "api" },
-      { id: "b", field: "stream", operator: "equals", value: "stderr" },
-      {
-        id: "c",
-        field: "deploymentId",
-        operator: "equals",
-        value: "deployment",
-      },
-      {
-        id: "d",
-        field: "attribute:service",
-        operator: "contains",
-        value: "billing",
-      },
-      {
-        id: "e",
-        field: "attribute:customer",
-        operator: "equals",
-        value: "123",
-      },
-    ]),
+void test("condition groups preserve repeated fields and the selected match mode", () => {
+  const conditions = [
+    { id: "a", field: "service", operator: "equals" as const, value: "api" },
     {
-      services: ["api"],
-      stream: "stderr",
-      deploymentIds: ["deployment"],
-      attributes: [
-        { key: "service", value: "billing", operator: "contains" },
-        { key: "customer", value: "123", operator: "equals" },
-      ],
+      id: "b",
+      field: "attribute:customer",
+      operator: "equals" as const,
+      value: "123",
     },
-  );
+    {
+      id: "c",
+      field: "attribute:customer",
+      operator: "contains" as const,
+      value: "456",
+    },
+  ];
+  assert.deepEqual(conditionFilters(conditions, "or"), {
+    conditionGroup: {
+      match: "or",
+      conditions: conditions.map(({ field, operator, value }) => ({
+        field,
+        operator,
+        value,
+      })),
+    },
+  });
+  assert.deepEqual(conditionFilters([]), {});
+});
+void test("custom columns resolve nested, flattened and JSON-message paths without evaluating input", () => {
+  const record = logRecordSchema.parse({
+    eventId: "a".repeat(64),
+    timestamp: "2026-10-15T00:00:00Z",
+    ingestedAt: "2026-10-15T00:00:00Z",
+    serverId: "00000000-0000-4000-8000-000000000001",
+    workloadId: "00000000-0000-4000-8000-000000000002",
+    workloadName: "API",
+    deploymentId: null,
+    previewId: null,
+    environment: "production",
+    containerId: "b".repeat(64),
+    service: "api",
+    severity: "info",
+    stream: "stdout",
+    body: JSON.stringify({
+      request: { cached: false, duration: 0 },
+      users: [{ name: "Alex" }],
+    }),
+    attributes: {
+      "http.method": "GET",
+      meta: JSON.stringify({ username: "praveen" }),
+    },
+    traceId: null,
+    spanId: null,
+    truncated: false,
+  });
+  assert.equal(logColumnValue(record, "meta.username"), "praveen");
+  assert.equal(logColumnValue(record, "attributes.http.method"), "GET");
+  assert.equal(logColumnValue(record, "request.cached"), "false");
+  assert.equal(logColumnValue(record, "request.duration"), "0");
+  assert.equal(logColumnValue(record, "users.0.name"), "Alex");
+  assert.equal(logColumnValue(record, "missing.field"), "");
+  assert.equal(logColumnValue(record, "constructor.name"), "");
+  assert(!validLogColumnPath("meta.username; alert(1)"));
+  assert(!validLogColumnPath("__proto__.secret"));
+  const order = ["time", "message", "level"];
+  assert.deepEqual(reorderLogColumns(order, "level", "time"), [
+    "level",
+    "time",
+    "message",
+  ]);
+  assert.deepEqual(order, ["time", "message", "level"]);
 });
 void test("logs always show seconds while preserving the user's localized date and timezone", () => {
   const values = { from: "2026-10-14T23:55:17Z", to: "2026-10-15T00:05:23Z" };

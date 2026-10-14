@@ -33,6 +33,57 @@ export type LogStorageConfiguration = z.infer<
   typeof logStorageConfigurationSchema
 >;
 
+const conditionFields = [
+  "serverId",
+  "workloadId",
+  "deploymentId",
+  "previewId",
+  "containerId",
+  "service",
+  "stream",
+  "traceId",
+  "spanId",
+] as const;
+const logConditionSchema = z
+  .object({
+    field: z.union([
+      z.enum(conditionFields),
+      z.string().regex(/^attribute:.{1,128}$/u),
+    ]),
+    operator: z.enum(["equals", "contains"]),
+    value: z.string().max(512),
+  })
+  .strict()
+  .superRefine((condition, context) => {
+    if (condition.field.startsWith("attribute:")) return;
+    const field = condition.field;
+    const valid =
+      field.endsWith("Id") &&
+      !["containerId", "traceId", "spanId"].includes(field)
+        ? z.uuid().safeParse(condition.value).success
+        : field === "containerId"
+          ? /^[a-f0-9]{64}$/u.test(condition.value)
+          : field === "traceId"
+            ? /^[a-f0-9]{32}$/u.test(condition.value)
+            : field === "spanId"
+              ? /^[a-f0-9]{16}$/u.test(condition.value)
+              : field === "stream"
+                ? ["stdout", "stderr"].includes(condition.value)
+                : condition.value.length > 0 && condition.value.length <= 128;
+    if (!valid || condition.operator !== "equals")
+      context.addIssue({
+        code: "custom",
+        message: `Use a valid ${field} with Equals`,
+        path: ["value"],
+      });
+  });
+export const logConditionGroupSchema = z
+  .object({
+    match: z.enum(["and", "or"]),
+    conditions: z.array(logConditionSchema).min(1).max(8),
+  })
+  .strict();
+
 const ids = z.array(z.uuid()).max(50).default([]);
 export const logFilterSchema = z
   .object({
@@ -63,6 +114,7 @@ export const logFilterSchema = z
       .string()
       .regex(/^[a-f0-9]{32}$/u)
       .optional(),
+    conditionGroup: logConditionGroupSchema.optional(),
     attributes: z
       .array(
         z

@@ -492,6 +492,24 @@ The redundant refresh, date picker entry, pagination and interaction help were
 removed; Follow is now Live trail. Search results are bounded at 10,000 retained
 rows, while live following retains its existing 2,000-record bound.
 
+## Compact explorer review
+
+The follow-up review removes the page heading and visible control labels. Desktop
+controls occupy one row; mobile uses separate search, range/workload,
+environment/level, and action rows without live trailing. A permanent leading
+blank grid column contains the column-settings gear.
+
+The wider filter dialog starts with one condition, uses a shared Attribute / Match
+/ Value heading and AND/OR semantics, and keeps destructive clearing/removal
+actions consistent with Rootset. The group is always ANDed with workspace,
+retention and permission predicates in the shared REST/MCP query service.
+
+The wider, denser column drawer supports pointer and keyboard reordering and
+custom display names with dot-separated field paths. Structured ingestion retains
+bounded, redacted nested fields so paths such as meta.username work on real logs.
+Details use the shared Attributes card and two CodePanel components. Sample logs
+span seven days with accurate volume buckets and nested metadata for review.
+
 ## Acceptance and sign-off
 
 - [ ] Missing YAML keeps the feature optional and shows the mascot/setup guide.

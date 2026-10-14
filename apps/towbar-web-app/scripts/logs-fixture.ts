@@ -21,10 +21,14 @@ export function createLogsFixture(
     const id = createHash("sha256")
       .update(`logs-fixture:${index}`)
       .digest("hex");
+    const age =
+      index < 96
+        ? index * 28000
+        : 3600000 + ((index - 96) / 553) * (7 * 86400000 - 3660000);
     return {
       eventId: id,
-      timestamp: new Date(now - index * 4000).toISOString(),
-      ingestedAt: new Date(now - index * 4000 + 200).toISOString(),
+      timestamp: new Date(now - age).toISOString(),
+      ingestedAt: new Date(now - age + 200).toISOString(),
       serverId: workload.serverId,
       workloadId: workload.id,
       workloadName: workload.name,
@@ -34,13 +38,30 @@ export function createLogsFixture(
       containerId: createHash("sha256").update(workload.id).digest("hex"),
       service: "api",
       stream: index % 5 ? "stdout" : "stderr",
-      severity: index % 11 ? "info" : "error",
+      severity:
+        index % 11
+          ? "info"
+          : (
+              [
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error",
+                "fatal",
+                "unknown",
+              ] as const
+            )[index % 7]!,
       body:
         index % 11
           ? `Request completed method=GET path=/api/projects status=200 duration=${index % 120}ms`
           : "Database query failed: connection timed out\n  at ProjectRepository.findAll\n  at requestHandler",
       attributes: {
-        method: "GET",
+        method: index % 3 ? "GET" : "POST",
+        meta: JSON.stringify({
+          username: ["alex", "praveen", "sam", "jordan"][index % 4],
+          request: { duration_ms: index % 120, cached: index % 2 === 0 },
+        }),
         request_id: `request-${index}`,
         status: index % 11 ? "200" : "500",
       },
@@ -171,6 +192,27 @@ export function createLogsFixture(
           filters.severities.includes(record.severity)) &&
         (!filters.stream || record.stream === filters.stream) &&
         (!filters.traceId || filters.traceId === record.traceId) &&
+        (!filters.conditionGroup ||
+          (() => {
+            const matches = filters.conditionGroup.conditions.map(
+              (condition) => {
+                const value = condition.field.startsWith("attribute:")
+                  ? record.attributes[condition.field.slice(10)]
+                  : record[condition.field as keyof LogRecord];
+                return (
+                  typeof value === "string" &&
+                  (condition.operator === "contains"
+                    ? value
+                        .toLocaleLowerCase()
+                        .includes(condition.value.toLocaleLowerCase())
+                    : value === condition.value)
+                );
+              },
+            );
+            return filters.conditionGroup.match === "or"
+              ? matches.some(Boolean)
+              : matches.every(Boolean);
+          })()) &&
         filters.attributes.every((filter) =>
           filter.operator === "contains"
             ? record.attributes[filter.key]?.includes(filter.value)
@@ -202,11 +244,32 @@ export function createLogsFixture(
           })),
         ]),
       );
-      const buckets = Array.from({ length: 20 }, (_, index) => ({
-        at: new Date(now - index * 180000).toISOString(),
-        severity: "info",
-        count: Math.floor(found.length / 20),
-      }));
+      const step = Math.max(
+        60000,
+        Math.ceil(
+          (Date.parse(filters.to) - Date.parse(filters.from)) / 500 / 1000,
+        ) * 1000,
+      );
+      const counts = new Map<
+        string,
+        { at: string; severity: string; count: number }
+      >();
+      for (const record of found) {
+        const at = new Date(
+            Math.floor(Date.parse(record.timestamp) / step) * step,
+          ).toISOString(),
+          key = `${at}:${record.severity}`;
+        const bucket = counts.get(key) ?? {
+          at,
+          severity: record.severity,
+          count: 0,
+        };
+        bucket.count++;
+        counts.set(key, bucket);
+      }
+      const buckets = [...counts.values()].sort((a, b) =>
+        a.at.localeCompare(b.at),
+      );
       json(response, 200, {
         facets,
         buckets,
@@ -228,7 +291,7 @@ export function createLogsFixture(
       const timer = setInterval(
         () =>
           response.write(
-            `event: records\ndata: ${JSON.stringify({ records: [{ ...records[0], eventId: createHash("sha256").update(randomUUID()).digest("hex"), timestamp: new Date().toISOString() }], nextCursor: "follow", accessRevision: "fixture" })}\n\n`,
+            `event: records\ndata: ${JSON.stringify({ records: found.length ? [{ ...found[0], eventId: createHash("sha256").update(randomUUID()).digest("hex"), timestamp: new Date().toISOString(), ingestedAt: new Date().toISOString() }] : [], nextCursor: "follow", accessRevision: "fixture" })}\n\n`,
           ),
         2000,
       );

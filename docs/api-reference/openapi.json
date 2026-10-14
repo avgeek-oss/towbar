@@ -10542,6 +10542,53 @@
                         "type": "string",
                         "pattern": "^[a-f0-9]{32}$"
                       },
+                      "conditionGroup": {
+                        "type": "object",
+                        "properties": {
+                          "match": { "type": "string", "enum": ["and", "or"] },
+                          "conditions": {
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "serverId",
+                                        "workloadId",
+                                        "deploymentId",
+                                        "previewId",
+                                        "containerId",
+                                        "service",
+                                        "stream",
+                                        "traceId",
+                                        "spanId"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "pattern": "^attribute:.{1,128}$"
+                                    }
+                                  ]
+                                },
+                                "operator": {
+                                  "type": "string",
+                                  "enum": ["equals", "contains"]
+                                },
+                                "value": { "type": "string", "maxLength": 512 }
+                              },
+                              "required": ["field", "operator", "value"],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": ["match", "conditions"],
+                        "additionalProperties": false
+                      },
                       "attributes": {
                         "default": [],
                         "maxItems": 8,
@@ -10795,6 +10842,53 @@
                     "maxLength": 512
                   },
                   "traceId": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+                  "conditionGroup": {
+                    "type": "object",
+                    "properties": {
+                      "match": { "type": "string", "enum": ["and", "or"] },
+                      "conditions": {
+                        "minItems": 1,
+                        "maxItems": 8,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "field": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "serverId",
+                                    "workloadId",
+                                    "deploymentId",
+                                    "previewId",
+                                    "containerId",
+                                    "service",
+                                    "stream",
+                                    "traceId",
+                                    "spanId"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "pattern": "^attribute:.{1,128}$"
+                                }
+                              ]
+                            },
+                            "operator": {
+                              "type": "string",
+                              "enum": ["equals", "contains"]
+                            },
+                            "value": { "type": "string", "maxLength": 512 }
+                          },
+                          "required": ["field", "operator", "value"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": ["match", "conditions"],
+                    "additionalProperties": false
+                  },
                   "attributes": {
                     "default": [],
                     "maxItems": 8,
@@ -11176,6 +11270,53 @@
                         "type": "string",
                         "pattern": "^[a-f0-9]{32}$"
                       },
+                      "conditionGroup": {
+                        "type": "object",
+                        "properties": {
+                          "match": { "type": "string", "enum": ["and", "or"] },
+                          "conditions": {
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "serverId",
+                                        "workloadId",
+                                        "deploymentId",
+                                        "previewId",
+                                        "containerId",
+                                        "service",
+                                        "stream",
+                                        "traceId",
+                                        "spanId"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "pattern": "^attribute:.{1,128}$"
+                                    }
+                                  ]
+                                },
+                                "operator": {
+                                  "type": "string",
+                                  "enum": ["equals", "contains"]
+                                },
+                                "value": { "type": "string", "maxLength": 512 }
+                              },
+                              "required": ["field", "operator", "value"],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": ["match", "conditions"],
+                        "additionalProperties": false
+                      },
                       "attributes": {
                         "default": [],
                         "maxItems": 8,
@@ -11429,6 +11570,53 @@
                       "traceId": {
                         "type": "string",
                         "pattern": "^[a-f0-9]{32}$"
+                      },
+                      "conditionGroup": {
+                        "type": "object",
+                        "properties": {
+                          "match": { "type": "string", "enum": ["and", "or"] },
+                          "conditions": {
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "field": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "serverId",
+                                        "workloadId",
+                                        "deploymentId",
+                                        "previewId",
+                                        "containerId",
+                                        "service",
+                                        "stream",
+                                        "traceId",
+                                        "spanId"
+                                      ]
+                                    },
+                                    {
+                                      "type": "string",
+                                      "pattern": "^attribute:.{1,128}$"
+                                    }
+                                  ]
+                                },
+                                "operator": {
+                                  "type": "string",
+                                  "enum": ["equals", "contains"]
+                                },
+                                "value": { "type": "string", "maxLength": 512 }
+                              },
+                              "required": ["field", "operator", "value"],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": ["match", "conditions"],
+                        "additionalProperties": false
                       },
                       "attributes": {
                         "default": [],

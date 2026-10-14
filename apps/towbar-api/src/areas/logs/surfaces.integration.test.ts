@@ -225,6 +225,27 @@ void test(
           for (const [index, token] of tokens.entries()) {
             const found = await page(token);
             assert.equal(found.records.length, index === 2 ? 2 : 1);
+            const grouped = await rest("/logs/query", token, {
+              filters: {
+                ...filters,
+                conditionGroup: {
+                  match: "or",
+                  conditions: [
+                    { field: "stream", operator: "equals", value: "stdout" },
+                    {
+                      field: "attribute:never_present",
+                      operator: "equals",
+                      value: "x",
+                    },
+                  ],
+                },
+              },
+            });
+            assert.equal(grouped.status, 200);
+            assert.equal(
+              logQueryResultSchema.parse(await grouped.json()).records.length,
+              index === 2 ? 2 : 1,
+            );
             const summary = await rest("/logs/summary", token, filters);
             assert.equal(summary.status, 200);
             const result = (await summary.json()) as {
@@ -288,9 +309,23 @@ void test(
                 tools.includes("towbar_logs_collection_configure"),
                 level === "admin",
               );
+              const groupedFilters = {
+                ...filters,
+                conditionGroup: {
+                  match: "or",
+                  conditions: [
+                    { field: "stream", operator: "equals", value: "stdout" },
+                    {
+                      field: "attribute:never_present",
+                      operator: "equals",
+                      value: "x",
+                    },
+                  ],
+                },
+              };
               const queried = await client.callTool({
                 name: "towbar_logs_query",
-                arguments: { filters },
+                arguments: { filters: groupedFilters },
               });
               assert.equal(queried.isError, false);
               const result = logQueryResultSchema.parse(
@@ -311,7 +346,10 @@ void test(
               assert.equal(context.isError, level !== "admin");
               const followed = await client.callTool({
                 name: "towbar_logs_follow",
-                arguments: { filters, cursor: result.followCursor },
+                arguments: {
+                  filters: groupedFilters,
+                  cursor: result.followCursor,
+                },
               });
               assert.equal(followed.isError, false);
             } finally {

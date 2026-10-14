@@ -26,6 +26,16 @@ body:
         "stream": "stdout",
         "search": "",
         "traceId": "00000000-0000-4000-8000-000000000000",
+        "conditionGroup": {
+          "match": "and",
+          "conditions": [
+            {
+              "field": "serverId",
+              "operator": "equals",
+              "value": "string"
+            }
+          ]
+        },
         "attributes": []
       },
       "limit": 50,

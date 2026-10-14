@@ -1,11 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
-import { Field, FieldLabel } from "@avgeek-oss/design-system/forms/field";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
+import {
+  Add01Icon,
+  Delete02Icon,
+  FilterHorizontalIcon,
+} from "@hugeicons/core-free-icons";
 import { LogSelect, type LogOption } from "./log-select";
 import { conditionFilters, type LogCondition } from "./log-explorer-model";
 import { logFilterSchema } from "@workspace/towbar-web-client";
@@ -14,21 +17,35 @@ export function LogFilterDialog({
   conditions,
   fields,
   values,
+  match,
   onApply,
   onClose,
 }: {
   conditions: LogCondition[];
   fields: LogOption[];
   values: Record<string, LogOption[]>;
-  onApply: (value: LogCondition[]) => void;
+  match: "and" | "or";
+  onApply: (value: LogCondition[], match: "and" | "or") => void;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState(conditions);
+  const formId = useId();
+  const firstCondition = (): LogCondition => ({
+    id: crypto.randomUUID(),
+    field: fields[0]?.id ?? "",
+    value: "",
+    operator: "equals",
+  });
+  const [draft, setDraft] = useState(() =>
+    conditions.length ? conditions : fields.length ? [firstCondition()] : [],
+  );
+  const [combination, setCombination] = useState(match);
   const [error, setError] = useState<string | null>(null);
-  const update = (id: string, changes: Partial<LogCondition>) =>
+  const update = (id: string, changes: Partial<LogCondition>) => {
+    setError(null);
     setDraft((current) =>
       current.map((item) => (item.id === id ? { ...item, ...changes } : item)),
     );
+  };
   return (
     <Modal.Backdrop
       isOpen
@@ -36,93 +53,116 @@ export function LogFilterDialog({
         if (!open) onClose();
       }}
     >
-      <Modal.Container size="lg">
-        <Modal.Dialog>
-          <Modal.Header>
-            <Modal.Heading>Filters</Modal.Heading>
-            <Modal.CloseTrigger />
+      <Modal.Container size="lg" className="w-full max-w-6xl sm:w-full">
+        <Modal.Dialog className="max-w-5xl">
+          <Modal.Header className="mb-4">
+            <Modal.Heading className="flex items-center gap-2">
+              <HugeiconsIcon icon={FilterHorizontalIcon} size={20} />
+              Filters
+            </Modal.Heading>
+            <Modal.CloseTrigger aria-label="Close filters" />
           </Modal.Header>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              const parsed = logFilterSchema.safeParse({
-                from: new Date(Date.now() - 1000).toISOString(),
-                to: new Date().toISOString(),
-                ...conditionFilters(draft),
-              });
-              if (!parsed.success) {
-                setError(
-                  parsed.error.issues[0]?.message ?? "Check the filter values.",
-                );
-                return;
-              }
-              onApply(draft);
-              onClose();
-            }}
-          >
-            <Modal.Body>
-              <div className="grid gap-4">
-                {error ? (
-                  <p role="alert" className="text-sm text-danger">
-                    {error}
-                  </p>
-                ) : null}
+          <Modal.Body>
+            <form
+              id={formId}
+              className="grid gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const parsed = logFilterSchema.safeParse({
+                  from: new Date(Date.now() - 1000).toISOString(),
+                  to: new Date().toISOString(),
+                  ...conditionFilters(draft, combination),
+                });
+                if (!parsed.success) {
+                  setError(
+                    parsed.error.issues[0]?.message ??
+                      "Check the filter values.",
+                  );
+                  return;
+                }
+                onApply(draft, combination);
+                onClose();
+              }}
+            >
+              <div className="max-w-xs">
+                <LogSelect
+                  label="Match conditions"
+                  value={combination}
+                  options={[
+                    { id: "and", label: "All conditions (AND)" },
+                    { id: "or", label: "Any condition (OR)" },
+                  ]}
+                  onChange={(value) => setCombination(value as "and" | "or")}
+                />
+              </div>
+              {error ? (
+                <p role="alert" className="text-sm text-danger">
+                  {error}
+                </p>
+              ) : null}
+              <div className="grid gap-2">
+                <div
+                  className="hidden grid-cols-[minmax(0,1fr)_minmax(0,.6fr)_minmax(0,1fr)_2.75rem] gap-2 text-sm text-muted sm:grid"
+                  aria-hidden="true"
+                >
+                  <span>Attribute</span>
+                  <span>Match</span>
+                  <span>Value</span>
+                  <span />
+                </div>
                 {draft.map((condition, index) => (
                   <div
                     key={condition.id}
-                    className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_8rem_minmax(0,1fr)_auto]"
+                    className="grid grid-cols-[minmax(0,1fr)_minmax(0,.8fr)_2.75rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,.6fr)_minmax(0,1fr)_2.75rem]"
                   >
-                    <LogSelect
-                      label={`Attribute ${index + 1}`}
-                      searchable
-                      value={condition.field}
-                      options={fields.filter(
-                        (field) =>
-                          field.id.startsWith("attribute:") ||
-                          !draft.some(
-                            (other) =>
-                              other.id !== condition.id &&
-                              other.field === field.id,
-                          ),
-                      )}
-                      onChange={(field) =>
-                        update(condition.id, {
-                          field,
-                          value: "",
-                          operator: "equals",
-                        })
-                      }
-                    />
-                    <LogSelect
-                      label="Match"
-                      value={condition.operator}
-                      options={[
-                        { id: "equals", label: "Equals" },
-                        ...(condition.field.startsWith("attribute:")
-                          ? [{ id: "contains", label: "Contains" }]
-                          : []),
-                      ]}
-                      onChange={(operator) =>
-                        update(condition.id, {
-                          operator: operator as LogCondition["operator"],
-                        })
-                      }
-                    />
-                    {values[condition.field]?.length ? (
+                    <div className="col-span-2 min-w-0 sm:col-span-1">
                       <LogSelect
-                        label="Value"
+                        label={`Attribute ${index + 1}`}
+                        hideLabel
                         searchable
-                        value={condition.value}
-                        options={values[condition.field]!}
-                        onChange={(value) => update(condition.id, { value })}
+                        value={condition.field}
+                        options={fields}
+                        onChange={(field) =>
+                          update(condition.id, {
+                            field,
+                            value: "",
+                            operator: "equals",
+                          })
+                        }
                       />
-                    ) : (
-                      <Field>
-                        <FieldLabel htmlFor={`log-filter-${condition.id}`}>
-                          Value
-                        </FieldLabel>
+                    </div>
+                    <div className="col-start-1 row-start-2 min-w-0 sm:col-start-auto sm:row-start-auto">
+                      <LogSelect
+                        label={`Match ${index + 1}`}
+                        hideLabel
+                        value={condition.operator}
+                        options={[
+                          { id: "equals", label: "Equals" },
+                          ...(condition.field.startsWith("attribute:")
+                            ? [{ id: "contains", label: "Contains" }]
+                            : []),
+                        ]}
+                        onChange={(operator) =>
+                          update(condition.id, {
+                            operator: operator as LogCondition["operator"],
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="col-start-2 row-start-2 min-w-0 sm:col-start-auto sm:row-start-auto">
+                      {values[condition.field]?.length ? (
+                        <LogSelect
+                          label={`Value ${index + 1}`}
+                          hideLabel
+                          searchable
+                          value={condition.value}
+                          options={values[condition.field]!}
+                          onChange={(value) => update(condition.id, { value })}
+                        />
+                      ) : (
                         <Input
-                          id={`log-filter-${condition.id}`}
+                          aria-label={`Value ${index + 1}`}
+                          placeholder="Value"
                           variant="secondary"
                           value={condition.value}
                           maxLength={512}
@@ -131,63 +171,62 @@ export function LogFilterDialog({
                             update(condition.id, { value: event.target.value })
                           }
                         />
-                      </Field>
-                    )}
+                      )}
+                    </div>
                     <Button
-                      variant="ghost"
+                      className="col-start-3 row-span-2 min-h-11 min-w-11 self-center sm:col-start-auto sm:row-span-1"
+                      variant="danger"
                       isIconOnly
-                      aria-label={`Remove filter ${index + 1}`}
-                      onPress={() =>
+                      aria-label={`Remove condition ${index + 1}`}
+                      onPress={() => {
                         setDraft((current) =>
                           current.filter((item) => item.id !== condition.id),
-                        )
-                      }
+                        );
+                        setError(null);
+                      }}
                     >
                       <HugeiconsIcon icon={Delete02Icon} size={18} />
                     </Button>
                   </div>
                 ))}
-                <Button
-                  className="w-fit"
-                  variant="secondary"
-                  isDisabled={draft.length >= 8 || !fields.length}
-                  onPress={() =>
-                    setDraft((current) => [
-                      ...current,
-                      {
-                        id: crypto.randomUUID(),
-                        field:
-                          fields.find(
-                            (field) =>
-                              field.id.startsWith("attribute:") ||
-                              !current.some((item) => item.field === field.id),
-                          )?.id ?? fields[0]!.id,
-                        value: "",
-                        operator: "equals",
-                      },
-                    ])
-                  }
-                >
-                  <HugeiconsIcon icon={Add01Icon} size={18} />
-                  Add filter
-                </Button>
               </div>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="ghost" onPress={() => setDraft([])}>
-                Clear filters
+              <Button
+                className="w-fit"
+                variant="secondary"
+                isDisabled={draft.length >= 8 || !fields.length}
+                onPress={() =>
+                  setDraft((current) => [...current, firstCondition()])
+                }
+              >
+                <HugeiconsIcon icon={Add01Icon} size={18} />
+                Add condition
               </Button>
+            </form>
+          </Modal.Body>
+          <Modal.Footer className="flex-wrap justify-between gap-3">
+            <Button
+              variant="danger"
+              isDisabled={!draft.length}
+              onPress={() => {
+                setDraft([]);
+                setError(null);
+              }}
+            >
+              Clear all filters
+            </Button>
+            <div className="flex gap-2">
               <Button variant="secondary" onPress={onClose}>
                 Cancel
               </Button>
               <Button
                 type="submit"
+                form={formId}
                 isDisabled={draft.some((item) => !item.value.trim())}
               >
-                Apply filters
+                Apply
               </Button>
-            </Modal.Footer>
-          </form>
+            </div>
+          </Modal.Footer>
         </Modal.Dialog>
       </Modal.Container>
     </Modal.Backdrop>

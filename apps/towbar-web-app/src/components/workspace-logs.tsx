@@ -20,7 +20,8 @@ import {
   buttonVariants,
 } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
-import { Field, FieldLabel } from "@avgeek-oss/design-system/forms/field";
+import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
+import { CodePanel } from "@workspace/towbar-web-ui/code-panel";
 import { Drawer } from "@avgeek-oss/design-system/overlays/drawer";
 import { LineChart } from "@avgeek-oss/design-system/charts/line-chart";
 import { Tooltip } from "@avgeek-oss/design-system/overlays/tooltip";
@@ -76,6 +77,8 @@ import {
   logLevels,
   logRangeLabel,
   type LogCondition,
+  type CustomLogColumn,
+  logColumnValue,
 } from "./log-explorer-model";
 
 const LogGrid = dynamic(
@@ -113,7 +116,7 @@ export function WorkspaceLogs() {
     15000,
   );
   return (
-    <DashboardPage title="Logs" icon={AlignLeftIcon} fullWidth>
+    <DashboardPage title="Logs" icon={AlignLeftIcon} fullWidth contentOwnsTitle>
       {storage.error ? (
         <QueryError message={storage.error} />
       ) : !storage.data ? (
@@ -174,6 +177,8 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     [filterOpen, setFilterOpen] = useState(false),
     [columnsOpen, setColumnsOpen] = useState(false);
   const [conditions, setConditions] = useState<LogCondition[]>([]);
+  const [match, setMatch] = useState<"and" | "or">("and");
+  const [customColumns, setCustomColumns] = useState<CustomLogColumn[]>([]);
   const [selection, setSelection] = useState({
     workload: "all",
     environment: "production",
@@ -296,7 +301,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       workloadIds: selection.workload.startsWith("workload:")
         ? [selection.workload.slice(9)]
         : [],
-      ...conditionFilters(conditions),
+      ...conditionFilters(conditions, match),
       ...(selection.workload.startsWith("server:")
         ? { serverIds: [selection.workload.slice(7)] }
         : {}),
@@ -312,7 +317,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     setSelected(null);
     setFilters(parsed.data);
     void load(parsed.data);
-  }, [range, search, selection, customRange, conditions, load]);
+  }, [range, search, selection, customRange, conditions, match, load]);
   useEffect(() => {
     const timer = setTimeout(searchLogs, 350);
     return () => clearTimeout(timer);
@@ -325,6 +330,8 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       setSummary(null);
       setCatalogueKeys([]);
       setConditions([]);
+      setMatch("and");
+      setCustomColumns([]);
       setVisibleColumns(defaultLogColumns);
       setSelected(null);
       setFilterOpen(false);
@@ -397,6 +404,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
   ].sort();
   const availableColumns = [
     ...logColumns,
+    ...customColumns,
     ...attributeKeys.map((key) => ({
       id: `attribute:${key}`,
       title: key,
@@ -415,6 +423,12 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     page?.records.map((record) => ({
       ...Object.fromEntries(
         Object.entries(record).filter(([, value]) => typeof value === "string"),
+      ),
+      ...Object.fromEntries(
+        customColumns.map((column) => [
+          column.id,
+          logColumnValue(record, column.path),
+        ]),
       ),
       timestamp: logDateTime(record.timestamp),
       serverId:
@@ -540,7 +554,11 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           conditions={conditions}
           fields={filterFields}
           values={filterValues}
-          onApply={setConditions}
+          match={match}
+          onApply={(next, combination) => {
+            setConditions(next);
+            setMatch(combination);
+          }}
           onClose={() => setFilterOpen(false)}
         />
       ) : null}
@@ -548,61 +566,48 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         <LogColumnsDrawer
           columns={availableColumns}
           selected={visibleColumns}
-          onApply={setVisibleColumns}
+          customColumns={customColumns}
+          onApply={(next, custom) => {
+            setVisibleColumns(next);
+            setCustomColumns(custom);
+          }}
           onClose={() => setColumnsOpen(false)}
         />
       ) : null}
-      <div className="grid gap-3 px-4">
+      <div className="px-4 pt-3">
         <form
-          className="flex flex-wrap items-end gap-3"
+          className="grid grid-cols-2 items-center gap-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,.8fr)_auto]"
           onSubmit={(event) => {
             event.preventDefault();
             searchLogs();
           }}
         >
-          <Field className="min-w-48 flex-1">
-            <FieldLabel htmlFor="log-search">Search logs</FieldLabel>
-            <Input
-              id="log-search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search messages or trace IDs"
-              variant="secondary"
-              maxLength={512}
-            />
-          </Field>
-          <div className="w-48">
-            <LogSelect
-              label="Time range"
-              value={range}
-              options={ranges}
-              onChange={(value) => {
-                if (value === "custom") {
-                  setPickerOpen(true);
-                  return;
-                }
-                setCustomRange(null);
-                setRange(value);
-              }}
-            />
-          </div>
-          <Button type="submit" variant="secondary" isDisabled={busy}>
-            <HugeiconsIcon icon={Search01Icon} size={18} />
-            Search
-          </Button>
-          <Button
-            type="button"
+          <Input
+            className="col-span-2 min-w-0 lg:col-span-1"
+            aria-label="Search logs"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search logs…"
             variant="secondary"
-            isDisabled={!page || busy || loadingMore}
-            onPress={() => setFollowing((value) => !value)}
-          >
-            <HugeiconsIcon icon={following ? PauseIcon : PlayIcon} size={18} />
-            {following ? "Pause live trail" : "Live trail"}
-          </Button>
-        </form>
-        <div className="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            maxLength={512}
+          />
+          <LogSelect
+            label="Time range"
+            hideLabel
+            value={range}
+            options={ranges}
+            onChange={(value) => {
+              if (value === "custom") {
+                setPickerOpen(true);
+                return;
+              }
+              setCustomRange(null);
+              setRange(value);
+            }}
+          />
           <LogSelect
             label="Workload"
+            hideLabel
             searchable
             value={selection.workload}
             options={workloadOptions}
@@ -612,6 +617,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           />
           <LogSelect
             label="Environment"
+            hideLabel
             value={selection.environment}
             options={[
               ...any,
@@ -632,9 +638,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           />
           <LogSelect
             label="Level"
+            hideLabel
             value={selection.severity}
             options={[
-              ...any,
+              { id: "all", label: "All levels" },
               ...logLevels.map((level) => ({
                 id: level,
                 label: level,
@@ -645,15 +652,56 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               setSelection((current) => ({ ...current, severity }))
             }
           />
-          <div>
-            <Button variant="secondary" onPress={() => setFilterOpen(true)}>
+          <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
+            <Button
+              type="submit"
+              className="size-11 lg:size-9"
+              isIconOnly
+              aria-label="Search"
+              variant="secondary"
+              isDisabled={busy}
+            >
+              <HugeiconsIcon icon={Search01Icon} size={18} />
+            </Button>
+            <Button
+              type="button"
+              className="hidden size-9 lg:inline-flex"
+              isIconOnly
+              aria-label={following ? "Pause live trail" : "Live trail"}
+              variant="secondary"
+              isDisabled={!page || busy || loadingMore}
+              onPress={() => setFollowing((value) => !value)}
+            >
+              <HugeiconsIcon
+                icon={following ? PauseIcon : PlayIcon}
+                size={18}
+              />
+            </Button>
+            <Button
+              isIconOnly
+              className="relative size-11 lg:size-9"
+              aria-label={
+                conditions.length ? `Filters (${conditions.length})` : "Filters"
+              }
+              variant="secondary"
+              onPress={() => setFilterOpen(true)}
+            >
               <HugeiconsIcon icon={FilterHorizontalIcon} size={18} />
-              Filters{conditions.length ? ` (${conditions.length})` : ""}
+              {conditions.length ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-0.5 -top-0.5 grid min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 text-accent-foreground"
+                >
+                  {conditions.length}
+                </span>
+              ) : null}
             </Button>
           </div>
-        </div>
+        </form>
         {error || localizationError ? (
-          <QueryError message={error ?? localizationError!} />
+          <div className="mt-2">
+            <QueryError message={error ?? localizationError!} />
+          </div>
         ) : null}
       </div>
       <div
@@ -728,13 +776,14 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           void loadMore();
         }}
         onRowActivated={(index) => setSelected(page?.records[index] ?? null)}
-        headerActions={
+        leadingHeader={
           <Tooltip>
             <Tooltip.Trigger<"button">
               aria-label="Edit columns"
               className={buttonVariants({
                 isIconOnly: true,
-                variant: "secondary",
+                variant: "ghost",
+                className: "size-11",
               })}
               render={(props) => (
                 <button
@@ -787,8 +836,20 @@ function LogDetails({
   record: LogRecord;
   onClose: () => void;
 }) {
-  const [context, setContext] = useState<LogRecord[] | null>(null),
-    [error, setError] = useState<string | null>(null);
+  const common = {
+    Workload: record.workloadName,
+    Time: logDateTime(record.timestamp),
+    Level: record.severity,
+    Environment: record.environment,
+    Server: record.serverId,
+    Container: record.containerId,
+    "Compose service": record.service || "—",
+    "Output stream": record.stream,
+    Deployment: record.deploymentId ?? "—",
+    Preview: record.previewId ?? "—",
+    "Trace ID": record.traceId ?? "—",
+    "Span ID": record.spanId ?? "—",
+  };
   return (
     <Drawer.Backdrop
       isOpen
@@ -803,86 +864,23 @@ function LogDetails({
             <Drawer.CloseTrigger aria-label="Close log details" />
           </Drawer.Header>
           <Drawer.Body>
-            <div className="content-grid">
-              <dl className="grid grid-cols-2 gap-4 text-sm">
-                {Object.entries({
-                  Workload: record.workloadName,
-                  Time: logDateTime(record.timestamp),
-                  Level: record.severity,
-                  Environment: record.environment,
-                  Container: record.containerId,
-                  "Output stream": record.stream,
-                  Deployment: record.deploymentId ?? "—",
-                  "Trace ID": record.traceId ?? "—",
-                }).map(([label, value]) => (
-                  <div key={label} className="min-w-0">
-                    <dt className="text-muted">{label}</dt>
-                    <dd className="break-all">{value}</dd>
-                  </div>
+            <div className="grid min-w-0 gap-4">
+              <Attributes title="Attributes" variant="card" columns={2}>
+                {Object.entries(common).map(([label, value]) => (
+                  <Attributes.Item key={label} label={label}>
+                    <span className="break-all">{value}</span>
+                  </Attributes.Item>
                 ))}
-              </dl>
-              <pre className="max-h-[45svh] overflow-auto whitespace-pre-wrap break-words rounded-xl bg-surface-secondary p-4 text-sm">
-                {record.body}
-              </pre>
+              </Attributes>
+              <CodePanel ariaLabel="Message">{record.body}</CodePanel>
               {record.truncated ? (
                 <p className="text-sm text-warning">
                   This log record was truncated during collection.
                 </p>
               ) : null}
-              {Object.keys(record.attributes).length ? (
-                <pre className="overflow-auto whitespace-pre-wrap break-words text-xs">
-                  {JSON.stringify(record.attributes, null, 2)}
-                </pre>
-              ) : null}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  onPress={() => {
-                    void navigator.clipboard
-                      .writeText(record.body)
-                      .catch(() =>
-                        setError(
-                          "Could not copy the message. Check clipboard access.",
-                        ),
-                      );
-                  }}
-                >
-                  Copy message
-                </Button>
-                <Button
-                  variant="secondary"
-                  onPress={async () => {
-                    try {
-                      const result = await api.post<{ records: LogRecord[] }>(
-                        "/v1/core/logs/context",
-                        {
-                          eventId: record.eventId,
-                          workloadId: record.workloadId,
-                          timestamp: record.timestamp,
-                          limit: 10,
-                        },
-                      );
-                      setContext(result.records);
-                    } catch (cause) {
-                      setError(
-                        cause instanceof Error
-                          ? cause.message
-                          : "Could not read surrounding logs.",
-                      );
-                    }
-                  }}
-                >
-                  Surrounding logs
-                </Button>
-              </div>
-              {error ? <QueryError message={error} /> : null}
-              {context ? (
-                <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs">
-                  {context
-                    .map((entry) => `${entry.timestamp} ${entry.body}`)
-                    .join("\n")}
-                </pre>
-              ) : null}
+              <CodePanel ariaLabel="Full log JSON" language="json">
+                {JSON.stringify(record, null, 2)}
+              </CodePanel>
             </div>
           </Drawer.Body>
         </Drawer.Dialog>

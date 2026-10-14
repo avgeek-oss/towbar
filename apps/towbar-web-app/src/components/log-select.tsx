@@ -20,12 +20,14 @@ export function LogSelect({
   options,
   onChange,
   searchable = false,
+  hideLabel = false,
 }: {
   label: string;
   value: string;
   options: LogOption[];
   onChange: (value: string) => void;
   searchable?: boolean;
+  hideLabel?: boolean;
 }) {
   const chosen = options.find((option) => option.id === value);
   const groups = [...new Set(options.map((option) => option.group ?? ""))];
@@ -73,7 +75,7 @@ export function LogSelect({
       variant="secondary"
       className="min-w-0 gap-1.5"
     >
-      <Label>{label}</Label>
+      <Label className={hideLabel ? "sr-only" : undefined}>{label}</Label>
       <Select.Trigger>
         <Select.Value className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
           {chosen?.icon}
