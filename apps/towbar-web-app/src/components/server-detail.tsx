@@ -4,6 +4,7 @@ import {
   type ServerCleanupPage,
 } from "./server-cleanup-history";
 import { ServerTerminal } from "./server-terminal";
+import { CleanupObjectType } from "./cleanup-object-type";
 import { useAccess } from "./access-context";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
 import {
@@ -340,7 +341,7 @@ export function ServerDetail() {
     {
       key: "type",
       header: "Type",
-      cell: (orphan) => <span className="capitalize">{orphan.kind}</span>,
+      cell: (orphan) => <CleanupObjectType kind={orphan.kind} />,
     },
   ];
 

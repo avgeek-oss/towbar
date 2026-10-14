@@ -12,7 +12,8 @@ import {
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { useApiQuery } from "@/hooks/use-api-query";
-import { formatDate } from "./dashboard-overview";
+import { CleanupObjectType } from "./cleanup-object-type";
+import { RelativeTime } from "./last-synced-time";
 
 export type ServerCleanupPage = {
   inProgress: boolean;
@@ -41,19 +42,18 @@ const columns: ResourceTableColumn<ResourceOperation>[] = [
     key: "requested",
     header: "Requested",
     cell: (operation) => (
-      <span className="whitespace-nowrap">
-        {formatDate(operation.createdAt)}
-      </span>
+      <RelativeTime label="Requested" value={operation.createdAt} />
     ),
   },
   {
     key: "completed",
     header: "Completed",
-    cell: (operation) => (
-      <span className="whitespace-nowrap">
-        {operation.finishedAt ? formatDate(operation.finishedAt) : "—"}
-      </span>
-    ),
+    cell: (operation) =>
+      operation.finishedAt ? (
+        <RelativeTime label="Completed" value={operation.finishedAt} />
+      ) : (
+        "—"
+      ),
   },
   {
     key: "results",
@@ -84,13 +84,13 @@ const resultColumns: ResourceTableColumn<CleanupAction>[] = [
   {
     key: "type",
     header: "Type",
-    headerClassName: "w-[14%]",
-    cell: (item) => <span className="capitalize">{item.kind}</span>,
+    headerClassName: "w-[18%]",
+    cell: (item) => <CleanupObjectType kind={item.kind} />,
   },
   {
     key: "comments",
     header: "Comments",
-    headerClassName: "w-[38%]",
+    headerClassName: "w-[32%]",
     cell: (item) => (
       <span className="[overflow-wrap:anywhere]">{item.reason}</span>
     ),
@@ -98,7 +98,7 @@ const resultColumns: ResourceTableColumn<CleanupAction>[] = [
   {
     key: "status",
     header: "Status",
-    headerClassName: "w-[16%]",
+    headerClassName: "w-[18%]",
     cell: (item) => (
       <StatusBadge
         status={item.status}
