@@ -965,10 +965,7 @@ function LogDetails({
           </Drawer.Header>
           <Drawer.Body>
             <div className="grid min-w-0 gap-4">
-              <CodePanel
-                ariaLabel="Message"
-                codeClassName="text-accent-soft-foreground"
-              >
+              <CodePanel ariaLabel="Message" codeClassName="text-foreground">
                 {record.body}
               </CodePanel>
               {record.truncated ? (
@@ -982,7 +979,7 @@ function LogDetails({
               <Attributes title="Attributes" variant="card" columns={2}>
                 {Object.entries(common).map(([label, value]) => (
                   <Attributes.Item key={label} label={label}>
-                    <span className="break-all text-accent-soft-foreground">
+                    <span className="break-all text-foreground">
                       {label === "Level" ? (
                         <span className="inline-flex items-center gap-2">
                           <LevelMarker level={record.severity} />

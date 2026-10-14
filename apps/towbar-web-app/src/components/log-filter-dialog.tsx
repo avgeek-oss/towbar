@@ -60,7 +60,7 @@ export function LogFilterDialog({
     >
       <Modal.Container size="lg" className="w-full max-w-6xl sm:w-full">
         <Modal.Dialog className="max-w-5xl">
-          <Modal.Header className="mb-4">
+          <Modal.Header>
             <Modal.Heading className="flex items-center gap-2">
               <HugeiconsIcon icon={FunnelIcon} size={20} />
               Filters
@@ -89,7 +89,7 @@ export function LogFilterDialog({
                 onClose();
               }}
             >
-              <div className="w-full max-w-60">
+              <div className="mb-3 w-full max-w-60">
                 <LogSelect
                   label="Match conditions"
                   value={combination}
