@@ -182,6 +182,7 @@ export function LogColumnsDrawer({
                           />
                         </Button>
                         <Checkbox
+                          variant="secondary"
                           className="min-w-0 flex-1"
                           isSelected={draft.includes(column.id)}
                           onChange={(checked) =>
