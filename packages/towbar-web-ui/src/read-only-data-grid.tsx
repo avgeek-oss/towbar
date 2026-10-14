@@ -165,7 +165,7 @@ export function ReadOnlyDataGrid({
           ? {
               themeOverride: {
                 cellHorizontalPadding:
-                  renderedColumns[column]?.id === "severity" ? 20 : 34,
+                  renderedColumns[column]?.id === "severity" ? 12 : 34,
               },
             }
           : {}),
@@ -245,15 +245,7 @@ export function ReadOnlyDataGrid({
               if (!color) return;
               args.ctx.save();
               args.ctx.fillStyle = color;
-              args.ctx.beginPath();
-              args.ctx.roundRect(
-                args.rect.x + 9,
-                args.rect.y + (args.rect.height - 16) / 2,
-                4,
-                16,
-                1,
-              );
-              args.ctx.fill();
+              args.ctx.fillRect(args.rect.x, args.rect.y, 4, args.rect.height);
               args.ctx.restore();
             }
           }}
