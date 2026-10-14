@@ -21,9 +21,9 @@ export function createServerCleanupFixture(
       },
       state: failed ? "failed" : "succeeded",
       createdAt,
-      startedAt: createdAt,
-      finishedAt: createdAt,
-      updatedAt: createdAt,
+      startedAt: new Date(Date.parse(createdAt) + 2_000).toISOString(),
+      finishedAt: new Date(Date.parse(createdAt) + 12_000).toISOString(),
+      updatedAt: new Date(Date.parse(createdAt) + 12_000).toISOString(),
       requestedBy: null,
       deletedAt: null,
       cancelRequestedAt: null,
@@ -56,7 +56,12 @@ export function createServerCleanupFixture(
               },
             ]
           : [],
-        retiredPaths: failed ? [] : ["/etc/caddy/towbar/retired-worker.caddy"],
+        retiredPaths: failed
+          ? []
+          : [
+              "docker-network:towbar-retired-worker",
+              "/etc/caddy/towbar/retired-worker.caddy",
+            ],
       },
     };
   });

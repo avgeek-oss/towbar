@@ -5,6 +5,7 @@ import { SecondaryItems as LibrarySecondaryItems } from "@avgeek-oss/design-syst
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SquareActivityIcon,
+  CleanIcon,
   Delete02Icon,
   Menu01Icon,
   DashboardCircleIcon,
@@ -31,7 +32,7 @@ export {
 export const menuIcons: Record<string, typeof Menu01Icon> = {
   credentials: Key01Icon,
   monitoring: SquareActivityIcon,
-  cleanup: Delete02Icon,
+  cleanup: CleanIcon,
   danger: Delete02Icon,
   backups: ReloadIcon,
   backup: ReloadIcon,

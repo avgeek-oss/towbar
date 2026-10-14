@@ -19,3 +19,30 @@
   --chart-accent: var(--accent);
   --chart-requested: oklch(0.8 0.16 90);
 }
+
+@media (max-width: 640px) {
+  .pagination:has(> .pagination__summary) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .pagination__summary {
+    min-width: 0;
+    align-self: center;
+  }
+  .pagination:has(> .pagination__summary) > .pagination__content {
+    flex-shrink: 0;
+    margin-left: auto;
+    gap: 4px;
+  }
+  .pagination:has(> .pagination__summary)
+    > .pagination__content
+    > .pagination__item:not(:first-child):not(:last-child) {
+    display: none;
+  }
+  .pagination__link--nav {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+}

@@ -21,7 +21,7 @@ Re-adding the same manifest ID before cleanup starts protects it from the queued
 
 Historical domain conflicts do not block removal when all conflicting owners are archived and no workload requests the hostname. The retained routes still reserve the domain until cleanup confirms retirement. Moving a domain to a new workload keeps Towbar's explicit handoff checks; ambiguous owners must be retired before assigning the domain again. Active assignments in other environments or workspaces remain protected.
 
-Check each server's **Settings → Docker cleanup → Cleanup history** for completion or failures. See [server operations](/docs/servers/operations) for retry and ownership rules.
+Check each server's **Settings → Docker cleanup** for completion or failures. See [server operations](/docs/servers/operations) for retry and ownership rules.
 
 ## Enable automatic deployment deliberately
 

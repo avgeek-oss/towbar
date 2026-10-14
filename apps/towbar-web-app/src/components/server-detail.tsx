@@ -7,6 +7,7 @@ import { ServerTerminal } from "./server-terminal";
 import { useAccess } from "./access-context";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
 import {
+  CleanIcon,
   CommandLineIcon,
   Activity01Icon,
   SquareActivityIcon,
@@ -330,7 +331,7 @@ export function ServerDetail() {
   const orphanColumns: ResourceTableColumn<OrphanItem>[] = [
     {
       key: "object",
-      header: "Docker object",
+      header: "Pending objects for cleanup",
       cell: (orphan) => (
         <ResourceName description={orphan.reason} name={orphan.name} />
       ),
@@ -850,7 +851,7 @@ function CleanupButton({
     >
       <HugeiconsIcon
         aria-hidden="true"
-        icon={Delete02Icon}
+        icon={CleanIcon}
         className="size-4 shrink-0"
       />
       Request Cleanup

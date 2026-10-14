@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import type { ResourceOperation } from "@workspace/towbar-web-client";
@@ -66,6 +67,34 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
   const [open, setOpen] = useState(false);
   const result =
     operation.result && "cleaned" in operation.result ? operation.result : null;
+  const actions = result
+    ? [
+        ...result.cleaned.map((item) => ({
+          ...item,
+          status: "succeeded",
+          label: "Removed",
+        })),
+        ...result.skipped.map((item) => ({
+          ...item,
+          status: "skipped",
+          label: "Skipped",
+        })),
+        ...(result.failures ?? []).map((item) => ({
+          ...item,
+          status: "failed",
+          label: "Failed",
+        })),
+        ...(result.retiredPaths ?? []).map((path) => ({
+          kind: path.startsWith("docker-network:") ? "network" : "path",
+          name: path.startsWith("docker-network:")
+            ? path.slice("docker-network:".length)
+            : path,
+          reason: "Retired workload cleanup",
+          status: "succeeded",
+          label: "Removed",
+        })),
+      ]
+    : [];
   return (
     <>
       <Button
@@ -74,83 +103,84 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
         className="min-h-11 whitespace-nowrap"
         onPress={() => setOpen(true)}
       >
-        {operation.errorMessage
-          ? "View failure"
-          : result
-            ? `${result.cleaned.length} removed · ${result.skipped.length} skipped`
-            : "View details"}
+        View result
       </Button>
       <Modal.Backdrop isOpen={open} onOpenChange={setOpen}>
         <Modal.Container size="lg" scroll="inside">
           <Modal.Dialog>
             <Modal.Header>
-              <Modal.Heading>Cleanup details</Modal.Heading>
+              <Modal.Heading>Cleanup result</Modal.Heading>
               <Modal.CloseTrigger />
             </Modal.Header>
-            <Modal.Body className="grid gap-3 text-sm">
-              <p>
-                {operation.request.trigger === "sync"
-                  ? "Repository sync"
-                  : "Manual request"}{" "}
-                · {formatDate(operation.createdAt)}
-              </p>
-              <StatusBadge status={operation.state} />
+            <Modal.Body className="grid gap-6 text-sm">
+              <Attributes variant="embedded">
+                <Attributes.Item label="Status">
+                  <StatusBadge status={operation.state} />
+                </Attributes.Item>
+                <Attributes.Item label="Trigger">
+                  {operation.request.trigger === "sync"
+                    ? "Repository sync"
+                    : "Manual request"}
+                </Attributes.Item>
+                <Attributes.Item label="Requested">
+                  {formatDate(operation.createdAt)}
+                </Attributes.Item>
+                <Attributes.Item label="Started">
+                  {operation.startedAt ? formatDate(operation.startedAt) : "—"}
+                </Attributes.Item>
+                <Attributes.Item label="Completed">
+                  {operation.finishedAt
+                    ? formatDate(operation.finishedAt)
+                    : "—"}
+                </Attributes.Item>
+              </Attributes>
               {operation.errorMessage ? (
-                <p className="text-danger">{operation.errorMessage}</p>
-              ) : null}
-              {operation.startedAt ? (
-                <p>Started {formatDate(operation.startedAt)}</p>
-              ) : (
-                <p>
-                  {operation.state === "queued"
-                    ? "Waiting for the server queue."
-                    : "Cleanup did not start."}
+                <p className="text-danger [overflow-wrap:anywhere]">
+                  {operation.errorMessage}
                 </p>
-              )}
-              {result ? (
-                <>
-                  {(["cleaned", "skipped", "failures"] as const).map((kind) =>
-                    result[kind]?.length ? (
-                      <div key={kind}>
-                        <p className="font-medium">
-                          {kind === "cleaned"
-                            ? "Removed"
-                            : kind === "skipped"
-                              ? "Skipped"
-                              : "Failed"}
-                        </p>
-                        <ul className="mt-1 grid gap-2">
-                          {result[kind]?.map((item) => (
-                            <li
-                              key={`${item.kind}:${item.name}`}
-                              className="break-words"
-                            >
-                              {item.name}{" "}
-                              <span className="text-muted">
-                                ({item.kind}) · {item.reason}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null,
-                  )}
-                  {result.retiredPaths?.length ? (
-                    <div>
-                      <p className="font-medium">
-                        Retired routes and configuration
-                      </p>
-                      <ul className="mt-1 grid gap-1">
-                        {result.retiredPaths.map((path) => (
-                          <li key={path} className="break-words">
-                            {path}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </>
               ) : null}
+              <section aria-label="Cleanup actions" className="grid gap-2">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Actions
+                </h3>
+                {actions.length ? (
+                  <ul className="divide-y divide-separator">
+                    {actions.map((item, index) => (
+                      <li
+                        key={`${item.kind}:${item.name}:${index}`}
+                        className="flex items-start gap-3 py-4"
+                      >
+                        <div className="grid min-w-0 flex-1 gap-1">
+                          <p className="font-medium text-foreground [overflow-wrap:anywhere]">
+                            {item.name}
+                          </p>
+                          <p className="text-xs capitalize text-muted">
+                            {item.kind}
+                          </p>
+                          <p className="text-muted [overflow-wrap:anywhere]">
+                            {item.reason}
+                          </p>
+                        </div>
+                        <StatusBadge
+                          status={item.status}
+                          label={item.label}
+                          tooltip={item.reason}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted">
+                    {operation.state === "queued"
+                      ? "Waiting for the server queue. Actions will appear when cleanup finishes."
+                      : operation.state === "running"
+                        ? "Cleanup is running. Actions will appear when it finishes."
+                        : result
+                          ? "No objects needed cleanup."
+                          : "No cleanup actions were recorded."}
+                  </p>
+                )}
+              </section>
             </Modal.Body>
           </Modal.Dialog>
         </Modal.Container>
@@ -178,10 +208,7 @@ export function ServerCleanupHistory({
   );
   const page = pagination.page === 1 ? firstPage : requested.data;
   return (
-    <section className="grid gap-4" aria-labelledby="cleanup-history-title">
-      <h3 id="cleanup-history-title" className="text-base font-semibold">
-        Cleanup history
-      </h3>
+    <section className="grid gap-4" aria-label="Cleanup history">
       {requested.error ? (
         <QueryError message={requested.error} />
       ) : page ? (

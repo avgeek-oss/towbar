@@ -3,7 +3,7 @@ import {
   Alert02Icon,
   Archive01Icon,
   CommandLineIcon,
-  Delete02Icon,
+  CleanIcon,
   GitBranchIcon,
   Key01Icon,
   Mail01Icon,
@@ -36,7 +36,7 @@ const icons = {
   scout: null,
   alert: Alert02Icon,
   restore: Archive01Icon,
-  cleanup: Delete02Icon,
+  cleanup: CleanIcon,
 } satisfies Record<AuditEventIconName, typeof Activity01Icon | null>;
 
 export function AuditEventIcon({ icon }: { icon: AuditEventIconName | null }) {
