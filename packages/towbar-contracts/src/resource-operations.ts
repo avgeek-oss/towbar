@@ -159,7 +159,14 @@ export type ResourceOperationRequest =
       tail: number;
       type: "capture_logs";
     }
-  | { items: OrphanItem[]; type: "cleanup_orphans" }
+  | {
+      items: OrphanItem[];
+      type: "cleanup_orphans";
+      trigger?: "sync" | "manual";
+      scope?: "selected";
+      syncId?: string;
+      retiringDeployableIds?: string[];
+    }
   | {
       backupId: string;
       reason: string;
@@ -343,15 +350,37 @@ export const restoreCleanupResultSchema = z
   })
   .strict();
 
+export const serverCleanupResultSchema = z
+  .object({
+    cleaned: z.array(orphanItemSchema),
+    skipped: z.array(orphanItemSchema),
+    failures: z.array(orphanItemSchema).optional(),
+    retiredDeployableIds: z.array(z.string().uuid()).optional(),
+    retiredPaths: z.array(z.string()).optional(),
+  })
+  .strict();
+
+export type ServerCleanupResult = z.infer<typeof serverCleanupResultSchema>;
+
+export type ServerCleanupPlan = {
+  ownedDeployableIds?: string[];
+  containerNames: string[];
+  deployableIds: string[];
+  imageTags: string[];
+  protectedDeployableIds?: string[];
+  composeProjects?: string[];
+  retiring?: Array<{
+    deployableId: string;
+    sourceId: string;
+    runtimeIds: string[];
+    composeProjects?: string[];
+  }>;
+};
+
 export const resourceOperationResultSchema = z.union([
   appJobResultSchema,
   backupOperationResultSchema,
-  z
-    .object({
-      cleaned: z.array(orphanItemSchema),
-      skipped: z.array(orphanItemSchema),
-    })
-    .strict(),
+  serverCleanupResultSchema,
   z
     .object({
       logs: z.string().max(256 * 1_024),
@@ -366,7 +395,7 @@ export const resourceOperationResultSchema = z.union([
 export type ResourceOperationResult =
   | z.infer<typeof appJobResultSchema>
   | BackupOperationResult
-  | { cleaned: OrphanItem[]; skipped: OrphanItem[] }
+  | ServerCleanupResult
   | { logs: string; truncated: boolean }
   | RestoreOperationResult
   | z.infer<typeof restoreCleanupResultSchema>

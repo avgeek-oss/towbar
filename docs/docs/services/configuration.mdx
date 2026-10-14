@@ -49,6 +49,8 @@ container:
 
 Create the mount directory in the image with ownership for its runtime user. Volumes survive redeployments and image rollback, remain on their server, and are not backed up by Towbar. `initialData` applies only when adding a new volume: `previous-container` imports from the stopped container, while `image` initializes from the new image. Environment overrides replace the common volume list. Host-directory bind mounts are not accepted; keep backups of important files outside Towbar.
 
+Removing the Service from Git and successfully syncing its environment queues server cleanup, including permanent deletion of its exclusively owned volumes. Re-adding it after cleanup creates fresh storage. Back up required data first; see [sync removal](/docs/repositories/sync) and [cleanup history](/docs/servers/operations).
+
 ## Docker host logs
 
 A trusted log collector Service can request one fixed, read-only host mount. First, an Admin must enable **Allow Docker log collection** under the target server's **Settings → Logs collection**. Then declare `container.hostLogs.dockerJsonFiles: true`:

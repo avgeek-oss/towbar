@@ -1,3 +1,6 @@
+import { recordRetiredWorkloads } from "./cleanup-plan.js";
+import { lockDomainClaims } from "../deployments/domain-claims.js";
+import { serverCleanupResultSchema } from "@workspace/towbar-core";
 import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { auditAttribution } from "../auth/actor-context.js";
 import { withActor } from "../auth/actor-context.js";
@@ -68,6 +71,15 @@ async function persistTerminalOperation(
   input: TerminalOperationInput,
 ) {
   return await getTowbarDatabase().transaction(async (transaction) => {
+    const [identity] = await transaction
+      .select({
+        workspaceId: resourceOperations.workspaceId,
+        type: resourceOperations.type,
+      })
+      .from(resourceOperations)
+      .where(eq(resourceOperations.id, operationId));
+    if (identity?.type === "cleanup_orphans")
+      await lockDomainClaims(transaction, identity.workspaceId);
     const [current] = await transaction
       .select()
       .from(resourceOperations)
@@ -77,6 +89,14 @@ async function persistTerminalOperation(
     if (!current) throw notFound("Resource operation");
     if (["cancelled", "failed", "succeeded"].includes(current.state)) {
       return { changed: false, operation: current };
+    }
+    if (current.type === "cleanup_orphans" && input.result) {
+      const result = serverCleanupResultSchema.parse(input.result);
+      await recordRetiredWorkloads(
+        transaction,
+        current,
+        result.retiredDeployableIds ?? [],
+      );
     }
     const finishedAt = new Date();
     const [updated] = await transaction

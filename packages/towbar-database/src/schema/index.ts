@@ -2116,6 +2116,7 @@ export const releases = pgTable(
       .defaultNow()
       .notNull(),
     supersededAt: timestamp("superseded_at", { withTimezone: true }),
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
   },
   (table) => [
     uniqueIndex("uq_towbar_releases_deployment").on(table.deploymentId),

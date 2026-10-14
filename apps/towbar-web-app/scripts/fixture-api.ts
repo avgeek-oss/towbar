@@ -1,3 +1,4 @@
+import { createServerCleanupFixture } from "./server-cleanup-fixture.ts";
 import packageManifest from "../../../package.json" with { type: "json" };
 import { repositoryUrl } from "@workspace/towbar-core/repository-identity";
 import {
@@ -2045,7 +2046,22 @@ const notificationEvents: NotificationEvent[] = [
     "preview.ready",
   ),
 ];
-const orphanItems: OrphanItem[] = [];
+const orphanItems: OrphanItem[] = [
+  {
+    kind: "container",
+    name: "towbar-retired-fixture",
+    reason: "Retired workload",
+  },
+  {
+    kind: "volume",
+    name: "towbar-retired-fixture-data",
+    reason: "Retired workload storage",
+  },
+];
+const serverCleanups = new Map(
+  servers.map((server) => [server.id, createServerCleanupFixture(server.id)]),
+);
+const cleanupIdempotency = new Map<string, ResourceOperation>();
 
 const workflowStates: DeploymentState[] = [
   "queued",
@@ -3988,6 +4004,36 @@ export function createFixtureApiServer({
       serverPreparationPolls.set(preparation.id, 0);
       return writeJson(response, 202, { preparation });
     }
+    const cleanupMatch = path.match(
+      /^\/v1\/core\/servers\/([^/]+)\/actions\/cleanup-orphans$/,
+    );
+    if (request.method === "POST" && cleanupMatch) {
+      const server = servers.find((item) => item.id === cleanupMatch[1]);
+      if (!server) return writeNotFound(response);
+      const key = `${server.id}:${request.headers["idempotency-key"]}`;
+      const existing = cleanupIdempotency.get(key);
+      if (existing)
+        return writeJson(response, 200, {
+          operation: existing,
+          replayed: true,
+        });
+      const operation = createServerCleanupFixture(server.id)[0]!;
+      operation.createdAt = new Date().toISOString();
+      operation.finishedAt = null;
+      operation.startedAt = null;
+      operation.result = null;
+      operation.state = "queued";
+      operation.request.trigger = "manual";
+      cleanupIdempotency.set(key, operation);
+      serverCleanups.get(server.id)?.unshift(operation);
+      setTimeout(() => {
+        operation.state = "succeeded";
+        operation.startedAt = operation.createdAt;
+        operation.finishedAt = new Date().toISOString();
+        operation.result = { cleaned: [], skipped: [] };
+      }, 1500).unref();
+      return writeJson(response, 202, { operation, replayed: false });
+    }
     const jobMatch = path.match(
       /^\/v1\/core\/apps\/([^/]+)\/actions\/run-job$/,
     );
@@ -5083,7 +5129,26 @@ function getFixturePayload(
       return { hostKeys: hostKeysByServer.get(server.id) ?? [] };
     }
     if (child === "orphans") return { orphans: orphanItems };
-    if (child === "cleanup") return { inProgress: false };
+    if (child === "cleanup") {
+      const history = serverCleanups.get(server.id) ?? [];
+      const page = Math.max(1, Number(searchParams.get("page") ?? 1));
+      const limit = Math.min(
+        100,
+        Math.max(1, Number(searchParams.get("limit") ?? 10)),
+      );
+      return {
+        inProgress: history.some((attempt) =>
+          ["queued", "running"].includes(attempt.state),
+        ),
+        operations: history.slice((page - 1) * limit, page * limit),
+        pagination: {
+          page,
+          limit,
+          total: history.length,
+          totalPages: Math.ceil(history.length / limit),
+        },
+      };
+    }
     return {
       canCleanupOrphans: true,
       canManageServer: true,

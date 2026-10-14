@@ -314,7 +314,13 @@ export type ResourceOperation = {
         exitCode: number;
         timedOut: boolean;
       }
-    | { cleaned: OrphanItem[]; skipped: OrphanItem[] }
+    | {
+        cleaned: OrphanItem[];
+        skipped: OrphanItem[];
+        failures?: OrphanItem[];
+        retiredDeployableIds?: string[];
+        retiredPaths?: string[];
+      }
     | { logs: string; truncated: boolean }
     | RestoreResult
     | {
@@ -325,7 +331,7 @@ export type ResourceOperation = {
     | { state: "running" | "stopped" }
     | null;
   serverId: string;
-  sourceId: string;
+  sourceId: string | null;
   startedAt: string | null;
   state: "queued" | "running" | "succeeded" | "failed" | "cancelled";
   type: ResourceOperationType;

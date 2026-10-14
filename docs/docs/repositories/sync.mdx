@@ -11,6 +11,18 @@ Open a Repository's **Environments** page and inspect the latest sync for its co
 
 Pushes to a mapped branch start reconciliation through the source-control webhook. Use **Sync now** when you need to inspect the current branch state immediately. If no update arrives, check the integration's repository access and webhook delivery before retrying.
 
+## Remove a workload
+
+Delete its Service or Datastore YAML file and sync the mapped environment. Keep the entity directories in the repository (for example with a `.gitkeep` file); an unexpectedly missing directory fails validation and preserves existing inventory.
+
+After validation commits, Towbar archives the removed workload and queues **one cleanup attempt per associated server**, including servers used by retained releases. Cleanup also checks other unused Towbar objects on each server. It deletes the removed workload's owned persistent volumes and data, containers, configuration files, and ingress routes. Back up anything you need before removing stateful workloads. Deployment and audit records are retained.
+
+Re-adding the same manifest ID before cleanup starts protects it from the queued attempt. Re-adding it after cleanup restores the inventory identity but cannot restore deleted data; a new deployment creates fresh storage.
+
+Historical domain conflicts do not block removal when all conflicting owners are archived and no workload requests the hostname. The retained routes still reserve the domain until cleanup confirms retirement. Moving a domain to a new workload keeps Towbar's explicit handoff checks; ambiguous owners must be retired before assigning the domain again. Active assignments in other environments or workspaces remain protected.
+
+Check each server's **Settings → Docker cleanup** for completion or failures. See [server operations](/docs/servers/operations) for retry and ownership rules.
+
 ## Enable automatic deployment deliberately
 
 Auto-deploy is opt-in on each workload. For a Service, limit triggering changes to files that can affect its build:
@@ -25,6 +37,6 @@ autoDeploy:
     - apps/web/**
 ```
 
-The paths are relative to the repository root. Include shared packages and build files, not only the Service directory. The Repository's automation controls can pause automatic work during maintenance; manual deployment remains a separate action. A manifest change can therefore sync successfully without changing the running release.
+The paths are relative to the repository root. Include shared packages and build files, not only the Service directory. The Repository's automation controls can pause automatic work during maintenance; manual deployment remains a separate action. A configuration update can therefore sync successfully without deploying a new release. Workload removal still queues cleanup after a successful sync.
 
 See [Deployments and releases](/docs/deployments) for queueing and promotion, and [environment branches](/docs/repositories/environments) for branch changes.

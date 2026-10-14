@@ -1,3 +1,4 @@
+import { lockDomainClaims } from "../deployments/domain-claims.js";
 import { validateQueuedAppJob } from "../apps/jobs.js";
 import { requireActiveAutomation } from "../auth/automation-authority.js";
 import { authorizeQueuedEffect } from "../auth/actor-context.js";
@@ -10,6 +11,7 @@ import { backupOperationResultSchema } from "@workspace/towbar-core";
 import {
   apps,
   resourceOperations,
+  servers,
   sourceEnvironments,
   sshHostKeys,
 } from "@workspace/towbar-database/schema";
@@ -35,6 +37,14 @@ export async function getOperationExecutionContext(operationId: string) {
   if (!operation) throw notFound("Resource operation");
   if (operation.request.type === "run_job")
     await validateQueuedAppJob({ ...operation, request: operation.request });
+  if (operation.request.type === "cleanup_orphans") {
+    await authorizeQueuedEffect(
+      operation.requestedByActor,
+      operation.workspaceId,
+      operationPermissions(operation.request),
+    );
+    return await getCleanupExecutionContext(operation);
+  }
   if (operation.state === "queued") {
     const actor = await authorizeQueuedEffect(
       operation.requestedByActor,
@@ -85,14 +95,8 @@ export async function getOperationExecutionContext(operationId: string) {
         isNull(sshHostKeys.revokedAt),
       ),
     );
-  const currentRelease =
-    operation.request.type === "cleanup_orphans"
-      ? null
-      : operation.request.release;
-  const sourceId =
-    operation.request.type === "cleanup_orphans"
-      ? null
-      : requireOperationSource(operation.sourceId);
+  const currentRelease = operation.request.release;
+  const sourceId = requireOperationSource(operation.sourceId);
   const cleanupExpected = await getCleanupExpected(operation.serverId);
   const [environment] = operation.resourceId
     ? await getTowbarDatabase()
@@ -417,4 +421,81 @@ async function getRestoreBackup(input: {
     id: backup.id,
     result: backupOperationResultSchema.parse(backup.result),
   };
+}
+
+async function getCleanupExecutionContext(
+  operation: typeof resourceOperations.$inferSelect,
+) {
+  return await getTowbarDatabase().transaction(async (database) => {
+    await lockDomainClaims(database, operation.workspaceId);
+    const [current] = await database
+      .select()
+      .from(resourceOperations)
+      .where(eq(resourceOperations.id, operation.id))
+      .for("update");
+    if (
+      !current ||
+      current.state !== "queued" ||
+      current.request.type !== "cleanup_orphans"
+    )
+      throw conflict(
+        "Cleanup has already started or completed",
+        "CLEANUP_ALREADY_STARTED",
+      );
+    const [server] = await database
+      .select()
+      .from(servers)
+      .where(and(eq(servers.id, current.serverId), isNull(servers.archivedAt)));
+    if (!server)
+      throw conflict("Cleanup server is unavailable", "SERVER_UNAVAILABLE");
+    if (server.config.ip !== current.serverSnapshot.ip)
+      throw conflict(
+        "Server address changed after cleanup was queued. Request cleanup again.",
+        "CLEANUP_SERVER_CHANGED",
+      );
+    const cleanupExpected = await getCleanupExpected(server.id, database);
+    if (!current.request.trigger || current.request.scope === "selected")
+      cleanupExpected.retiring = [];
+    const request = {
+      ...current.request,
+      retiringDeployableIds:
+        cleanupExpected.retiring?.map((app) => app.deployableId) ?? [],
+    };
+    await database
+      .update(resourceOperations)
+      .set({
+        request,
+        state: "running",
+        startedAt: new Date(),
+        updatedAt: new Date(),
+        serverSnapshot: server.config,
+        errorCode: null,
+        errorMessage: null,
+      })
+      .where(eq(resourceOperations.id, current.id));
+    const trustedHostKeys = await database
+      .select({
+        algorithm: sshHostKeys.algorithm,
+        fingerprint: sshHostKeys.fingerprint,
+        publicKey: sshHostKeys.publicKey,
+      })
+      .from(sshHostKeys)
+      .where(
+        and(eq(sshHostKeys.serverId, server.id), isNull(sshHostKeys.revokedAt)),
+      );
+    return {
+      cleanupExpected,
+      request,
+      trustedHostKeys,
+      server: server.config,
+      operationId: current.id,
+      currentRelease: null,
+      deployable: null,
+      deployableId: null,
+      sourceId: null,
+      environment: null,
+      retentionBackups: [],
+      restoreBackup: null,
+    };
+  });
 }

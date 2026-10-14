@@ -269,8 +269,8 @@ export const infrastructureTools: McpTool[] = [
   ),
   action(
     "server_cleanup",
-    "Clean selected orphaned objects",
-    "Delete only explicitly selected orphan containers, images, or volumes from towbar_server_inspect. Volumes may contain data; confirm the exact inventory with the user before cleanup.",
+    "Request server cleanup",
+    "Request server-level cleanup of unused Towbar objects and workloads removed from Git, including owned persistent volumes. Revalidates current ownership and usage; preserves active workloads and shared resources. Confirm server cleanup with the user before requesting it.",
     "POST",
     "/servers/:serverId/actions/cleanup-orphans",
     serverId,

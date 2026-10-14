@@ -3,6 +3,17 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Queue one durable cleanup attempt per affected server after a valid sync removes workloads, including deletion of their exclusively owned persistent volumes. Preserve active workloads, rollback artifacts, shared resources, and deployment history.
+- Use the same server cleanup workflow for **Request Cleanup**, and show paginated sync/manual attempt history with results and failures.
+
+### Fixed
+
+- Allow removal of archived workloads with conflicting retained domain owners without releasing ownership before their routes are retired. Keep active assignments and explicit domain handoffs protected.
+
 ## [2.0.42] - 2026-10-13
 
 ### Changed

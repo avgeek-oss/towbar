@@ -86,6 +86,7 @@ try {
     });
     await lifecycle("compose", "compose-lifecycle");
     await lifecycle("preview-cleanup", "preview-cleanup-lifecycle");
+    await lifecycle("server-cleanup", "server-cleanup-lifecycle");
   }
   if (group === "resources") {
     await lifecycle("resource", "resource-lifecycle");

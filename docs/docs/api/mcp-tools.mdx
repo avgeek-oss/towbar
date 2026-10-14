@@ -2171,11 +2171,11 @@ Administrative access required. Required permissions: `server.update`.
 
 </Accordion>
 
-<Accordion title="Clean selected orphaned objects">
+<Accordion title="Request server cleanup">
 
 `towbar_server_cleanup`
 
-Delete only explicitly selected orphan containers, images, or volumes from towbar_server_inspect. Volumes may contain data; confirm the exact inventory with the user before cleanup.
+Request server-level cleanup of unused Towbar objects and workloads removed from Git, including owned persistent volumes. Revalidates current ownership and usage; preserves active workloads and shared resources. Confirm server cleanup with the user before requesting it.
 
 Administrative access required. Required permissions: `server.remove`.
 
@@ -2220,7 +2220,7 @@ Administrative access required. Required permissions: `server.remove`.
       "description": "Unique identifier for this intended action. Reuse exactly this value when retrying an uncertain response; use a new value for a new action."
     }
   },
-  "required": ["serverId", "items", "idempotencyKey"],
+  "required": ["serverId", "idempotencyKey"],
   "additionalProperties": false
 }
 ```

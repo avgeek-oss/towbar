@@ -13,7 +13,6 @@ import {
   apps,
   resourceOperationEvents,
   resourceOperations,
-  servers,
 } from "@workspace/towbar-database/schema";
 
 import { conflict, notFound, unprocessable } from "../../http/errors.js";
@@ -26,7 +25,6 @@ import { assureResourceBackup } from "./backup-assurance.js";
 import {
   getDeployableTarget,
   getResourceBackupAssurance,
-  getServerOrphans,
   listOperationEvents,
   listResourceBackupAssurances,
   publicOperationSelection,
@@ -516,56 +514,7 @@ export async function appendResourceOperationProgress(
   });
 }
 
-export async function requestOrphanCleanup(input: {
-  idempotencyKey: string;
-  items: Array<{ kind: "container" | "image" | "volume"; name: string }>;
-  requestedBy: string | null;
-  serverId: string;
-  workspaceId: string;
-}) {
-  const [server] = await getTowbarDatabase()
-    .select({
-      config: servers.config,
-      id: servers.id,
-      ip: servers.canonicalIp,
-    })
-    .from(servers)
-    .where(
-      and(
-        eq(servers.id, input.serverId),
-        eq(servers.workspaceId, input.workspaceId),
-        isNull(servers.archivedAt),
-      ),
-    )
-    .limit(1);
-  if (!server) throw notFound("Server");
-  const latestOrphans = await getServerOrphans(server.id, input.workspaceId);
-  const requested = new Map(
-    input.items.map((item) => [`${item.kind}:${item.name}`, item]),
-  );
-  const selected = latestOrphans.filter((item) =>
-    requested.has(`${item.kind}:${item.name}`),
-  );
-  if (selected.length !== requested.size || selected.length === 0) {
-    throw conflict(
-      "Run a fresh server check and select only its current scoped orphans",
-      "ORPHAN_SNAPSHOT_STALE",
-    );
-  }
-  return await admitOperation({
-    appSnapshot: null,
-    exclusive: true,
-    idempotencyKey: input.idempotencyKey,
-    request: { items: selected, type: "cleanup_orphans" },
-    requestedBy: input.requestedBy,
-    resourceId: null,
-    serverId: server.id,
-    serverIp: server.ip,
-    serverSnapshot: server.config,
-    sourceId: null,
-    workspaceId: input.workspaceId,
-  });
-}
+export { requestServerCleanup as requestOrphanCleanup } from "./server-cleanup.js";
 
 function requireDatabaseResource(config: (typeof apps.$inferSelect)["config"]) {
   if (

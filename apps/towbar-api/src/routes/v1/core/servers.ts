@@ -1,3 +1,4 @@
+import { listServerCleanups } from "../../../areas/resource-operations/server-cleanup.js";
 import { actorAllows } from "@workspace/towbar-access";
 import { filterServers, serverFilters } from "@workspace/towbar-core/inventory";
 import { operation } from "../../../http/operation.js";
@@ -73,7 +74,8 @@ const cleanupSchema = z
           .strict(),
       )
       .min(1)
-      .max(100),
+      .max(100)
+      .optional(),
   })
   .strict();
 const serverNameSchema = z
@@ -249,8 +251,9 @@ serverRoutes.get(
   operation({
     permissions: ["server.read"],
     responseSchema: 'servers.ts:get:"/:serverId/cleanup"',
-    summary: "Get orphan cleanup status",
-    response: "JSON object indicating whether orphan cleanup is in progress.",
+    summary: "Get server cleanup history",
+    query: serverChecksQuerySchema,
+    response: "Paginated server cleanup attempts and current queue status.",
     status: 200,
   }),
   async (context) => {
@@ -259,6 +262,11 @@ serverRoutes.get(
     await getServer(serverId, workspaceId);
     return context.json({
       inProgress: await hasActiveOrphanCleanup(serverId, workspaceId),
+      ...(await listServerCleanups({
+        serverId,
+        workspaceId,
+        ...serverChecksQuerySchema.parse(context.req.query()),
+      })),
     });
   },
 );
@@ -411,11 +419,12 @@ serverRoutes.post(
   }),
   async (context) => {
     const user = context.get("user");
+    const body = await readJson(context, cleanupSchema);
     const result = await requestOrphanCleanup({
+      items: body.items,
       idempotencyKey: requireIdempotencyKey(
         context.req.header("idempotency-key"),
       ),
-      items: (await readJson(context, cleanupSchema)).items,
       requestedBy: user.id,
       serverId: context.req.param("serverId"),
       workspaceId: user.workspaceId,

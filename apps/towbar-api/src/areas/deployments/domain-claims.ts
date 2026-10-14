@@ -66,6 +66,7 @@ export async function synchronizeDomainClaims(
       and(
         eq(deployments.workspaceId, workspaceId),
         eq(releases.environment, "production"),
+        isNull(releases.retiredAt),
       ),
     )
     .orderBy(desc(releases.promotedAt));
@@ -106,9 +107,26 @@ export async function synchronizeDomainClaims(
           ),
         ),
       );
-    if (foreign[0])
+    const foreignReleases = await database
+      .select({ app: deployments.appSnapshot })
+      .from(releases)
+      .innerJoin(deployments, eq(deployments.id, releases.deploymentId))
+      .where(
+        and(
+          ne(deployments.workspaceId, workspaceId),
+          eq(releases.environment, "production"),
+          eq(releases.status, "current"),
+          isNull(releases.retiredAt),
+        ),
+      );
+    const foreignHostname =
+      foreign[0]?.hostname ??
+      foreignReleases
+        .flatMap((release) => deploymentPublicHostnames(release.app))
+        .find((hostname) => desired.has(hostname));
+    if (foreignHostname)
       throw conflict(
-        `Domain '${foreign[0].hostname}' belongs to another Towbar workspace.`,
+        `Domain '${foreignHostname}' belongs to another Towbar workspace.`,
         "DOMAIN_CONFLICT",
       );
   }
@@ -145,11 +163,15 @@ async function reconcileDomainClaim(
       release.status === "current" &&
       deploymentPublicHostnames(release.app).includes(hostname),
   );
-  if (!claim && current.length > 1)
+  // Removal must not invent a single owner for ambiguous retained routes.
+  // The releases continue reserving the hostname until server retirement succeeds.
+  if (!claim && current.length > 1) {
+    if (canRetireAmbiguousOwners(input, current)) return;
     throw conflict(
       `Domain '${hostname}' has multiple deployed owners. Reconcile the existing routes before deploying.`,
       "DOMAIN_CONFLICT",
     );
+  }
   const last =
     current[0] ??
     retained.find((release) =>
@@ -198,6 +220,19 @@ async function reconcileDomainClaim(
         ),
       );
   }
+}
+
+function canRetireAmbiguousOwners(
+  input: {
+    target?: typeof apps.$inferSelect;
+    instances: Array<typeof apps.$inferSelect>;
+  },
+  owners: Array<{ appId: string }>,
+) {
+  const archived = new Set(
+    input.instances.filter((app) => app.archivedAt).map((app) => app.id),
+  );
+  return !input.target && owners.every((owner) => archived.has(owner.appId));
 }
 
 async function seedDomainClaim(
