@@ -292,12 +292,12 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     }
   }, [page, filters, busy, loadingMore, following, historyFull]);
   const searchLogs = useCallback(() => {
-    const now = Date.now();
+    const now = Date.now() + 1000;
     const parsed = logFilterSchema.safeParse({
       from:
         customRange?.startAt ??
         new Date(now - Number(range) * 60000).toISOString(),
-      to: customRange?.endAt ?? new Date(now + 1000).toISOString(),
+      to: customRange?.endAt ?? new Date(now).toISOString(),
       search,
       workloadIds: selection.workload.startsWith("workload:")
         ? [selection.workload.slice(9)]
@@ -394,19 +394,17 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
   const bucketRanges = useMemo(() => {
     if (!filters) return new Map<number, { from: number; to: number }>();
     const width = logBucketSeconds(filters.from, filters.to) * 1000;
-    return new Map(
-      (summary?.buckets ?? []).map((bucket) => {
-        const at = Date.parse(bucket.at);
-        return [
-          at,
-          {
-            from: Math.max(at, Date.parse(filters.from)),
-            to: Math.min(at + width, Date.parse(filters.to)),
-          },
-        ];
-      }),
-    );
-  }, [filters, summary]);
+    const start = Date.parse(filters.from),
+      end = Date.parse(filters.to);
+    const ranges = new Map<number, { from: number; to: number }>();
+    for (let at = Math.floor(start / width) * width; at < end; at += width) {
+      ranges.set(at, {
+        from: Math.max(at, start),
+        to: Math.min(at + width, end),
+      });
+    }
+    return ranges;
+  }, [filters]);
   const { error: localizationError } = useLocalizedTimestamps(
     filters
       ? [
@@ -470,28 +468,31 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       ),
     })) ?? [];
   const chart = useMemo(() => {
-    const buckets = new Map<
-      string,
-      { at: number } & Record<LogRecord["severity"], number>
-    >();
-    for (const bucket of summary?.buckets ?? []) {
-      const entry = buckets.get(bucket.at) ?? {
-        at: Date.parse(bucket.at),
-        trace: 0,
-        debug: 0,
-        info: 0,
-        warn: 0,
-        error: 0,
-        fatal: 0,
-        unknown: 0,
-      };
+    if (!summary?.buckets.length) return [];
+    const buckets = new Map(
+      [...bucketRanges.keys()].map((at) => [
+        at,
+        {
+          at,
+          trace: 0,
+          debug: 0,
+          info: 0,
+          warn: 0,
+          error: 0,
+          fatal: 0,
+          unknown: 0,
+        },
+      ]),
+    );
+    for (const bucket of summary.buckets) {
+      const entry = buckets.get(Date.parse(bucket.at));
+      if (!entry) continue;
       const level =
         logLevels.find((level) => level === bucket.severity) ?? "unknown";
       entry[level] += bucket.count;
-      buckets.set(bucket.at, entry);
     }
-    return [...buckets.values()].sort((a, b) => a.at - b.at);
-  }, [summary]);
+    return [...buckets.values()];
+  }, [summary, bucketRanges]);
   const icon = (value: typeof Layers01Icon) => (
     <HugeiconsIcon icon={value} size={18} aria-hidden="true" />
   );
@@ -631,7 +632,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       ) : null}
       <div className="px-4 pt-3">
         <form
-          className="grid grid-cols-2 items-center gap-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,.8fr)_auto]"
+          className="grid grid-cols-2 items-center gap-2 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,.8fr)_minmax(0,1fr)_auto]"
           onSubmit={(event) => {
             event.preventDefault();
             searchLogs();
@@ -655,20 +656,6 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               <SearchField.ClearButton aria-label="Clear search" />
             </SearchField.Group>
           </SearchField>
-          <LogSelect
-            label="Time range"
-            hideLabel
-            value={range}
-            options={ranges}
-            onChange={(value) => {
-              if (value === "custom") {
-                setPickerOpen(true);
-                return;
-              }
-              setCustomRange(null);
-              setRange(value);
-            }}
-          />
           <LogSelect
             label="Workload"
             hideLabel
@@ -715,6 +702,20 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             onChange={(severity) =>
               setSelection((current) => ({ ...current, severity }))
             }
+          />
+          <LogSelect
+            label="Time range"
+            hideLabel
+            value={range}
+            options={ranges}
+            onChange={(value) => {
+              if (value === "custom") {
+                setPickerOpen(true);
+                return;
+              }
+              setCustomRange(null);
+              setRange(value);
+            }}
           />
           <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
             <Button

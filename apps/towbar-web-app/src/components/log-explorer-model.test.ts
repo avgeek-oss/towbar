@@ -151,8 +151,10 @@ void test("logs always show seconds while preserving the user's localized date a
   clearDateTimeLabels();
 });
 
-void test("log buckets keep minute precision for short ranges and bound wider ranges", () => {
+void test("log buckets use 30-second intervals through one hour and bound wider ranges", () => {
   const from = "2026-10-14T00:00:00Z";
-  assert.equal(logBucketSeconds(from, "2026-10-14T01:00:00Z"), 60);
+  assert.equal(logBucketSeconds(from, "2026-10-14T00:15:00Z"), 30);
+  assert.equal(logBucketSeconds(from, "2026-10-14T01:00:00Z"), 30);
+  assert.equal(logBucketSeconds(from, "2026-10-14T06:00:00Z"), 60);
   assert.equal(logBucketSeconds(from, "2026-10-21T00:00:00Z"), 1210);
 });

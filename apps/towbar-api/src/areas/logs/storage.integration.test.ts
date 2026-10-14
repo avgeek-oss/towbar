@@ -206,6 +206,20 @@ void test(
           }
         },
       );
+      await t.test("one-hour summaries use 30-second buckets", async () => {
+        const summary = await withActor(actor("viewer"), () =>
+          summarizeLogs(
+            workspaceId,
+            logFilterSchema.parse({ ...filters, to: now.toISOString() }),
+          ),
+        );
+        assert.equal(summary.buckets.length, 1);
+        assert.equal(
+          Date.parse(summary.buckets[0]!.at),
+          Math.floor(Date.parse(timestamp) / 30000) * 30000,
+        );
+        assert.equal(summary.buckets[0]!.count, 1);
+      });
       await t.test(
         "search finds trace and span IDs within the same authorized scope",
         async () => {
