@@ -3,6 +3,8 @@ import { useId, useState } from "react";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
+import { ComboBox } from "@avgeek-oss/design-system/pickers/combo-box";
+import { ListBox } from "@avgeek-oss/design-system/collections/list-box";
 import {
   Field,
   FieldLabel,
@@ -11,10 +13,12 @@ import {
 import { validLogColumnPath, type CustomLogColumn } from "./log-explorer-model";
 export function LogCustomColumnModal({
   names,
+  paths,
   onAdd,
   onClose,
 }: {
   names: string[];
+  paths: string[];
   onAdd: (column: CustomLogColumn) => void;
   onClose: () => void;
 }) {
@@ -80,19 +84,54 @@ export function LogCustomColumnModal({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor={`${formId}-path`}>Field path</FieldLabel>
-                <Input
-                  id={`${formId}-path`}
-                  required
-                  maxLength={256}
-                  placeholder="meta.username"
-                  value={path}
-                  onChange={(event) => setPath(event.target.value)}
+                <FieldLabel
+                  id={`${formId}-path-label`}
+                  htmlFor={`${formId}-path`}
+                >
+                  Field path
+                </FieldLabel>
+                <ComboBox
+                  aria-labelledby={`${formId}-path-label`}
+                  aria-describedby={`${formId}-path-description`}
+                  allowsCustomValue
+                  isRequired
+                  inputValue={path}
+                  onInputChange={setPath}
+                  selectedKey={paths.includes(path) ? path : null}
+                  onSelectionChange={(key) => {
+                    if (key !== null) setPath(String(key));
+                  }}
+                  defaultItems={paths.map((id) => ({ id }))}
+                  defaultFilter={(text, query) =>
+                    text.toLocaleLowerCase().includes(query.toLocaleLowerCase())
+                  }
                   variant="secondary"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <FieldDescription>
+                >
+                  <ComboBox.InputGroup>
+                    <Input
+                      id={`${formId}-path`}
+                      maxLength={256}
+                      placeholder="meta.username"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <ComboBox.Trigger aria-label="Show field paths" />
+                  </ComboBox.InputGroup>
+                  <ComboBox.Popover>
+                    <ListBox className="max-h-60 overflow-y-auto">
+                      {(item: { id: string }) => (
+                        <ListBox.Item id={item.id} textValue={item.id}>
+                          {item.id}
+                          <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                      )}
+                    </ListBox>
+                  </ComboBox.Popover>
+                </ComboBox>
+                <FieldDescription
+                  id={`${formId}-path-description`}
+                  className="text-xs"
+                >
                   Read a field from the log, its attributes, or its JSON message
                   using dot notation.
                 </FieldDescription>

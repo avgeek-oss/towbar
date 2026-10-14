@@ -142,6 +142,27 @@ function readPath(value: unknown, parts: string[]): unknown {
   }
   return current;
 }
+export function logColumnPaths(records: readonly LogRecord[]): string[] {
+  const paths = new Set(logColumns.map(({ id }) => id));
+  const visit = (value: unknown, prefix = "", depth = 0) => {
+    if (depth >= 8 || paths.size >= 1000) return;
+    const parsed = parsedValue(value);
+    if (parsed === null || typeof parsed !== "object") return;
+    for (const [key, child] of Object.entries(parsed)) {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (!validLogColumnPath(path)) continue;
+      paths.add(path);
+      visit(child, path, depth + 1);
+      if (paths.size >= 1000) break;
+    }
+  };
+  for (const record of records) {
+    visit(record);
+    visit(record.attributes);
+    visit(record.body);
+  }
+  return [...paths].sort();
+}
 export function logColumnValue(record: LogRecord, path: string): string {
   if (!validLogColumnPath(path)) return "";
   const parts = path.split(".");

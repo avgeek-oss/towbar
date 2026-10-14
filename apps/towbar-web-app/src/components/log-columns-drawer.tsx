@@ -17,12 +17,14 @@ export function LogColumnsDrawer({
   columns,
   selected,
   customColumns,
+  fieldPaths,
   onApply,
   onClose,
 }: {
   columns: { id: string; title: string }[];
   selected: string[];
   customColumns: CustomLogColumn[];
+  fieldPaths: string[];
   onApply: (columns: string[], custom: CustomLogColumn[]) => void;
   onClose: () => void;
 }) {
@@ -244,6 +246,15 @@ export function LogColumnsDrawer({
       {creating ? (
         <LogCustomColumnModal
           names={options.map(({ title }) => title)}
+          paths={[
+            ...new Set([
+              ...fieldPaths,
+              ...columns
+                .filter(({ id }) => id.startsWith("attribute:"))
+                .map(({ id }) => id.slice(10)),
+              ...custom.map(({ path }) => path),
+            ]),
+          ].sort()}
           onClose={() => setCreating(false)}
           onAdd={(column) => {
             setCustom((current) => [...current, column]);

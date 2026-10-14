@@ -80,6 +80,7 @@ import {
   type LogCondition,
   type CustomLogColumn,
   logColumnValue,
+  logColumnPaths,
   logTimeWithSeconds,
 } from "./log-explorer-model";
 
@@ -429,6 +430,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         []),
     ]),
   ].sort();
+  const fieldPaths = useMemo(
+    () => logColumnPaths(page?.records ?? []),
+    [page?.records],
+  );
   const availableColumns = [
     ...logColumns,
     ...customColumns,
@@ -624,6 +629,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           columns={availableColumns}
           selected={visibleColumns}
           customColumns={customColumns}
+          fieldPaths={fieldPaths}
           onApply={(next, custom) => {
             setVisibleColumns(next);
             setCustomColumns(custom);

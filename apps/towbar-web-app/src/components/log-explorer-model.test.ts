@@ -18,6 +18,7 @@ import {
   conditionFilters,
   logMatchNeedsValue,
   logColumnValue,
+  logColumnPaths,
   validLogColumnPath,
   reorderLogColumns,
   logDateTime,
@@ -112,6 +113,21 @@ void test("custom columns resolve nested, flattened and JSON-message paths witho
   assert.equal(logColumnValue(record, "request.cached"), "false");
   assert.equal(logColumnValue(record, "request.duration"), "0");
   assert.equal(logColumnValue(record, "users.0.name"), "Alex");
+  const paths = logColumnPaths([record, record]);
+  for (const path of [
+    "severity",
+    "meta.username",
+    "attributes.meta.username",
+    "attributes.http.method",
+    "request.cached",
+    "request.duration",
+    "users.0.name",
+  ]) {
+    assert(paths.includes(path), `Missing suggested path: ${path}`);
+    assert.notEqual(logColumnValue(record, path), "");
+  }
+  assert.equal(paths.length, new Set(paths).size);
+  assert(paths.every(validLogColumnPath));
   assert.equal(logColumnValue(record, "missing.field"), "");
   assert.equal(logColumnValue(record, "constructor.name"), "");
   assert(!validLogColumnPath("meta.username; alert(1)"));
