@@ -769,7 +769,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         ) : null}
       </div>
       <div
-        className="mt-3 mb-3 flex items-center justify-between gap-3 px-4 text-xs text-muted"
+        className="mt-5 mb-3 flex items-center justify-between gap-3 px-4 text-xs text-muted"
         role="status"
       >
         <span>
@@ -797,6 +797,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             dataKey="at"
             type="number"
             scale="time"
+            allowDataOverflow
             domain={[Date.parse(filters.from), Date.parse(filters.to)]}
             ticks={ticks}
             minTickGap={16}

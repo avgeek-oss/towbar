@@ -105,7 +105,7 @@ export function ReadOnlyDataGrid({
         textLight: color(mutedStyle.color),
         accentColor: color(accentStyle.color),
         fontFamily: style.fontFamily,
-        baseFontStyle: "14px",
+        baseFontStyle: "12px",
         headerFontStyle: "500 13px",
       });
     };

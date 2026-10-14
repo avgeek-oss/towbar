@@ -87,8 +87,10 @@ export function LogColumnsDrawer({
       >
         <Drawer.Content placement="right">
           <Drawer.Dialog className="w-full max-w-2xl">
-            <Drawer.Header className="flex items-center gap-2">
-              <Drawer.Heading>Edit columns</Drawer.Heading>
+            <Drawer.Header className="flex flex-row items-center justify-between gap-2 text-left">
+              <Drawer.Heading className="min-w-0 shrink-0">
+                Edit columns
+              </Drawer.Heading>
               <div className="ml-auto flex items-center gap-2">
                 <Button
                   variant="secondary"
@@ -98,7 +100,10 @@ export function LogColumnsDrawer({
                   <HugeiconsIcon icon={Add01Icon} size={18} />
                   <span className="hidden sm:inline">Add custom column</span>
                 </Button>
-                <Drawer.CloseTrigger aria-label="Close columns" />
+                <Drawer.CloseTrigger
+                  className="static shrink-0"
+                  aria-label="Close columns"
+                />
               </div>
             </Drawer.Header>
             <Drawer.Body>
