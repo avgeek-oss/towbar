@@ -155,6 +155,7 @@ export type ServerPreparationContext = {
 };
 
 export type ServerPreparationHooks = {
+  installLogCollector: () => Promise<string>;
   log?: (input: {
     id: ServerPreparationStepId;
     log: string;

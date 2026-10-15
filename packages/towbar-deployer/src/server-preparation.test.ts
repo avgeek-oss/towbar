@@ -59,6 +59,15 @@ void test("records useful results and terminal output for all preparation steps"
     }),
   );
   const result = await prepareServer(preparationContext, {
+    installLogCollector: () => {
+      assert.equal(
+        outputs.length,
+        2,
+        "collector runs after Caddy and before access verification",
+      );
+      assert.equal(events.at(-1)?.id, "installing_log_collector");
+      return Promise.resolve("OTEL Logs Collector installed and enabled");
+    },
     step: (event) => {
       events.push(event);
       return Promise.resolve();
@@ -71,9 +80,9 @@ void test("records useful results and terminal output for all preparation steps"
   assert.equal(closed, true);
   assert.equal(
     events.filter((event) => event.status === "succeeded").length,
-    7,
+    8,
   );
-  assert.equal(logs.size, 7);
+  assert.equal(logs.size, 8);
   assert.match(
     events.find(
       (event) => event.id === "connecting" && event.status === "succeeded",
@@ -120,6 +129,11 @@ void test("retains failure output, redacts secrets, and stops subsequent steps",
   );
   await assert.rejects(
     prepareServer(preparationContext, {
+      installLogCollector: () => {
+        return Promise.reject(
+          new Error("must not run after inspection failure"),
+        );
+      },
       step: (event) => {
         events.push(event);
         return Promise.resolve();
@@ -394,4 +408,43 @@ void test("describes silent SSH preparation failures by step", () => {
     preparationErrorMessage(error, [], "installing_docker"),
     "Docker setup stopped without reporting a reason. Check APT and the Docker service logs on the server, then retry.",
   );
+});
+
+void test("collector failure stops setup after Caddy and remains retryable from its own step", async (t) => {
+  const events: Parameters<ServerPreparationHooks["step"]>[0][] = [];
+  const outputs = ["Ubuntu 24.04 LTS", "Python 3.12.3", "29.0.0", "v2.11.4"];
+  let closed = false;
+  t.mock.method(SshSession, "connect", () =>
+    Promise.resolve({
+      run: () => {
+        assert(
+          outputs.length > 0,
+          "access and verification must not run after collector failure",
+        );
+        return Promise.resolve({ stdout: `${outputs.shift()}\n`, stderr: "" });
+      },
+      close: () => {
+        closed = true;
+        return Promise.resolve();
+      },
+    }),
+  );
+  await assert.rejects(
+    prepareServer(preparationContext, {
+      step: (event) => {
+        events.push(event);
+        return Promise.resolve();
+      },
+      installLogCollector: () =>
+        Promise.reject(new Error("ClickHouse connection refused")),
+    }),
+    (error: unknown) =>
+      error instanceof ServerPreparationError &&
+      error.stepId === "installing_log_collector" &&
+      /ClickHouse connection refused/.test(error.message),
+  );
+  assert.equal(outputs.length, 0);
+  assert.equal(closed, true);
+  assert.equal(events.at(-1)?.id, "installing_log_collector");
+  assert.equal(events.at(-1)?.status, "failed");
 });

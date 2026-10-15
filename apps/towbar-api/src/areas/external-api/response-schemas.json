@@ -20579,13 +20579,14 @@
         "finishedAt": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "id": {
           "anyOf": [
-            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "connecting" },
             { "type": "string", "const": "inspecting" },
             { "type": "string", "const": "installing_prerequisites" },
             { "type": "string", "const": "installing_docker" },
             { "type": "string", "const": "installing_caddy" },
-            { "type": "string", "const": "configuring_access" }
+            { "type": "string", "const": "installing_log_collector" },
+            { "type": "string", "const": "configuring_access" },
+            { "type": "string", "const": "verifying" }
           ]
         },
         "log": { "type": "string" },
@@ -21984,10 +21985,10 @@
             { "type": "string", "const": "blocked" },
             { "type": "string", "const": "succeeded" },
             { "type": "string", "const": "recovered" },
+            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "checking" },
             { "type": "string", "const": "downloading" },
             { "type": "string", "const": "applying" },
-            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "restoring" },
             { "type": "string", "const": "interrupted" }
           ]

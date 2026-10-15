@@ -20,6 +20,10 @@ export const serverPreparationStepDefinitions = [
     title: "Install Caddy",
   },
   {
+    id: "installing_log_collector",
+    title: "Install OTEL Logs Collector",
+  },
+  {
     id: "configuring_access",
     title: "Configure access",
   },

@@ -46,6 +46,8 @@ Choose **Set up server** from the server's Overview or **Server Setup** page. Th
 
 Overview shows a setup prompt before setup starts or when a failed attempt needs a retry. The full checklist and recorded output remain available under **Server Setup**, next to Overview in the server sidebar. A yellow warning marks a server that needs setup; a spinner marks queued or running setup. If setup fails, the failed step opens with its details so you can resolve the issue and retry.
 
+When ClickHouse is configured, setup installs and enables the OTEL Logs Collector in its own prerequisite step immediately after Caddy. Without ClickHouse, setup records the skip reason and continues. An explicitly disabled collector stays disabled. See [Centralized logs](/docs/operate/centralized-logs) for storage requirements and collection status.
+
 After setup succeeds, Towbar immediately queues a health check so capacity and workload status do not wait for the next scheduled check.
 
 Towbar reuses compatible installations. It does not remove conflicting packages or overwrite an unmanaged Caddy binary. If a step fails, read its output and error before changing the host. Retry after resolving the conflict; use a fresh host when ownership of existing services is unclear.

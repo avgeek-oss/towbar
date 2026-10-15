@@ -389,6 +389,43 @@ export async function prepareServer(
         `Caddy ${output} is running and enabled at boot. Created /etc/caddy and /etc/caddy/towbar. Used the existing Caddy binary or installed the signed upstream package.`,
       timeoutMs: 15 * 60_000,
     });
+    await hooks.step({
+      id: "installing_log_collector",
+      status: "running",
+      message: "Installing OTEL Logs Collector when ClickHouse is configured",
+    });
+    try {
+      const message = await hooks.installLogCollector();
+      await stepLog("installing_log_collector").append(
+        "stdout",
+        `${message}\n`,
+      );
+      await stepLog("installing_log_collector").finish();
+      await hooks.step({
+        id: "installing_log_collector",
+        status: "succeeded",
+        message,
+      });
+    } catch (error) {
+      const message = preparationErrorMessage(
+        error,
+        sensitiveValues,
+        "installing_log_collector",
+      );
+      await stepLog("installing_log_collector").append(
+        "stderr",
+        `${message}\n`,
+      );
+      await stepLog("installing_log_collector").finish();
+      await hooks.step({
+        id: "installing_log_collector",
+        status: "failed",
+        message,
+      });
+      throw new ServerPreparationError("installing_log_collector", message, {
+        cause: error,
+      });
+    }
     await runPreparationStep({
       args: [context.config.ssh.username],
       id: "configuring_access",

@@ -50,7 +50,7 @@ export function PrepareServerButton(
       confirm={{
         actionLabel,
         description:
-          "Towbar will connect with the trusted SSH host key, install or validate Docker Engine, Caddy, and Python, then verify the host. Existing conflicting services are not removed automatically.",
+          "Towbar will connect with the trusted SSH host key, install or validate Docker Engine, Caddy, and Python, enable the OTEL Logs Collector when ClickHouse is configured, then verify the host. Existing conflicting services are not removed automatically.",
         title:
           props.setupStatus === "failed"
             ? "Retry server setup?"

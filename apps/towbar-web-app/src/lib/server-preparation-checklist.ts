@@ -44,6 +44,13 @@ const checklistSteps = [
       "Install or validate the reverse proxy and required TLS modules.",
   },
   {
+    id: "installing_log_collector",
+    group: "prerequisites",
+    title: "OTEL Logs Collector",
+    description:
+      "Install and enable log collection when ClickHouse is configured.",
+  },
+  {
     id: "configuring_access",
     group: "prerequisites",
     title: "Deployment access",
@@ -75,20 +82,27 @@ export function preparationChecklist(
       : latest;
   const historyUnavailable =
     setupStatus === "ready" && !preparation?.steps.length;
-  const steps = checklistSteps.map((definition) => {
-    const recorded = preparation?.steps.find(
-      (step) => step.id === definition.id,
-    );
-    return {
-      ...definition,
-      status: recorded?.status ?? "waiting",
-      message: recorded?.message ?? null,
-      log: recorded?.log ?? "",
-      logTruncated: recorded?.logTruncated ?? false,
-      startedAt: recorded?.startedAt ?? null,
-      finishedAt: recorded?.finishedAt ?? null,
-    } satisfies ServerPreparationStep & typeof definition;
-  });
+  const steps = checklistSteps
+    .filter(
+      (definition) =>
+        definition.id !== "installing_log_collector" ||
+        !preparation ||
+        preparation.steps.some((step) => step.id === definition.id),
+    )
+    .map((definition) => {
+      const recorded = preparation?.steps.find(
+        (step) => step.id === definition.id,
+      );
+      return {
+        ...definition,
+        status: recorded?.status ?? "waiting",
+        message: recorded?.message ?? null,
+        log: recorded?.log ?? "",
+        logTruncated: recorded?.logTruncated ?? false,
+        startedAt: recorded?.startedAt ?? null,
+        finishedAt: recorded?.finishedAt ?? null,
+      } satisfies ServerPreparationStep & typeof definition;
+    });
   const completed = steps.filter((step) => step.status === "succeeded").length;
   return {
     preparation,

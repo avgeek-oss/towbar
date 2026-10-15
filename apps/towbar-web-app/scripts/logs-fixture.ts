@@ -13,6 +13,7 @@ type Workload = { id: string; name: string; serverId: string };
 export function createLogsFixture(
   workloads: Workload[],
   getUser: () => TowbarUser | null,
+  preparedCollector: (serverId: string) => boolean = () => false,
 ) {
   const recordAt = (
     index: number,
@@ -177,6 +178,7 @@ export function createLogsFixture(
     );
     records = [...added, ...records].slice(0, 100000);
   };
+  const explicitCollectorChoices = new Set<string>();
   const collectors = new Map<string, LogCollectionStatus>();
   const json = (response: ServerResponse, status: number, data: unknown) => {
     response.writeHead(status, {
@@ -225,7 +227,8 @@ export function createLogsFixture(
     if (server) {
       const serverId = server[1]!;
       const installed =
-        process.env.TOWBAR_FIXTURE_LOG_COLLECTOR_STATE !== "not_installed";
+        process.env.TOWBAR_FIXTURE_LOG_COLLECTOR_STATE !== "not_installed" ||
+        (preparedCollector(serverId) && storage().state === "ready");
       const item =
         collectors.get(serverId) ??
         ({
@@ -242,6 +245,22 @@ export function createLogsFixture(
           droppedRecords: 0,
           errorMessage: null,
         } satisfies LogCollectionStatus);
+      if (
+        installed &&
+        !explicitCollectorChoices.has(serverId) &&
+        item.desiredState === "disabled"
+      ) {
+        Object.assign(item, {
+          desiredState: "enabled",
+          status: "collecting",
+          generation: randomUUID(),
+          version: "0.162.0",
+          lastReportAt: new Date().toISOString(),
+          lastIngestedAt: records[0]!.ingestedAt,
+          supportedContainers: 6,
+          unsupportedContainers: 1,
+        });
+      }
       if (request.method === "PUT") {
         if (getUser()?.workspaceRole !== "admin") {
           json(response, 403, {
@@ -254,6 +273,7 @@ export function createLogsFixture(
         const input = JSON.parse(Buffer.concat(parts).toString()) as {
           enabled: boolean;
         };
+        explicitCollectorChoices.add(serverId);
         item.desiredState = input.enabled ? "enabled" : "disabled";
         item.status = input.enabled ? "collecting" : "disabled";
         if (input.enabled) {

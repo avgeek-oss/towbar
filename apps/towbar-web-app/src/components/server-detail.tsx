@@ -51,6 +51,7 @@ import { useEffect, useState } from "react";
 import type {
   App,
   MonitoringAgentStatus,
+  LogCollectionStatus,
   OrphanItem,
   Resource,
   ResourceOperation,
@@ -133,6 +134,10 @@ export function ServerDetail() {
   );
   const monitoring = useApiQuery<{ agent: MonitoringAgentStatus }>(
     `/v1/core/servers/${serverId}/monitoring`,
+    5_000,
+  );
+  const collector = useApiQuery<LogCollectionStatus>(
+    `/v1/core/servers/${serverId}/log-collection`,
     5_000,
   );
   const keys = useApiQuery<{ hostKeys: { id: string }[] }>(
@@ -633,6 +638,15 @@ export function ServerDetail() {
                     {
                       value: "logs-collection",
                       label: "OTEL Logs Collector",
+                      badge:
+                        collector.data?.status === "collecting" ? (
+                          <span
+                            role="img"
+                            aria-label="OTEL Logs Collector connected"
+                            title="OTEL Logs Collector connected"
+                            className="block size-1.5 rounded-full bg-success-soft-foreground"
+                          />
+                        ) : undefined,
                       icon: (
                         <Image
                           alt=""

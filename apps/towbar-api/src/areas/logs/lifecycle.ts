@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { actorAllows } from "@workspace/towbar-access";
+import { and, eq, inArray, isNull, notExists } from "drizzle-orm";
 import {
   decryptCredential,
   encryptCredential,
@@ -10,6 +11,7 @@ import {
 import {
   logCollectorRequests,
   logCollectors,
+  serverPreparations,
   servers,
   sshHostKeys,
 } from "@workspace/towbar-database/schema";
@@ -26,6 +28,7 @@ import {
   auditAttribution,
   authorizeQueuedEffect,
   captureQueuedActor,
+  withActor,
 } from "../auth/actor-context.js";
 import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { resolveServerCredentials } from "../secrets/store.js";
@@ -90,6 +93,13 @@ export async function admitLogCollection(input: {
   enabled: boolean;
   idempotencyKey: string;
 }) {
+  return admitCollector(input);
+}
+
+async function admitCollector(
+  input: Parameters<typeof admitLogCollection>[0],
+  preparationId?: string,
+) {
   const { requestedByActor } = captureQueuedActor(input.workspaceId, [
     "server.collectLogs",
   ]);
@@ -144,8 +154,25 @@ export async function admitLogCollection(input: {
       )
       .for("update");
     if (!server) throw notFound("Server");
-    if (input.enabled && !server.preparedAt)
+    if (preparationId) {
+      const [preparation] = await tx
+        .select()
+        .from(serverPreparations)
+        .where(
+          and(
+            eq(serverPreparations.id, preparationId),
+            eq(serverPreparations.serverId, server.id),
+            eq(serverPreparations.status, "running"),
+            eq(serverPreparations.configDigest, server.configDigest),
+          ),
+        );
+      if (!preparation)
+        throw conflict(
+          "Server setup is no longer active or its configuration changed.",
+        );
+    } else if (input.enabled && !server.preparedAt) {
       throw conflict("Prepare this server before installing the collector.");
+    }
     const [current] = await tx
       .select()
       .from(logCollectors)
@@ -169,6 +196,8 @@ export async function admitLogCollection(input: {
         );
       return true;
     }
+    if (preparationId && current?.desiredState === "disabled")
+      throw conflict("Log collection was disabled during server setup.");
     if (current && ["queued", "installing"].includes(current.status))
       throw conflict("A log collector operation is already in progress.");
     const token = input.enabled
@@ -229,6 +258,87 @@ export async function admitLogCollection(input: {
   });
   const current = await getLogCollection(input.serverId, input.workspaceId);
   return { ...current, replayed };
+}
+
+export async function getPreparationLogCollectorContext(preparationId: string) {
+  const db = getTowbarDatabase();
+  const [row] = await db
+    .select({ preparation: serverPreparations, server: servers })
+    .from(serverPreparations)
+    .innerJoin(servers, eq(servers.id, serverPreparations.serverId))
+    .where(
+      and(eq(serverPreparations.id, preparationId), isNull(servers.archivedAt)),
+    );
+  if (
+    !row ||
+    row.preparation.status !== "running" ||
+    row.preparation.configDigest !== row.server.configDigest
+  )
+    throw conflict(
+      "Server setup is no longer active or its configuration changed.",
+    );
+  if (
+    !row.preparation.steps.some(
+      (step) => step.id === "installing_caddy" && step.status === "succeeded",
+    )
+  )
+    throw conflict(
+      "Install Caddy before installing the log collector during setup.",
+    );
+  const actor = await authorizeQueuedEffect(
+    row.preparation.requestedByActor,
+    row.server.workspaceId,
+    ["server.prepare"],
+  );
+  if (!getLogConfiguration())
+    return {
+      context: null,
+      message:
+        "Skipped: connect ClickHouse in config.yml to enable log collection. You can install the collector later in Settings → OTEL Logs Collector.",
+    };
+  if (!actorAllows(actor, ["server.collectLogs"], row.server.workspaceId))
+    return {
+      context: null,
+      message:
+        "Skipped: the requesting account cannot enable log collection. An administrator can enable it in Settings → OTEL Logs Collector.",
+    };
+  const [current] = await db
+    .select()
+    .from(logCollectors)
+    .where(eq(logCollectors.serverId, row.server.id));
+  if (current?.desiredState === "disabled")
+    return {
+      context: null,
+      message:
+        "Skipped: log collection was explicitly disabled for this server. Enable it in Settings → OTEL Logs Collector when needed.",
+    };
+  const result = await withActor(actor, () =>
+    admitCollector(
+      {
+        serverId: row.server.id,
+        workspaceId: row.server.workspaceId,
+        enabled: true,
+        idempotencyKey: `server-setup:${preparationId}`,
+      },
+      preparationId,
+    ),
+  );
+  if (!result.generation)
+    throw conflict("The collector installation has no active generation.");
+  if (result.status === "failed")
+    throw conflict(
+      "Retry server setup to retry the failed collector installation.",
+    );
+  const context = await getLogCollectorExecutionContext(
+    row.server.id,
+    result.generation,
+  );
+  return {
+    context,
+    message: context
+      ? "OTEL Logs Collector is installed and enabled. Waiting for the first log from an eligible container."
+      : "OTEL Logs Collector is already installed and enabled.",
+  };
 }
 
 export async function getLogCollectorExecutionContext(
@@ -390,7 +500,22 @@ export async function recoverLogCollectorOperations() {
       generation: logCollectors.generation,
     })
     .from(logCollectors)
-    .where(inArray(logCollectors.status, ["queued", "installing"]))
+    .where(
+      and(
+        inArray(logCollectors.status, ["queued", "installing"]),
+        notExists(
+          db
+            .select({ id: serverPreparations.id })
+            .from(serverPreparations)
+            .where(
+              and(
+                eq(serverPreparations.serverId, logCollectors.serverId),
+                inArray(serverPreparations.status, ["queued", "running"]),
+              ),
+            ),
+        ),
+      ),
+    )
     .limit(100);
   for (const operation of queued) {
     const result = await enqueueLogCollector(operation);

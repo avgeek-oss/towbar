@@ -11,6 +11,7 @@ import {
   getServerPreparationExecutionContext,
   updateServerPreparation,
 } from "../../../areas/servers/preparations.js";
+import { getPreparationLogCollectorContext } from "../../../areas/logs/lifecycle.js";
 import { readJson, readUuidPathParameter } from "../../../http/requests.js";
 
 const preparationId = (value: string) =>
@@ -32,7 +33,20 @@ const stepSchema = z
     title: z.string().trim().min(1).max(100),
   })
   .strict();
-const stepsSchema = z.array(stepSchema).length(stepIds.length);
+const stepsSchema = z
+  .array(stepSchema)
+  .min(stepIds.length - 1)
+  .max(stepIds.length)
+  .refine(
+    (steps) =>
+      new Set(steps.map((step) => step.id)).size === steps.length &&
+      stepIds.every(
+        (id) =>
+          id === "installing_log_collector" ||
+          steps.some((step) => step.id === id),
+      ),
+    "Every server preparation step must appear once",
+  );
 const eventSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("running"), steps: stepsSchema }).strict(),
   z
@@ -62,6 +76,15 @@ internalServerPreparationRoutes.get(
         preparationId(context.req.param("preparationId")),
       ),
     }),
+);
+internalServerPreparationRoutes.post(
+  "/:preparationId/log-collector",
+  async (context) =>
+    context.json(
+      await getPreparationLogCollectorContext(
+        preparationId(context.req.param("preparationId")),
+      ),
+    ),
 );
 internalServerPreparationRoutes.post(
   "/:preparationId/events",

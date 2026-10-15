@@ -100,12 +100,17 @@ prove that any server is collecting logs.
 
 ## Enable a server collector
 
-1. Prepare the server.
-2. Open **Settings → OTEL Logs Collector** on the server. This page remains visible
-   without ClickHouse and shows any missing configuration or connection error.
-3. Once ClickHouse is ready, choose **Install & Enable Log Collection**. Towbar queues installation over the server's
-   configured SSH connection using its trusted host keys.
-4. Inspect the status, supported container count, backlog, and last accepted
+1. Configure ClickHouse, then prepare the server. Setup automatically installs and
+   enables the **OTEL Logs Collector** after Caddy using the configured SSH connection
+   and trusted host keys. Installation has its own prerequisite step and failure output.
+2. Open **Settings → OTEL Logs Collector** to inspect the collector. This page remains
+   visible without ClickHouse and shows missing configuration or connection errors.
+   The green dot appears when the collector is reporting and ingesting logs.
+3. If ClickHouse was not configured during setup, choose **Install & Enable Log Collection**
+   once it is ready. Existing prepared servers also use this action. Setup preserves
+   explicitly disabled collection. Scoped API and MCP callers need `server.collectLogs`
+   for automatic installation; `server.prepare` alone still prepares the server.
+4. Inspect container eligibility, backlog, and the last accepted
    record. **Waiting** means setup completed without an accepted log record yet;
    it is not proof of ingestion.
 
