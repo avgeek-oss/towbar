@@ -108,8 +108,11 @@ export function LogCollectorSettings({
               <div>
                 <dt className="text-muted">Container coverage</dt>
                 <dd>
-                  {item.supportedContainers} supported ·{" "}
-                  {item.unsupportedContainers} unsupported
+                  {item.supportedContainers === 0
+                    ? "No supported containers"
+                    : item.unsupportedContainers > 0
+                      ? `${item.supportedContainers} of ${item.supportedContainers + item.unsupportedContainers} containers eligible`
+                      : `${item.supportedContainers} ${item.supportedContainers === 1 ? "container" : "containers"} eligible`}
                 </dd>
               </div>
               <div>
@@ -143,9 +146,12 @@ export function LogCollectorSettings({
                 <Alert.Indicator className="size-5 p-0" />
                 <Alert.Content>
                   <Alert.Description>
-                    Some managed containers cannot be collected. Check the
-                    Docker json-file driver, workload ownership, and the
-                    512-container limit.
+                    Some managed containers are not eligible for log collection.
+                    Containers must use Docker’s json-file logging driver. Each
+                    server collector checks up to 512 Towbar-managed containers,
+                    including stopped containers; additional containers are
+                    skipped. Check the logging driver and remove unused
+                    containers through server cleanup if this limit is reached.
                   </Alert.Description>
                 </Alert.Content>
               </Alert>
