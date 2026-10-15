@@ -5,6 +5,18 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.49] - 2026-10-15
+
+### Added
+
+- Keep log search, workload/server, environment, level, time range, and modal filters in the URL so queries survive reloads and can be bookmarked or shared. Preserve browser history and query undo.
+- Show the approximate matching total beside the loaded log count, including newly received live records.
+
+### Fixed
+
+- Localize record timestamps in the log table, including live records and large result sets, while retaining second precision.
+- Resume the live trail from the last received cursor after pausing instead of replaying from the original search position.
+
 ## [2.0.48] - 2026-10-15
 
 ### Changed

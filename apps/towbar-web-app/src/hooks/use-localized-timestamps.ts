@@ -53,7 +53,11 @@ export function useLocalizedTimestamps(values: Array<string | number>) {
       setError(undefined);
       return;
     }
-    void requestLabels(timestamps)
+    const load = async () => {
+      for (let offset = 0; active && offset < timestamps.length; offset += 2000)
+        await requestLabels(timestamps.slice(offset, offset + 2000));
+    };
+    void load()
       .then(() => {
         if (active) setError(undefined);
       })

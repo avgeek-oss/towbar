@@ -3,14 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignLeftIcon,
   PauseIcon,
@@ -58,6 +51,7 @@ import {
 } from "@/hooks/use-log-workload-icons";
 import { useLogTablePreferences } from "@/hooks/use-log-table-preferences";
 import { useLogFollow } from "@/hooks/use-log-follow";
+import { useLogQuery } from "@/hooks/use-log-query";
 import { useLocalizedTimestamps } from "@/hooks/use-localized-timestamps";
 import { api } from "@/lib/api";
 import {
@@ -73,11 +67,7 @@ import { CloudProviderLogo } from "./cloud-provider-logo";
 import { resourceImageBrand } from "./resource-image-brand";
 import { LogSelect, type LogOption } from "./log-select";
 import { LogFilterDialog } from "./log-filter-dialog";
-import {
-  initialLogQueryHistory,
-  logQueryHistoryReducer,
-  isLogQueryUndo,
-} from "./log-query-history";
+import { isLogQueryUndo } from "./log-query-history";
 import { LogColumnsDrawer } from "./log-columns-drawer";
 import { LogJsonPanel } from "./log-json-panel";
 import { logJsonPresentation, type LogJsonField } from "./log-json-model";
@@ -184,12 +174,9 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     apps.data?.apps,
     resources.data?.resources,
   );
-  const [search, setSearch] = useState("");
-  const [queryHistory, changeQuery] = useReducer(
-    logQueryHistoryReducer,
-    initialLogQueryHistory,
-  );
-  const { range, customRange, selection, conditions, match } =
+  const queryHistory = useLogQuery();
+  const { changeQuery } = queryHistory;
+  const { search, range, customRange, selection, conditions, match } =
     queryHistory.current;
   const [pickerOpen, setPickerOpen] = useState(false),
     [filterOpen, setFilterOpen] = useState(false),
@@ -201,6 +188,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
   const [summary, setSummary] = useState<LogSummary | null>(null),
     [selected, setSelected] = useState<LogRecord | null>(null);
   const [following, setFollowing] = useState(false),
+    [liveRecords, setLiveRecords] = useState(0),
     [busy, setBusy] = useState(false),
     [loadingMore, setLoadingMore] = useState(false),
     [error, setError] = useState<string | null>(null);
@@ -223,6 +211,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     requestedCursor.current = null;
     setLoadingMore(false);
     setBusy(true);
+    setLiveRecords(0);
     setError(null);
     try {
       const [result, counts] = await Promise.all([
@@ -337,11 +326,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     const clear = () => {
       revision.current++;
       setFollowing(false);
+      setLiveRecords(0);
       setPage(null);
       setSummary(null);
       setCatalogueKeys([]);
-      changeQuery({ type: "clear" });
-      setSearch("");
       setPickerOpen(false);
       setSelected(null);
       setFilterOpen(false);
@@ -372,7 +360,14 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     };
     window.addEventListener("keydown", undo);
     return () => window.removeEventListener("keydown", undo);
-  }, [queryHistory.past.length, pickerOpen, filterOpen, columnsOpen, selected]);
+  }, [
+    queryHistory.past.length,
+    pickerOpen,
+    filterOpen,
+    columnsOpen,
+    selected,
+    changeQuery,
+  ]);
   useLogFollow({
     enabled: following,
     cursor: page?.followCursor,
@@ -383,6 +378,13 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         setError("Log access changed. Search again to resume the live trail.");
         return;
       }
+      const existing = new Set(page?.records.map((record) => record.eventId));
+      const added = new Set(
+        records
+          .filter((record) => !existing.has(record.eventId))
+          .map((record) => record.eventId),
+      );
+      setLiveRecords((current) => current + added.size);
       setPage((current) =>
         current
           ? {
@@ -433,16 +435,17 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     }
     return ranges;
   }, [filters]);
-  const { error: localizationError } = useLocalizedTimestamps(
-    filters
+  const { error: localizationError } = useLocalizedTimestamps([
+    ...(page?.records.map((record) => record.timestamp) ?? []),
+    ...(filters
       ? [
           filters.from,
           filters.to,
           ...ticks,
           ...[...bucketRanges.values()].flatMap(({ from, to }) => [from, to]),
         ]
-      : [],
-  );
+      : []),
+  ]);
   const attributeKeys = [
     ...new Set([
       ...catalogueKeys,
@@ -685,7 +688,13 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               className="min-w-0 flex-1"
               aria-label="Search logs"
               value={search}
-              onChange={setSearch}
+              onChange={(search) =>
+                changeQuery({
+                  type: "change",
+                  patch: { search },
+                  record: false,
+                })
+              }
               variant="secondary"
             >
               <SearchField.Group className="h-11 lg:h-9">
@@ -736,9 +745,13 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 className="hidden size-9 lg:inline-flex"
                 isIconOnly
                 aria-label={following ? "Pause live trail" : "Live trail"}
+                aria-pressed={following}
                 variant="primary"
                 isDisabled={!page || busy || loadingMore}
-                onPress={() => setFollowing((value) => !value)}
+                onPress={() => {
+                  setError(null);
+                  setFollowing((value) => !value);
+                }}
               >
                 <HugeiconsIcon
                   icon={following ? PauseIcon : PlayIcon}
@@ -839,6 +852,9 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           {busy
             ? "Searching…"
             : `${page?.records.length ?? 0} ${page?.records.length === 1 ? "record" : "records"} shown`}
+          {!busy && summary
+            ? ` · ~${summary.buckets.reduce((total, bucket) => total + bucket.count, liveRecords)} records found`
+            : ""}
           {following ? " · Live trail" : ""}
         </span>
         {filters ? (
@@ -1058,7 +1074,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             setSelected(null);
           }}
           onSearch={(text) => {
-            setSearch(text);
+            changeQuery({ type: "change", patch: { search: text } });
             setSelected(null);
           }}
           onClose={() => setSelected(null)}
