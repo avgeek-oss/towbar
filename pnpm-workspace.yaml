@@ -32,6 +32,7 @@ overrides:
   "ws@8.19.0": 8.21.0
 
 allowBuilds:
+  "@avgeek-oss/design-system@https://codeload.github.com/avgeek-oss/oss-design-system/tar.gz/3761ed6e5fa2e0ec3958ff7bd98b5df787c7f111": true
   "@swc/core": true
   cpu-features: false
   esbuild: true

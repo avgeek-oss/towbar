@@ -23,6 +23,7 @@ import {
 } from "@workspace/towbar-core/date-time";
 
 import { deploymentStates } from "@workspace/towbar-core/temporal";
+import type { LogTablePreferences } from "@workspace/towbar-core";
 import { deploymentEnvironments } from "@workspace/towbar-core/preview";
 
 import type {
@@ -187,6 +188,9 @@ export const users = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: varchar("email", { length: 320 }).notNull(),
     displayName: varchar("display_name", { length: 120 }).notNull(),
+    logTablePreferences: jsonb(
+      "log_table_preferences",
+    ).$type<LogTablePreferences>(),
     dateTimePreferences: jsonb("date_time_preferences")
       .$type<DateTimePreferences>()
       .default(defaultDateTimePreferences)

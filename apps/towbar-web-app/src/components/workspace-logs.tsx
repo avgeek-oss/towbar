@@ -3,7 +3,14 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import {
   AlignLeftIcon,
   PauseIcon,
@@ -44,12 +51,12 @@ import {
 } from "@workspace/towbar-web-client";
 import { DashboardPage } from "./page-parts";
 import { MonitoringRangePicker } from "./monitoring-range-picker";
-import type { CustomMonitoringRange } from "./monitoring-range";
 import { useApiQuery } from "@/hooks/use-api-query";
 import {
   useLogWorkloadIcons,
   fallbackLogWorkloadIcon,
 } from "@/hooks/use-log-workload-icons";
+import { useLogTablePreferences } from "@/hooks/use-log-table-preferences";
 import { useLogFollow } from "@/hooks/use-log-follow";
 import { useLocalizedTimestamps } from "@/hooks/use-localized-timestamps";
 import { api } from "@/lib/api";
@@ -66,13 +73,17 @@ import { CloudProviderLogo } from "./cloud-provider-logo";
 import { resourceImageBrand } from "./resource-image-brand";
 import { LogSelect, type LogOption } from "./log-select";
 import { LogFilterDialog } from "./log-filter-dialog";
+import {
+  initialLogQueryHistory,
+  logQueryHistoryReducer,
+  isLogQueryUndo,
+} from "./log-query-history";
 import { LogColumnsDrawer } from "./log-columns-drawer";
 import { LogJsonPanel } from "./log-json-panel";
 import type { LogJsonField } from "./log-json-model";
 import {
   builtInLogFields,
   conditionFilters,
-  defaultLogColumns,
   logColumns,
   logDateTime,
   logLevelColors,
@@ -81,7 +92,6 @@ import {
   logRangeLabel,
   logAxisLabel,
   type LogCondition,
-  type CustomLogColumn,
   logColumnValue,
   logColumnPaths,
   logTimeWithSeconds,
@@ -174,22 +184,18 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     apps.data?.apps,
     resources.data?.resources,
   );
-  const [range, setRange] = useState("60"),
-    [search, setSearch] = useState("");
-  const [customRange, setCustomRange] = useState<CustomMonitoringRange | null>(
-    null,
+  const [search, setSearch] = useState("");
+  const [queryHistory, changeQuery] = useReducer(
+    logQueryHistoryReducer,
+    initialLogQueryHistory,
   );
+  const { range, customRange, selection, conditions, match } =
+    queryHistory.current;
   const [pickerOpen, setPickerOpen] = useState(false),
     [filterOpen, setFilterOpen] = useState(false),
     [columnsOpen, setColumnsOpen] = useState(false);
-  const [conditions, setConditions] = useState<LogCondition[]>([]);
-  const [match, setMatch] = useState<"and" | "or">("and");
-  const [customColumns, setCustomColumns] = useState<CustomLogColumn[]>([]);
-  const [selection, setSelection] = useState({
-    workload: "all",
-    environment: "production",
-    severity: "all",
-  });
+  const table = useLogTablePreferences(user?.id);
+  const { customColumns, visibleColumns, columnWidths } = table.preferences;
   const [filters, setFilters] = useState<LogFilter | null>(null),
     [page, setPage] = useState<LogQueryResult | null>(null);
   const [summary, setSummary] = useState<LogSummary | null>(null),
@@ -198,7 +204,6 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
     [busy, setBusy] = useState(false),
     [loadingMore, setLoadingMore] = useState(false),
     [error, setError] = useState<string | null>(null);
-  const [visibleColumns, setVisibleColumns] = useState(defaultLogColumns);
   const [catalogueKeys, setCatalogueKeys] = useState<string[]>([]);
   const historyFull = useMemo(
     () =>
@@ -335,10 +340,9 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       setPage(null);
       setSummary(null);
       setCatalogueKeys([]);
-      setConditions([]);
-      setMatch("and");
-      setCustomColumns([]);
-      setVisibleColumns(defaultLogColumns);
+      changeQuery({ type: "clear" });
+      setSearch("");
+      setPickerOpen(false);
       setSelected(null);
       setFilterOpen(false);
       setColumnsOpen(false);
@@ -349,7 +353,26 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       clear();
       window.removeEventListener("towbar:clear-private-data", clear);
     };
-  }, [user?.workspaceRole]);
+  }, [user?.id, user?.workspaceRole]);
+  useEffect(() => {
+    const undo = (event: KeyboardEvent) => {
+      if (
+        !queryHistory.past.length ||
+        pickerOpen ||
+        filterOpen ||
+        columnsOpen ||
+        selected ||
+        !isLogQueryUndo(event)
+      )
+        return;
+      event.preventDefault();
+      revision.current++;
+      setFollowing(false);
+      changeQuery({ type: "undo" });
+    };
+    window.addEventListener("keydown", undo);
+    return () => window.removeEventListener("keydown", undo);
+  }, [queryHistory.past.length, pickerOpen, filterOpen, columnsOpen, selected]);
   useLogFollow({
     enabled: following,
     cursor: page?.followCursor,
@@ -446,14 +469,14 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
       width: 180,
     })),
   ];
-  const columns = visibleColumns.map(
-    (id) =>
-      availableColumns.find((column) => column.id === id) ?? {
-        id,
-        title: id.slice(10),
-        width: 180,
-      },
-  );
+  const columns = visibleColumns.map((id) => ({
+    ...(availableColumns.find((column) => column.id === id) ?? {
+      id,
+      title: id.slice(10),
+      width: 180,
+    }),
+    ...(columnWidths[id] === undefined ? {} : { width: columnWidths[id] }),
+  }));
   const rows =
     page?.records.map((record) => ({
       ...Object.fromEntries(
@@ -609,8 +632,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           }
           retentionDays={retentionDays}
           onApply={(value) => {
-            setCustomRange(value);
-            setRange("custom");
+            changeQuery({
+              type: "change",
+              patch: { customRange: value, range: "custom" },
+            });
             setPickerOpen(false);
           }}
           onClose={() => setPickerOpen(false)}
@@ -623,8 +648,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           values={filterValues}
           match={match}
           onApply={(next, combination) => {
-            setConditions(next);
-            setMatch(combination);
+            changeQuery({
+              type: "change",
+              patch: { conditions: next, match: combination },
+            });
           }}
           onClose={() => setFilterOpen(false)}
         />
@@ -636,8 +663,11 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           customColumns={customColumns}
           fieldPaths={fieldPaths}
           onApply={(next, custom) => {
-            setVisibleColumns(next);
-            setCustomColumns(custom);
+            table.update((current) => ({
+              ...current,
+              visibleColumns: next,
+              customColumns: custom,
+            }));
           }}
           onClose={() => setColumnsOpen(false)}
         />
@@ -675,7 +705,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             value={selection.workload}
             options={workloadOptions}
             onChange={(workload) =>
-              setSelection((current) => ({ ...current, workload }))
+              changeQuery({
+                type: "change",
+                patch: { selection: { ...selection, workload } },
+              })
             }
           />
           <LogSelect
@@ -696,7 +729,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               },
             ]}
             onChange={(environment) =>
-              setSelection((current) => ({ ...current, environment }))
+              changeQuery({
+                type: "change",
+                patch: { selection: { ...selection, environment } },
+              })
             }
           />
           <LogSelect
@@ -714,7 +750,10 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 })),
             ]}
             onChange={(severity) =>
-              setSelection((current) => ({ ...current, severity }))
+              changeQuery({
+                type: "change",
+                patch: { selection: { ...selection, severity } },
+              })
             }
           />
           <LogSelect
@@ -722,13 +761,18 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             hideLabel
             value={range}
             options={ranges}
+            onReselect={(value) => {
+              if (value === "custom") setPickerOpen(true);
+            }}
             onChange={(value) => {
               if (value === "custom") {
                 setPickerOpen(true);
                 return;
               }
-              setCustomRange(null);
-              setRange(value);
+              changeQuery({
+                type: "change",
+                patch: { customRange: null, range: value },
+              });
             }}
           />
           <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
@@ -848,54 +892,85 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           <LineChart.Selection
             domain={[Date.parse(filters.from), Date.parse(filters.to)]}
             onSelect={(start, end) => {
-              setCustomRange({
-                startAt: new Date(start).toISOString(),
-                endAt: new Date(end).toISOString(),
+              changeQuery({
+                type: "change",
+                patch: {
+                  range: "custom",
+                  customRange: {
+                    startAt: new Date(start).toISOString(),
+                    endAt: new Date(end).toISOString(),
+                  },
+                },
               });
-              setRange("custom");
             }}
           />
         </LineChart>
       ) : (
         <div className="h-3" />
       )}
-      <LogGrid
-        label="Centralized log records"
-        columns={columns}
-        rows={rows}
-        square
-        cellIcons={{
-          workloadName:
-            page?.records.map(
-              (record) =>
-                workloadIcons[record.workloadId] ?? fallbackLogWorkloadIcon,
-            ) ?? [],
-        }}
-        severityColors={logLevelColors}
-        severityBackgrounds={logLevelBackgrounds}
-        onEndReached={() => {
-          void loadMore();
-        }}
-        onRowActivated={(index) => setSelected(page?.records[index] ?? null)}
-        leadingHeader={
-          <Tooltip>
-            <Tooltip.Trigger<"button">
-              aria-label="Edit columns"
-              className="inline-flex h-full w-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
-              render={(props) => (
-                <button
-                  {...props}
-                  type="button"
-                  onClick={() => setColumnsOpen(true)}
-                />
-              )}
-            >
-              <HugeiconsIcon icon={Settings02Icon} size={16} />
-            </Tooltip.Trigger>
-            <Tooltip.Content placement="top">Edit columns</Tooltip.Content>
-          </Tooltip>
-        }
-      />
+      {table.error ? (
+        <div className="px-4 py-3">
+          <QueryError message={table.error} />
+          <Button variant="secondary" onPress={table.reload}>
+            Retry loading columns
+          </Button>
+        </div>
+      ) : !table.ready ? (
+        <QueryLoading />
+      ) : (
+        <LogGrid
+          label="Centralized log records"
+          columns={columns}
+          onColumnResize={(id, width) =>
+            table.update(
+              (current) => ({
+                ...current,
+                columnWidths: { ...current.columnWidths, [id]: width },
+              }),
+              false,
+            )
+          }
+          onColumnResizeEnd={(id, width) =>
+            table.update((current) => ({
+              ...current,
+              columnWidths: { ...current.columnWidths, [id]: width },
+            }))
+          }
+          rows={rows}
+          square
+          cellIcons={{
+            workloadName:
+              page?.records.map(
+                (record) =>
+                  workloadIcons[record.workloadId] ?? fallbackLogWorkloadIcon,
+              ) ?? [],
+          }}
+          severityColors={logLevelColors}
+          severityBackgrounds={logLevelBackgrounds}
+          onEndReached={() => {
+            void loadMore();
+          }}
+          onRowActivated={(index) => setSelected(page?.records[index] ?? null)}
+          leadingHeader={
+            <Tooltip>
+              <Tooltip.Trigger<"button">
+                aria-label="Edit columns"
+                className="inline-flex h-full w-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
+                render={(props) => (
+                  <button
+                    {...props}
+                    type="button"
+                    onClick={() => setColumnsOpen(true)}
+                  />
+                )}
+              >
+                <HugeiconsIcon icon={Settings02Icon} size={16} />
+              </Tooltip.Trigger>
+              <Tooltip.Content placement="top">Edit columns</Tooltip.Content>
+            </Tooltip>
+          }
+        />
+      )}
       {loadingMore ||
       (!busy && page && !page.records.length) ||
       historyFull ||
@@ -929,16 +1004,23 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
           record={selected}
           canFilter={conditions.length < 8}
           onFilter={(condition) => {
-            setConditions((current) =>
-              current.some(
+            if (
+              !conditions.some(
                 (item) =>
                   item.field === condition.field &&
                   item.operator === condition.operator &&
                   item.value === condition.value,
               )
-                ? current
-                : [...current, { ...condition, id: crypto.randomUUID() }],
-            );
+            )
+              changeQuery({
+                type: "change",
+                patch: {
+                  conditions: [
+                    ...conditions,
+                    { ...condition, id: crypto.randomUUID() },
+                  ],
+                },
+              });
             setSelected(null);
           }}
           onColumn={(field, path) => {
@@ -956,14 +1038,19 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               existing ??
               custom?.id ??
               `custom:${path}`;
-            if (!existing && !custom)
-              setCustomColumns((current) => [
-                ...current,
-                { id, title: path, path, width: 200 },
-              ]);
-            setVisibleColumns((current) =>
-              current.includes(id) ? current : [...current, id],
-            );
+            table.update((current) => ({
+              ...current,
+              customColumns:
+                !existing && !custom
+                  ? [
+                      ...current.customColumns,
+                      { id, title: path, path, width: 200 },
+                    ]
+                  : current.customColumns,
+              visibleColumns: current.visibleColumns.includes(id)
+                ? current.visibleColumns
+                : [...current.visibleColumns, id],
+            }));
             setSelected(null);
           }}
           onSearch={(text) => {

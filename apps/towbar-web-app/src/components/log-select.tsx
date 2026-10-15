@@ -19,6 +19,7 @@ export function LogSelect({
   value,
   options,
   onChange,
+  onReselect,
   searchable = false,
   hideLabel = false,
 }: {
@@ -26,6 +27,7 @@ export function LogSelect({
   value: string;
   options: LogOption[];
   onChange: (value: string) => void;
+  onReselect?: (value: string) => void;
   searchable?: boolean;
   hideLabel?: boolean;
 }) {
@@ -36,6 +38,9 @@ export function LogSelect({
       id={option.id}
       key={option.id}
       textValue={option.searchText ?? option.label}
+      onPress={() => {
+        if (option.id === value) onReselect?.(value);
+      }}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2 pr-6">
         {option.icon}

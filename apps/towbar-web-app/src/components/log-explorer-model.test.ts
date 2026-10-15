@@ -1,4 +1,9 @@
 import {
+  initialLogQueryHistory,
+  logQueryHistoryReducer,
+  type LogQueryHistory,
+} from "./log-query-history";
+import {
   logBucketSeconds,
   logRecordSchema,
   logFilterSchema,
@@ -218,4 +223,74 @@ void test("log buckets use 30-second intervals through one hour and bound wider 
   assert.equal(logBucketSeconds(from, "2026-10-14T01:00:00Z"), 30);
   assert.equal(logBucketSeconds(from, "2026-10-14T06:00:00Z"), 60);
   assert.equal(logBucketSeconds(from, "2026-10-21T00:00:00Z"), 1210);
+});
+
+void test("log filter undo restores complete steps and branches after undo", () => {
+  const initial = initialLogQueryHistory;
+  const custom = {
+    startAt: "2026-10-14T12:00:00Z",
+    endAt: "2026-10-14T13:00:00Z",
+  };
+  const range = logQueryHistoryReducer(initial, {
+    type: "change",
+    patch: { range: "custom", customRange: custom },
+  });
+  const conditions = [
+    {
+      id: "one",
+      field: "attribute:status",
+      operator: "equals" as const,
+      value: "500",
+    },
+  ];
+  const filtered = logQueryHistoryReducer(range, {
+    type: "change",
+    patch: { conditions, match: "or" },
+  });
+  const level = logQueryHistoryReducer(filtered, {
+    type: "change",
+    patch: { selection: { ...filtered.current.selection, severity: "error" } },
+  });
+  const undone = logQueryHistoryReducer(level, { type: "undo" });
+  assert.deepEqual(undone.current, filtered.current);
+  assert.deepEqual(
+    logQueryHistoryReducer(undone, { type: "undo" }).current,
+    range.current,
+  );
+  assert.deepEqual(
+    logQueryHistoryReducer(logQueryHistoryReducer(undone, { type: "undo" }), {
+      type: "undo",
+    }),
+    initial,
+  );
+  assert.equal(logQueryHistoryReducer(initial, { type: "undo" }), initial);
+  assert.equal(
+    logQueryHistoryReducer(filtered, {
+      type: "change",
+      patch: { conditions, match: "or" },
+    }),
+    filtered,
+  );
+  const branch = logQueryHistoryReducer(undone, {
+    type: "change",
+    patch: { range: "15", customRange: null },
+  });
+  assert.deepEqual(
+    logQueryHistoryReducer(branch, { type: "undo" }).current,
+    filtered.current,
+  );
+  assert.deepEqual(logQueryHistoryReducer(branch, { type: "clear" }), initial);
+});
+void test("log filter undo retains a bounded history", () => {
+  let history: LogQueryHistory = initialLogQueryHistory;
+  for (let index = 0; index < 80; index++)
+    history = logQueryHistoryReducer(history, {
+      type: "change",
+      patch: { range: String(index) },
+    });
+  assert.equal(history.past.length, 50);
+  for (let index = 0; index < 50; index++)
+    history = logQueryHistoryReducer(history, { type: "undo" });
+  assert.equal(history.current.range, "29");
+  assert.equal(logQueryHistoryReducer(history, { type: "undo" }), history);
 });

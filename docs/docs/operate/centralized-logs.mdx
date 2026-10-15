@@ -13,6 +13,41 @@ how to connect one. Workload **Monitor → Runtime Logs** still retrieves curren
 container output on demand, including when centralized logging is unavailable.
 Deployment and build logs remain in their existing views.
 
+## Architecture
+
+Each opted-in server runs a discovery helper and an OpenTelemetry Collector.
+The helper reports managed container identities and configures file readers. Log
+records travel over HTTPS to the Towbar API before reaching ClickHouse.
+
+```mermaid
+flowchart TB
+  subgraph Host[Each opted-in deployment server]
+    Workloads[Managed workloads and previews] -->|stdout and stderr| Files[Docker json-file logs]
+    Discovery[Discovery helper] -->|Configure sources| Collector[OpenTelemetry Collector]
+    Files -->|Read-only mounts| Collector
+    Collector <--> Buffer[(Checkpoints and sending queue)]
+  end
+  subgraph Control[Towbar control plane]
+    API[Towbar API: ingest, authorize and query]
+    API <--> Metadata[(PostgreSQL: source identities, restrictions and user layouts)]
+  end
+  Discovery -->|HTTPS source and health reports| API
+  Collector -->|HTTPS OTLP JSON with server credential| API
+  Clients[Monitor Logs, REST and MCP] <-->|Session, key or OAuth grant| API
+  API <-->|Insert records and run access-scoped queries| ClickHouse[(External ClickHouse: retained records)]
+```
+
+PostgreSQL keeps control-plane metadata and each user's latest table layout.
+ClickHouse stores the retained records and answers searches and chart queries.
+Towbar checks the current role, connection permissions, workload restrictions and
+retention cutoff for each read. Browsers and collectors have no direct ClickHouse
+access; its credentials stay in the operator configuration on the control plane.
+
+The administrator enables or updates a collector through Towbar's durable worker
+workflow. The worker connects over SSH with verified host keys. Once installed,
+the collector reads files and sends records independently of that SSH session.
+Runtime Logs remains a separate, on-demand path to current container output.
+
 ## Connect external ClickHouse
 
 Towbar does not provision or manage the logging database. Supply an existing
@@ -158,8 +193,11 @@ JSON fields are retained as bounded, flattened attributes with credential fields
 excluded.
 
 Double-click a record, or press Enter, to open details; touch devices support
-tapping a row. Details show the common attributes in a card, followed by separate
-code panels for the message and the full retained log JSON.
+tapping a row. Details show Message, syntax-highlighted Full log JSON, and then
+the Attributes card. Right-click a JSON field, use its action button, or press
+Shift-F10 to open its menu. Supported fields can be included or excluded from
+filters, added as a table column, copied as a value or path, or used for text
+search. These actions preserve the current workload, environment and time range.
 
 Search pages have a stable snapshot and an opaque continuation cursor. Each
 request covers at most 31 days, returns at most 500 records, and has response and
@@ -256,3 +294,19 @@ Neither REST nor MCP accepts arbitrary SQL or changes the operator's storage YAM
 Do not paste the helper's root-owned configuration or collector credentials into
 support requests. The UI and public API expose sanitized diagnostics without those
 values.
+
+## Table columns
+
+Use the gear in the table header to choose and reorder columns or add a custom
+field. Drag a column header’s right border to resize it. Towbar saves your latest
+column selection, order, custom field definitions and widths against your user
+account, and restores them when you return, including from another browser.
+Filters, searches and time ranges are not saved with the table layout.
+
+## Undo filters
+
+Press **Command-Z** on macOS or **Ctrl-Z** on Windows/Linux to undo the latest
+date-range or filter change on the Logs page. Chart range selections and applied
+attribute filters undo as one step. Text fields keep their normal text undo, and
+page-level undo is paused while a dialog is open. This history is kept only for
+the current page visit and is cleared when access changes.

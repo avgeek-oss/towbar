@@ -1,5 +1,81 @@
 import { z } from "zod";
 
+export function validLogColumnPath(path: string) {
+  return (
+    path.length > 0 &&
+    path.length <= 256 &&
+    path
+      .split(".")
+      .every(
+        (part) =>
+          /^(?:[A-Za-z_$][\w$-]*|\d+)$/u.test(part) &&
+          !["__proto__", "prototype", "constructor"].includes(part),
+      )
+  );
+}
+const logTableColumnId = z
+  .string()
+  .min(1)
+  .max(300)
+  .refine(
+    (id) =>
+      [
+        "timestamp",
+        "severity",
+        "workloadName",
+        "environment",
+        "body",
+        "serverId",
+        "service",
+        "deploymentId",
+        "previewId",
+        "containerId",
+        "stream",
+        "traceId",
+        "spanId",
+      ].includes(id) || /^(?:attribute|custom):[^\p{Cc}]+$/u.test(id),
+  );
+export const logColumnWidthSchema = z.number().int().min(64).max(2400);
+export const customLogColumnSchema = z
+  .object({
+    id: logTableColumnId.refine((id) => id.startsWith("custom:")),
+    title: z.string().trim().min(1).max(256),
+    path: z.string().refine(validLogColumnPath, "Enter a valid field path"),
+    width: logColumnWidthSchema,
+  })
+  .strict();
+export const logTablePreferencesSchema = z
+  .object({
+    visibleColumns: z.array(logTableColumnId).min(1).max(100),
+    columnWidths: z
+      .record(logTableColumnId, logColumnWidthSchema)
+      .refine(
+        (widths) => Object.keys(widths).length <= 200,
+        "Too many column widths",
+      ),
+    customColumns: z.array(customLogColumnSchema).max(100),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    const customIds = new Set(value.customColumns.map(({ id }) => id));
+    if (
+      customIds.size !== value.customColumns.length ||
+      new Set(value.visibleColumns).size !== value.visibleColumns.length
+    )
+      context.addIssue({ code: "custom", message: "Columns must be unique" });
+    for (const id of [
+      ...value.visibleColumns,
+      ...Object.keys(value.columnWidths),
+    ])
+      if (id.startsWith("custom:") && !customIds.has(id))
+        context.addIssue({
+          code: "custom",
+          message: "Custom column definition is missing",
+        });
+  });
+export type LogTablePreferences = z.infer<typeof logTablePreferencesSchema>;
+export type CustomLogColumn = z.infer<typeof customLogColumnSchema>;
+
 export const logPolicySchema = z
   .object({ restrict: z.literal("admin") })
   .strict();

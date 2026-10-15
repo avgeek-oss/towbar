@@ -1,3 +1,7 @@
+import {
+  logTablePreferencesSchema,
+  type LogTablePreferences,
+} from "@workspace/towbar-core";
 import { createPasskeyFixture } from "./passkey-fixture.ts";
 import {
   dualFactorFixtureCredential,
@@ -234,6 +238,7 @@ export function createTeamAccessFixture(
     oauthClientLogo: "openai",
     oauthClientTrust: "metadata-document",
   });
+  const logTablesByUser = new Map<string, LogTablePreferences>();
   const preferencesByUser = new Map<string, DateTimePreferences>();
   const getPreferences = () =>
     signedIn
@@ -549,6 +554,18 @@ export function createTeamAccessFixture(
       if (path === "/v1/core/profile/passkeys" && method === "GET") {
         return send(response, {
           passkeys: await passkeys.handle("passkey/list-user-passkeys", {}),
+        });
+      }
+      if (path === "/v1/core/profile/preferences/logs-table") {
+        if (method === "PUT")
+          logTablesByUser.set(
+            selected.userId,
+            logTablePreferencesSchema.parse(await body(request)),
+          );
+        else if (method !== "GET")
+          return fail(response, "Method not allowed", 405);
+        return send(response, {
+          preferences: logTablesByUser.get(selected.userId) ?? null,
         });
       }
       if (path === "/v1/core/profile/preferences") {

@@ -1,3 +1,4 @@
+import { logTablePreferencesSchema } from "@workspace/towbar-core";
 import { installationSetupSecret } from "./setup-secret.js";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -11,6 +12,7 @@ import {
   authPasskeys,
   servers,
   users,
+  workspaceMembers,
 } from "@workspace/towbar-database/schema";
 import {
   dateTimeLocalizationSchema,
@@ -22,6 +24,9 @@ const url = process.env.TOWBAR_TEST_DATABASE_URL;
 const preferencesReply = z.object({
   preferences: dateTimePreferencesSchema,
   options: z.object({ timeZones: z.array(z.string()) }),
+});
+const layoutReply = z.object({
+  preferences: logTablePreferencesSchema.nullable(),
 });
 const localizedReply = z.object({ localization: dateTimeLocalizationSchema });
 void test(
@@ -118,6 +123,80 @@ void test(
           },
           ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
         });
+      const layoutPath = "/profile/preferences/logs-table";
+      assert.equal((await browser(layoutPath)).status, 200);
+      assert.equal(
+        layoutReply.parse(await (await browser(layoutPath)).json()).preferences,
+        null,
+      );
+      const layout = {
+        visibleColumns: [
+          "body",
+          "timestamp",
+          "attribute:status",
+          "custom:username",
+        ],
+        columnWidths: { body: 420, timestamp: 180, "custom:username": 135 },
+        customColumns: [
+          {
+            id: "custom:username",
+            title: "User",
+            path: "meta.username",
+            width: 190,
+          },
+        ],
+      };
+      assert.equal((await browser(layoutPath, "PUT", layout)).status, 200);
+      assert.deepEqual(
+        layoutReply.parse(await (await browser(layoutPath)).json()).preferences,
+        layout,
+      );
+      const [storedLayout] = await db
+        .select({ preferences: users.logTablePreferences })
+        .from(users)
+        .where(eq(users.id, user.id));
+      assert.deepEqual(storedLayout?.preferences, layout);
+      const [otherLayout] = await db
+        .select({ preferences: users.logTablePreferences })
+        .from(users)
+        .where(eq(users.id, otherId));
+      assert.equal(otherLayout?.preferences, null);
+      for (const input of [
+        { ...layout, userId: otherId },
+        { ...layout, visibleColumns: [] },
+        { ...layout, visibleColumns: ["body", "body"] },
+        { ...layout, columnWidths: { body: 63 } },
+        { ...layout, columnWidths: { body: 2401 } },
+        { ...layout, columnWidths: { body: 100.5 } },
+        { ...layout, visibleColumns: ["custom:missing"] },
+        {
+          ...layout,
+          customColumns: [
+            { ...layout.customColumns[0], path: "meta.__proto__.secret" },
+          ],
+        },
+        { ...layout, search: "do not store filters" },
+      ])
+        assert.equal((await browser(layoutPath, "PUT", input)).status, 400);
+      assert.deepEqual(
+        layoutReply.parse(await (await browser(layoutPath)).json()).preferences,
+        layout,
+      );
+      assert.equal((await app.request(`/v1/core${layoutPath}`)).status, 401);
+      assert.equal(
+        (
+          await app.request(`/v1/core${layoutPath}`, {
+            method: "PUT",
+            headers: {
+              cookie: cookies,
+              origin: "https://other.test",
+              "content-type": "application/json",
+            },
+            body: JSON.stringify(layout),
+          })
+        ).status,
+        403,
+      );
       const defaults = await browser("/profile/preferences");
       assert.equal(defaults.status, 200, await defaults.clone().text());
       const initial = preferencesReply.parse(await defaults.json());
@@ -237,6 +316,7 @@ void test(
           (await request(token, "/profile/preferences")).status,
           404,
         );
+        assert.equal((await request(token, layoutPath)).status, 404);
       }
       const oauth = await issueTestMcpToken(user, "read");
       const mcp = await connectTestMcpClient(oauth.token, (request) =>
@@ -317,6 +397,22 @@ void test(
         assert.equal(refreshed.allowed, true);
         assert.equal(refreshed.preferences.timeZone, "America/New_York");
       }
+      await db
+        .update(workspaceMembers)
+        .set({ role: "viewer" })
+        .where(eq(workspaceMembers.userId, user.id));
+      const viewerLayout = {
+        ...layout,
+        columnWidths: { ...layout.columnWidths, body: 333 },
+      };
+      assert.equal(
+        (await browser(layoutPath, "PUT", viewerLayout)).status,
+        200,
+      );
+      assert.deepEqual(
+        layoutReply.parse(await (await browser(layoutPath)).json()).preferences,
+        viewerLayout,
+      );
     } finally {
       await closeDatabase();
       await admin.unsafe(`DROP DATABASE "${databaseName}"`);

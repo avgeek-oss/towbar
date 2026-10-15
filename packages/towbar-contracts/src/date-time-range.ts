@@ -55,6 +55,11 @@ function parsePreferredDateTime(
   value: string,
   preferences: DateTimePreferences,
 ) {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?$/u.test(value)) {
+    if (!z.iso.datetime({ local: true }).safeParse(value).success)
+      throw new Error("Enter a valid calendar date and time.");
+    return Temporal.PlainDateTime.from(value, { overflow: "reject" });
+  }
   const separator = value.indexOf(", ");
   if (separator < 0)
     throw new Error(

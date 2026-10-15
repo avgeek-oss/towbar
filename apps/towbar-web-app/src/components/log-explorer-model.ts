@@ -1,3 +1,4 @@
+import { validLogColumnPath } from "@workspace/towbar-contracts";
 import type { LogFilter, LogRecord } from "@workspace/towbar-web-client";
 import {
   dateTimeLabel,
@@ -94,24 +95,8 @@ export function conditionFilters(
       }
     : {};
 }
-export type CustomLogColumn = {
-  id: string;
-  title: string;
-  path: string;
-  width: number;
-};
-export function validLogColumnPath(path: string) {
-  const parts = path.split(".");
-  return (
-    path.length > 0 &&
-    path.length <= 256 &&
-    parts.every(
-      (part) =>
-        /^(?:[A-Za-z_$][\w$-]*|\d+)$/u.test(part) &&
-        !["__proto__", "prototype", "constructor"].includes(part),
-    )
-  );
-}
+export { validLogColumnPath } from "@workspace/towbar-contracts";
+export type { CustomLogColumn } from "@workspace/towbar-contracts";
 function parsedValue(value: unknown): unknown {
   if (
     typeof value !== "string" ||

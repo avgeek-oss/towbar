@@ -26,6 +26,8 @@ export type ReadOnlyDataGridProps = {
   leadingHeader?: ReactNode;
   cellIcons?: Record<string, readonly (string | undefined)[]>;
   square?: boolean;
+  onColumnResize?: (id: string, width: number) => void;
+  onColumnResizeEnd?: (id: string, width: number) => void;
 };
 
 export function ReadOnlyDataGrid({
@@ -39,6 +41,8 @@ export function ReadOnlyDataGrid({
   leadingHeader,
   cellIcons,
   square = false,
+  onColumnResize,
+  onColumnResizeEnd,
 }: ReadOnlyDataGridProps) {
   const renderedColumns = useMemo(
     () =>
@@ -50,6 +54,7 @@ export function ReadOnlyDataGrid({
   const container = useRef<HTMLDivElement>(null),
     accent = useRef<HTMLSpanElement>(null),
     muted = useRef<HTMLSpanElement>(null);
+  const resizing = useRef(false);
   const [size, setSize] = useState({ width: 0, height: 400 });
   const rowHeight = size.width < 640 ? 36 : 28;
   const colors = useRef<Record<string, string>>({});
@@ -216,6 +221,36 @@ export function ReadOnlyDataGrid({
           headerHeight={rowHeight}
           freezeColumns={leadingHeader ? 1 : 0}
           columnSelect="none"
+          minColumnWidth={64}
+          maxColumnWidth={2400}
+          onColumnResizeStart={
+            onColumnResize
+              ? () => {
+                  resizing.current = true;
+                }
+              : undefined
+          }
+          onColumnResize={
+            onColumnResize
+              ? (column, width) => {
+                  if (column.id && column.id !== "__actions") {
+                    onColumnResize(column.id, Math.round(width));
+                    // Auto-sizing emits a resize without a drag start/end pair.
+                    if (!resizing.current)
+                      onColumnResizeEnd?.(column.id, Math.round(width));
+                  }
+                }
+              : undefined
+          }
+          onColumnResizeEnd={
+            onColumnResizeEnd
+              ? (column, width) => {
+                  resizing.current = false;
+                  if (column.id && column.id !== "__actions")
+                    onColumnResizeEnd(column.id, Math.round(width));
+                }
+              : undefined
+          }
           cellActivationBehavior="double-click"
           drawCell={(args, drawContent) => {
             drawContent();

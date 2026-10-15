@@ -108,6 +108,22 @@ The worker uses SSH with verified host keys to run Docker and Caddy operations. 
 
 The optional [Scout Agent](/docs/scout) reports measurements to Towbar over HTTPS. It cannot execute deployments.
 
+## Centralized logs
+
+The optional logging pipeline has a separate per-server OpenTelemetry Collector.
+It reads managed Docker log files through read-only mounts, buffers records on
+the server, and sends them to Towbar over HTTPS. The API validates the collector
+and container identity before inserting records into external ClickHouse.
+
+PostgreSQL stores source identities, access restrictions, collector lifecycle
+state and per-user table layouts. ClickHouse stores retained log records. The
+dashboard, REST and MCP all query through Towbar's authorization boundary; they
+do not connect to ClickHouse directly. Scout performance collection and on-demand
+Runtime Logs remain separate paths.
+
+See the [centralized logs architecture diagram](/docs/operate/centralized-logs#architecture)
+for the data flow, configuration, retention and collector requirements.
+
 ## Reliability and release evidence
 
 CI runs package tests, disposable-host integration tests, Compose startup checks and vulnerability scans. Release publication builds AMD64/ARM64 images, records digests and attestations, verifies downloads, and tests a fresh installation before promotion.
