@@ -34,6 +34,7 @@ const envSchema = z
       .min(1)
       .max(65_535)
       .default(4_023),
+    TOWBAR_LOGS_CONFIG_JSON: z.string().optional(),
     DATABASE_TOWBAR_URL: z.string().url(),
     TOWBAR_CREDENTIALS_KEY: z.string().superRefine((value, context) => {
       try {

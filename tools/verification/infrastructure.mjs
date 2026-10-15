@@ -5,6 +5,8 @@ const postgresImage =
   "postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73";
 const temporalImage =
   "temporalio/temporal:1.7.2@sha256:a715f1978c4d7d9b36fe6ef6e8aa414428f018a35f8e0f2b0c40c3cff9a9e634";
+const clickhouseImage =
+  "clickhouse/clickhouse-server:25.12.5@sha256:cacf32d6884291dc2ff5e0156a97f46fc53ff7c929a7906d114e268a929dfd3a";
 const databases = {
   TOWBAR_OAUTH_TEST_DATABASE_URL: "oauth",
   TOWBAR_TEST_DATABASE_URL: "regression",
@@ -62,7 +64,7 @@ export function disposableInfrastructure(run) {
     return output.split(":").at(-1);
   }
   return {
-    async provision() {
+    async provision({ logs = false } = {}) {
       const password = randomBytes(24).toString("hex");
       const postgres = await start(
         "postgres",
@@ -98,6 +100,33 @@ export function disposableInfrastructure(run) {
             },
           },
         );
+      }
+      if (logs) {
+        const clickhouse = await start("clickhouse", clickhouseImage, 8123, [
+          "--memory",
+          "1536m",
+          "--cpus",
+          "2",
+          "--env",
+          "CLICKHOUSE_DB=towbar_logs_test",
+          "--env",
+          "CLICKHOUSE_USER=logs_test",
+          "--env",
+          "CLICKHOUSE_PASSWORD=logs_test",
+          "--env",
+          "CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1",
+        ]);
+        await wait(clickhouse, [
+          "clickhouse-client",
+          "--user",
+          "logs_test",
+          "--password",
+          "logs_test",
+          "--query",
+          "SELECT 1",
+        ]);
+        run.env.TOWBAR_TEST_CLICKHOUSE_URL = `http://127.0.0.1:${await hostPort(clickhouse, 8123)}`;
+        run.env.TOWBAR_TEST_LOG_COLLECTOR = "true";
       }
       const temporal = await start(
         "temporal",

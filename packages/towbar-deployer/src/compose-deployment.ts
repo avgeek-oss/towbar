@@ -1,3 +1,4 @@
+import { drainCentralizedLogsShell } from "./log-drain.js";
 import { domainHandoffRoutingMessage } from "./domain-routing.js";
 import {
   domainDnsRecorder,
@@ -57,6 +58,7 @@ const generatedOverrideFile = ".towbar.generated.override.json";
 
 const prepareComposeStorageScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 parent=/var/lib/towbar
 state="$parent/compose"
 owner_uid="$(id -u)"
@@ -131,6 +133,9 @@ export function buildComposeServiceOverride(
               "towbar.app": deployableId,
               "towbar.deployable": deployableId,
               "towbar.source": sourceId,
+              ...(identity
+                ? { "towbar.deployment": identity.deploymentId }
+                : {}),
               "towbar.compose.service": service,
             },
             ...(policy.domains?.length && policy.port
@@ -145,6 +150,7 @@ export function buildComposeServiceOverride(
 
 const composeDeployScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 archive="$1"
 staged="$2"
 stable="$3"
@@ -185,7 +191,7 @@ PYTHON
 compose=(docker compose --project-name "$project" --env-file "$staged/runtime.env" "${"$"}{compose_args[@]}")
 "${"$"}{compose[@]}" config --format json >"$staged/config.initial.json"
 ownership_override="$staged/source/.towbar.ownership.override.json"
-python3 - "$staged/config.initial.json" "$ownership_override" "$deployable_id" "$source_id" <<'PYTHON'
+python3 - "$staged/config.initial.json" "$ownership_override" "$deployable_id" "$source_id" "$deployment_id" <<'PYTHON'
 import json, pathlib, sys
 config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 services = config.get("services")
@@ -198,6 +204,7 @@ for service in sorted(services):
         "towbar.app": sys.argv[3],
         "towbar.deployable": sys.argv[3],
         "towbar.source": sys.argv[4],
+        "towbar.deployment": sys.argv[5],
         "towbar.compose.service": service,
     }}
 pathlib.Path(sys.argv[2]).write_text(json.dumps(override, separators=(",", ":")), encoding="utf-8")
@@ -341,6 +348,7 @@ for value in json.loads(sys.argv[2]): print("-f"); print(str((root / value).reso
 for profile in json.loads(sys.argv[3]): print("--profile"); print(profile)
 PYTHON
   )
+  while IFS= read -r candidate; do if test -n "$candidate"; then towbar_drain_logs "$candidate"; fi; done < <(docker ps -aq --filter "label=com.docker.compose.project=$project")
   docker compose --project-name "$project" --env-file "$previous/runtime.env" "${"$"}{maintenance_args[@]}" down --remove-orphans
 fi
 "${"$"}{live[@]}" pull --ignore-buildable
@@ -390,6 +398,7 @@ printf '%s\n' "$config_digest"
 
 const composeRollbackScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 stable="$1"
 previous="$2"
 project="$3"
@@ -409,6 +418,7 @@ for value in json.loads(sys.argv[2]): print("-f"); print(str((root / value).reso
 for profile in json.loads(sys.argv[3]): print("--profile"); print(profile)
 PYTHON
 )
+  while IFS= read -r candidate; do if test -n "$candidate"; then towbar_drain_logs "$candidate"; fi; done < <(docker ps -aq --filter "label=com.docker.compose.project=$project")
   if ! docker compose --project-name "$project" --env-file "$stable/runtime.env" "${"$"}{current_args[@]}" down --remove-orphans >/dev/null 2>&1; then
     mapfile -t container_ids < <(docker ps -aq --filter "label=com.docker.compose.project=$project")
     if test "${"$"}{#container_ids[@]}" -gt 0; then docker rm -f "${"$"}{container_ids[@]}" >/dev/null; fi
@@ -464,6 +474,7 @@ fi
 
 const composeInspectInterruptedScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 stable="$1"
 previous="$2"
 staged="$3"
@@ -482,6 +493,7 @@ fi
 
 const composeFinalizeScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 previous="$1"
 stable="$2"
 rm -rf -- "$previous" "$stable/domain-handoffs"

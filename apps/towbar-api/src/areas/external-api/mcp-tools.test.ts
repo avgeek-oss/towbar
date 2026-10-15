@@ -42,7 +42,7 @@ function harness(responses: Record<string, Record<string, unknown>> = {}) {
 void test("MCP catalogue is curated, namespaced, directly typed, and independent of REST IDs", () => {
   const integrations = [get("integration_list")];
   assert.equal(integrations.length, 1);
-  assert.equal(mcpTools.length, 54);
+  assert.equal(mcpTools.length, 61);
   for (const tool of integrations)
     assert.deepEqual(tool.permissions, ["integration.manage"]);
   assert(mcpTools.length < operations.length);

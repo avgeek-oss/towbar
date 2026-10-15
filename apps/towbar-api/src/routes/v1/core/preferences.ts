@@ -8,19 +8,55 @@ import {
 } from "@workspace/towbar-core/date-time-range";
 import { badRequest } from "../../../http/errors.js";
 import { z } from "zod";
+import { logTablePreferencesSchema } from "@workspace/towbar-core";
 import { dateTimePreferencesSchema } from "@workspace/towbar-core/date-time";
 import { operation } from "../../../http/operation.js";
 import { readJson } from "../../../http/requests.js";
 import { sessionUser } from "../../../http/session-user.js";
 import { requestDateTimePreferences } from "../../../http/localization.js";
 import {
+  getLogTablePreferences,
   preferenceOptions,
   preferencePreview,
   updateDateTimePreferences,
+  updateLogTablePreferences,
 } from "../../../areas/auth/preferences.js";
 import type { TowbarHonoEnvironment } from "../../../http/types.js";
 
 export const preferenceRoutes = new Hono<TowbarHonoEnvironment>();
+preferenceRoutes.get(
+  "/profile/preferences/logs-table",
+  operation({
+    permissions: ["personal.manage"],
+    browserOnly: true,
+    summary: "Get log table preferences",
+    response:
+      "The signed-in user's latest column selection, order, custom fields and widths.",
+    responseSchema: 'preferences.ts:get:"/profile/preferences/logs-table"',
+  }),
+  async (context) =>
+    context.json({
+      preferences: await getLogTablePreferences(sessionUser(context).id),
+    }),
+);
+preferenceRoutes.put(
+  "/profile/preferences/logs-table",
+  operation({
+    permissions: ["personal.manage"],
+    browserOnly: true,
+    body: logTablePreferencesSchema,
+    summary: "Update log table preferences",
+    response: "The signed-in user's latest log table layout.",
+    responseSchema: 'preferences.ts:put:"/profile/preferences/logs-table"',
+  }),
+  async (context) =>
+    context.json({
+      preferences: await updateLogTablePreferences(
+        sessionUser(context).id,
+        await readJson(context, logTablePreferencesSchema),
+      ),
+    }),
+);
 preferenceRoutes.get(
   "/profile/passkeys",
   operation({

@@ -16,3 +16,5 @@ export * from "./transactional-email.workflow.js";
 export * from "./app-jobs.workflow.js";
 
 export * from "./analytics.workflow.js";
+
+export * from "./log-collector.workflow.js";

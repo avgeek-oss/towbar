@@ -1,6 +1,7 @@
 import type { Action } from "@workspace/towbar-access";
 import type { TowbarUser } from "@workspace/towbar-web-client";
 import {
+  AlignLeftIcon,
   ComputerIcon,
   ComputerTerminal01Icon,
   AlertCircleIcon,
@@ -137,6 +138,13 @@ const sidebar = {
       id: "monitoring",
       label: "Monitor",
       items: [
+        {
+          kind: "link",
+          id: "logs",
+          label: "Logs",
+          href: "/monitoring/logs",
+          icon: AlignLeftIcon,
+        },
         {
           kind: "link",
           id: "incidents",

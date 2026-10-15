@@ -221,6 +221,16 @@ export const auditEventCatalog = {
     label: "Scout installation requested",
     metadata: ["generation"],
   },
+  "logs.install_requested": {
+    icon: "scout",
+    label: "Log collection installation requested",
+    metadata: ["generation", "version"],
+  },
+  "logs.disable_requested": {
+    icon: "scout",
+    label: "Log collection disabled",
+    metadata: ["generation"],
+  },
   "monitoring.uninstall_requested": {
     icon: "scout",
     label: "Scout removal requested",

@@ -23,6 +23,7 @@ import {
 } from "@workspace/towbar-core/date-time";
 
 import { deploymentStates } from "@workspace/towbar-core/temporal";
+import type { LogTablePreferences } from "@workspace/towbar-core";
 import { deploymentEnvironments } from "@workspace/towbar-core/preview";
 
 import type {
@@ -187,6 +188,9 @@ export const users = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: varchar("email", { length: 320 }).notNull(),
     displayName: varchar("display_name", { length: 120 }).notNull(),
+    logTablePreferences: jsonb(
+      "log_table_preferences",
+    ).$type<LogTablePreferences>(),
     dateTimePreferences: jsonb("date_time_preferences")
       .$type<DateTimePreferences>()
       .default(defaultDateTimePreferences)
@@ -2935,4 +2939,122 @@ export const domainClaims = pgTable(
       ),
     index("idx_towbar_domain_claims_environment").on(table.sourceEnvironmentId),
   ],
+);
+
+export const logCollectors = pgTable(
+  "towbar_log_collectors",
+  {
+    serverId: uuid("server_id")
+      .primaryKey()
+      .references(() => servers.id, { onDelete: "cascade" }),
+    generation: uuid("generation").notNull().defaultRandom(),
+    desiredState: varchar("desired_state", { length: 20 })
+      .notNull()
+      .default("disabled"),
+    status: varchar("status", { length: 20 }).notNull().default("disabled"),
+    tokenHash: varchar("token_hash", { length: 64 }),
+    encryptedToken: jsonb("encrypted_token").$type<EncryptedCredential>(),
+    requestedByActor:
+      jsonb("requested_by_actor").$type<
+        NonNullable<(typeof monitoringAgents.$inferSelect)["requestedByActor"]>
+      >(),
+    installedVersion: varchar("installed_version", { length: 64 }),
+    lastReportAt: timestamp("last_report_at", { withTimezone: true }),
+    lastIngestedAt: timestamp("last_ingested_at", { withTimezone: true }),
+    errorMessage: text("error_message"),
+    supportedContainers: integer("supported_containers").notNull().default(0),
+    unsupportedContainers: integer("unsupported_containers")
+      .notNull()
+      .default(0),
+    queueBytes: bigint("queue_bytes", { mode: "number" }).notNull().default(0),
+    droppedRecords: bigint("dropped_records", { mode: "number" })
+      .notNull()
+      .default(0),
+    ingestWindow: timestamp("ingest_window", { withTimezone: true }),
+    ingestBytes: integer("ingest_bytes").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    check(
+      "towbar_log_collector_desired_state",
+      sql`${table.desiredState} in ('enabled','disabled')`,
+    ),
+    check(
+      "towbar_log_collector_status",
+      sql`${table.status} in ('disabled','queued','installing','waiting','collecting','failed')`,
+    ),
+  ],
+);
+
+export const logSources = pgTable(
+  "towbar_log_sources",
+  {
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    serverId: uuid("server_id").notNull(),
+    containerId: varchar("container_id", { length: 64 }).notNull(),
+    workloadId: uuid("workload_id").notNull(),
+    workloadName: varchar("workload_name", { length: 120 }).notNull(),
+    deploymentId: uuid("deployment_id"),
+    previewId: uuid("preview_id"),
+    service: varchar("service", { length: 128 }).notNull().default(""),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.workspaceId, table.serverId, table.containerId],
+    }),
+    index("towbar_log_source_workload").on(table.workspaceId, table.workloadId),
+  ],
+);
+
+export const logPolicies = pgTable(
+  "towbar_log_policies",
+  {
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    workloadId: uuid("workload_id").notNull(),
+    restricted: boolean("restricted").notNull().default(true),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.workloadId] })],
+);
+
+export const logRetentionState = pgTable("towbar_log_retention_state", {
+  prunedBeforeAt: timestamp("pruned_before_at", { withTimezone: true }),
+  committedSequence: bigint("committed_sequence", { mode: "number" })
+    .notNull()
+    .default(0),
+  workspaceId: uuid("workspace_id")
+    .primaryKey()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  cutoffAt: timestamp("cutoff_at", { withTimezone: true }).notNull(),
+});
+
+export const logCollectorRequests = pgTable(
+  "towbar_log_collector_requests",
+  {
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    keyHash: varchar("key_hash", { length: 64 }).notNull(),
+    serverId: uuid("server_id").notNull(),
+    generation: uuid("generation").notNull(),
+    enabled: boolean("enabled").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.workspaceId, table.keyHash] })],
 );

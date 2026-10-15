@@ -1,0 +1,20 @@
+$kind: http-request
+id: 34cdf857-6871-5ec4-b392-c2db317461c6
+description:
+  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  team keys use explicit grants."
+url: "{{baseUrl}}/logs/context"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "eventId": "00000000-0000-4000-8000-000000000000",
+      "timestamp": "2026-01-01T00:00:00.000Z",
+      "workloadId": "00000000-0000-4000-8000-000000000000",
+      "limit": 20
+    }
+order: 5000

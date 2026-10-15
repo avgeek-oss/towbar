@@ -15,3 +15,5 @@ export * from "./app-jobs.js";
 export * from "./database-storage.js";
 
 export * from "./analytics.js";
+
+export * from "./log-collector.js";

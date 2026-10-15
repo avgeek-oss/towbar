@@ -303,7 +303,7 @@ export function ResourceDetail() {
     },
     {
       value: "logs",
-      label: "Logs",
+      label: "Runtime Logs",
       group: "Monitor",
       icon: <HugeiconsIcon icon={FileViewIcon} />,
       content: (

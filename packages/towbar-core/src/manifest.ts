@@ -25,6 +25,7 @@ import {
   configurationFileSchema,
   validateConfigurationMounts,
 } from "./container-configuration.js";
+import { logPolicySchema } from "./logs.js";
 import { analyticsConfigSchema } from "./analytics.js";
 import { appJobSchema } from "./app-jobs.js";
 import {
@@ -420,6 +421,7 @@ const resourceBackupSchema = z
 export const appSchema = z
   .object({
     analytics: analyticsConfigSchema.optional(),
+    logs: logPolicySchema.optional(),
     jobs: z.array(appJobSchema).max(20).optional(),
     notifications: manifestNotificationsSchema.optional(),
     autoDeploy: appAutoDeploySchema.optional(),
@@ -839,6 +841,7 @@ function validateResourceConnectivity(
 export const resourceSchema = z
   .object({
     access: resourceAccessSchema.optional(),
+    logs: logPolicySchema.optional(),
     autoDeploy: z.boolean().optional(),
     backup: resourceBackupSchema.optional(),
     notifications: manifestNotificationsSchema.optional(),
@@ -1188,6 +1191,7 @@ export function normalizeDeploymentManifest(
         );
         return {
           kind: "app" as const,
+          ...(app.logs ? { logs: app.logs } : {}),
           ...(app.analytics ? { analytics: app.analytics } : {}),
           ...(app.notifications
             ? {
@@ -1453,6 +1457,7 @@ function normalizeResource(
   const backup = normalizeResourceBackup(resource.backup);
   return {
     ...normalizeResourceAccess(resource.access),
+    ...(resource.logs ? { logs: resource.logs } : {}),
     ...(resource.notifications
       ? {
           notifications: normalizeManifestNotifications(resource.notifications),

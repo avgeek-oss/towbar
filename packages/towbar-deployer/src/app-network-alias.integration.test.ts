@@ -50,7 +50,12 @@ void test(
         .replaceAll("/usr/bin/docker", dockerPath)
         .replaceAll("/usr/bin/python3", pythonPath),
     );
-    writeFileSync(rollbackScript, rollbackCandidateScript);
+    writeFileSync(
+      rollbackScript,
+      rollbackCandidateScript
+        .replaceAll("sudo python3 -", "python3 -")
+        .replaceAll("/etc/caddy/towbar", path.join(directory, "routes")),
+    );
     const env = {
       ...process.env,
       TOWBAR_APP_ID: id,

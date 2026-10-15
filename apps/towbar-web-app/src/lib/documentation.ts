@@ -48,6 +48,10 @@ export const documentationTopics = {
     "deployments#read-the-final-result",
     "Follow recorded deployment stages and their duration. A queued request is still waiting to run.",
   ),
+  centralizedLogs: guide(
+    "operate/centralized-logs",
+    "Search retained workload logs in external ClickHouse, inspect collection, and control access with your current role.",
+  ),
   logs: guide(
     "troubleshooting#collect-useful-diagnostics",
     "Read captured output for this operation or workload. Logs can help explain build, startup, and health-check failures.",
@@ -331,6 +335,7 @@ export function documentationTopic(pathname: string): Topic | undefined {
   if (path.startsWith("/repositories/") && /\/(danger|danger-zone)$/.test(path))
     return "repositoryRemoval";
   if (path === "/system-health") return "system";
+  if (path === "/monitoring/logs") return "centralizedLogs";
   if (path === "/deployments") return "deployments";
   const parts = path.split("/").filter(Boolean);
   const section = parts.at(-1);
@@ -404,6 +409,7 @@ export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   ),
   "server identity and capacity": documentationTopics.servers,
   "scout agent": documentationTopics.scout,
+  "centralized logs": documentationTopics.centralizedLogs,
   "docker logs": documentationTopics.logCollection,
   "unused docker objects": documentationTopics.cleanup,
   performance: documentationTopics.performance,

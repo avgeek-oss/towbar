@@ -8,6 +8,10 @@ import type { AuthenticatedUser } from "../../http/types.js";
 export async function issueTestMcpToken(
   user: AuthenticatedUser,
   access: "read" | "edit",
+  accessLevel: "read" | "write" | "admin" = access === "edit"
+    ? "write"
+    : "read",
+  sessionId: string | null = null,
 ) {
   const redirect = "http://127.0.0.1:4312/callback";
   const client = await registerClient({
@@ -28,13 +32,7 @@ export async function issueTestMcpToken(
   const started = await beginAuthorization(params);
   assert(started.requestId);
   const callback = new URL(
-    await decideConsent(
-      started.requestId,
-      user,
-      true,
-      null,
-      access === "edit" ? "write" : "read",
-    ),
+    await decideConsent(started.requestId, user, true, sessionId, accessLevel),
   );
   const issued = await exchangeCode(client.client_id, {
     ...params,

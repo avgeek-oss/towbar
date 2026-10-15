@@ -281,3 +281,18 @@ ClickHouse executable functions run for real. The target is always removed.
 The fixture completes SigNoz first-run registration with a disposable account
 and verifies OTLP HTTP after the collector receives its managed configuration.
 This does not prove public ingress, API/Temporal delivery, or release compatibility.
+
+## Managed centralized log collector
+
+After building the deployer, run `node tools/e2e/log-collector-lifecycle.mjs`.
+The required API verification group includes this check. It boots the disposable
+Ubuntu/systemd target, installs through trusted non-root SSH, and verifies real
+Docker source discovery, the pinned collector image, read-only host-log volume,
+resource limits, ingestion, checkpoint-preserving update, and disable retaining
+state. All containers, state, credentials, and the target are disposable.
+
+The protocol endpoint is controlled inside the target so this lifecycle check
+isolates installation from storage and authentication. The separate logging API
+integration suite exercises the real PostgreSQL/ClickHouse path, authorization,
+replay, retention, REST, and MCP. Neither check establishes production capacity
+or a deployed public browser flow.

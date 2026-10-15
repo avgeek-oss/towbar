@@ -10,6 +10,33 @@ import {
 } from "@workspace/towbar-core/date-time";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { notFound } from "../../http/errors.js";
+import {
+  type LogTablePreferences,
+  logTablePreferencesSchema,
+} from "@workspace/towbar-core";
+
+export async function getLogTablePreferences(userId: string) {
+  const [user] = await getTowbarDatabase()
+    .select({ preferences: users.logTablePreferences })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!user) throw notFound("User");
+  return user.preferences;
+}
+
+export async function updateLogTablePreferences(
+  userId: string,
+  input: LogTablePreferences,
+) {
+  const preferences = logTablePreferencesSchema.parse(input);
+  const [updated] = await getTowbarDatabase()
+    .update(users)
+    .set({ logTablePreferences: preferences, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning({ preferences: users.logTablePreferences });
+  if (!updated) throw notFound("User");
+  return updated.preferences;
+}
 
 export function preferenceOptions() {
   return {

@@ -36,3 +36,7 @@ export * from "./upgrades.js";
 export * from "./container-configuration.js";
 
 export * from "./domain-ownership.js";
+
+export * from "./logs.js";
+
+export * from "./log-collector.js";

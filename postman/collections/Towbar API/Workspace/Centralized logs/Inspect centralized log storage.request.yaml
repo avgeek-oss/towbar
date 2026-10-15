@@ -1,0 +1,10 @@
+$kind: http-request
+id: db022ac5-751d-5d53-a224-9b61ab26ddcb
+description:
+  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  team keys use explicit grants."
+url: "{{baseUrl}}/observability/logs/status"
+method: GET
+headers:
+  Accept: application/json
+order: 1000

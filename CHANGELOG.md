@@ -5,6 +5,16 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.45] - 2026-10-15
+
+### Added
+
+- Add optional centralized container logs with external ClickHouse storage, YAML retention settings, per-server OpenTelemetry collection, and shared REST/MCP authorization.
+- Add a workspace log explorer with stacked severity counts, searchable workload filters, custom time ranges, infinite scrolling, and contextual JSON field actions.
+- Save each user's log table columns, order, custom fields and widths on the server. Drag header borders to resize columns.
+- Support Command-Z and Ctrl-Z to undo date-range and filter changes while preserving native text undo.
+- Use the shared calendar and time picker in logs and server/workload monitoring.
+
 ## [2.0.44] - 2026-10-14
 
 ### Fixed

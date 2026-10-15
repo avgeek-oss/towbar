@@ -1,3 +1,4 @@
+import { centralizedLogRoutes } from "./logs.js";
 import { analyticsRoutes } from "./analytics.js";
 import { integrationRoutes } from "./integrations.js";
 import { gitlabRoutes } from "./gitlab.js";
@@ -40,6 +41,7 @@ import type { TowbarHonoEnvironment } from "../../../http/types.js";
 
 export const controlPlaneRoutes = new Hono<TowbarHonoEnvironment>();
 controlPlaneRoutes.use("*", localizeJsonResponse);
+controlPlaneRoutes.route("/", centralizedLogRoutes);
 controlPlaneRoutes.route("/", preferenceRoutes);
 
 controlPlaneRoutes.route("/integrations", integrationRoutes);

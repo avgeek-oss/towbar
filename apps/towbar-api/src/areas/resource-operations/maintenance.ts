@@ -1,3 +1,5 @@
+import { maintainLogRetention } from "../logs/retention.js";
+import { recoverLogCollectorOperations } from "../logs/lifecycle.js";
 import { dispatchServerCleanups } from "./server-cleanup.js";
 import { ensureAnalyticsWorkflow } from "../../infrastructure/temporal.js";
 import { wakeAppJobsWorkflow } from "../../infrastructure/temporal.js";
@@ -103,6 +105,12 @@ export async function runMaintenanceSweep() {
     }
   }
 
+  const logCollectorOperations = await recoverLogCollectorOperations().catch(
+    () => 0,
+  );
+  const logRetention = await maintainLogRetention().catch(() => ({
+    unavailable: true,
+  }));
   const monitoring = await maintainMonitoringMetrics();
   const scoutAlerts = await maintainScoutAlertHistory();
   const monitoringOperations = await recoverMonitoringOperations().catch(
@@ -113,6 +121,8 @@ export async function runMaintenanceSweep() {
     monitoring,
     scoutAlerts,
     monitoringOperations,
+    logCollectorOperations,
+    logRetention,
     automaticDeploymentsQueued,
     backupsAssured,
     backupsQueued,

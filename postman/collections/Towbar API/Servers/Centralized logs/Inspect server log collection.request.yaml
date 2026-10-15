@@ -1,0 +1,14 @@
+$kind: http-request
+id: 62f822d9-4be9-5edd-90f5-3194e8deb57a
+description:
+  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  team keys use explicit grants."
+url: "{{baseUrl}}/servers/:serverId/log-collection"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: serverId
+    value: "{{serverId}}"
+    description: Required.
+order: 1000

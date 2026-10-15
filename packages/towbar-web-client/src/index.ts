@@ -52,3 +52,13 @@ export {
   analyticsHttpFilterFields,
   analyticsWebFilterFields,
 } from "@workspace/towbar-contracts/analytics";
+
+export type {
+  LogRecord,
+  LogFilter,
+  LogQueryResult,
+  LogStorageStatus,
+  LogCollectionStatus,
+  LogSummary,
+} from "@workspace/towbar-contracts/logs";
+export { logFilterSchema } from "@workspace/towbar-contracts/logs";

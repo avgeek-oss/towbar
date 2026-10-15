@@ -11,7 +11,40 @@ export function validateHostLogCollection(context: DeploymentExecutionContext) {
     );
 }
 
+export const readOnlyHostLogVolumePython = String.raw`
+def ensure_read_only_host_log_volume(log_volume, log_directory, labels):
+    options = {"type": "none", "device": str(log_directory), "o": "bind,ro,private"}
+    existing = subprocess.run(["/usr/bin/docker", "volume", "ls", "-q"], check=True, capture_output=True, text=True)
+    if log_volume in existing.stdout.splitlines():
+        inspected = subprocess.run(["/usr/bin/docker", "volume", "inspect", log_volume], check=True, capture_output=True, text=True)
+        volume = json.loads(inspected.stdout)[0]
+        stored_options = volume.get("Options") or {}
+        device = stored_options.get("device")
+        if (volume.get("Driver") != "local"
+            or any((volume.get("Labels") or {}).get(key) != value for key, value in labels.items())
+            or set(stored_options) != set(options)
+            or stored_options.get("type") != "none" or stored_options.get("o") != "bind,ro,private"
+            or not isinstance(device, str) or not device.startswith("/") or not device.endswith("/containers")):
+            raise SystemExit("Host log volume ownership or read-only source changed before startup")
+        if stored_options != options:
+            attached = subprocess.run(["/usr/bin/docker", "ps", "-aq", "--filter", "volume=" + log_volume], check=True, capture_output=True, text=True)
+            if attached.stdout.strip():
+                raise SystemExit("Host log volume still has container references to the previous Docker data-root")
+            subprocess.run(["/usr/bin/docker", "volume", "rm", log_volume], check=True, capture_output=True, text=True)
+    create = ["/usr/bin/docker", "volume", "create", "--driver", "local"]
+    for key, value in options.items():
+        create.extend(["--opt", key + "=" + value])
+    for key, value in labels.items():
+        create.extend(["--label", key + "=" + value])
+    subprocess.run([*create, log_volume], check=True, capture_output=True, text=True)
+    inspected = subprocess.run(["/usr/bin/docker", "volume", "inspect", log_volume], check=True, capture_output=True, text=True)
+    volume = json.loads(inspected.stdout)[0]
+    if volume.get("Driver") != "local" or volume.get("Options") != options or any((volume.get("Labels") or {}).get(key) != value for key, value in labels.items()):
+        raise SystemExit("Host log volume ownership or read-only source changed before startup")
+`;
+
 export const hostLogRuntimeArgumentsScript = String.raw`
+${readOnlyHostLogVolumePython}
 if host_log_collection:
     inspected = subprocess.run(
         ["/usr/bin/docker", "info", "--format", "{{json .}}"],
@@ -64,34 +97,7 @@ if host_log_collection:
         "towbar.source": runtime_identity["TOWBAR_SOURCE_ID"],
         "towbar.deployable": runtime_identity["TOWBAR_DEPLOYABLE_ID"],
     }
-    options = {"type": "none", "device": str(log_directory), "o": "bind,ro,private"}
-    existing = subprocess.run(["/usr/bin/docker", "volume", "ls", "-q"], check=True, capture_output=True, text=True)
-    if log_volume in existing.stdout.splitlines():
-        inspected = subprocess.run(["/usr/bin/docker", "volume", "inspect", log_volume], check=True, capture_output=True, text=True)
-        volume = json.loads(inspected.stdout)[0]
-        stored_options = volume.get("Options") or {}
-        device = stored_options.get("device")
-        if (volume.get("Driver") != "local"
-            or any((volume.get("Labels") or {}).get(key) != value for key, value in labels.items())
-            or set(stored_options) != set(options)
-            or stored_options.get("type") != "none" or stored_options.get("o") != "bind,ro,private"
-            or not isinstance(device, str) or not device.startswith("/") or not device.endswith("/containers")):
-            raise SystemExit("Host log volume ownership or read-only source changed before startup")
-        if stored_options != options:
-            attached = subprocess.run(["/usr/bin/docker", "ps", "-aq", "--filter", "volume=" + log_volume], check=True, capture_output=True, text=True)
-            if attached.stdout.strip():
-                raise SystemExit("Host log volume still has container references to the previous Docker data-root")
-            subprocess.run(["/usr/bin/docker", "volume", "rm", log_volume], check=True, capture_output=True, text=True)
-    create = ["/usr/bin/docker", "volume", "create", "--driver", "local"]
-    for key, value in options.items():
-        create.extend(["--opt", key + "=" + value])
-    for key, value in labels.items():
-        create.extend(["--label", key + "=" + value])
-    subprocess.run([*create, log_volume], check=True, capture_output=True, text=True)
-    inspected = subprocess.run(["/usr/bin/docker", "volume", "inspect", log_volume], check=True, capture_output=True, text=True)
-    volume = json.loads(inspected.stdout)[0]
-    if volume.get("Driver") != "local" or volume.get("Options") != options or any((volume.get("Labels") or {}).get(key) != value for key, value in labels.items()):
-        raise SystemExit("Host log volume ownership or read-only source changed before startup")
+    ensure_read_only_host_log_volume(log_volume, log_directory, labels)
     runtime_arguments.extend([
         "--mount", f"type=volume,src={log_volume},dst=/var/lib/docker/containers,readonly,volume-nocopy",
         "--user", "0:0", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",

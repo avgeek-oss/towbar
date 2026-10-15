@@ -2,6 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
+    "logs": {
+      "type": "object",
+      "properties": { "restrict": { "type": "string", "const": "admin" } },
+      "additionalProperties": false
+    },
     "notifications": {
       "type": "object",
       "properties": {
@@ -292,6 +297,13 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
+          "logs": {
+            "type": "object",
+            "properties": {
+              "restrict": { "type": "string", "const": "admin" }
+            },
+            "additionalProperties": false
+          },
           "notifications": {
             "type": "object",
             "properties": {

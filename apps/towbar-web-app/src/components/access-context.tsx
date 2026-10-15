@@ -12,6 +12,7 @@ export function useAccess() {
   };
 }
 export function routePermission(pathname: string): Action | null {
+  if (pathname === "/monitoring/logs") return "logs.read";
   if (pathname === "/servers/new") return "server.update";
   if (
     pathname.startsWith("/manage/integrations") ||

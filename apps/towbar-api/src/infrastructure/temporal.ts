@@ -460,3 +460,25 @@ export async function ensureAnalyticsWorkflow() {
     if (!isWorkflowAlreadyStarted(error)) throw error;
   }
 }
+
+export async function enqueueLogCollector(input: {
+  serverId: string;
+  generation: string;
+}) {
+  const client = await getTemporalClient();
+  const workflowId = `towbar-logs/${input.serverId}/${input.generation}`;
+  try {
+    await client.workflow.start("runLogCollectorWorkflow", {
+      args: [input],
+      taskQueue: towbarTaskQueue,
+      workflowId,
+      workflowExecutionTimeout: "15 minutes",
+      workflowIdReusePolicy: "REJECT_DUPLICATE",
+    });
+  } catch (error) {
+    if (!isWorkflowAlreadyStarted(error)) throw error;
+    const execution = await client.workflow.getHandle(workflowId).describe();
+    return { workflowId, closed: execution.status.name !== "RUNNING" };
+  }
+  return { workflowId, closed: false };
+}

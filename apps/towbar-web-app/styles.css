@@ -3,6 +3,14 @@
 @source "../../packages/towbar-web-ui/src";
 
 :root {
+  --log-debug: oklch(0.527 0.145 149.214);
+  --log-info: oklch(0.68 0.16 262.881);
+  --log-warn: oklch(0.82 0.16 90);
+  --log-error: oklch(0.444 0.177 26.899);
+  --log-fatal: oklch(0.4 0.14 26.042);
+  --log-warn-row: color-mix(in oklab, var(--log-warn) 8%, var(--surface));
+  --log-error-row: color-mix(in oklab, var(--log-error) 8%, var(--surface));
+  --log-fatal-row: color-mix(in oklab, var(--log-fatal) 12%, var(--surface));
   --accent: oklch(0.84 0.16 90);
   --accent-foreground: oklch(0.21 0.01 90);
   --accent-soft-foreground: oklch(0.45 0.09 90);
@@ -13,6 +21,8 @@
 
 .dark,
 [data-theme="dark"] {
+  --log-error-row: color-mix(in oklab, var(--log-error) 16%, var(--surface));
+  --log-fatal-row: color-mix(in oklab, var(--log-fatal) 45%, var(--surface));
   --accent: oklch(0.86 0.16 90);
   --accent-soft-foreground: var(--accent);
   --focus: var(--accent);

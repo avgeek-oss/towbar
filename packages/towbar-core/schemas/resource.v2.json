@@ -15,6 +15,11 @@
       },
       "additionalProperties": false
     },
+    "logs": {
+      "type": "object",
+      "properties": { "restrict": { "type": "string", "const": "admin" } },
+      "additionalProperties": false
+    },
     "autoDeploy": { "type": "boolean" },
     "backup": {
       "type": "object",
@@ -450,6 +455,13 @@
                 },
                 "additionalProperties": false
               }
+            },
+            "additionalProperties": false
+          },
+          "logs": {
+            "type": "object",
+            "properties": {
+              "restrict": { "type": "string", "const": "admin" }
             },
             "additionalProperties": false
           },

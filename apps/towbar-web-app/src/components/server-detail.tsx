@@ -1,4 +1,6 @@
 "use client";
+
+import { LogCollectorSettings } from "./log-collector-settings";
 import {
   ServerCleanupHistory,
   type ServerCleanupPage,
@@ -657,11 +659,19 @@ export function ServerDetail() {
                         ) : undefined,
                       icon: <ScoutMascot size={24} variant="icon" />,
                       content: (
-                        <MonitoringAgentSettings
-                          serverId={serverId}
-                          canManage={can("scout.configure")}
-                          ready={setupStatus === "ready"}
-                        />
+                        <div className="content-grid">
+                          <MonitoringAgentSettings
+                            serverId={serverId}
+                            canManage={can("scout.configure")}
+                            ready={setupStatus === "ready"}
+                          />
+                          <LogCollectorSettings
+                            serverId={serverId}
+                            canManage={can("server.collectLogs")}
+                            ready={setupStatus === "ready"}
+                            hostAccess={item.config.hostLogCollection === true}
+                          />
+                        </div>
                       ),
                     },
                     {

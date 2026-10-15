@@ -14,6 +14,7 @@ import type {
 import {
   apps,
   integrationAuthorizations,
+  logPolicies,
   sourceEntities,
 } from "@workspace/towbar-database/schema";
 import { conflict } from "../../http/errors.js";
@@ -199,6 +200,15 @@ export async function materializeEnvironment(
           .returning({ id: apps.id });
     if (!instance)
       throw new Error("Instance secret declarations were not resolved");
+    if (entity.logs?.restrict === "admin") {
+      await transaction
+        .insert(logPolicies)
+        .values({ workspaceId, workloadId: instance.id, restricted: true })
+        .onConflictDoUpdate({
+          target: [logPolicies.workspaceId, logPolicies.workloadId],
+          set: { restricted: true, updatedAt: new Date() },
+        });
+    }
     await reconcileInstanceSecretDeclarations(
       {
         appId: instance.id,

@@ -67,3 +67,6 @@ catalog:
 minimumReleaseAgeExclude:
   - "@avgeek-oss/design-system"
   - "@avgeek-oss/mintlify-docs@0.1.6"
+
+patchedDependencies:
+  "@glideapps/glide-data-grid@6.0.3": patches/@glideapps__glide-data-grid@6.0.3.patch

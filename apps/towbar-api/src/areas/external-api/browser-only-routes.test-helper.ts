@@ -29,6 +29,7 @@ export const expectedBrowserOnlyRoutes = new Set([
   "GET /profile/email-change",
   "GET /profile/passkeys",
   "GET /profile/preferences",
+  "GET /profile/preferences/logs-table",
   "GET /servers/:serverId/scout-alerts/incidents/:incidentId/notifications",
   "GET /sessions",
   "GET /settings/api-keys/personal",
@@ -91,6 +92,7 @@ export const expectedBrowserOnlyRoutes = new Set([
   "PUT /notifications/webhook/destinations",
   "PUT /profile/password",
   "PUT /profile/preferences",
+  "PUT /profile/preferences/logs-table",
   "PUT /sources/:sourceId/notifications/discord/destinations",
   "PUT /sources/:sourceId/notifications/email/destinations",
   "PUT /sources/:sourceId/notifications/slack/destinations",
@@ -105,7 +107,7 @@ export function assertPublicOperationNames(
     new Set(operations.map((op) => op.name)).size,
     operations.length,
   );
-  assert.equal(operations.length, 142);
+  assert.equal(operations.length, 152);
   assert(
     operations.some(
       (op) => op.name === "post_sources_by_id_actions_change_github_connection",

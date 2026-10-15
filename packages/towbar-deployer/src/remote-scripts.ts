@@ -1,3 +1,4 @@
+import { drainCentralizedLogsShell } from "./log-drain.js";
 import { domainRoutingPython } from "./domain-routing.js";
 import { containerRuntimeArgumentsScript } from "./container-runtime.js";
 /* eslint-disable max-lines -- Remote scripts are kept with their shared shell-safety primitives so quoting rules cannot drift. */
@@ -510,6 +511,7 @@ ${maintainBuildCacheScript}
 
 export const startResourceRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 container_name="$2"
 image_tag="$3"
@@ -524,7 +526,7 @@ deployable_id="${"$"}{11}"
 volume_count="${"$"}{12}"
 shift 12
 ${dockerNetworkLockScript}
-docker rm -f "$container_name" >/dev/null 2>&1 || true
+towbar_drain_logs "$container_name"; docker rm -f "$container_name" >/dev/null 2>&1 || true
 ${validateNetworkAliasScript}
 python3 - "$network_name" "$network_alias" "$host_port" "$previous_container" <<'PYTHON'
 import json
@@ -680,6 +682,7 @@ fi
 
 export const hookRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 hook_name="$2"
 container_name="$3"
@@ -695,7 +698,7 @@ runtime_args=()
 if test -n "$network_name"; then runtime_args+=(--network "$network_name"); fi
 if test -n "$resource_cpus"; then runtime_args+=(--cpus "$resource_cpus"); fi
 if test -n "$resource_memory"; then runtime_args+=(--memory "$resource_memory"); fi
-cleanup_hook() { docker rm -f "$hook_container" >/dev/null 2>&1 || true; }
+cleanup_hook() { towbar_drain_logs "$hook_container"; docker rm -f "$hook_container" >/dev/null 2>&1 || true; }
 trap cleanup_hook EXIT
 /usr/bin/timeout --signal=TERM --kill-after=10s "$timeout_seconds" \
   /usr/bin/python3 - "$secret_directory" \
@@ -857,6 +860,7 @@ fi
 
 export const rollbackCandidateScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 cleanup_id="$2"
 container_name="$3"
@@ -872,7 +876,7 @@ import fcntl
 fcntl.flock(8, fcntl.LOCK_EX)
 PYTHON
 fi
-docker rm -f "$container_name" >/dev/null 2>&1 || true
+towbar_drain_logs "$container_name"; docker rm -f "$container_name" >/dev/null 2>&1 || true
 if test "$remove_image" = true; then docker image rm "$image_tag" >/dev/null 2>&1 || true; fi
 if test -n "$previous_container" && docker container inspect "$previous_container" >/dev/null 2>&1; then
   docker start "$previous_container" >/dev/null
@@ -918,6 +922,7 @@ rm -rf "$remote_dir"
 
 export const finalizeRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 app_id="$2"
 container_names="$3"
@@ -934,7 +939,7 @@ else
   printf '%s\n' "$container_names" >"$retained_containers"
 fi
 docker ps -a --filter "label=towbar.app=$app_id" --format '{{.Names}}' | while read -r name; do
-  if test -n "$name" && ! grep -Fxq "$name" "$retained_containers"; then docker rm -f "$name" >/dev/null; fi
+  if test -n "$name" && ! grep -Fxq "$name" "$retained_containers"; then towbar_drain_logs "$name"; docker rm -f "$name" >/dev/null; fi
 done
 python3 - "$app_id" <<'PYTHON'
 ${reclaimHostLogVolumeScript}
@@ -957,6 +962,7 @@ rm -rf "$remote_dir"
 
 export const scheduleFinalizeRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 remote_dir="$1"
 app_id="$2"
 container_names="$3"
@@ -981,6 +987,7 @@ ${reclaimHostLogVolumeScript}
 PYTHON
 nohup bash -c '
   set -euo pipefail
+${drainCentralizedLogsShell}
   remote_dir="$1"
   app_id="$2"
   retained_containers="$3"
@@ -988,7 +995,7 @@ nohup bash -c '
   retained_file="$5"
   sleep "$delay_seconds"
   docker ps -a --filter "label=towbar.app=$app_id" --format "{{.Names}}" | while read -r name; do
-    if test -n "$name" && ! grep -Fxq "$name" "$retained_containers"; then docker rm -f "$name" >/dev/null; fi
+    if test -n "$name" && ! grep -Fxq "$name" "$retained_containers"; then towbar_drain_logs "$name"; docker rm -f "$name" >/dev/null; fi
   done
   python3 "$remote_dir/reclaim-host-logs.py" "$app_id"
   if test -s "$retained_file"; then
@@ -1007,6 +1014,7 @@ nohup bash -c '
 
 export const cleanupPreviewRemoteScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 runtime_id="$1"
 shift
 container_count="$1"
@@ -1015,11 +1023,11 @@ for ((index = 0; index < container_count; index += 1)); do
   requested="$1"
   containers="$(docker container ls --all --format '{{.Names}}')"
   if grep -Fxq -- "$requested" <<<"$containers"; then
-    docker rm -f "$requested" >/dev/null
+    towbar_drain_logs "$requested"; docker rm -f "$requested" >/dev/null
   elif [[ "$requested" = towbar-* ]]; then
     compose_containers="$(docker container ls --all --filter "label=com.docker.compose.project=$requested" --format '{{.Names}}')"
     while IFS= read -r name; do
-      if test -n "$name"; then docker rm -f "$name" >/dev/null; fi
+      if test -n "$name"; then towbar_drain_logs "$name"; docker rm -f "$name" >/dev/null; fi
     done <<<"$compose_containers"
     compose_networks="$(docker network ls --filter "label=com.docker.compose.project=$requested" --format '{{.Name}}')"
     while IFS= read -r name; do
@@ -1034,7 +1042,7 @@ for ((index = 0; index < container_count; index += 1)); do
 done
 orphan_containers="$(docker container ls --all --filter "label=towbar.app=$runtime_id" --format '{{.Names}}')"
 while IFS= read -r name; do
-  if test -n "$name"; then docker rm -f "$name" >/dev/null; fi
+  if test -n "$name"; then towbar_drain_logs "$name"; docker rm -f "$name" >/dev/null; fi
 done <<<"$orphan_containers"
 sudo rm -rf -- "/var/lib/towbar/cloudflared/$runtime_id"
 sudo rm -rf -- "/var/lib/towbar/compose/$runtime_id" "/var/lib/towbar/compose/${"$"}{runtime_id}."*

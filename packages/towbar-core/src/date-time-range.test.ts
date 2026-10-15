@@ -149,3 +149,69 @@ void test("rejects nonexistent local times, invalid dates, future times, and ran
     /at least 30 seconds/,
   );
 });
+
+void test("segmented range values resolve in the saved timezone independently of display format", () => {
+  const now = Date.parse("2026-10-15T12:00:00Z");
+  for (const date of dateFormatOptions)
+    for (const time of timeFormatOptions) {
+      const result = resolveDateTimeRange(
+        {
+          dateFormat: date.id,
+          timeFormat: time.id,
+          timeZone: "Asia/Kathmandu",
+        },
+        {
+          start: { value: "2026-10-15T10:00:30.123" },
+          end: { value: "2026-10-15T11:15:45.456" },
+          retentionDays: 7,
+        },
+        now,
+      );
+      assert.deepEqual(result.range, {
+        startAt: "2026-10-15T04:15:30.123Z",
+        endAt: "2026-10-15T05:30:45.456Z",
+      });
+    }
+});
+
+void test("segmented ranges retain DST occurrence choices and reject nonexistent or offset-bearing wall times", () => {
+  const preferences = {
+    ...defaultDateTimePreferences,
+    timeZone: "America/New_York",
+  };
+  const now = Date.parse("2026-11-02T00:00:00Z");
+  const input = {
+    start: { value: "2026-11-01T01:15" },
+    end: { value: "2026-11-01T02:30" },
+    retentionDays: 7,
+  };
+  const result = resolveDateTimeRange(preferences, input, now);
+  assert.equal(result.range, null);
+  assert.deepEqual(
+    result.choices.start.map((choice) => choice.instant),
+    ["2026-11-01T05:15:00Z", "2026-11-01T06:15:00Z"],
+  );
+  assert.equal(
+    resolveDateTimeRange(
+      preferences,
+      {
+        ...input,
+        start: { ...input.start, occurrence: result.choices.start[1]!.instant },
+      },
+      now,
+    ).range?.startAt,
+    "2026-11-01T06:15:00Z",
+  );
+  for (const value of [
+    "2026-03-08T02:15",
+    "2026-02-30T10:00",
+    "2026-11-01T25:00",
+    "2026-11-01T01:15:60",
+    "2026-11-01T01:15Z",
+    "2026-11-01T01:15-04:00",
+  ]) {
+    assert.throws(() =>
+      resolveDateTimeRange(preferences, { ...input, start: { value } }, now),
+    );
+  }
+});

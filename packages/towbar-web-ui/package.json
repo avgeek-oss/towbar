@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@avgeek-oss/design-system": "1.2.17",
+    "@avgeek-oss/design-system": "1.2.19",
+    "@glideapps/glide-data-grid": "6.0.3",
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
     "next": "catalog:",
+    "prism-react-renderer": "^2.4.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

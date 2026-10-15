@@ -23,3 +23,5 @@ export * from "./monitoring-agent.js";
 export { CommandError } from "./process.js";
 
 export { DomainHandoffRecoveryRequiredError } from "./domain-routing.js";
+
+export * from "./log-collector.js";

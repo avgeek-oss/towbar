@@ -1,3 +1,4 @@
+import { drainCentralizedLogsShell } from "./log-drain.js";
 export const preflightRestoreScript = String.raw`
 set -euo pipefail
 container="$1"
@@ -60,6 +61,7 @@ docker volume create \
 
 export const restoreCandidateScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 kind="$1"
 container="$2"
 volume="$3"
@@ -70,7 +72,7 @@ resource_cpus="$7"
 resource_memory="$8"
 runtime_dir="$9"
 shift 9
-docker rm -f "$container" >/dev/null 2>&1 || true
+towbar_drain_logs "$container"; docker rm -f "$container" >/dev/null 2>&1 || true
 run_candidate() {
   runtime_args=(--mount "type=volume,src=$volume,dst=$mount_path")
   if test -n "$resource_cpus"; then runtime_args+=(--cpus "$resource_cpus"); fi
@@ -184,6 +186,7 @@ esac
 
 export const promoteCandidateScript = String.raw`
 set -euo pipefail
+${drainCentralizedLogsShell}
 kind="$1"
 current_container="$2"
 candidate_container="$3"
@@ -266,14 +269,14 @@ validate_runtime() {
     sleep 2
   done
 }
-docker rm -f "$candidate_container" >/dev/null 2>&1 || true
-docker rm -f "$current_container" >/dev/null
+towbar_drain_logs "$candidate_container"; docker rm -f "$candidate_container" >/dev/null 2>&1 || true
+towbar_drain_logs "$current_container"; docker rm -f "$current_container" >/dev/null
 switch_pointer "$candidate_volume"
 if run_runtime "$candidate_volume" "$@" && validate_runtime; then
   printf 'PROMOTED\n'
   exit 0
 fi
-docker rm -f "$current_container" >/dev/null 2>&1 || true
+towbar_drain_logs "$current_container"; docker rm -f "$current_container" >/dev/null 2>&1 || true
 switch_pointer "$previous_volume"
 if run_runtime "$previous_volume" "$@" && validate_runtime; then
   docker volume rm "$candidate_volume" >/dev/null 2>&1 || true

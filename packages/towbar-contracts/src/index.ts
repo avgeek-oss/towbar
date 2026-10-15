@@ -20,3 +20,5 @@ export * from "./scout-alerts.js";
 export * from "./deployment-comparison.js";
 export * from "./deployables.js";
 export * from "./repository-tree.js";
+
+export * from "./logs.js";
