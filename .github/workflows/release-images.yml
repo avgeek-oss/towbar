@@ -103,7 +103,6 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           platforms: linux/${{ matrix.platform }}
-          push: true
           provenance: mode=max
           sbom: true
           cache-from: type=gha,scope=release-${{ matrix.service }}-${{ matrix.platform }}
