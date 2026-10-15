@@ -5,10 +5,11 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
-## [2.0.47] - 2026-10-15
+## [2.0.48] - 2026-10-15
 
 ### Changed
 
+- Build release images on native amd64 and arm64 runners, then combine their immutable digests. Avoid QEMU crashes during ARM64 dependency installation.
 - Format structured log messages as JSON and expand the body in log details. Hide repeated attributes in the parsed view, with **View raw** and **View parsed** actions beside **Copy** to inspect the complete stored record.
 - Keep filters and custom columns available for expanded JSON fields, including double-encoded messages. Preserve plain text and malformed JSON as received.
 - Place square filter and search buttons beside the search input on mobile, matching its height. Narrow the settings column while keeping the gear centered.
