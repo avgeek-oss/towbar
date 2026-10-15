@@ -228,7 +228,10 @@ test(
       });
       const [{ count }] =
         await client`select count(*)::int as count from drizzle.__drizzle_migrations`;
-      assert.equal(count, 29);
+      const journal = JSON.parse(
+        await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
+      );
+      assert.equal(count, journal.entries.length);
       const roleTriggers =
         await client`select tgname from pg_trigger where tgname = 'towbar_revoke_mcp_on_role_change' and not tgisinternal`;
       assert.deepEqual(
@@ -275,6 +278,8 @@ test(
         ["towbar_database_storage_samples", "towbar_bytes"],
         ["towbar_database_storage_samples", "monitoring_bytes"],
         ["towbar_database_storage_samples", "analytics_bytes"],
+        ["towbar_database_storage_samples", "logs_bytes"],
+        ["towbar_database_storage_samples", "logs_error"],
         ["towbar_server_observations", "hardware"],
         ["towbar_server_observations", "hardware_at"],
         ["towbar_server_observations", "instance_at"],
