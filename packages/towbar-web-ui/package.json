@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@avgeek-oss/design-system": "git+https://github.com/avgeek-oss/oss-design-system.git#3761ed6e5fa2e0ec3958ff7bd98b5df787c7f111",
+    "@avgeek-oss/design-system": "git+https://github.com/avgeek-oss/oss-design-system.git#c9a3d17ce4c73e83aaaaf49cbb597547103afbf6",
     "@glideapps/glide-data-grid": "6.0.3",
     "@hugeicons/core-free-icons": "catalog:",
     "@hugeicons/react": "catalog:",
