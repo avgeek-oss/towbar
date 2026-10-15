@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Highlight, type PrismTheme } from "prism-react-renderer";
 import { CodeBlock } from "@avgeek-oss/design-system/typography/code-block";
 import { Widget } from "@avgeek-oss/design-system/data-display/widget";
@@ -25,11 +25,13 @@ export function CodePanel({
   children,
   language = "text",
   codeClassName,
+  renderLine,
 }: {
   ariaLabel: string;
   children: string;
   language?: string;
   codeClassName?: string;
+  renderLine?: (content: ReactNode, lineIndex: number) => ReactNode;
 }) {
   return (
     <CodeBlock aria-label={ariaLabel} className="w-full min-w-0">
@@ -52,14 +54,17 @@ export function CodePanel({
             <Highlight code={children} language="json" theme={jsonTheme}>
               {({ tokens, getTokenProps }) => (
                 <code>
-                  {tokens.map((line, lineIndex) => (
-                    <Fragment key={lineIndex}>
-                      {lineIndex > 0 ? "\n" : null}
-                      {line.map((token, tokenIndex) => (
-                        <span key={tokenIndex} {...getTokenProps({ token })} />
-                      ))}
-                    </Fragment>
-                  ))}
+                  {tokens.map((line, lineIndex) => {
+                    const content = line.map((token, tokenIndex) => (
+                      <span key={tokenIndex} {...getTokenProps({ token })} />
+                    ));
+                    return (
+                      <Fragment key={lineIndex}>
+                        {lineIndex > 0 ? "\n" : null}
+                        {renderLine ? renderLine(content, lineIndex) : content}
+                      </Fragment>
+                    );
+                  })}
                 </code>
               )}
             </Highlight>

@@ -67,6 +67,8 @@ import { resourceImageBrand } from "./resource-image-brand";
 import { LogSelect, type LogOption } from "./log-select";
 import { LogFilterDialog } from "./log-filter-dialog";
 import { LogColumnsDrawer } from "./log-columns-drawer";
+import { LogJsonPanel } from "./log-json-panel";
+import type { LogJsonField } from "./log-json-model";
 import {
   builtInLogFields,
   conditionFilters,
@@ -566,6 +568,8 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             previewId: GitPullRequestIcon,
             containerId: Package01Icon,
             stream: CommandLineIcon,
+            serverId: ServerStack01Icon,
+            workloadId: Layers01Icon,
           } as Record<string, typeof Layers01Icon>
         )[column.id] ?? CodeIcon,
       ),
@@ -923,6 +927,49 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
         <LogDetails
           key={selected.eventId}
           record={selected}
+          canFilter={conditions.length < 8}
+          onFilter={(condition) => {
+            setConditions((current) =>
+              current.some(
+                (item) =>
+                  item.field === condition.field &&
+                  item.operator === condition.operator &&
+                  item.value === condition.value,
+              )
+                ? current
+                : [...current, { ...condition, id: crypto.randomUUID() }],
+            );
+            setSelected(null);
+          }}
+          onColumn={(field, path) => {
+            const existing =
+              field.path.length === 1
+                ? logColumns.find((column) => column.id === path)?.id
+                : field.path.length === 2 && field.path[0] === "attributes"
+                  ? `attribute:${field.path[1]}`
+                  : undefined;
+            const custom = customColumns.find((column) => column.path === path);
+            const id =
+              [existing, custom?.id].find(
+                (id) => id && visibleColumns.includes(id),
+              ) ??
+              existing ??
+              custom?.id ??
+              `custom:${path}`;
+            if (!existing && !custom)
+              setCustomColumns((current) => [
+                ...current,
+                { id, title: path, path, width: 200 },
+              ]);
+            setVisibleColumns((current) =>
+              current.includes(id) ? current : [...current, id],
+            );
+            setSelected(null);
+          }}
+          onSearch={(text) => {
+            setSearch(text);
+            setSelected(null);
+          }}
           onClose={() => setSelected(null)}
         />
       ) : null}
@@ -932,9 +979,17 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
 function LogDetails({
   record,
   onClose,
+  canFilter,
+  onFilter,
+  onColumn,
+  onSearch,
 }: {
   record: LogRecord;
   onClose: () => void;
+  canFilter: boolean;
+  onFilter: (condition: Omit<LogCondition, "id">) => void;
+  onColumn: (field: LogJsonField, path: string) => void;
+  onSearch: (text: string) => void;
 }) {
   const common = {
     Workload: record.workloadName,
@@ -973,9 +1028,13 @@ function LogDetails({
                   This log record was truncated during collection.
                 </p>
               ) : null}
-              <CodePanel ariaLabel="Full log JSON" language="json">
-                {JSON.stringify(record, null, 2)}
-              </CodePanel>
+              <LogJsonPanel
+                record={record}
+                canFilter={canFilter}
+                onFilter={onFilter}
+                onColumn={onColumn}
+                onSearch={onSearch}
+              />
               <Attributes title="Attributes" variant="card" columns={2}>
                 {Object.entries(common).map(([label, value]) => (
                   <Attributes.Item key={label} label={label}>

@@ -44,18 +44,14 @@ export const logColumns = [
   { id: "spanId", title: "Span ID", width: 170 },
 ];
 export const defaultLogColumns = logColumns.slice(0, 5).map(({ id }) => id);
-export const builtInLogFields = logColumns.filter(
+export const builtInLogFields = [
+  ...logColumns,
+  { id: "workloadId", title: "Workload", width: 200 },
+].filter(
   ({ id }) =>
-    ![
-      "timestamp",
-      "body",
-      "workloadName",
-      "environment",
-      "severity",
-      "spanId",
-      "traceId",
-      "serverId",
-    ].includes(id),
+    !["timestamp", "body", "workloadName", "environment", "severity"].includes(
+      id,
+    ),
 );
 export type LogCondition = {
   id: string;
