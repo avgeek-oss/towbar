@@ -151,7 +151,7 @@ export function LogCollectorSettings({
               </Alert>
             ) : null}
             {canManage ? (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 pt-2">
                 <Button
                   variant="primary"
                   isDisabled={
