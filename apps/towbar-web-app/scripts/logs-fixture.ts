@@ -14,62 +14,169 @@ export function createLogsFixture(
   workloads: Workload[],
   getUser: () => TowbarUser | null,
 ) {
-  const now = Date.now();
-  const records: LogRecord[] = Array.from({ length: 650 }, (_, index) => {
-    const workload = workloads[index % workloads.length]!;
-    const preview = index % 7 === 0;
-    const id = createHash("sha256")
-      .update(`logs-fixture:${index}`)
-      .digest("hex");
-    const age =
-      index < 96
-        ? index * 28000
-        : 3600000 + ((index - 96) / 553) * (7 * 86400000 - 3660000);
+  const recordAt = (
+    index: number,
+    timestamp: number,
+    incident = false,
+  ): LogRecord => {
+    const seed = createHash("sha256").update(`logs-fixture:${index}`).digest();
+    const workload = workloads[seed.readUInt16BE(0) % workloads.length]!;
+    const preview = seed[2]! % 7 === 0;
+    const roll = seed[3]!;
+    const severity: LogRecord["severity"] = incident
+      ? roll < 145
+        ? "warn"
+        : roll < 240
+          ? "error"
+          : "fatal"
+      : index % 997 === 0
+        ? "unknown"
+        : roll < 10
+          ? "trace"
+          : roll < 42
+            ? "debug"
+            : roll < 217
+              ? "info"
+              : roll < 237
+                ? "warn"
+                : roll < 252
+                  ? "error"
+                  : "fatal";
+    const service = ["api", "worker", "scheduler", "proxy"][seed[4]! % 4]!;
+    const method = ["GET", "POST", "PATCH", "DELETE"][seed[5]! % 4]!;
+    const route = [
+      "/api/projects",
+      "/api/deployments",
+      "/api/users",
+      "/api/uploads",
+      "/health",
+      "/api/webhooks",
+    ][seed[6]! % 6]!;
+    const failed = severity === "error" || severity === "fatal";
+    const status = failed
+      ? 500
+      : severity === "warn"
+        ? 429
+        : method === "POST"
+          ? 201
+          : 200;
+    const duration = incident
+      ? 1200 + (seed.readUInt16BE(7) % 8000)
+      : seed.readUInt16BE(7) % 450;
+    const username = ["alex", "praveen", "sam", "jordan", "casey", "taylor"][
+      seed[9]! % 6
+    ]!;
+    const region = ["eu-west-1", "us-east-1", "ap-south-1"][seed[10]! % 3]!;
+    const messages = {
+      trace: `Query executed SELECT id, name FROM projects WHERE owner_id = $1 duration=${duration}ms rows=${seed[11]! % 40}`,
+      debug: `Cache ${index % 2 ? "hit" : "miss"} key=project:${seed[12]} user=${username} duration=${duration}ms`,
+      info:
+        service === "worker"
+          ? `Job completed queue=deployments job_id=job-${index} duration=${duration}ms`
+          : `Request completed method=${method} path=${route} status=${status} duration=${duration}ms`,
+      warn: `Upstream rate limit reached path=${route} status=${status} retry_in=30s duration=${duration}ms`,
+      error: `Database query failed: connection timed out after ${duration}ms\n  at ProjectRepository.findAll\n  at requestHandler`,
+      fatal: `Worker stopped after unrecoverable queue error queue=deployments code=QUEUE_UNAVAILABLE\n  at QueueConsumer.run\n  at processTicksAndRejections`,
+      unknown: `Service ${service} initialized; waiting for incoming work`,
+    };
+    const attributes: Record<string, string> = {
+      method,
+      status: String(status),
+      request_id: `request-${index}`,
+      "http.route": route,
+      "http.status_code": String(status),
+      duration_ms: String(duration),
+      region,
+      "release.version": `2.0.${40 + (seed[13]! % 5)}`,
+      meta: JSON.stringify({
+        username,
+        team: ["platform", "engineering", "support"][seed[14]! % 3],
+        request: {
+          duration_ms: duration,
+          cached: index % 2 === 0,
+          attempt: index % 4,
+          correlation_id: `correlation-${Math.floor(index / 5)}`,
+        },
+      }),
+    };
+    if (service === "worker" || service === "scheduler") {
+      attributes["queue.name"] = "deployments";
+      attributes["job.id"] = `job-${index}`;
+      attributes["retry.count"] = String(index % 4);
+    }
+    if (failed) {
+      attributes["error.type"] =
+        severity === "fatal"
+          ? "QueueUnavailableError"
+          : "ConnectionTimeoutError";
+      attributes["error.code"] =
+        severity === "fatal" ? "QUEUE_UNAVAILABLE" : "ETIMEDOUT";
+    }
     return {
-      eventId: id,
-      timestamp: new Date(now - age).toISOString(),
-      ingestedAt: new Date(now - age + 200).toISOString(),
+      eventId: seed.toString("hex"),
+      timestamp: new Date(timestamp).toISOString(),
+      ingestedAt: new Date(timestamp + 100 + seed[15]!).toISOString(),
       serverId: workload.serverId,
       workloadId: workload.id,
       workloadName: workload.name,
-      deploymentId: workload.id,
+      deploymentId: index % 17 === 0 ? null : workload.id,
       previewId: preview ? workload.id : null,
       environment: preview ? "preview" : "production",
-      containerId: createHash("sha256").update(workload.id).digest("hex"),
-      service: "api",
-      stream: index % 5 ? "stdout" : "stderr",
-      severity:
-        index % 11
-          ? "info"
-          : (
-              [
-                "trace",
-                "debug",
-                "info",
-                "warn",
-                "error",
-                "fatal",
-                "unknown",
-              ] as const
-            )[index % 7]!,
+      containerId: createHash("sha256")
+        .update(`${workload.id}:${service}:${preview}`)
+        .digest("hex"),
+      service,
+      stream: failed || severity === "warn" ? "stderr" : "stdout",
+      severity,
       body:
-        index % 11
-          ? `Request completed method=GET path=/api/projects status=200 duration=${index % 120}ms`
-          : "Database query failed: connection timed out\n  at ProjectRepository.findAll\n  at requestHandler",
-      attributes: {
-        method: index % 3 ? "GET" : "POST",
-        meta: JSON.stringify({
-          username: ["alex", "praveen", "sam", "jordan"][index % 4],
-          request: { duration_ms: index % 120, cached: index % 2 === 0 },
-        }),
-        request_id: `request-${index}`,
-        status: index % 11 ? "200" : "500",
-      },
-      traceId: id.slice(0, 32),
-      spanId: id.slice(0, 16),
+        severity === "info" && index % 9 === 0
+          ? JSON.stringify({
+              message: messages.info,
+              method,
+              path: route,
+              status,
+              duration_ms: duration,
+              user: { name: username, region },
+            })
+          : messages[severity],
+      attributes,
+      traceId: index % 13 === 0 ? null : seed.toString("hex").slice(0, 32),
+      spanId: index % 13 === 0 ? null : seed.toString("hex").slice(0, 16),
       truncated: false,
     };
-  });
+  };
+  let records: LogRecord[] = [];
+  let latestAt = 0,
+    nextIndex = 0;
+  const refresh = () => {
+    if (!nextIndex) {
+      const now = Date.now();
+      records = Array.from({ length: 37800 }, (_, index) => {
+        const age =
+          index < 24000
+            ? ((index + 0.5) / 24000) * 86400000
+            : index < 28000
+              ? 300000 + ((index - 24000 + 0.5) / 4000) * 1500000
+              : index < 32000
+                ? 4200000 + ((index - 28000 + 0.5) / 4000) * 1500000
+                : index < 36000
+                  ? ((index - 32000 + 0.5) / 4000) * 21600000
+                  : 86400000 + ((index - 36000 + 0.5) / 1800) * 6 * 86400000;
+        return recordAt(index, now - age, index >= 28000 && index < 32000);
+      }).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+      latestAt = now;
+      nextIndex = records.length;
+      return;
+    }
+    const elapsed = Math.floor((Date.now() - latestAt) / 2000);
+    if (elapsed < 1) return;
+    latestAt += elapsed * 2000;
+    const count = Math.min(elapsed, 43200);
+    const added = Array.from({ length: count }, (_, index) =>
+      recordAt(nextIndex++, latestAt - index * 2000),
+    );
+    records = [...added, ...records].slice(0, 100000);
+  };
   const collectors = new Map<string, LogCollectionStatus>();
   const json = (response: ServerResponse, status: number, data: unknown) => {
     response.writeHead(status, {
@@ -103,6 +210,11 @@ export function createLogsFixture(
     url: URL,
   ) => {
     const pathname = url.pathname;
+    if (
+      pathname.startsWith("/v1/core/logs/") ||
+      pathname.endsWith("/log-collection")
+    )
+      refresh();
     if (pathname === "/v1/core/observability/logs/status") {
       json(response, 200, storage());
       return true;
