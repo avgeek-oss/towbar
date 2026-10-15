@@ -118,14 +118,14 @@ from the merge commit, then run
 the **Publish release images** workflow from `main` with that tag. The workflow
 refuses a tag that does not point at the selected `main` commit.
 
-The workflow builds the API, worker, and dashboard for `linux/amd64` and
-`linux/arm64`, publishes them to GitHub Container Registry, creates a draft release,
-and attaches `towbar-images.json`. The manifest records immutable image digests. The
-workflow publishes the assembled release, installs it in local mode on a disposable
+The workflow builds each API, worker, and dashboard image on matching native
+amd64 and arm64 runners. It validates both platform digests, combines them into
+multi-platform images in GitHub Container Registry, and attaches their immutable
+digests in `towbar-images.json` to a draft release. It installs the candidate in local mode on a disposable
 GitHub-hosted Ubuntu runner, runs `towbar doctor`, and proves that `towbar restart`
-reuses the running application containers. Its diagnostic evidence is retained for
-14 days. A failed smoke test deletes the release and tag so the installer cannot
-select it; immutable release tag names cannot be reused, so fix the failure under a
+reuses the running application containers before publishing the release. Its diagnostic evidence is retained for
+14 days. A failed smoke test withdraws the release so the installer cannot
+select it. Release tag names cannot be reused, so fix the failure under a
 new patch version.
 
 GHCR package visibility is separate from repository visibility. The three Towbar
