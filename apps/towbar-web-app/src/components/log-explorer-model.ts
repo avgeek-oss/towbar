@@ -97,22 +97,35 @@ export function conditionFilters(
 }
 export { validLogColumnPath } from "@workspace/towbar-contracts";
 export type { CustomLogColumn } from "@workspace/towbar-contracts";
-function parsedValue(value: unknown): unknown {
-  if (
-    typeof value !== "string" ||
-    !(value.trim().startsWith("{") || value.trim().startsWith("["))
-  )
-    return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
+export function parseStructuredLogValue(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  let parsed: unknown = value;
+  for (let depth = 0; depth < 2 && typeof parsed === "string"; depth++) {
+    if (!/^\s*[[{"]/u.test(parsed)) return value;
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return value;
+    }
   }
+  if (parsed === null || typeof parsed !== "object") return value;
+  const pending: { value: unknown; depth: number }[] = [
+    { value: parsed, depth: 0 },
+  ];
+  let count = 0;
+  while (pending.length) {
+    const entry = pending.pop()!;
+    if (++count > 10000 || entry.depth > 32) return value;
+    if (entry.value === null || typeof entry.value !== "object") continue;
+    for (const child of Object.values(entry.value))
+      pending.push({ value: child, depth: entry.depth + 1 });
+  }
+  return parsed;
 }
 function readPath(value: unknown, parts: string[]): unknown {
-  let current = parsedValue(value);
+  let current = parseStructuredLogValue(value);
   for (let index = 0; index < parts.length; index++) {
-    current = parsedValue(current);
+    current = parseStructuredLogValue(current);
     if (current === null || typeof current !== "object") return undefined;
     const remaining = parts.slice(index).join(".");
     if (Object.hasOwn(current, remaining))
@@ -127,7 +140,7 @@ export function logColumnPaths(records: readonly LogRecord[]): string[] {
   const paths = new Set(logColumns.map(({ id }) => id));
   const visit = (value: unknown, prefix = "", depth = 0) => {
     if (depth >= 8 || paths.size >= 1000) return;
-    const parsed = parsedValue(value);
+    const parsed = parseStructuredLogValue(value);
     if (parsed === null || typeof parsed !== "object") return;
     for (const [key, child] of Object.entries(parsed)) {
       const path = prefix ? `${prefix}.${key}` : key;

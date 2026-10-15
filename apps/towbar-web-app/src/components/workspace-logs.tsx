@@ -80,7 +80,7 @@ import {
 } from "./log-query-history";
 import { LogColumnsDrawer } from "./log-columns-drawer";
 import { LogJsonPanel } from "./log-json-panel";
-import type { LogJsonField } from "./log-json-model";
+import { logJsonPresentation, type LogJsonField } from "./log-json-model";
 import {
   builtInLogFields,
   conditionFilters,
@@ -680,24 +680,73 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             searchLogs();
           }}
         >
-          <SearchField
-            className="col-span-2 min-w-0 lg:col-span-1"
-            aria-label="Search logs"
-            value={search}
-            onChange={setSearch}
-            variant="secondary"
-          >
-            <SearchField.Group>
-              <SearchField.Input
-                placeholder="Search logs…"
-                maxLength={512}
-                autoComplete="off"
-                spellCheck={false}
-                className="text-base sm:text-sm"
-              />
-              <SearchField.ClearButton aria-label="Clear search" />
-            </SearchField.Group>
-          </SearchField>
+          <div className="col-span-2 flex min-w-0 items-center gap-2 lg:contents">
+            <SearchField
+              className="min-w-0 flex-1"
+              aria-label="Search logs"
+              value={search}
+              onChange={setSearch}
+              variant="secondary"
+            >
+              <SearchField.Group className="h-11 lg:h-9">
+                <SearchField.Input
+                  placeholder="Search logs…"
+                  maxLength={512}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="h-full min-w-0 flex-1 text-base sm:text-sm"
+                />
+                <SearchField.ClearButton aria-label="Clear search" />
+              </SearchField.Group>
+            </SearchField>
+            <div className="flex shrink-0 items-center gap-2 lg:col-start-6 lg:row-start-1">
+              <Button
+                isIconOnly
+                className="relative size-11 shrink-0 rounded-xl lg:size-9"
+                aria-label={
+                  conditions.length
+                    ? `Filters (${conditions.length})`
+                    : "Filters"
+                }
+                variant="secondary"
+                onPress={() => setFilterOpen(true)}
+              >
+                <HugeiconsIcon icon={FunnelIcon} size={18} />
+                {conditions.length ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 -top-0.5 grid min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 text-accent-foreground"
+                  >
+                    {conditions.length}
+                  </span>
+                ) : null}
+              </Button>
+              <Button
+                type="submit"
+                className="size-11 shrink-0 rounded-xl lg:size-9"
+                isIconOnly
+                aria-label="Search"
+                variant="primary"
+                isDisabled={busy}
+              >
+                <HugeiconsIcon icon={Search01Icon} size={18} />
+              </Button>
+              <Button
+                type="button"
+                className="hidden size-9 lg:inline-flex"
+                isIconOnly
+                aria-label={following ? "Pause live trail" : "Live trail"}
+                variant="primary"
+                isDisabled={!page || busy || loadingMore}
+                onPress={() => setFollowing((value) => !value)}
+              >
+                <HugeiconsIcon
+                  icon={following ? PauseIcon : PlayIcon}
+                  size={18}
+                />
+              </Button>
+            </div>
+          </div>
           <LogSelect
             label="Workload"
             hideLabel
@@ -775,51 +824,6 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
               });
             }}
           />
-          <div className="col-span-2 flex items-center gap-2 lg:col-span-1">
-            <Button
-              isIconOnly
-              className="relative size-11 lg:size-9"
-              aria-label={
-                conditions.length ? `Filters (${conditions.length})` : "Filters"
-              }
-              variant="secondary"
-              onPress={() => setFilterOpen(true)}
-            >
-              <HugeiconsIcon icon={FunnelIcon} size={18} />
-              {conditions.length ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute -right-0.5 -top-0.5 grid min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 text-accent-foreground"
-                >
-                  {conditions.length}
-                </span>
-              ) : null}
-            </Button>
-            <Button
-              type="submit"
-              className="size-11 lg:size-9"
-              isIconOnly
-              aria-label="Search"
-              variant="primary"
-              isDisabled={busy}
-            >
-              <HugeiconsIcon icon={Search01Icon} size={18} />
-            </Button>
-            <Button
-              type="button"
-              className="hidden size-9 lg:inline-flex"
-              isIconOnly
-              aria-label={following ? "Pause live trail" : "Live trail"}
-              variant="primary"
-              isDisabled={!page || busy || loadingMore}
-              onPress={() => setFollowing((value) => !value)}
-            >
-              <HugeiconsIcon
-                icon={following ? PauseIcon : PlayIcon}
-                size={18}
-              />
-            </Button>
-          </div>
         </form>
         {error || localizationError ? (
           <div className="mt-2">
@@ -955,7 +959,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
             <Tooltip>
               <Tooltip.Trigger<"button">
                 aria-label="Edit columns"
-                className="inline-flex h-full w-11 shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
+                className="inline-flex h-full w-full shrink-0 items-center justify-center bg-transparent p-0 text-muted hover:text-foreground focus-visible:rounded-lg focus-visible:outline-2 focus-visible:outline-focus"
                 render={(props) => (
                   <button
                     {...props}
@@ -1078,6 +1082,7 @@ function LogDetails({
   onColumn: (field: LogJsonField, path: string) => void;
   onSearch: (text: string) => void;
 }) {
+  const message = useMemo(() => logJsonPresentation(record), [record]);
   const common = {
     Workload: record.workloadName,
     Time: logDateTime(record.timestamp),
@@ -1107,8 +1112,14 @@ function LogDetails({
           </Drawer.Header>
           <Drawer.Body className="pb-0">
             <div className="grid min-w-0 gap-4">
-              <CodePanel ariaLabel="Message" codeClassName="text-foreground">
-                {record.body}
+              <CodePanel
+                ariaLabel="Message"
+                language={message.structured ? "json" : "text"}
+                codeClassName="text-foreground"
+              >
+                {message.structured
+                  ? JSON.stringify(message.body, null, 2)
+                  : record.body}
               </CodePanel>
               {record.truncated ? (
                 <p className="text-sm text-warning">

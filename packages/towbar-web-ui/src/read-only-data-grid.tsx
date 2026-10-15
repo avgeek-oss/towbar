@@ -47,7 +47,7 @@ export function ReadOnlyDataGrid({
   const renderedColumns = useMemo(
     () =>
       leadingHeader
-        ? [{ id: "__actions", title: "", width: 44 }, ...columns]
+        ? [{ id: "__actions", title: "", width: 28 }, ...columns]
         : columns,
     [leadingHeader, columns],
   );
@@ -201,7 +201,7 @@ export function ReadOnlyDataGrid({
       </span>
       {leadingHeader ? (
         <div
-          className="absolute left-0 top-0 z-10 grid w-11 place-items-center bg-surface"
+          className="absolute left-0 top-0 z-10 grid w-7 place-items-center bg-surface"
           style={{ height: rowHeight }}
         >
           {leadingHeader}
