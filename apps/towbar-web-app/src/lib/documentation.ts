@@ -410,6 +410,7 @@ export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   "server identity and capacity": documentationTopics.servers,
   "scout agent": documentationTopics.scout,
   "centralized logs": documentationTopics.centralizedLogs,
+  "otel logs collector": documentationTopics.logCollection,
   "docker logs": documentationTopics.logCollection,
   "unused docker objects": documentationTopics.cleanup,
   performance: documentationTopics.performance,

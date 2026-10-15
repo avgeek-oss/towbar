@@ -140,7 +140,7 @@ export function LogCollectorSettings({
             ) : null}
             {item.unsupportedContainers > 0 ? (
               <Alert status="warning">
-                <Alert.Indicator />
+                <Alert.Indicator className="size-5 p-0" />
                 <Alert.Content>
                   <Alert.Description>
                     Some managed containers cannot be collected. Check the

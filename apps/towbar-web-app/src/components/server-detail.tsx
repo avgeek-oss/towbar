@@ -19,7 +19,6 @@ import {
   ComputerActivityIcon,
   DashboardCircleIcon,
   DatabaseIcon,
-  File02Icon,
   Delete02Icon,
   ServerOffIcon,
   ServerStack01Icon,
@@ -46,6 +45,7 @@ import { CloudProviderLogo } from "./cloud-provider-logo";
 import { ServerHardwareDescription } from "./server-hardware";
 
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type {
@@ -632,8 +632,16 @@ export function ServerDetail() {
                     },
                     {
                       value: "logs-collection",
-                      label: "Log collection",
-                      icon: <HugeiconsIcon icon={File02Icon} />,
+                      label: "OTEL Logs Collector",
+                      icon: (
+                        <Image
+                          alt=""
+                          src="/resource-logos/opentelemetry.svg"
+                          width={24}
+                          height={24}
+                          className="size-6 shrink-0 object-contain"
+                        />
+                      ),
                       content: (
                         <LogCollectorSettings
                           serverId={serverId}
