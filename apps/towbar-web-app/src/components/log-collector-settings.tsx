@@ -1,7 +1,14 @@
 "use client";
 import { useRef, useState } from "react";
+import {
+  Delete02Icon,
+  Download01Icon,
+  RefreshIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Widget } from "@avgeek-oss/design-system/data-display/widget";
+import { Alert } from "@avgeek-oss/design-system/feedback/alert";
 import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { TowbarApiError } from "@workspace/towbar-web-client";
@@ -63,14 +70,9 @@ export function LogCollectorSettings({
   return (
     <Widget>
       <Widget.Header>
-        <Widget.Title>Centralized logs</Widget.Title>
+        <Widget.Title help={false}>Centralized logs</Widget.Title>
       </Widget.Header>
       <Widget.Content className="content-grid">
-        <p className="max-w-3xl text-sm text-muted">
-          Collect service, datastore, and preview container logs in your
-          external ClickHouse database. Search retained history in Monitor →
-          Logs.
-        </p>
         {collector.error || storage.error || error ? (
           <QueryError message={collector.error ?? storage.error ?? error!} />
         ) : null}
@@ -137,21 +139,35 @@ export function LogCollectorSettings({
               </p>
             ) : null}
             {item.unsupportedContainers > 0 ? (
-              <p className="text-sm text-warning">
-                Some managed containers cannot be collected. Check the Docker
-                json-file driver, workload ownership, and the 512-container
-                limit.
-              </p>
+              <Alert status="warning">
+                <Alert.Indicator />
+                <Alert.Content>
+                  <Alert.Description>
+                    Some managed containers cannot be collected. Check the
+                    Docker json-file driver, workload ownership, and the
+                    512-container limit.
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
             ) : null}
             {canManage ? (
               <div className="flex flex-wrap gap-2">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   isDisabled={
                     pending || !ready || storage.data.state !== "ready"
                   }
                   onPress={() => configure(true)}
                 >
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    icon={
+                      item.desiredState === "enabled"
+                        ? RefreshIcon
+                        : Download01Icon
+                    }
+                    className="size-4 shrink-0"
+                  />
                   {pending
                     ? "Updating…"
                     : item.desiredState === "enabled"
@@ -159,10 +175,15 @@ export function LogCollectorSettings({
                       : "Enable log collection"}
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="danger"
                   isDisabled={pending || item.desiredState !== "enabled"}
                   onPress={() => configure(false)}
                 >
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    icon={Delete02Icon}
+                    className="size-4 shrink-0"
+                  />
                   Disable collection
                 </Button>
               </div>
