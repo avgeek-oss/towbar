@@ -1447,7 +1447,19 @@ test("the local fixture covers server preparation and deployable readiness", asy
     assert.equal(response.status, 202);
     const payload = await response.json();
     assert.equal(payload.preparation.status, "queued");
-    assert.equal(payload.preparation.steps.length, 7);
+    assert.deepEqual(
+      payload.preparation.steps.map((step) => step.id),
+      [
+        "connecting",
+        "inspecting",
+        "installing_prerequisites",
+        "installing_docker",
+        "installing_caddy",
+        "installing_log_collector",
+        "configuring_access",
+        "verifying",
+      ],
+    );
 
     let preparation = payload.preparation;
     for (
