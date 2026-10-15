@@ -5,11 +5,7 @@ import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
 import { ComboBox } from "@avgeek-oss/design-system/pickers/combo-box";
 import { ListBox } from "@avgeek-oss/design-system/collections/list-box";
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-} from "@avgeek-oss/design-system/forms/field";
+import { Field, FieldLabel } from "@avgeek-oss/design-system/forms/field";
 import { validLogColumnPath, type CustomLogColumn } from "./log-explorer-model";
 export function LogCustomColumnModal({
   names,
@@ -92,7 +88,6 @@ export function LogCustomColumnModal({
                 </FieldLabel>
                 <ComboBox
                   aria-labelledby={`${formId}-path-label`}
-                  aria-describedby={`${formId}-path-description`}
                   allowsCustomValue
                   isRequired
                   inputValue={path}
@@ -128,13 +123,6 @@ export function LogCustomColumnModal({
                     </ListBox>
                   </ComboBox.Popover>
                 </ComboBox>
-                <FieldDescription
-                  id={`${formId}-path-description`}
-                  className="text-xs"
-                >
-                  Read a field from the log, its attributes, or its JSON message
-                  using dot notation.
-                </FieldDescription>
               </Field>
               {error ? (
                 <p role="alert" className="text-sm text-danger">
