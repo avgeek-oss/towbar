@@ -154,7 +154,7 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
       <Button
         size="sm"
         variant="tertiary"
-        className="min-h-11 whitespace-nowrap"
+        className="whitespace-nowrap"
         onPress={() => setOpen(true)}
       >
         View result
