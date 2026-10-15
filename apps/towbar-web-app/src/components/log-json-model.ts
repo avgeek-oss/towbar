@@ -2,9 +2,45 @@ import {
   logConditionGroupSchema,
   type LogRecord,
 } from "@workspace/towbar-contracts";
-import { type LogCondition, validLogColumnPath } from "./log-explorer-model";
+import {
+  type LogCondition,
+  parseStructuredLogValue,
+  validLogColumnPath,
+} from "./log-explorer-model";
 
 export type LogJsonField = { path: string[]; value: unknown };
+
+export function logJsonPresentation(record: LogRecord) {
+  const body = parseStructuredLogValue(record.body);
+  const structured = body !== null && typeof body === "object";
+  if (!structured) return { body, structured, record };
+  const fields = new Map<string, string>();
+  const visit = (value: unknown, path: string[], depth: number) => {
+    if (depth > 8 || value === null) return;
+    if (["string", "number", "boolean"].includes(typeof value)) {
+      fields.set(path.join("."), String(value));
+    } else if (typeof value === "object") {
+      for (const [key, child] of Object.entries(value))
+        visit(child, [...path, key], depth + 1);
+    }
+  };
+  visit(body, [], 0);
+  const { attributes: originalAttributes, ...rest } = record;
+  const attributes = Object.fromEntries(
+    Object.entries(originalAttributes).filter(
+      ([key, value]) => fields.get(key) !== value,
+    ),
+  );
+  return {
+    body,
+    structured,
+    record: {
+      ...rest,
+      body,
+      ...(Object.keys(attributes).length ? { attributes } : {}),
+    },
+  };
+}
 
 export function logJsonLines(value: unknown) {
   const code = JSON.stringify(value, null, 2);
@@ -36,6 +72,16 @@ export function logJsonCondition(
   let value = field.value;
   if (key === "attributes" && field.path.length === 2) {
     key = `attribute:${field.path[1]}`;
+  } else if (key === "body" && field.path.length > 1) {
+    const attribute = field.path.slice(1).join(".");
+    if (
+      !["string", "number", "boolean"].includes(typeof value) ||
+      !Object.hasOwn(record.attributes, attribute) ||
+      record.attributes[attribute] !== String(value)
+    )
+      return null;
+    key = `attribute:${attribute}`;
+    value = String(value);
   } else if (field.path.length !== 1) return null;
   if (key === "workloadName") {
     key = "workloadId";

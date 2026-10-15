@@ -26,18 +26,23 @@ export function CodePanel({
   language = "text",
   codeClassName,
   renderLine,
+  headerActions,
 }: {
   ariaLabel: string;
   children: string;
   language?: string;
   codeClassName?: string;
   renderLine?: (content: ReactNode, lineIndex: number) => ReactNode;
+  headerActions?: ReactNode;
 }) {
   return (
     <CodeBlock aria-label={ariaLabel} className="w-full min-w-0">
       <CodeBlock.Header>
         <CodeBlock.Filename>{ariaLabel}</CodeBlock.Filename>
-        <CodeBlock.CopyButton code={children} />
+        <div className="flex shrink-0 items-center gap-3">
+          {headerActions}
+          <CodeBlock.CopyButton code={children} />
+        </div>
       </CodeBlock.Header>
       {language === "json" ? (
         <Widget.Content className="p-0">

@@ -14,6 +14,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Dropdown } from "@avgeek-oss/design-system/overlays/dropdown";
 import { toast } from "@avgeek-oss/design-system/overlays/toast";
 import { Label } from "@avgeek-oss/design-system/forms/label";
+import { Widget } from "@avgeek-oss/design-system/data-display/widget";
 import { CodePanel } from "@workspace/towbar-web-ui/code-panel";
 import type { LogRecord } from "@workspace/towbar-web-client";
 import type { LogCondition } from "./log-explorer-model";
@@ -22,6 +23,7 @@ import {
   logJsonColumnPath,
   logJsonCondition,
   logJsonValue,
+  logJsonPresentation,
   type LogJsonField,
 } from "./log-json-model";
 
@@ -34,15 +36,27 @@ type FieldActions = {
 };
 
 export function LogJsonPanel(props: FieldActions) {
-  const { code, fields } = useMemo(
-    () => logJsonLines(props.record),
+  const [raw, setRaw] = useState(false);
+  const presentation = useMemo(
+    () => logJsonPresentation(props.record),
     [props.record],
+  );
+  const { code, fields } = useMemo(
+    () => logJsonLines(raw ? props.record : presentation.record),
+    [props.record, presentation, raw],
   );
   return (
     <div className="min-w-0">
       <CodePanel
         ariaLabel="Full log JSON"
         language="json"
+        headerActions={
+          presentation.structured ? (
+            <Widget.Action onPress={() => setRaw((current) => !current)}>
+              {raw ? "View parsed" : "View raw"}
+            </Widget.Action>
+          ) : undefined
+        }
         renderLine={(content, line) => {
           const field = fields.get(line);
           return field ? (
