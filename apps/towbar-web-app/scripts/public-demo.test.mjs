@@ -162,6 +162,7 @@ test(
   "expiry timer closes an existing event stream without another request",
   { timeout: 5000 },
   async (t) => {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
     const { call, start } = await setup(t, { ttlMs: 1200 });
     const cookie = await start();
     const stream = await call(
@@ -174,6 +175,7 @@ test(
       new TextDecoder().decode((await reader.read()).value),
       /event: deployment/,
     );
+    t.mock.timers.tick(1201);
     await assert.rejects(async () => {
       while (!(await reader.read()).done) {
         /* Wait for expiry to close the stream. */
