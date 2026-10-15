@@ -4745,32 +4745,38 @@
       "Response_258": {
         "type": "object",
         "properties": {
+          "name": { "type": "string" },
+          "reason": { "type": "string" },
           "kind": {
             "anyOf": [
               { "type": "string", "const": "image" },
+              { "type": "string", "const": "workload" },
               { "type": "string", "const": "container" },
-              { "type": "string", "const": "volume" }
+              { "type": "string", "const": "volume" },
+              { "type": "string", "const": "network" },
+              { "type": "string", "const": "route" }
             ]
-          },
-          "name": { "type": "string" },
-          "reason": { "type": "string" }
+          }
         },
-        "required": ["kind", "name", "reason"]
+        "required": ["name", "reason", "kind"]
       },
       "Response_259": {
         "type": "object",
         "properties": {
+          "name": { "type": "string" },
+          "reason": { "type": "string" },
           "kind": {
             "anyOf": [
               { "type": "string", "const": "image" },
+              { "type": "string", "const": "workload" },
               { "type": "string", "const": "container" },
-              { "type": "string", "const": "volume" }
+              { "type": "string", "const": "volume" },
+              { "type": "string", "const": "network" },
+              { "type": "string", "const": "route" }
             ]
-          },
-          "name": { "type": "string" },
-          "reason": { "type": "string" }
+          }
         },
-        "required": ["kind", "name", "reason"]
+        "required": ["name", "reason", "kind"]
       },
       "Response_256": {
         "type": "object",

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  CubeIcon,
+  DatabaseIcon,
   DashboardCircleIcon,
   ServerStack01Icon,
 } from "@hugeicons/core-free-icons";
@@ -95,7 +95,9 @@ export function DeployableInventoryTable<T extends App | Resource>({
               aria-hidden="true"
               className="size-4 shrink-0"
               icon={
-                group.items[0]!.kind === "app" ? DashboardCircleIcon : CubeIcon
+                group.items[0]!.kind === "app"
+                  ? DashboardCircleIcon
+                  : DatabaseIcon
               }
             />
             <span className="truncate text-sm font-medium">

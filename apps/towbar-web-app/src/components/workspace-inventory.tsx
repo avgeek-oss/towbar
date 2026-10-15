@@ -9,7 +9,7 @@ import {
   Add01Icon,
   CloudIcon,
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   ServerStack01Icon,
   Layers01Icon,
   LeftToRightListBulletIcon,
@@ -33,6 +33,7 @@ import {
   ResourceTable,
   type ResourceTableColumn,
 } from "@avgeek-oss/design-system/patterns/resource-table";
+import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { ButtonLink } from "@avgeek-oss/design-system/buttons/button";
 import {
@@ -187,7 +188,7 @@ export function ResourcesIndex() {
 
   return (
     <DashboardPage
-      icon={CubeIcon}
+      icon={DatabaseIcon}
       title="Datastores"
       actions={<InventoryViewToggle kind="Datastores" />}
     >
@@ -465,6 +466,16 @@ function ServerInventory({
     },
     {
       cell: (server) => (
+        <TypographyCode className="whitespace-nowrap">
+          {server.canonicalIp}
+        </TypographyCode>
+      ),
+      className: "min-w-40",
+      header: "IP",
+      key: "ip",
+    },
+    {
+      cell: (server) => (
         <StatusBadge
           status={server.archivedAt ? "archived" : server.setupStatus}
         />
@@ -516,16 +527,6 @@ function ServerInventory({
       key: "max-memory",
     },
     {
-      cell: (server) => (
-        <span className="whitespace-nowrap tabular-nums">
-          {server.canonicalIp}
-        </span>
-      ),
-      className: "min-w-40",
-      header: "IP",
-      key: "ip",
-    },
-    {
       cell: (server) => {
         const appCount = appCounts.get(server.canonicalIp) ?? 0;
         const resourceCount = resourceCounts.get(server.canonicalIp) ?? 0;
@@ -551,7 +552,7 @@ function ServerInventory({
               <HugeiconsIcon
                 aria-hidden="true"
                 className="text-muted-foreground size-4"
-                icon={CubeIcon}
+                icon={DatabaseIcon}
               />
               <span className="tabular-nums">{resourceCount}</span>
             </TooltipText>

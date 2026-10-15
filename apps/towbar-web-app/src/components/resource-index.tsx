@@ -14,7 +14,7 @@ import {
 import {
   Add01Icon,
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   GitBranchIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -132,7 +132,7 @@ export function SourceIndex() {
               {
                 label: "datastore",
                 count: counts?.resources ?? 0,
-                icon: CubeIcon,
+                icon: DatabaseIcon,
               },
             ].map(({ label, count, icon }) => (
               <TooltipText

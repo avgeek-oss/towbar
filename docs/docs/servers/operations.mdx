@@ -15,7 +15,7 @@ Admins can choose **Terminal → Connect** after configuring a verified SSH key.
 
 ## Clean up leftover workloads
 
-Open **Settings → Docker cleanup** to review unused objects from the latest server check. Select **Request Cleanup** to queue a fresh server-level attempt. Cleanup discovers current Towbar-owned objects when it starts; it does not rely on the table's older snapshot.
+Open **Settings → Docker cleanup** to review unused objects from the latest server check. Select **Request Cleanup** to queue a fresh server-level attempt. Cleanup discovers current Towbar-owned objects when it starts; it does not rely on the table's older snapshot. An empty Docker inventory does not mean that removed workloads have no routes or configuration left to retire. Results identify routes, networks, and workload retirement separately from containers, images, and volumes.
 
 A successful [repository sync](/docs/repositories/sync) that removes workloads also queues one attempt per affected server, combining removals on that server. Automatic and manual requests use the same server queue. Failed fetches, invalid manifests, and failed syncs do not queue removal. If the queue is unavailable, the committed request remains queued and delivery retries. A historical server that was removed from Towbar gets a failed attempt without undoing the sync; register it again and request cleanup to retire anything left there.
 
@@ -26,3 +26,9 @@ Towbar rechecks ownership and usage before removal. It preserves active workload
 The cleanup attempts table includes every server-level attempt, with its sync or manual trigger, status, request time, and completion time. Use its pagination to see older attempts and select **View result** to inspect the named objects and paths, with a removed, skipped, or failed outcome and a reason for each action. Fix a reported problem, then select **Request Cleanup** to retry using current ownership. Domain ownership is released only after route retirement succeeds; skipped handoffs and referenced volumes can require a later attempt.
 
 Deleting an entire repository is a separate action. After deletion, request cleanup on its former servers to remove eligible owned Docker objects. For removal of the server itself, read [Remove a server](/docs/servers/remove).
+
+### Caddy recovery during cleanup
+
+Route cleanup validates the staged configuration before applying it. If Caddy is running, Towbar reloads it once for all removed routes. If an earlier cleanup exhausted systemd's start limit and left Caddy failed with `start-limit-hit`, Towbar resets that limit and starts the validated configuration once. A deliberately stopped service is not started automatically; start Caddy before retrying cleanup.
+
+If validation, recovery, or reload fails, Towbar restores the staged route files and retains the workload configuration and domain ownership for retry. Old failed attempts remain in history after a successful retry.

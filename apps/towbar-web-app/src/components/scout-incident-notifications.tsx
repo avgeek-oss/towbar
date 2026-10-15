@@ -7,6 +7,7 @@ import {
 } from "@avgeek-oss/design-system/data-display/table-cell-text";
 
 import { useState } from "react";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
@@ -84,7 +85,20 @@ export function ScoutIncidentNotifications({
             }
           >
             <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-              {
+              {[
+                "pending",
+                "queued",
+                "running",
+                "delivering",
+                "retrying",
+              ].includes(d.state) ? (
+                <Spinner
+                  aria-hidden="true"
+                  color="current"
+                  size="sm"
+                  className="size-3.5"
+                />
+              ) : (
                 <ScoutIcon
                   name={
                     d.state === "succeeded"
@@ -94,7 +108,7 @@ export function ScoutIncidentNotifications({
                         : "time"
                   }
                 />
-              }
+              )}
               {d.state === "succeeded"
                 ? "Sent"
                 : d.state[0]!.toUpperCase() + d.state.slice(1)}

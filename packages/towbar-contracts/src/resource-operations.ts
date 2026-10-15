@@ -350,11 +350,15 @@ export const restoreCleanupResultSchema = z
   })
   .strict();
 
+const cleanupOutcomeSchema = orphanItemSchema.extend({
+  kind: z.enum([...orphanKinds, "network", "route", "workload"]),
+});
+
 export const serverCleanupResultSchema = z
   .object({
     cleaned: z.array(orphanItemSchema),
-    skipped: z.array(orphanItemSchema),
-    failures: z.array(orphanItemSchema).optional(),
+    skipped: z.array(cleanupOutcomeSchema),
+    failures: z.array(cleanupOutcomeSchema).optional(),
     retiredDeployableIds: z.array(z.string().uuid()).optional(),
     retiredPaths: z.array(z.string()).optional(),
   })

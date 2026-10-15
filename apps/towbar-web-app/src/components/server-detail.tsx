@@ -18,7 +18,7 @@ import {
   AlertCircleIcon,
   ComputerActivityIcon,
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   File02Icon,
   Delete02Icon,
   ServerOffIcon,
@@ -575,7 +575,7 @@ export function ServerDetail() {
                 resourceCount !== undefined ? (
                   <span className="text-muted">{resourceCount}</span>
                 ) : undefined,
-              icon: <HugeiconsIcon icon={CubeIcon} />,
+              icon: <HugeiconsIcon icon={DatabaseIcon} />,
               content: (
                 <ServerDeployableTable
                   capacity={capacity.data.capacity}
@@ -688,6 +688,12 @@ export function ServerDetail() {
                       titleBadge: cleanup.data?.inProgress ? (
                         <Chip size="sm" color="warning">
                           <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+                            <Spinner
+                              aria-hidden="true"
+                              color="current"
+                              size="sm"
+                              className="size-3.5"
+                            />
                             In progress
                           </Chip.Label>
                         </Chip>
@@ -703,7 +709,7 @@ export function ServerDetail() {
                           <ResourceTable
                             ariaLabel={`Unused Docker objects on ${item.canonicalIp}`}
                             columns={orphanColumns}
-                            emptyDescription="The latest server check found no unused Towbar objects. Cleanup rechecks current ownership and usage."
+                            emptyDescription="The latest server check found no unused Docker containers, images, or volumes. Request Cleanup also retires removed workloads’ routes and configuration; these are not listed here."
                             emptyTitle="No unused Docker objects"
                             getRowKey={(orphan) =>
                               `${orphan.kind}:${orphan.name}`

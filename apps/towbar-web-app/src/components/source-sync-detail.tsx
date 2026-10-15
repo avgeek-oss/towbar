@@ -5,7 +5,7 @@ import { ElapsedTime } from "./elapsed-time";
 
 import {
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   GitCompareIcon,
   InformationSquareIcon,
   RefreshIcon,
@@ -280,7 +280,7 @@ function SyncChanges({
           {legacyCounts.apps}
         </Attributes.Item>
         <Attributes.Item
-          icon={<HugeiconsIcon icon={CubeIcon} />}
+          icon={<HugeiconsIcon icon={DatabaseIcon} />}
           label="Datastores"
         >
           {legacyCounts.resources}
@@ -419,7 +419,7 @@ function readLegacyReconciliationCounts(value: unknown) {
 
 function reconciliationKindIcon(kind: ReconciliationKind) {
   if (kind === "Service") return DashboardCircleIcon;
-  if (kind === "Datastore") return CubeIcon;
+  if (kind === "Datastore") return DatabaseIcon;
   return ServerStack01Icon;
 }
 

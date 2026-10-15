@@ -19,7 +19,7 @@ import {
   Alert02Icon,
   AlertCircleIcon,
   SecurityCheckIcon,
-  CubeIcon,
+  DatabaseIcon,
   FileViewIcon,
   GitBranchIcon,
   GitCompareIcon,
@@ -138,7 +138,7 @@ export function ResourceDetail() {
   if (error) {
     return (
       <DashboardPage
-        icon={CubeIcon}
+        icon={DatabaseIcon}
         breadcrumbAncestors={resourcesBreadcrumb}
         title="Datastore"
       >
@@ -183,7 +183,7 @@ export function ResourceDetail() {
     {
       value: "overview",
       label: "Overview",
-      icon: <HugeiconsIcon icon={CubeIcon} />,
+      icon: <HugeiconsIcon icon={DatabaseIcon} />,
       content: (
         <div
           className={
@@ -436,7 +436,7 @@ export function ResourceDetail() {
 
   return (
     <DashboardPage
-      icon={CubeIcon}
+      icon={DatabaseIcon}
       titleIcon={
         <ResourceLogo
           brand={resourceImageBrand(item.kind, item.config.image)}

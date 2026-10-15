@@ -133,12 +133,12 @@ if discover:
         if deployable not in retiring or deployable in blocked: continue
         if value.get("Containers"):
             blocked.add(deployable)
-            skipped.append({"kind": "container", "name": value["Name"], "reason": "Owned network still has container references"})
+            skipped.append({"kind": "network", "name": value["Name"], "reason": "Owned network still has container references"})
             continue
         result = command("docker", "network", "rm", name)
         if result.returncode:
             blocked.add(deployable)
-            failures.append({"kind": "container", "name": deployable, "reason": "Owned network could not be removed"})
+            failures.append({"kind": "network", "name": value["Name"], "reason": "Owned network could not be removed"})
         else: retired_paths.append("docker-network:" + value["Name"])
 
 def safe_path(path):
@@ -168,7 +168,19 @@ def apply_route_cleanup(candidates):
         required(*args, failure="Unable to validate Caddy route cleanup")
         # Cleanup does not change the service environment or rotate credentials.
         # ExecReload uses caddy.service's environment; no restart is needed.
-        required("systemctl", "reload", "caddy", failure="Unable to apply Caddy route cleanup")
+        state = dict(line.split("=", 1) for line in required(
+            "systemctl", "show", "caddy", "--property=ActiveState,Result",
+            failure="Unable to inspect Caddy service state"
+        ).splitlines() if "=" in line)
+        if state.get("ActiveState") == "failed" and state.get("Result") == "start-limit-hit":
+            # Earlier cleanup versions restarted per route and could exhaust the
+            # service start limit. Recover that known failure once after validation.
+            required("systemctl", "reset-failed", "caddy", failure="Unable to reset Caddy start limit")
+            required("systemctl", "start", "caddy", failure="Unable to start Caddy after resetting its start limit")
+        else:
+            if state.get("ActiveState") in ("inactive", "failed"):
+                raise RuntimeError("Caddy is " + state["ActiveState"] + "; start the Caddy service before retrying cleanup")
+            required("systemctl", "reload", "caddy", failure="Unable to apply Caddy route cleanup")
     except Exception as error:
         rollback_failed = False
         for path, backup in reversed(staged):
@@ -182,7 +194,7 @@ def apply_route_cleanup(candidates):
         if rollback_failed: reason += "; staged routes could not all be restored; resolve conflicting files before retrying"
         for candidate in routed:
             blocked.add(candidate["deployable"])
-            failures.append({"kind": "container", "name": candidate["deployable"], "reason": reason[:500]})
+            failures.append({"kind": "route", "name": candidate["deployable"], "reason": reason[:500]})
         return
     for candidate in routed:
         try:
@@ -191,7 +203,7 @@ def apply_route_cleanup(candidates):
                 retired_paths.append(str(path))
         except Exception:
             blocked.add(candidate["deployable"])
-            failures.append({"kind": "container", "name": candidate["deployable"], "reason": "Caddy routes were applied, but retirement backups could not be removed; retry cleanup"})
+            failures.append({"kind": "route", "name": candidate["deployable"], "reason": "Caddy routes were applied, but retirement backups could not be removed; retry cleanup"})
 
 candidates = []
 for deployable, target in retiring.items():
@@ -233,7 +245,7 @@ for deployable, target in retiring.items():
             if path.exists() or backup.exists(): routes.append((path, backup))
         candidates.append({"deployable": deployable, "paths": paths, "routes": routes})
     except Exception as error:
-        failures.append({"kind": "container", "name": deployable, "reason": str(error)[:500]})
+        failures.append({"kind": "workload", "name": deployable, "reason": str(error)[:500]})
 
 apply_route_cleanup(candidates)
 for candidate in candidates:
@@ -246,7 +258,7 @@ for candidate in candidates:
                 retired_paths.append(str(path))
         retired.append(deployable)
     except Exception as error:
-        failures.append({"kind": "container", "name": deployable, "reason": str(error)[:500]})
+        failures.append({"kind": "workload", "name": deployable, "reason": str(error)[:500]})
 
 print(json.dumps({"cleaned": cleaned, "skipped": skipped, "failures": failures,
                   "retiredDeployableIds": retired, "retiredPaths": retired_paths}, separators=(",", ":")))

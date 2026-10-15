@@ -15,6 +15,7 @@ import type {
   ResourceOperation,
   SourceBackup,
 } from "@workspace/towbar-web-client";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import { EmptyState } from "@avgeek-oss/design-system/data-display/empty-state";
 import { Alert } from "@avgeek-oss/design-system/feedback/alert";
@@ -201,6 +202,16 @@ function ResourceBackupContent({
                     color={backupHealth.tone}
                   >
                     <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+                      {["In progress", "Checking"].includes(
+                        backupHealth.label,
+                      ) ? (
+                        <Spinner
+                          aria-hidden="true"
+                          color="current"
+                          size="sm"
+                          className="size-3.5"
+                        />
+                      ) : null}
                       {backupHealth.label}
                     </Chip.Label>
                   </Chip>
@@ -222,6 +233,14 @@ function ResourceBackupContent({
                       </span>
                       <Chip size="sm" color={stage.tone}>
                         <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+                          {stage.status === "In progress" ? (
+                            <Spinner
+                              aria-hidden="true"
+                              color="current"
+                              size="sm"
+                              className="size-3.5"
+                            />
+                          ) : null}
                           {stage.status}
                         </Chip.Label>
                       </Chip>
