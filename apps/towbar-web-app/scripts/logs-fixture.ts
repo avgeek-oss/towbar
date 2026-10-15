@@ -224,18 +224,20 @@ export function createLogsFixture(
     );
     if (server) {
       const serverId = server[1]!;
+      const installed =
+        process.env.TOWBAR_FIXTURE_LOG_COLLECTOR_STATE !== "not_installed";
       const item =
         collectors.get(serverId) ??
         ({
           serverId,
-          desiredState: "enabled",
-          status: "collecting",
-          generation: randomUUID(),
-          version: "0.162.0",
-          lastReportAt: new Date().toISOString(),
-          lastIngestedAt: records[0]!.ingestedAt,
-          supportedContainers: 6,
-          unsupportedContainers: 1,
+          desiredState: installed ? "enabled" : "disabled",
+          status: installed ? "collecting" : "disabled",
+          generation: installed ? randomUUID() : null,
+          version: installed ? "0.162.0" : null,
+          lastReportAt: installed ? new Date().toISOString() : null,
+          lastIngestedAt: installed ? records[0]!.ingestedAt : null,
+          supportedContainers: installed ? 6 : 0,
+          unsupportedContainers: installed ? 1 : 0,
           queueBytes: 0,
           droppedRecords: 0,
           errorMessage: null,
@@ -254,6 +256,14 @@ export function createLogsFixture(
         };
         item.desiredState = input.enabled ? "enabled" : "disabled";
         item.status = input.enabled ? "collecting" : "disabled";
+        if (input.enabled) {
+          item.generation = randomUUID();
+          item.version = "0.162.0";
+          item.lastReportAt = new Date().toISOString();
+          item.lastIngestedAt = records[0]!.ingestedAt;
+          item.supportedContainers = 6;
+          item.unsupportedContainers = 1;
+        }
       }
       collectors.set(serverId, item);
       json(response, request.method === "PUT" ? 202 : 200, item);
