@@ -65,7 +65,7 @@ function MonitoringAgentForm({
     <div className="content-grid">
       <Widget>
         <Widget.Header endContent={<MonitoringStatus agent={agent} />}>
-          <Widget.Title>Scout Agent</Widget.Title>
+          <Widget.Title help={false}>Scout Agent</Widget.Title>
         </Widget.Header>
         <Widget.Content className="grid gap-5">
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
