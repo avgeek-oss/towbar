@@ -172,7 +172,7 @@ export function LogCollectorSettings({
                     ? "Updating…"
                     : item.desiredState === "enabled"
                       ? "Update collector"
-                      : "Enable log collection"}
+                      : "Install & Enable Log Collection"}
                 </Button>
                 <Button
                   variant="danger"
