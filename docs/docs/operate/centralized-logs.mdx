@@ -62,7 +62,10 @@ statements as a ClickHouse administrator, replacing the password:
 CREATE DATABASE towbar_logs;
 CREATE USER towbar_logs IDENTIFIED WITH sha256_password BY 'replace-with-a-strong-password';
 GRANT SELECT, INSERT, CREATE TABLE, ALTER ON towbar_logs.* TO towbar_logs;
+GRANT SELECT ON system.parts TO towbar_logs;
 ```
+
+The `system.parts` grant enables the **Log Storage** graph under **Settings → System health**. The graph measures active storage for Towbar’s log table every two hours. This metadata grant is optional for ingestion and search.
 
 The account needs table creation for the initial schema, inserts and reads for
 collection and queries, and ALTER for schema maintenance. Towbar creates its own

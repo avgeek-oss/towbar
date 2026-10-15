@@ -159,13 +159,6 @@ const sidebar = {
           href: "/monitoring/vulnerabilities",
           icon: sidebarIcons.vulnerabilities,
         },
-        {
-          kind: "link",
-          id: "health",
-          label: "System health",
-          href: "/system-health",
-          icon: sidebarIcons.health,
-        },
       ],
     },
     {
@@ -222,6 +215,13 @@ const sidebar = {
           href: "/team-settings/general",
           activePath: "/team-settings",
           icon: UserGroupIcon,
+        },
+        {
+          kind: "link",
+          id: "health",
+          label: "System health",
+          href: "/system-health",
+          icon: sidebarIcons.health,
         },
       ],
     },

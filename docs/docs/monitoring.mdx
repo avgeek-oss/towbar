@@ -25,7 +25,7 @@ Use workspace **Incidents** to review active or resolved conditions across every
 
 ## System health
 
-Open **Manage → System health** to see the latest control-plane checks, their observation times, and the running version. Towbar checks Temporal at startup and every five minutes. Choose **Run checks** when you need a fresh result immediately. A check marked stale is older than 15 minutes.
+Open **Settings → System health** to see the latest control-plane checks, their observation times, and the running version. Towbar checks Temporal at startup and every five minutes. Choose **Run checks** when you need a fresh result immediately. A check marked stale is older than 15 minutes.
 
 The **Towbar version** row shows the installed release and the last time Towbar
 checked for an update. A newer stable release gets a yellow **Update available**
@@ -34,9 +34,13 @@ to check readiness and start the update. Progress and the final result appear
 in the same modal. See [Upgrades and recovery](/docs/self-hosting/upgrades#upgrade-from-system-health)
 for setup, backups, and help if an upgrade fails.
 
-### Database storage
+### Data and log storage
 
-**Database storage** stacks three parts of Towbar's control-plane PostgreSQL tables and indexes: **Towbar Data** for the platform's other records, **Monitoring Data** for Scout Agent measurements and alerts, and **Analytics Data** for service traffic and browser analytics. A dedicated Temporal workflow records their sizes every two hours and keeps 90 days of readings. The chart plots the latest reading from each day. Older readings made before the Analytics split include Analytics Data in Monitoring Data; their Analytics series is unavailable. The total excludes PostgreSQL system overhead, Temporal's database, backups, and data stored on workload servers. **Run checks** refreshes the control-plane checks; it does not take an extra storage reading.
+**Data Storage** stacks three parts of Towbar's control-plane PostgreSQL tables and indexes: **Towbar Data** for the platform's other records, **Monitoring Data** for Scout Agent measurements and alerts, and **Analytics Data** for service traffic and browser analytics. A dedicated Temporal workflow records their sizes every two hours and keeps 90 days of readings. The chart plots the recorded readings. Older readings made before the Analytics split include Analytics Data in Monitoring Data; their Analytics series is unavailable. The total excludes PostgreSQL system overhead, Temporal's database, backups, and data stored on workload servers. **Run checks** refreshes the control-plane checks; it does not take an extra storage reading.
+
+**Log Storage** appears alongside Data Storage and charts the active on-disk bytes of the configured ClickHouse `log_records` table. It uses [ClickHouse’s `system.parts` metadata](https://clickhouse.com/docs/operations/system-tables/parts), not an estimate from log message lengths. The same workflow samples it every two hours and retains 90 days of history. The measurement covers Towbar’s log table at the configured endpoint, excluding other tables, inactive parts, replicas on other nodes, and backups.
+
+ClickHouse reads need `SELECT` access to `system.parts` for this chart. Missing configuration shows a setup link; failed samples appear as gaps with a sanitized reason. PostgreSQL readings continue if ClickHouse cannot be measured, and historical samples from before this feature remain unknown rather than zero. A newly enabled collector will have chart history after its first storage sample.
 
 | Section       | Checks                                     | What to investigate                                                                 |
 | ------------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |

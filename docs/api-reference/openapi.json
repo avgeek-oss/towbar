@@ -9007,13 +9007,17 @@
           "monitoringBytes": { "type": "number" },
           "analyticsBytes": {
             "anyOf": [{ "type": "null" }, { "type": "number" }]
-          }
+          },
+          "logsBytes": { "anyOf": [{ "type": "null" }, { "type": "number" }] },
+          "logsError": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
         },
         "required": [
           "sampledAt",
           "towbarBytes",
           "monitoringBytes",
-          "analyticsBytes"
+          "analyticsBytes",
+          "logsBytes",
+          "logsError"
         ]
       },
       "SystemHealth_448": {

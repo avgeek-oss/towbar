@@ -39,13 +39,13 @@ test("primary navigation groups settings and preserves role visibility", () => {
     admin.groups
       .find((group) => group.id === "settings")
       ?.items.map((item) => item.id),
-    ["account-settings", "team-settings"],
+    ["account-settings", "team-settings", "health"],
   );
   assert.deepEqual(
     admin.groups
       .find((group) => group.id === "monitoring")
       ?.items.map((item) => item.id),
-    ["logs", "incidents", "vulnerabilities", "health"],
+    ["logs", "incidents", "vulnerabilities"],
   );
 
   const member = createApplicationSidebar({}, undefined, fixtureUser("member"));

@@ -3,17 +3,17 @@ title: "System and workload health"
 description: "Distinguish control-plane checks from server checks and service or datastore readiness."
 ---
 
-Health is scoped. **Manage → System health** checks Towbar's API/database, Temporal, and worker/maintenance processes. A server check tests SSH reachability and records host and workload observations. A service or datastore health result describes its runtime at the time of that observation. One green result cannot substitute for the others.
+Health is scoped. **Settings → System health** checks Towbar's API/database, Temporal, and worker/maintenance processes. A server check tests SSH reachability and records host and workload observations. A service or datastore health result describes its runtime at the time of that observation. One green result cannot substitute for the others.
 
 ## Check the control plane
 
-Open **Manage → System health** and read each check's status and observed time. Towbar checks Temporal at startup and every five minutes; a result older than 15 minutes is stale. Choose **Run checks** for a fresh reading. A provider's remote availability is checked by an actual provider operation, not by this page.
+Open **Settings → System health** and read each check's status and observed time. Towbar checks Temporal at startup and every five minutes; a result older than 15 minutes is stale. Choose **Run checks** for a fresh reading. A provider's remote availability is checked by an actual provider operation, not by this page.
 
 **Towbar version** compares the installed version with the latest published stable release. A yellow **Update available** label identifies a newer version, and the sidebar header also links to the release. The last checked time appears below the description.
 
 Choose **Review upgrade** to upgrade Towbar. Standard CLI installs and upgrades enable this automatically on compatible hosts. Read the changelog, check that no deployments or operations are in progress, and confirm. The same modal shows progress and the final result, including any failure reason. See [Upgrades and recovery](/docs/self-hosting/upgrades#upgrade-from-system-health) for setup and help. If in-app upgrades are unavailable, use [`towbar upgrade`](/docs/self-hosting/cli/install-upgrade#towbar-upgrade) on the host. A failed release lookup does not change the other control-plane check results.
 
-The **Database storage** chart on the same page stacks Towbar, Scout monitoring, and Analytics table sizes. Hover over a series to inspect its size at a recorded point. Older readings include Analytics in Monitoring until the first reading after the split. This chart is an observation of stored data, not a health threshold; see [Monitoring, health, and capacity](/docs/monitoring) for what it includes.
+The **Data Storage** chart on the same page stacks Towbar, Scout monitoring, and Analytics table sizes. Hover over a series to inspect its size at a recorded point. Older readings include Analytics in Monitoring until the first reading after the split. The separate **Log Storage** chart alongside it tracks the ClickHouse log table’s active storage usage. These charts are observations of stored data, not health thresholds; see [Monitoring, health, and capacity](/docs/monitoring) for what it includes.
 
 If the dashboard is unavailable, use the host CLI:
 

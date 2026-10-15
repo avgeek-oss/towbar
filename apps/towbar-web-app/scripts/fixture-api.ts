@@ -1640,6 +1640,10 @@ let systemHealth: SystemHealth = {
     analyticsBytes: Math.round(
       6_000_000 + index * 260_000 + Math.sin(index / 6) * 1_000_000,
     ),
+    logsBytes: Math.round(
+      320_000_000 + index * 11_000_000 + Math.sin(index / 4) * 90_000_000,
+    ),
+    logsError: null,
   })),
   status: "healthy",
   version: packageManifest.version,

@@ -381,8 +381,16 @@ export function documentationTopic(pathname: string): Topic | undefined {
 
 export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   "database storage": guide(
-    "monitoring#database-storage",
+    "monitoring#data-and-log-storage",
     "See what Towbar Data and Monitoring Data include, how often they are sampled, and what the chart excludes.",
+  ),
+  "data storage": guide(
+    "monitoring#data-and-log-storage",
+    "Understand PostgreSQL table sizes, sampling, and the 90-day storage history.",
+  ),
+  "log storage": guide(
+    "monitoring#data-and-log-storage",
+    "Track ClickHouse log storage and check the metadata permissions required for sampling.",
   ),
   "server setup": documentationTopics.preparation,
   "server inspection": guide(
