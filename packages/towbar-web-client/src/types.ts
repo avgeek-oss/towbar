@@ -692,6 +692,7 @@ export type ServerPreparationStep = {
     | "installing_prerequisites"
     | "installing_docker"
     | "installing_caddy"
+    | "installing_log_collector"
     | "configuring_access"
     | "verifying";
   message: string | null;

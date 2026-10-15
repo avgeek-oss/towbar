@@ -18,8 +18,7 @@ import {
   AlertCircleIcon,
   ComputerActivityIcon,
   DashboardCircleIcon,
-  CubeIcon,
-  File02Icon,
+  DatabaseIcon,
   Delete02Icon,
   ServerOffIcon,
   ServerStack01Icon,
@@ -42,16 +41,17 @@ import {
 } from "./server-preparation";
 
 import { ServerEditor } from "./server-editor";
-import { ServerLogCollection } from "./server-log-collection";
 import { CloudProviderLogo } from "./cloud-provider-logo";
 import { ServerHardwareDescription } from "./server-hardware";
 
 import { HugeiconsIcon } from "@hugeicons/react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type {
   App,
   MonitoringAgentStatus,
+  LogCollectionStatus,
   OrphanItem,
   Resource,
   ResourceOperation,
@@ -134,6 +134,10 @@ export function ServerDetail() {
   );
   const monitoring = useApiQuery<{ agent: MonitoringAgentStatus }>(
     `/v1/core/servers/${serverId}/monitoring`,
+    5_000,
+  );
+  const collector = useApiQuery<LogCollectionStatus>(
+    `/v1/core/servers/${serverId}/log-collection`,
     5_000,
   );
   const keys = useApiQuery<{ hostKeys: { id: string }[] }>(
@@ -575,7 +579,7 @@ export function ServerDetail() {
                 resourceCount !== undefined ? (
                   <span className="text-muted">{resourceCount}</span>
                 ) : undefined,
-              icon: <HugeiconsIcon icon={CubeIcon} />,
+              icon: <HugeiconsIcon icon={DatabaseIcon} />,
               content: (
                 <ServerDeployableTable
                   capacity={capacity.data.capacity}
@@ -633,15 +637,30 @@ export function ServerDetail() {
                     },
                     {
                       value: "logs-collection",
-                      label: "Logs collection",
-                      icon: <HugeiconsIcon icon={File02Icon} />,
+                      label: "OTEL Logs Collector",
+                      badge:
+                        collector.data?.status === "collecting" ? (
+                          <span
+                            role="img"
+                            aria-label="OTEL Logs Collector connected"
+                            title="OTEL Logs Collector connected"
+                            className="block size-1.5 rounded-full bg-success-soft-foreground"
+                          />
+                        ) : undefined,
+                      icon: (
+                        <Image
+                          alt=""
+                          src="/resource-logos/opentelemetry.svg"
+                          width={24}
+                          height={24}
+                          className="size-6 shrink-0 object-contain"
+                        />
+                      ),
                       content: (
-                        <ServerLogCollection
-                          canManage={
-                            server.data.canManageServer &&
-                            can("server.collectLogs")
-                          }
-                          server={item}
+                        <LogCollectorSettings
+                          serverId={serverId}
+                          canManage={can("server.collectLogs")}
+                          ready={setupStatus === "ready"}
                         />
                       ),
                     },
@@ -665,12 +684,6 @@ export function ServerDetail() {
                             canManage={can("scout.configure")}
                             ready={setupStatus === "ready"}
                           />
-                          <LogCollectorSettings
-                            serverId={serverId}
-                            canManage={can("server.collectLogs")}
-                            ready={setupStatus === "ready"}
-                            hostAccess={item.config.hostLogCollection === true}
-                          />
                         </div>
                       ),
                     },
@@ -688,6 +701,12 @@ export function ServerDetail() {
                       titleBadge: cleanup.data?.inProgress ? (
                         <Chip size="sm" color="warning">
                           <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+                            <Spinner
+                              aria-hidden="true"
+                              color="current"
+                              size="sm"
+                              className="size-3.5"
+                            />
                             In progress
                           </Chip.Label>
                         </Chip>
@@ -703,7 +722,7 @@ export function ServerDetail() {
                           <ResourceTable
                             ariaLabel={`Unused Docker objects on ${item.canonicalIp}`}
                             columns={orphanColumns}
-                            emptyDescription="The latest server check found no unused Towbar objects. Cleanup rechecks current ownership and usage."
+                            emptyDescription="The latest server check found no unused Docker containers, images, or volumes. Request Cleanup also retires removed workloads’ routes and configuration; these are not listed here."
                             emptyTitle="No unused Docker objects"
                             getRowKey={(orphan) =>
                               `${orphan.kind}:${orphan.name}`

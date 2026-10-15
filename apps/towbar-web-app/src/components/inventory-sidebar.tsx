@@ -2,7 +2,7 @@
 import { PageSelectionTitle } from "./page-selection-title";
 import {
   AlertCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   DashboardCircleIcon,
   FilterResetIcon,
   GitBranchIcon,
@@ -20,7 +20,7 @@ type Kind = "apps" | "resources" | "servers" | "sources";
 export type InventoryCounts = { all: number; attention: number };
 const kindIcons = {
   apps: DashboardCircleIcon,
-  resources: CubeIcon,
+  resources: DatabaseIcon,
   servers: ServerStack01Icon,
   sources: GitBranchIcon,
 } as const;

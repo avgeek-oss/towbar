@@ -40,12 +40,13 @@ export function RelativeTime({
     localizationRevision,
     serverLocalizationRevision,
   );
-  const now = useSyncExternalStore(
+  const clockTick = useSyncExternalStore(
     subscribeToClock,
     getClockSnapshot,
     getServerClockSnapshot,
   );
-  const formatted = formatTableTime(value, now);
+  // A timestamp received between refresh ticks can be newer than the tick itself.
+  const formatted = formatTableTime(value, clockTick ? Date.now() : 0);
   if (!formatted) return <span aria-label={`${label} unavailable`}>—</span>;
 
   if (display === "relative") {

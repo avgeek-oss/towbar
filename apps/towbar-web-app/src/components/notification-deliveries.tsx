@@ -1,4 +1,5 @@
 "use client";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import {
@@ -71,6 +72,15 @@ type Delivery = {
   deliveredAt: string | null;
 };
 function deliveryStatusIcon(state: Delivery["state"]) {
+  if (["pending", "delivering", "retrying"].includes(state))
+    return (
+      <Spinner
+        aria-hidden="true"
+        color="current"
+        size="sm"
+        className="size-3.5"
+      />
+    );
   return (
     <span className={state === "succeeded" ? "text-success" : undefined}>
       <ScoutIcon

@@ -9,6 +9,8 @@ Register and trust the [server](/docs/servers/register) first. Open its **Overvi
 
 The **Server Inspection** section tests the SSH connection, host identity, operating system, capacity, and permissions. **Prerequisites** installs or validates Docker Engine 29 or newer, Buildx, Caddy, `python3`, GNU `timeout`, and non-interactive access. Towbar checks for at least 1 GiB free under Docker's data directory; real workloads need additional headroom for images, build cache, and volumes.
 
+When external ClickHouse is configured, the **OTEL Logs Collector** step runs immediately after Caddy. It verifies storage access, installs the pinned collector, and enables collection using a server-scoped credential. Without ClickHouse, the step records why it was skipped and setup continues. An explicit decision to disable collection is preserved. A scoped API or MCP account also needs `server.collectLogs`; otherwise setup records that collection was skipped.
+
 The checklist updates as steps run. Expand a step for findings and bounded, redacted terminal output. A failed step stays available on **Server Setup** so you can correct the host and retry. Towbar reuses compatible software; it does not remove conflicting packages or replace an unmanaged Caddy binary. Use a fresh host when ownership of existing services is uncertain.
 
 ## After setup

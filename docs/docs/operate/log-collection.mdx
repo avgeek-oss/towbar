@@ -1,0 +1,99 @@
+---
+title: "Set up log collection"
+description: "Connect ClickHouse, enable the OTEL Logs Collector, and resolve collection failures."
+---
+
+Towbar needs an external ClickHouse HTTP endpoint. It installs the pinned OTEL Logs Collector on prepared Ubuntu servers. Use an HTTPS Towbar API origin. Scout Agent is not required.
+
+## Connect external ClickHouse
+
+Create a dedicated database and account as a ClickHouse administrator:
+
+```sql
+CREATE DATABASE towbar_logs;
+CREATE USER towbar_logs IDENTIFIED WITH sha256_password BY 'replace-with-a-strong-password';
+GRANT SELECT, INSERT, CREATE TABLE, ALTER ON towbar_logs.* TO towbar_logs;
+GRANT SELECT ON system.parts TO towbar_logs;
+```
+
+The last grant is optional for ingestion and search. It enables the **Log Storage** usage chart.
+
+Add this section to the root-owned `/etc/towbar/config.yml`:
+
+```yaml /etc/towbar/config.yml
+observability:
+  logs:
+    retentionDays: 7
+    clickhouse:
+      endpoint: https://clickhouse.example.com:8443
+      database: towbar_logs
+      username: towbar_logs
+      password: "replace-with-a-strong-password"
+```
+
+Use an origin without a path, query, or embedded credentials. Use HTTPS across networks. Keep the configuration readable only by root.
+
+```bash
+sudo towbar config validate
+sudo towbar restart
+sudo towbar doctor
+```
+
+**Monitor → Logs** shows readiness or the connection error. `towbar_logs_verify` checks a temporary insert and read through MCP.
+
+## Enable a server collector
+
+1. Configure ClickHouse before [server setup](/docs/servers/setup). **Prerequisites → OTEL Logs Collector** installs and enables it immediately after Caddy.
+2. For an already prepared server, open **Settings → OTEL Logs Collector** and choose **Install & Enable Log Collection**.
+3. Emit a fresh workload log. Confirm **Active**, a recent **Last ingestion**, and results in **Monitor → Logs**.
+
+Setup skips collection when ClickHouse is absent or the requesting account lacks `server.collectLogs`. It preserves an explicit disable. A configured but unavailable database or failed install stops setup at the collector step.
+
+| State or action            | Meaning                                           |
+| -------------------------- | ------------------------------------------------- |
+| Active / green sidebar dot | The collector is reporting and has accepted logs. |
+| Awaiting first log         | Installed, with no accepted record yet.           |
+| No recent report           | The collector has stopped reporting.              |
+| Queue storage at limit     | Readers are paused while buffered logs drain.     |
+| Update collector           | Install the version shipped with Towbar.          |
+| Disable collection         | Revoke ingestion access and queue removal.        |
+
+The collector needs outbound HTTPS to the Towbar API. Installation uses the server's stored SSH key and trusted host key. API and MCP callers need `server.collectLogs` for collector changes, including automatic setup.
+
+## Application output
+
+Write application logs to stdout or stderr. JSON loggers such as Pino work when their output reaches Docker. File-only logging and logs sent only to a remote OTLP endpoint are not captured by this file-based collector.
+
+## Coverage and limits
+
+| Requirement or limit                  | Behavior                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| Docker `json-file` driver             | Other logging drivers are not collected.                                             |
+| 512 managed containers per server     | Includes stopped containers; additional containers are skipped.                      |
+| Existing containers                   | Collection starts at the end on first enable. New containers start at the beginning. |
+| 512 MiB local queue                   | Temporary failures are retried within the queue budget.                              |
+| 64 MiB accepted per server per minute | Higher volume is rate limited.                                                       |
+| Recovery window                       | Records older than 24 hours, or already expired by retention, are rejected.          |
+
+Cleanup attempts a final log drain before removing managed containers. Docker rotation, outages, and queue limits can still lose unaccepted records. Common credential patterns are masked; applications must avoid logging secrets.
+
+## Storage usage
+
+Open **Settings → System health**. **Data Storage** shows PostgreSQL usage; **Log Storage** shows active on-disk storage for the ClickHouse log table. Readings are saved every two hours for 90 days. Missing readings are gaps, not zero. See [Storage measurements](/docs/monitoring#data-and-log-storage) for scope and permissions.
+
+## Troubleshooting
+
+| Symptom                            | Next action                                                                                                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Not configured                     | Add `observability.logs`, validate, and restart Towbar.                                                                                                    |
+| Connection or authentication error | Check endpoint, DNS, TLS, network access, and the YAML credentials.                                                                                        |
+| Database or permission error       | Create the database and grant the privileges above.                                                                                                        |
+| No supported containers            | Check workload ownership and the Docker `json-file` driver. Emit a new log.                                                                                |
+| Some containers ineligible         | Check the logging driver; clean up unused containers if the 512-container limit is reached.                                                                |
+| No recent report                   | Check `systemctl status towbar-log-discovery` and outbound HTTPS to the API.                                                                               |
+| Failed installation                | Read the failed setup step or run `sudo journalctl -u towbar-log-discovery --since '15 minutes ago'` on the server. Check SSH, Docker, and outbound HTTPS. |
+| Growing queue                      | Restore API/ClickHouse connectivity and check host disk space.                                                                                             |
+| Log Storage chart unavailable      | Check `SELECT` access to `system.parts`; ingestion and search can continue without this chart permission.                                                  |
+| Partial search results             | Narrow the time range or workload filters and search again.                                                                                                |
+
+Do not include root-owned collector configuration or credentials in support requests. Removing `observability.logs` disables ingestion and queues collector shutdown during maintenance; it does not erase accepted history.

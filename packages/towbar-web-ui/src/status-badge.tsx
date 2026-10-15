@@ -15,6 +15,7 @@ import {
   UserShield01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import type { ReactNode } from "react";
 
@@ -98,6 +99,19 @@ const destructive = new Set([
 ]);
 
 const progress = new Set([
+  "queued",
+  "pending",
+  "waiting",
+  "waiting_for_server",
+  "waiting_for_server_capacity",
+  "waiting_for_server_check",
+  "waiting_for_server_operation",
+  "waiting_for_server_preparation",
+  "starting",
+  "installing",
+  "uninstalling",
+  "syncing",
+  "in_progress",
   "building",
   "deleting",
   "checking_health",
@@ -138,7 +152,7 @@ export function StatusBadge({
   const variant =
     success.has(status) || (context === "runtime" && status === "running")
       ? "success"
-      : warning.has(status)
+      : warning.has(status) || progress.has(status)
         ? "warning"
         : destructive.has(status)
           ? "danger"
@@ -180,7 +194,17 @@ export function StatusBadge({
     >
       <Chip color={variant}>
         <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-          {icon ?? <HugeiconsIcon aria-hidden icon={statusIcon} />}
+          {progress.has(status) &&
+          !(status === "running" && context === "runtime") ? (
+            <Spinner
+              aria-hidden="true"
+              color="current"
+              size="sm"
+              className="size-3.5 shrink-0"
+            />
+          ) : (
+            (icon ?? <HugeiconsIcon aria-hidden icon={statusIcon} />)
+          )}
           {label ?? formatStatus(status)}
         </Chip.Label>
       </Chip>

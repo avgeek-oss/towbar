@@ -127,11 +127,19 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
         })),
         ...(result.failures ?? []).map((item) => ({
           ...item,
+          kind:
+            item.kind === "container" && item.reason.includes("Caddy")
+              ? "route"
+              : item.kind,
           status: "failed",
           label: "Failed",
         })),
         ...(result.retiredPaths ?? []).map((path) => ({
-          kind: path.startsWith("docker-network:") ? "network" : "path",
+          kind: path.startsWith("docker-network:")
+            ? "network"
+            : path.startsWith("/etc/caddy/")
+              ? "route"
+              : "path",
           name: path.startsWith("docker-network:")
             ? path.slice("docker-network:".length)
             : path,
@@ -146,7 +154,7 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
       <Button
         size="sm"
         variant="tertiary"
-        className="min-h-11 whitespace-nowrap"
+        className="whitespace-nowrap"
         onPress={() => setOpen(true)}
       >
         View result

@@ -13,6 +13,7 @@ type Workload = { id: string; name: string; serverId: string };
 export function createLogsFixture(
   workloads: Workload[],
   getUser: () => TowbarUser | null,
+  preparedCollector: (serverId: string) => boolean = () => false,
 ) {
   const recordAt = (
     index: number,
@@ -177,6 +178,7 @@ export function createLogsFixture(
     );
     records = [...added, ...records].slice(0, 100000);
   };
+  const explicitCollectorChoices = new Set<string>();
   const collectors = new Map<string, LogCollectionStatus>();
   const json = (response: ServerResponse, status: number, data: unknown) => {
     response.writeHead(status, {
@@ -201,7 +203,7 @@ export function createLogsFixture(
           : null,
       code: state === "unavailable" ? "LOGS_AUTHENTICATION_FAILED" : null,
       checkedAt: new Date().toISOString(),
-      documentationUrl: "https://www.towbar.dev/docs/operate/centralized-logs",
+      documentationUrl: "https://www.towbar.dev/docs/operate/log-collection",
     };
   };
   return async (
@@ -224,10 +226,31 @@ export function createLogsFixture(
     );
     if (server) {
       const serverId = server[1]!;
+      const installed =
+        process.env.TOWBAR_FIXTURE_LOG_COLLECTOR_STATE !== "not_installed" ||
+        (preparedCollector(serverId) && storage().state === "ready");
       const item =
         collectors.get(serverId) ??
         ({
           serverId,
+          desiredState: installed ? "enabled" : "disabled",
+          status: installed ? "collecting" : "disabled",
+          generation: installed ? randomUUID() : null,
+          version: installed ? "0.162.0" : null,
+          lastReportAt: installed ? new Date().toISOString() : null,
+          lastIngestedAt: installed ? records[0]!.ingestedAt : null,
+          supportedContainers: installed ? 6 : 0,
+          unsupportedContainers: installed ? 1 : 0,
+          queueBytes: 0,
+          droppedRecords: 0,
+          errorMessage: null,
+        } satisfies LogCollectionStatus);
+      if (
+        installed &&
+        !explicitCollectorChoices.has(serverId) &&
+        item.desiredState === "disabled"
+      ) {
+        Object.assign(item, {
           desiredState: "enabled",
           status: "collecting",
           generation: randomUUID(),
@@ -236,10 +259,8 @@ export function createLogsFixture(
           lastIngestedAt: records[0]!.ingestedAt,
           supportedContainers: 6,
           unsupportedContainers: 1,
-          queueBytes: 0,
-          droppedRecords: 0,
-          errorMessage: null,
-        } satisfies LogCollectionStatus);
+        });
+      }
       if (request.method === "PUT") {
         if (getUser()?.workspaceRole !== "admin") {
           json(response, 403, {
@@ -252,8 +273,17 @@ export function createLogsFixture(
         const input = JSON.parse(Buffer.concat(parts).toString()) as {
           enabled: boolean;
         };
+        explicitCollectorChoices.add(serverId);
         item.desiredState = input.enabled ? "enabled" : "disabled";
         item.status = input.enabled ? "collecting" : "disabled";
+        if (input.enabled) {
+          item.generation = randomUUID();
+          item.version = "0.162.0";
+          item.lastReportAt = new Date().toISOString();
+          item.lastIngestedAt = records[0]!.ingestedAt;
+          item.supportedContainers = 6;
+          item.unsupportedContainers = 1;
+        }
       }
       collectors.set(serverId, item);
       json(response, request.method === "PUT" ? 202 : 200, item);

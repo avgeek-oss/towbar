@@ -2,7 +2,7 @@
 
 import {
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   ServerStack01Icon,
   SourceCodeIcon,
   RefreshIcon,
@@ -55,7 +55,7 @@ const entityRoutes = {
 
 const entityIcons = {
   apps: DashboardCircleIcon,
-  resources: CubeIcon,
+  resources: DatabaseIcon,
   servers: ServerStack01Icon,
   sources: SourceCodeIcon,
   syncs: RefreshIcon,

@@ -1,21 +1,23 @@
 ---
 title: "System and workload health"
-description: "Distinguish control-plane checks from server checks and service or datastore readiness."
+description: "Check Towbar, a server, or a workload using the right observation."
 ---
 
-Health is scoped. **Manage → System health** checks Towbar's API/database, Temporal, and worker/maintenance processes. A server check tests SSH reachability and records host and workload observations. A service or datastore health result describes its runtime at the time of that observation. One green result cannot substitute for the others.
+| Scope                            | Where to check                                   |
+| -------------------------------- | ------------------------------------------------ |
+| Towbar control plane             | **Settings → System health**                     |
+| Server connectivity and capacity | Server **Checks**                                |
+| Service or datastore readiness   | Current workload state and its latest deployment |
 
 ## Check the control plane
 
-Open **Manage → System health** and read each check's status and observed time. Towbar checks Temporal at startup and every five minutes; a result older than 15 minutes is stale. Choose **Run checks** for a fresh reading. A provider's remote availability is checked by an actual provider operation, not by this page.
+Open **Settings → System health** and choose **Run checks**. Inspect API/database, Temporal, and worker status. Towbar checks Temporal at startup and every five minutes; old results are marked stale.
 
-**Towbar version** compares the installed version with the latest published stable release. A yellow **Update available** label identifies a newer version, and the sidebar header also links to the release. The last checked time appears below the description.
+**Towbar version** shows the installed release and update availability. Choose **Review upgrade** for readiness checks and confirmation. If in-app upgrades are unavailable, use [`towbar upgrade`](/docs/self-hosting/cli/install-upgrade#towbar-upgrade). See [Upgrade recovery](/docs/self-hosting/upgrades#upgrade-from-system-health) for failures.
 
-Choose **Review upgrade** to upgrade Towbar. Standard CLI installs and upgrades enable this automatically on compatible hosts. Read the changelog, check that no deployments or operations are in progress, and confirm. The same modal shows progress and the final result, including any failure reason. See [Upgrades and recovery](/docs/self-hosting/upgrades#upgrade-from-system-health) for setup and help. If in-app upgrades are unavailable, use [`towbar upgrade`](/docs/self-hosting/cli/install-upgrade#towbar-upgrade) on the host. A failed release lookup does not change the other control-plane check results.
+**Data Storage** and **Log Storage** show PostgreSQL and ClickHouse usage. They record readings every two hours, retain 90 days, and show missing data as gaps. See [Storage measurements](/docs/monitoring#data-and-log-storage) for permissions and scope.
 
-The **Database storage** chart on the same page stacks Towbar, Scout monitoring, and Analytics table sizes. Hover over a series to inspect its size at a recorded point. Older readings include Analytics in Monitoring until the first reading after the split. This chart is an observation of stored data, not a health threshold; see [Monitoring, health, and capacity](/docs/monitoring) for what it includes.
-
-If the dashboard is unavailable, use the host CLI:
+If the dashboard is unavailable, run these on the Towbar host:
 
 ```bash
 sudo towbar status
@@ -23,14 +25,14 @@ sudo towbar doctor
 sudo towbar logs api worker temporal
 ```
 
-`doctor` is read-only and separates installation, database, service, and public-origin problems. See [Troubleshooting](/docs/troubleshooting) before changing installation state.
-
 ## Check a server
 
-Open its **Checks** page and choose **Check server** when the latest result is old. Inspect SSH trust, setup status, available capacity, and the check's final result. Server setup and a check are separate operations: a prepared host can later lose SSH access or fill its disk. If setup is pending or failed, follow [Prepare a server](/docs/servers/setup).
+Open **Checks → Check server**. Inspect SSH trust, capacity, and the latest result. A prepared server can later lose connectivity or run out of disk. For pending or failed setup, follow [Prepare a server](/docs/servers/setup).
 
 ## Check a workload
 
-Read the service or datastore's current state, health, and last checked time. Then inspect its latest deployment and runtime logs. A build can succeed while health fails because the process listens on the wrong interface or port, starts too slowly, lacks a runtime secret, or returns an unhealthy response. Compare `container.port` and `health` in the [service manifest](/docs/services/configuration) or [datastore manifest](/docs/datastores/manifest) with the actual process.
+Read its current runtime state, health, and observation time. Then inspect the failing deployment stage and **Runtime Logs**, or search [retained logs](/docs/operate/centralized-logs).
 
-Missing or stale observations should be investigated as missing data. They do not establish recovery or zero utilization. [Scout Agent](/docs/scout) adds continuous metrics and report-age alerts, while [alert rules](/docs/scout-alerts) decide when observations become incidents.
+For a failed health check, compare the process with `container.port` and `health` in the [manifest](/docs/services/configuration). Check the listen address, startup time, runtime secrets, and readiness response.
+
+A successful build does not prove current health. Missing measurements do not mean zero usage. Use [Scout Agent](/docs/scout) for continuous metrics and [alert rules](/docs/scout-alerts) for incident thresholds.

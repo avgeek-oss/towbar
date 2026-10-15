@@ -6,7 +6,7 @@ import { groupDeployableInstances } from "@/lib/deployable-groups";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
 import {
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   Delete02Icon,
   CloudIcon,
   ReloadIcon,
@@ -339,7 +339,7 @@ export function SourceDetail() {
           {
             value: "datastores",
             label: "Datastores",
-            icon: <HugeiconsIcon icon={CubeIcon} />,
+            icon: <HugeiconsIcon icon={DatabaseIcon} />,
             indicator: resources.data
               ? {
                   label: String(

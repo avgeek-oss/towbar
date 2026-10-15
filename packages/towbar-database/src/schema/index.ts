@@ -2437,6 +2437,8 @@ export const databaseStorageSamples = pgTable(
     towbarBytes: bigint("towbar_bytes", { mode: "number" }).notNull(),
     monitoringBytes: bigint("monitoring_bytes", { mode: "number" }).notNull(),
     analyticsBytes: bigint("analytics_bytes", { mode: "number" }),
+    logsBytes: bigint("logs_bytes", { mode: "number" }),
+    logsError: text("logs_error"),
   },
 );
 

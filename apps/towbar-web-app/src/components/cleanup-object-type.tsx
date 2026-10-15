@@ -2,6 +2,10 @@ import {
   BoxIcon,
   DatabaseIcon,
   NewspaperIcon,
+  InternetIcon,
+  Layers01Icon,
+  Folder01Icon,
+  NetworkIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -9,6 +13,10 @@ const icons: Record<string, typeof BoxIcon | undefined> = {
   container: BoxIcon,
   image: NewspaperIcon,
   volume: DatabaseIcon,
+  route: InternetIcon,
+  workload: Layers01Icon,
+  path: Folder01Icon,
+  network: NetworkIcon,
 };
 
 export function CleanupObjectType({ kind }: { kind: string }) {

@@ -1328,7 +1328,7 @@ Read-only operation. Required permissions: `logs.read`.
 
 `towbar_logs_collection_configure`
 
-Install or update Towbar's pinned collector, or disable its collection. Requires an inspected server, configured ClickHouse, and allowed Docker log access. Returns an asynchronous generation; inspect logs_inspect until setup completes. Waiting does not prove successful ingestion. Disabling keeps accepted history until retention expires.
+Install or update Towbar's pinned OTEL collector on a prepared server with configured ClickHouse, or disable collection. Server setup installs it automatically when configured. Inspect logs_inspect for the asynchronous result; waiting means no log has been accepted yet. Disabling keeps accepted history until expiry. Custom-Service host-log permission is not required.
 
 Administrative access required. Required permissions: `server.collectLogs`.
 
@@ -2720,7 +2720,7 @@ Administrative access required. Required permissions: `server.remove`.
 
 `towbar_server_configure`
 
-Update server SSH settings, build concurrency, and hostLogCollection opt-in. Inspect current settings first and preserve supported fields when saving; the server IP is immutable. Changing connectivity can disrupt deployments. Requires server.update; collector deployments separately require server.collectLogs.
+Update server SSH settings, build concurrency, and custom-Service hostLogCollection permission. Inspect current settings and preserve supported fields; the server IP is immutable. Connectivity changes can disrupt deployments. Requires server.update. Native OTEL collection is managed separately with towbar_logs_collection_configure.
 
 Administrative access required. Required permissions: `server.update`.
 

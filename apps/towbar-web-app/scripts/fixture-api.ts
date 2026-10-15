@@ -1640,6 +1640,10 @@ let systemHealth: SystemHealth = {
     analyticsBytes: Math.round(
       6_000_000 + index * 260_000 + Math.sin(index / 6) * 1_000_000,
     ),
+    logsBytes: Math.round(
+      320_000_000 + index * 11_000_000 + Math.sin(index / 4) * 90_000_000,
+    ),
+    logsError: null,
   })),
   status: "healthy",
   version: packageManifest.version,
@@ -1828,6 +1832,16 @@ const preparationStepResults: Record<
     message:
       "Caddy v2.11.4 is running and enabled at boot. Created /etc/caddy and /etc/caddy/towbar. Verified the Cloudflare DNS module.",
     log: "[stderr] Setting up caddy...\n[stderr] Cloudflare DNS module verified\n[stdout] v2.11.4\n",
+  },
+  installing_log_collector: {
+    message:
+      process.env.TOWBAR_FIXTURE_LOGS_STATE === "not_configured"
+        ? "Skipped: connect ClickHouse in config.yml to enable log collection. You can install the collector later in Settings → OTEL Logs Collector."
+        : "OTEL Logs Collector is installed and enabled. Waiting for the first log from an eligible container.",
+    log:
+      process.env.TOWBAR_FIXTURE_LOGS_STATE === "not_configured"
+        ? "[stdout] Skipped log collector installation: ClickHouse is not configured.\n"
+        : "[stdout] Installed the pinned collector and enabled the log discovery service.\n",
   },
   configuring_access: {
     message:
@@ -2201,6 +2215,14 @@ export function createFixtureApiServer({
   const logsFixture = createLogsFixture(
     [...apps, ...resources],
     teamAccess.getUser,
+    (serverId) =>
+      serverPreparationsByServer
+        .get(serverId)?.[0]
+        ?.steps.some(
+          (step) =>
+            step.id === "installing_log_collector" &&
+            step.status === "succeeded",
+        ) ?? false,
   );
   const monitoring = new Map(
     servers.map((server, index) => [
@@ -5621,6 +5643,7 @@ function createPreparationFixture(
     { id: "installing_prerequisites", title: "Install prerequisites" },
     { id: "installing_docker", title: "Install Docker Engine" },
     { id: "installing_caddy", title: "Install Caddy" },
+    { id: "installing_log_collector", title: "Install OTEL Logs Collector" },
     { id: "configuring_access", title: "Configure access" },
     { id: "verifying", title: "Verify server" },
   ];

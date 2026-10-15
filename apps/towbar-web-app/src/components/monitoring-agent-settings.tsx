@@ -10,6 +10,7 @@ import { Checkbox } from "@avgeek-oss/design-system/forms/checkbox";
 import { Label } from "@avgeek-oss/design-system/forms/label";
 import { ListBox, Select } from "@avgeek-oss/design-system/forms/select";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 import { ScoutIcon } from "./scout-icons";
 import { ScoutMascot } from "./scout-mascot";
 import { ActionButton } from "./page-parts";
@@ -64,7 +65,7 @@ function MonitoringAgentForm({
     <div className="content-grid">
       <Widget>
         <Widget.Header endContent={<MonitoringStatus agent={agent} />}>
-          <Widget.Title>Scout Agent</Widget.Title>
+          <Widget.Title help={false}>Scout Agent</Widget.Title>
         </Widget.Header>
         <Widget.Content className="grid gap-5">
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -316,7 +317,16 @@ export function MonitoringStatus({ agent }: { agent: MonitoringAgentStatus }) {
         }
       >
         <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-          {
+          {["queued", "installing", "uninstalling", "waiting"].includes(
+            agent.status,
+          ) ? (
+            <Spinner
+              aria-hidden="true"
+              color="current"
+              size="sm"
+              className="size-3.5"
+            />
+          ) : (
             <ScoutIcon
               name={
                 agent.status === "online"
@@ -328,7 +338,7 @@ export function MonitoringStatus({ agent }: { agent: MonitoringAgentStatus }) {
                       : "time"
               }
             />
-          }
+          )}
           {labels[agent.status] ?? agent.status}
         </Chip.Label>
       </Chip>

@@ -12,6 +12,8 @@ const commandFailureMessages: Partial<Record<ServerPreparationStepId, string>> =
       "Docker setup stopped without reporting a reason. Check APT and the Docker service logs on the server, then retry.",
     installing_caddy:
       "Caddy setup stopped without reporting a reason. Check APT, Docker, and the Caddy service logs on the server, then retry.",
+    installing_log_collector:
+      "Log collector setup failed. Check ClickHouse configuration, outbound HTTPS to the Towbar API, Docker, and SSH access, then retry setup.",
     configuring_access:
       "Deployment access setup stopped without reporting a reason. Check sudo access and Docker group membership, then retry.",
     verifying:

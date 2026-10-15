@@ -11,6 +11,7 @@ void test(
   { skip: !databaseUrl },
   async () => {
     assert(databaseUrl && new URL(databaseUrl).pathname.endsWith("_test"));
+    delete process.env.TOWBAR_LOGS_CONFIG_JSON;
     process.env.DATABASE_TOWBAR_URL = databaseUrl;
     process.env.TOWBAR_CREDENTIALS_KEY = randomBytes(32).toString("base64");
     process.env.TOWBAR_INTERNAL_HMAC_SECRET = randomBytes(32).toString("hex");
@@ -53,7 +54,40 @@ void test(
         (row) => row.sampledAt === sample.sampledAt.toISOString(),
       );
       assert.equal(historic?.analyticsBytes, null);
+      assert.equal(historic?.logsBytes, null);
+      assert.equal(current?.logsBytes, null);
       assert.equal(current?.analyticsBytes, sample.analyticsBytes);
+      if (process.env.TOWBAR_TEST_CLICKHOUSE_URL) {
+        process.env.TOWBAR_LOGS_CONFIG_JSON = JSON.stringify({
+          clickhouse: {
+            endpoint: process.env.TOWBAR_TEST_CLICKHOUSE_URL,
+            database: "towbar_logs_test",
+            username: "logs_test",
+            password: "logs_test",
+          },
+        });
+        const reading = await recordDatabaseStorageSample();
+        assert(reading);
+        assert(reading.logsBytes !== null && reading.logsBytes >= 0);
+        assert.equal(reading.logsError, null);
+        assert(reading.towbarBytes > 0);
+        await database
+          .delete(databaseStorageSamples)
+          .where(eq(databaseStorageSamples.sampledAt, reading.sampledAt));
+      }
+      process.env.TOWBAR_LOGS_CONFIG_JSON = "invalid";
+      const unavailable = await recordDatabaseStorageSample();
+      assert(unavailable);
+      assert(unavailable.towbarBytes > 0);
+      assert.equal(unavailable.logsBytes, null);
+      assert.match(unavailable.logsError!, /configuration is invalid/);
+      const recorded = (await getDatabaseStorage()).find(
+        (row) => row.sampledAt === unavailable.sampledAt.toISOString(),
+      );
+      assert.equal(recorded?.logsError, unavailable.logsError);
+      await database
+        .delete(databaseStorageSamples)
+        .where(eq(databaseStorageSamples.sampledAt, unavailable.sampledAt));
     } finally {
       await database
         .delete(databaseStorageSamples)

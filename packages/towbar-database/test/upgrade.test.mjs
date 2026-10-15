@@ -45,11 +45,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0027_server_cleanup.sql",
     "0028_centralized_logs.sql",
     "0029_log_table_preferences.sql",
+    "0030_log_storage_samples.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 29);
+  assert.equal(journal.entries.length, 30);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");
@@ -80,6 +81,7 @@ test("migration journal keeps notification destinations and failure subscription
   assert.equal(journal.entries[26].tag, "0027_server_cleanup");
   assert.equal(journal.entries[27].tag, "0028_centralized_logs");
   assert.equal(journal.entries[28].tag, "0029_log_table_preferences");
+  assert.equal(journal.entries[29].tag, "0030_log_storage_samples");
   const failureSubscriptions = await readFile(
     `${migrationsFolder}/0011_notification_deployment_failures.sql`,
     "utf8",
@@ -226,7 +228,10 @@ test(
       });
       const [{ count }] =
         await client`select count(*)::int as count from drizzle.__drizzle_migrations`;
-      assert.equal(count, 29);
+      const journal = JSON.parse(
+        await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
+      );
+      assert.equal(count, journal.entries.length);
       const roleTriggers =
         await client`select tgname from pg_trigger where tgname = 'towbar_revoke_mcp_on_role_change' and not tgisinternal`;
       assert.deepEqual(
@@ -273,6 +278,8 @@ test(
         ["towbar_database_storage_samples", "towbar_bytes"],
         ["towbar_database_storage_samples", "monitoring_bytes"],
         ["towbar_database_storage_samples", "analytics_bytes"],
+        ["towbar_database_storage_samples", "logs_bytes"],
+        ["towbar_database_storage_samples", "logs_error"],
         ["towbar_server_observations", "hardware"],
         ["towbar_server_observations", "hardware_at"],
         ["towbar_server_observations", "instance_at"],

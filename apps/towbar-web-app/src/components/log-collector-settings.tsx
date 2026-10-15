@@ -1,7 +1,20 @@
 "use client";
 import { useRef, useState } from "react";
+import {
+  Alert02Icon,
+  AlertCircleIcon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  Delete02Icon,
+  Download01Icon,
+  RefreshIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
+import { Chip } from "@avgeek-oss/design-system/data-display/chip";
+import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 import { Widget } from "@avgeek-oss/design-system/data-display/widget";
+import { Alert } from "@avgeek-oss/design-system/feedback/alert";
 import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { TowbarApiError } from "@workspace/towbar-web-client";
@@ -17,12 +30,10 @@ export function LogCollectorSettings({
   serverId,
   canManage,
   ready,
-  hostAccess,
 }: {
   serverId: string;
   canManage: boolean;
   ready: boolean;
-  hostAccess: boolean;
 }) {
   const collector = useApiQuery<LogCollectionStatus>(
     `/v1/core/servers/${serverId}/log-collection`,
@@ -63,117 +74,196 @@ export function LogCollectorSettings({
   const item = collector.data,
     pending = busy || ["queued", "installing"].includes(item?.status ?? "");
   return (
-    <Widget>
-      <Widget.Header>
-        <Widget.Title>Centralized logs</Widget.Title>
-      </Widget.Header>
-      <Widget.Content className="content-grid">
-        <p className="max-w-3xl text-sm text-muted">
-          Collect service, datastore, and preview container logs in your
-          external ClickHouse database. Search retained history in Monitor →
-          Logs.
-        </p>
-        {collector.error || error ? (
-          <QueryError message={collector.error ?? error!} />
-        ) : null}
-        {!item || !storage.data ? (
-          <QueryLoading />
+    <div className="content-grid">
+      {item && item.unsupportedContainers > 0 ? (
+        <Alert status="warning">
+          <Alert.Indicator className="size-5 p-0" />
+          <Alert.Content>
+            <Alert.Description>
+              Some managed containers are not eligible for log collection.
+              Containers must use Docker’s json-file logging driver. Each server
+              collector checks up to 512 Towbar-managed containers, including
+              stopped containers; additional containers are skipped. Check the
+              logging driver and remove unused containers through server cleanup
+              if this limit is reached.
+            </Alert.Description>
+          </Alert.Content>
+        </Alert>
+      ) : null}
+      <Widget>
+        <Widget.Header
+          endContent={item ? <CollectorStatus status={item.status} /> : null}
+        >
+          <Widget.Title help={false}>Centralized logs</Widget.Title>
+        </Widget.Header>
+        <Widget.Content className="content-grid">
+          {collector.error || storage.error || error ? (
+            <QueryError message={collector.error ?? storage.error ?? error!} />
+          ) : null}
+          {!item || !storage.data ? (
+            !collector.error && !storage.error ? (
+              <QueryLoading />
+            ) : null
+          ) : (
+            <>
+              <dl className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-3">
+                <div>
+                  <dt className="text-muted">Status</dt>
+                  <dd>
+                    {item.status === "waiting"
+                      ? "Waiting for first log"
+                      : item.status === "backlogged"
+                        ? "Queue storage at limit"
+                        : item.status}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Collector version</dt>
+                  <dd>{item.version ?? "Not installed"}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Last ingestion</dt>
+                  <dd>
+                    {item.lastIngestedAt
+                      ? displayDateTime(item.lastIngestedAt)
+                      : "No logs received yet"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Container coverage</dt>
+                  <dd>
+                    {item.supportedContainers === 0
+                      ? "No supported containers"
+                      : item.unsupportedContainers > 0
+                        ? `${item.supportedContainers} of ${item.supportedContainers + item.unsupportedContainers} containers eligible`
+                        : `${item.supportedContainers} ${item.supportedContainers === 1 ? "container" : "containers"} eligible`}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Queue storage</dt>
+                  <dd>{(item.queueBytes / 1048576).toFixed(1)} MiB</dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Rejected records</dt>
+                  <dd>{item.droppedRecords}</dd>
+                </div>
+              </dl>
+              {item.errorMessage ? (
+                <QueryError message={item.errorMessage} />
+              ) : null}
+              {storage.data.state !== "ready" ? (
+                <p className="text-sm text-muted">
+                  {storage.data.reason ??
+                    "Connect ClickHouse in config.yml before enabling collection."}{" "}
+                  <InlineExternalLink href={storage.data.documentationUrl}>
+                    Setup and requirements
+                  </InlineExternalLink>
+                </p>
+              ) : null}
+              {!ready ? (
+                <p className="text-sm text-muted">
+                  Prepare this server before enabling log collection.
+                </p>
+              ) : null}
+              {canManage ? (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button
+                    variant="primary"
+                    isDisabled={
+                      pending || !ready || storage.data.state !== "ready"
+                    }
+                    onPress={() => configure(true)}
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={
+                        item.desiredState === "enabled"
+                          ? RefreshIcon
+                          : Download01Icon
+                      }
+                      className="size-4 shrink-0"
+                    />
+                    {pending
+                      ? "Updating…"
+                      : item.desiredState === "enabled"
+                        ? "Update collector"
+                        : "Install & Enable Log Collection"}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    isDisabled={pending || item.desiredState !== "enabled"}
+                    onPress={() => configure(false)}
+                  >
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={Delete02Icon}
+                      className="size-4 shrink-0"
+                    />
+                    Disable collection
+                  </Button>
+                </div>
+              ) : null}
+            </>
+          )}
+        </Widget.Content>
+      </Widget>
+    </div>
+  );
+}
+
+function CollectorStatus({
+  status,
+}: {
+  status: LogCollectionStatus["status"];
+}) {
+  const labels = {
+    disabled: "Not enabled",
+    queued: "Queued",
+    installing: "Installing",
+    waiting: "Awaiting first log",
+    collecting: "Active",
+    offline: "No recent report",
+    backlogged: "Queue storage at limit",
+    failed: "Needs attention",
+  };
+  const progressing = ["queued", "installing", "waiting"].includes(status);
+  return (
+    <Chip
+      size="sm"
+      color={
+        status === "collecting"
+          ? "success"
+          : status === "failed"
+            ? "danger"
+            : ["offline", "backlogged"].includes(status)
+              ? "warning"
+              : "default"
+      }
+    >
+      <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+        {progressing ? (
+          <Spinner
+            aria-hidden="true"
+            color="current"
+            size="sm"
+            className="size-3.5"
+          />
         ) : (
-          <>
-            <dl className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-3">
-              <div>
-                <dt className="text-muted">Status</dt>
-                <dd>
-                  {item.status === "waiting"
-                    ? "Waiting for first log"
-                    : item.status === "backlogged"
-                      ? "Queue storage at limit"
-                      : item.status}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Collector version</dt>
-                <dd>{item.version ?? "Not installed"}</dd>
-              </div>
-              <div>
-                <dt className="text-muted">Last ingestion</dt>
-                <dd>
-                  {item.lastIngestedAt
-                    ? displayDateTime(item.lastIngestedAt)
-                    : "No logs received yet"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Container coverage</dt>
-                <dd>
-                  {item.supportedContainers} supported ·{" "}
-                  {item.unsupportedContainers} unsupported
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Queue storage</dt>
-                <dd>{(item.queueBytes / 1048576).toFixed(1)} MiB</dd>
-              </div>
-              <div>
-                <dt className="text-muted">Rejected records</dt>
-                <dd>{item.droppedRecords}</dd>
-              </div>
-            </dl>
-            {item.errorMessage ? (
-              <QueryError message={item.errorMessage} />
-            ) : null}
-            {storage.data.state !== "ready" ? (
-              <p className="text-sm text-muted">
-                {storage.data.reason ??
-                  "Connect ClickHouse in config.yml before enabling collection."}{" "}
-                <InlineExternalLink href={storage.data.documentationUrl}>
-                  Setup and requirements
-                </InlineExternalLink>
-              </p>
-            ) : null}
-            {!hostAccess ? (
-              <p className="text-sm text-muted">
-                An administrator must allow Docker log collection in this
-                server’s Docker logs settings.
-              </p>
-            ) : null}
-            {item.unsupportedContainers > 0 ? (
-              <p className="text-sm text-warning">
-                Some managed containers cannot be collected. Check the Docker
-                json-file driver, workload ownership, and the 512-container
-                limit.
-              </p>
-            ) : null}
-            {canManage ? (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  isDisabled={
-                    pending ||
-                    !ready ||
-                    !hostAccess ||
-                    storage.data.state !== "ready"
-                  }
-                  onPress={() => configure(true)}
-                >
-                  {pending
-                    ? "Updating…"
-                    : item.desiredState === "enabled"
-                      ? "Update collector"
-                      : "Install log collection"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  isDisabled={pending || item.desiredState !== "enabled"}
-                  onPress={() => configure(false)}
-                >
-                  Disable collection
-                </Button>
-              </div>
-            ) : null}
-          </>
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={
+              status === "collecting"
+                ? CheckmarkCircle01Icon
+                : status === "failed"
+                  ? AlertCircleIcon
+                  : ["offline", "backlogged"].includes(status)
+                    ? Alert02Icon
+                    : Clock01Icon
+            }
+          />
         )}
-      </Widget.Content>
-    </Widget>
+        {labels[status]}
+      </Chip.Label>
+    </Chip>
   );
 }

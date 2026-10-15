@@ -47,10 +47,16 @@ root = Path(os.environ["CLEANUP_TEST_DIRECTORY"])
 routes = root / "caddy-config" / "towbar"
 with (root / "calls.jsonl").open("a") as log:
     log.write(json.dumps({"name": name, "args": sys.argv[1:], "routes": sorted(p.name for p in routes.glob("*.caddy"))}) + "\\n")
-if name == "systemctl" and sys.argv[1:] != ["reload", "caddy"]: sys.exit(9)
+if name == "systemctl":
+    if sys.argv[1:] == ["show", "caddy", "--property=ActiveState,Result"]:
+        state = os.environ.get("CLEANUP_TEST_STATE", "active")
+        print("ActiveState=" + ("failed" if state == "start-limit-hit" else state))
+        print("Result=" + ("start-limit-hit" if state == "start-limit-hit" else "success"))
+        sys.exit(0)
+    if sys.argv[1:] not in (["reload", "caddy"], ["reset-failed", "caddy"], ["start", "caddy"]): sys.exit(9)
 if name == "caddy" and (routes / "cloudflare.env").exists():
     if sys.argv[-2:] != ["--envfile", str(routes / "cloudflare.env")]: sys.exit(8)
-if os.environ.get("CLEANUP_TEST_FAIL") == name:
+if os.environ.get("CLEANUP_TEST_FAIL") in (name, sys.argv[1]):
     print("private service credential must not appear in the result", file=sys.stderr)
     sys.exit(1)
 `,
@@ -80,7 +86,7 @@ if os.environ.get("CLEANUP_TEST_FAIL") == name:
     targets,
     route,
     storage,
-    async run(fail?: "caddy" | "systemctl") {
+    async run(fail?: "caddy" | "systemctl" | "start", state = "active") {
       const result = await execute(
         "bash",
         [
@@ -101,6 +107,7 @@ if os.environ.get("CLEANUP_TEST_FAIL") == name:
             PATH: `${directory}:${process.env.PATH}`,
             CLEANUP_TEST_DIRECTORY: directory,
             CLEANUP_TEST_FAIL: fail ?? "",
+            CLEANUP_TEST_STATE: state,
           },
           timeout: 15_000,
         },
@@ -149,10 +156,10 @@ void test("batches all workload and preview routes into one validation and reloa
   const calls = await h.calls();
   assert.deepEqual(
     calls.map((call) => call.name),
-    ["caddy", "systemctl"],
+    ["caddy", "systemctl", "systemctl"],
   );
   for (const call of calls) assert.deepEqual(call.routes, ["unrelated.caddy"]);
-  assert.deepEqual(calls[1]!.args, ["reload", "caddy"]);
+  assert.deepEqual(calls[2]!.args, ["reload", "caddy"]);
   assert.deepEqual((await readdir(h.routes)).sort(), [
     "cloudflare.env",
     "unrelated.caddy",
@@ -221,7 +228,7 @@ void test("an interrupted staged removal reloads before recording retirement", a
   assert.equal(result.retiredDeployableIds?.length, 1);
   assert.deepEqual(
     (await h.calls()).map((call) => call.name),
-    ["caddy", "systemctl"],
+    ["caddy", "systemctl", "systemctl"],
   );
   await assert.rejects(access(`${file}.retiring`));
 });
@@ -260,4 +267,62 @@ void test("unsafe workload paths do not stage that workload's routes", async (t)
   );
   for (const call of await h.calls())
     assert.deepEqual(call.routes, [`${unsafe.deployableId}.caddy`]);
+});
+
+void test("recovers a Caddy start-limit failure once after validating all route removals", async (t) => {
+  const h = await harness(t, 3);
+  const result = await h.run(undefined, "start-limit-hit");
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.retiredDeployableIds?.length, 3);
+  assert.deepEqual(
+    (await h.calls()).map(({ name, args }) => [name, ...args.slice(0, 2)]),
+    [
+      ["caddy", "validate", "--config"],
+      ["systemctl", "show", "caddy"],
+      ["systemctl", "reset-failed", "caddy"],
+      ["systemctl", "start", "caddy"],
+    ],
+  );
+});
+
+void test("a failed start restores routes and retains workload data", async (t) => {
+  const h = await harness(t, 1);
+  const result = await h.run("start", "start-limit-hit");
+  assert.equal(result.failures?.[0]?.kind, "route");
+  assert.match(
+    result.failures![0]!.reason,
+    /Unable to start Caddy after resetting its start limit/,
+  );
+  assert.equal(
+    await readFile(h.route(h.targets[0]!.deployableId), "utf8"),
+    h.targets[0]!.deployableId,
+  );
+  await access(h.storage(h.targets[0]!.deployableId));
+  assert.deepEqual(result.retiredDeployableIds, []);
+});
+
+void test("does not start an intentionally stopped Caddy service", async (t) => {
+  const h = await harness(t, 1);
+  const result = await h.run(undefined, "inactive");
+  assert.match(
+    result.failures![0]!.reason,
+    /Caddy is inactive; start the Caddy service/,
+  );
+  assert.equal(result.failures![0]!.kind, "route");
+  assert(
+    !(await h.calls()).some((call) =>
+      ["start", "reset-failed"].includes(call.args[0]!),
+    ),
+  );
+  await access(h.storage(h.targets[0]!.deployableId));
+});
+
+void test("invalid staged configuration cannot trigger start-limit recovery", async (t) => {
+  const h = await harness(t, 1);
+  const result = await h.run("caddy", "start-limit-hit");
+  assert.equal(result.failures?.length, 1);
+  assert.deepEqual(
+    (await h.calls()).map((call) => call.name),
+    ["caddy"],
+  );
 });

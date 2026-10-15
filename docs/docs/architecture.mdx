@@ -110,19 +110,9 @@ The optional [Scout Agent](/docs/scout) reports measurements to Towbar over HTTP
 
 ## Centralized logs
 
-The optional logging pipeline has a separate per-server OpenTelemetry Collector.
-It reads managed Docker log files through read-only mounts, buffers records on
-the server, and sends them to Towbar over HTTPS. The API validates the collector
-and container identity before inserting records into external ClickHouse.
+The native OTEL collector reads managed container output and sends it to Towbar over HTTPS. The API validates source identity and access before storing records in external ClickHouse. PostgreSQL holds source metadata, restrictions, and user table layouts. Browsers and collectors do not receive ClickHouse credentials.
 
-PostgreSQL stores source identities, access restrictions, collector lifecycle
-state and per-user table layouts. ClickHouse stores retained log records. The
-dashboard, REST and MCP all query through Towbar's authorization boundary; they
-do not connect to ClickHouse directly. Scout performance collection and on-demand
-Runtime Logs remain separate paths.
-
-See the [centralized logs architecture diagram](/docs/operate/centralized-logs#architecture)
-for the data flow, configuration, retention and collector requirements.
+See the [log architecture diagram](/docs/operate/centralized-logs#architecture) and [collection setup](/docs/operate/log-collection). Scout metrics and on-demand Runtime Logs use separate collection paths.
 
 ## Reliability and release evidence
 

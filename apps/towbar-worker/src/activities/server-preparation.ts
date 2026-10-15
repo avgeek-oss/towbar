@@ -8,9 +8,11 @@ import {
 } from "@workspace/towbar-core";
 import {
   HostKeyNotTrustedError,
+  type LogCollectorExecutionContext,
   type ServerPreparationContext,
   ServerPreparationError,
   prepareServer,
+  reconcileLogCollector,
 } from "@workspace/towbar-deployer";
 
 import { signedApiRequest } from "../infrastructure/towbar-api.js";
@@ -54,6 +56,28 @@ export async function executeServerPreparationActivity(preparationId: string) {
     }>("GET", `/v1/internal/server-preparations/${preparationId}/context`);
     const result = await prepareServer(response.context, {
       step: updateStep,
+      installLogCollector: async () => {
+        const { context, message } = await signedApiRequest<{
+          context: LogCollectorExecutionContext | null;
+          message: string;
+        }>(
+          "POST",
+          `/v1/internal/server-preparations/${preparationId}/log-collector`,
+          {},
+        );
+        if (!context) return message;
+        const completion = `/v1/internal/log-collectors/${context.serverId}/${context.generation}/complete`;
+        try {
+          await reconcileLogCollector(context, activity.cancellationSignal);
+        } catch {
+          await signedApiRequest("POST", completion, { succeeded: false });
+          throw new Error(
+            "Log collector installation failed. Check Docker, SSH access, and outbound HTTPS to the Towbar API, then retry setup.",
+          );
+        }
+        await signedApiRequest("POST", completion, { succeeded: true });
+        return message;
+      },
       log: async ({ id, log, logTruncated }) => {
         const step = steps.find((candidate) => candidate.id === id);
         if (!step) throw new Error(`Unknown server preparation step: ${id}`);

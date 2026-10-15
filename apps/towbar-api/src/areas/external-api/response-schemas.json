@@ -17914,32 +17914,38 @@
     "Response_258": {
       "type": "object",
       "properties": {
+        "name": { "type": "string" },
+        "reason": { "type": "string" },
         "kind": {
           "anyOf": [
             { "type": "string", "const": "image" },
+            { "type": "string", "const": "workload" },
             { "type": "string", "const": "container" },
-            { "type": "string", "const": "volume" }
+            { "type": "string", "const": "volume" },
+            { "type": "string", "const": "network" },
+            { "type": "string", "const": "route" }
           ]
-        },
-        "name": { "type": "string" },
-        "reason": { "type": "string" }
+        }
       },
-      "required": ["kind", "name", "reason"]
+      "required": ["name", "reason", "kind"]
     },
     "Response_259": {
       "type": "object",
       "properties": {
+        "name": { "type": "string" },
+        "reason": { "type": "string" },
         "kind": {
           "anyOf": [
             { "type": "string", "const": "image" },
+            { "type": "string", "const": "workload" },
             { "type": "string", "const": "container" },
-            { "type": "string", "const": "volume" }
+            { "type": "string", "const": "volume" },
+            { "type": "string", "const": "network" },
+            { "type": "string", "const": "route" }
           ]
-        },
-        "name": { "type": "string" },
-        "reason": { "type": "string" }
+        }
       },
-      "required": ["kind", "name", "reason"]
+      "required": ["name", "reason", "kind"]
     },
     "Response_256": {
       "type": "object",
@@ -20573,13 +20579,14 @@
         "finishedAt": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "id": {
           "anyOf": [
-            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "connecting" },
             { "type": "string", "const": "inspecting" },
             { "type": "string", "const": "installing_prerequisites" },
             { "type": "string", "const": "installing_docker" },
             { "type": "string", "const": "installing_caddy" },
-            { "type": "string", "const": "configuring_access" }
+            { "type": "string", "const": "installing_log_collector" },
+            { "type": "string", "const": "configuring_access" },
+            { "type": "string", "const": "verifying" }
           ]
         },
         "log": { "type": "string" },
@@ -21978,10 +21985,10 @@
             { "type": "string", "const": "blocked" },
             { "type": "string", "const": "succeeded" },
             { "type": "string", "const": "recovered" },
+            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "checking" },
             { "type": "string", "const": "downloading" },
             { "type": "string", "const": "applying" },
-            { "type": "string", "const": "verifying" },
             { "type": "string", "const": "restoring" },
             { "type": "string", "const": "interrupted" }
           ]
@@ -22085,13 +22092,17 @@
         "monitoringBytes": { "type": "number" },
         "analyticsBytes": {
           "anyOf": [{ "type": "null" }, { "type": "number" }]
-        }
+        },
+        "logsBytes": { "anyOf": [{ "type": "null" }, { "type": "number" }] },
+        "logsError": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
       },
       "required": [
         "sampledAt",
         "towbarBytes",
         "monitoringBytes",
-        "analyticsBytes"
+        "analyticsBytes",
+        "logsBytes",
+        "logsError"
       ]
     },
     "SystemHealth_448": {

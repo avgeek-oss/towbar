@@ -12,12 +12,14 @@ import {
   ReloadIcon,
 } from "@hugeicons/core-free-icons";
 
+import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { LineChart } from "@avgeek-oss/design-system/charts/line-chart";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import type {
+  LogStorageStatus,
   SystemHealth,
   SystemHealthCheck,
   SystemHealthStatus,
@@ -69,6 +71,10 @@ const statusPresentation = {
 
 export function SystemHealthPage() {
   const query = useApiQuery<SystemHealth>("/v1/core/system-health", 15_000);
+  const logs = useApiQuery<LogStorageStatus>(
+    "/v1/core/observability/logs/status",
+    15_000,
+  );
   const updateQuery = useApiQuery<TowbarUpdateInfo>(
     "/v1/core/version",
     15 * 60_000,
@@ -123,52 +129,118 @@ export function SystemHealthPage() {
         updates={updateQuery.data}
         updateError={Boolean(updateQuery.error)}
       />
-      <DatabaseStorage storage={health.databaseStorage} />
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+        <StorageUsage kind="data" storage={health.databaseStorage} />
+        <StorageUsage
+          kind="logs"
+          storage={health.databaseStorage}
+          logStatus={logs.data}
+          logError={logs.error}
+        />
+      </div>
     </DashboardPage>
   );
 }
 
-function DatabaseStorage({
+function StorageUsage({
+  kind,
   storage,
+  logStatus,
+  logError,
 }: {
+  kind: "data" | "logs";
   storage: SystemHealth["databaseStorage"];
+  logStatus?: LogStorageStatus;
+  logError?: string | null;
 }) {
   const data = storage.map((sample) => ({
     at: new Date(sample.sampledAt).getTime(),
     towbarBytes: sample.towbarBytes,
     monitoringBytes: sample.monitoringBytes,
     analyticsBytes: sample.analyticsBytes,
+    logsBytes: sample.logsBytes ?? null,
   }));
+  const series =
+    kind === "data"
+      ? [
+          {
+            key: "towbarBytes",
+            name: "Towbar Data",
+            color: "var(--chart-requested)",
+          },
+          {
+            key: "monitoringBytes",
+            name: "Monitoring Data",
+            color: "var(--warning)",
+          },
+          {
+            key: "analyticsBytes",
+            name: "Analytics Data",
+            color: "var(--chart-succeeded)",
+          },
+        ]
+      : [
+          {
+            key: "logsBytes",
+            name: "ClickHouse Logs",
+            color: "var(--chart-requested)",
+          },
+        ];
   const first = data[0];
   const latest = data.at(-1);
+  const total = latest
+    ? kind === "logs"
+      ? latest.logsBytes
+      : latest.towbarBytes +
+        latest.monitoringBytes +
+        (latest.analyticsBytes ?? 0)
+    : null;
+  const hasReadings =
+    kind === "data"
+      ? data.length > 0
+      : data.some((sample) => sample.logsBytes !== null);
+  const issue =
+    kind === "logs"
+      ? (logError ?? logStatus?.reason ?? storage.at(-1)?.logsError)
+      : null;
   const start = first?.at ?? Date.now() - 90 * 24 * 60 * 60_000;
   const end = latest?.at ?? Date.now();
   const { ticks, error: dateLabelError } = useLocalizedChartTicks(start, end);
   useLocalizedTimestamps(storage.map((sample) => sample.sampledAt));
   return (
-    <Widget>
+    <Widget className="min-w-0">
       <Widget.Header
         endContent={
-          latest ? (
+          total !== null ? (
             <span className="text-xs tabular-nums text-muted">
-              Total{" "}
-              {formatBytes(
-                latest.towbarBytes +
-                  latest.monitoringBytes +
-                  (latest.analyticsBytes ?? 0),
-              )}
+              Total {formatBytes(total)}
             </span>
           ) : null
         }
       >
-        <Widget.Title>Database storage</Widget.Title>
+        <Widget.Title>
+          {kind === "data" ? "Data Storage" : "Log Storage"}
+        </Widget.Title>
       </Widget.Header>
       <Widget.Content className="grid min-w-0 gap-3">
         {dateLabelError ? <QueryError message={dateLabelError} /> : null}
-        {latest ? (
+        {issue ? <QueryError message={issue} /> : null}
+        {kind === "logs" && logStatus?.state === "not_configured" ? (
+          <p className="text-sm text-muted">
+            Connect ClickHouse to track log storage usage.{" "}
+            <InlineExternalLink href={logStatus.documentationUrl}>
+              Setup and requirements
+            </InlineExternalLink>
+          </p>
+        ) : null}
+        {hasReadings ? (
           <>
             <LineChart
-              aria-label="Towbar, monitoring, and analytics database storage over the last 90 days"
+              aria-label={
+                kind === "data"
+                  ? "Towbar, monitoring, and analytics database storage over the last 90 days"
+                  : "ClickHouse log storage over the last 90 days"
+              }
               data={data}
               height={240}
             >
@@ -184,49 +256,29 @@ function DatabaseStorage({
                 tick={{ fontSize: 11 }}
               />
               <LineChart.YAxis
-                width={75}
+                width={65}
                 domain={[0, "auto"]}
                 tickFormatter={(value) =>
                   formatBytes(Number(value)).replace(" ", "\u00a0")
                 }
                 tick={{ fontSize: 11 }}
               />
-              <LineChart.Area
-                dataKey="towbarBytes"
-                name="Towbar Data"
-                stroke="var(--chart-requested)"
-                fill="var(--chart-requested)"
-                fillOpacity={0.4}
-                stackId="storage"
-                strokeWidth={2}
-                dot={data.length === 1 ? { r: 3 } : false}
-                isAnimationActive={false}
-                type="monotone"
-              />
-              <LineChart.Area
-                dataKey="monitoringBytes"
-                name="Monitoring Data"
-                stroke="var(--warning)"
-                fill="var(--warning)"
-                fillOpacity={0.4}
-                stackId="storage"
-                strokeWidth={2}
-                dot={data.length === 1 ? { r: 3 } : false}
-                isAnimationActive={false}
-                type="monotone"
-              />
-              <LineChart.Area
-                dataKey="analyticsBytes"
-                name="Analytics Data"
-                stroke="var(--chart-succeeded)"
-                fill="var(--chart-succeeded)"
-                fillOpacity={0.4}
-                stackId="storage"
-                strokeWidth={2}
-                dot={data.length === 1 ? { r: 3 } : false}
-                isAnimationActive={false}
-                type="monotone"
-              />
+              {series.map((series) => (
+                <LineChart.Area
+                  key={series.key}
+                  dataKey={series.key}
+                  name={series.name}
+                  stroke={series.color}
+                  fill={series.color}
+                  fillOpacity={0.4}
+                  stackId="storage"
+                  strokeWidth={2}
+                  dot={data.length === 1 ? { r: 3 } : false}
+                  isAnimationActive={false}
+                  type="monotone"
+                  connectNulls={false}
+                />
+              ))}
               <LineChart.Tooltip
                 content={
                   <LineChart.TooltipContent
@@ -237,22 +289,21 @@ function DatabaseStorage({
               />
             </LineChart>
             <Widget.Legend className="flex-wrap">
-              <Widget.LegendItem color="var(--chart-requested)">
-                Towbar Data
-              </Widget.LegendItem>
-              <Widget.LegendItem color="var(--warning)">
-                Monitoring Data
-              </Widget.LegendItem>
-              <Widget.LegendItem color="var(--chart-succeeded)">
-                Analytics Data
-              </Widget.LegendItem>
+              {series.map((series) => (
+                <Widget.LegendItem key={series.key} color={series.color}>
+                  {series.name}
+                </Widget.LegendItem>
+              ))}
             </Widget.Legend>
           </>
-        ) : (
+        ) : !issue &&
+          !(kind === "logs" && logStatus?.state === "not_configured") ? (
           <p className="text-sm text-muted">
-            Waiting for the first database storage reading.
+            {kind === "data"
+              ? "Waiting for the first database storage reading."
+              : "Waiting for the first ClickHouse storage reading. Storage is sampled every two hours."}
           </p>
-        )}
+        ) : null}
       </Widget.Content>
     </Widget>
   );

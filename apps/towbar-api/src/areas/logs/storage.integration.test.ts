@@ -99,7 +99,7 @@ void test(
         config: normalizeServerConfiguration({
           ip: "192.0.2.210",
           ssh: { username: "deploy" },
-          hostLogCollection: true,
+          hostLogCollection: false,
         }),
       });
       const token = `twlg_${randomBytes(32).toString("hex")}`;

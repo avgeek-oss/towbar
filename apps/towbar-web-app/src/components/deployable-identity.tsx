@@ -17,6 +17,7 @@ import {
 } from "./resource-image-brand";
 import {
   DashboardCircleIcon,
+  DatabaseIcon,
   HeartPulseIcon,
   InternetIcon,
   WebhookIcon,
@@ -332,9 +333,17 @@ export function ResourceLogo({
   size?: "default" | "small" | "compact";
 }) {
   const [failed, setFailed] = useState(false);
-  const fallback = "/resource-types/image.png";
-  const logo = failed ? fallback : brand.logo;
-  const dark = failed ? undefined : brand.logoDark;
+  const logo = brand.logo;
+  const dark = brand.logoDark;
+  if (failed || logo === "/resource-types/image.png") {
+    return (
+      <HugeiconsIcon
+        aria-hidden="true"
+        icon={DatabaseIcon}
+        className={`shrink-0 ${size === "compact" ? "size-4" : size === "small" ? "size-6" : "size-8"}`}
+      />
+    );
+  }
   const pixels = size === "compact" ? 16 : size === "small" ? 24 : 32;
   return (
     <span

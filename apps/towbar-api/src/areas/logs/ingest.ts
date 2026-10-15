@@ -57,7 +57,6 @@ export async function authenticateLogCollector(
     .select({
       collector: logCollectors,
       workspaceId: servers.workspaceId,
-      serverConfig: servers.config,
     })
     .from(logCollectors)
     .innerJoin(servers, eq(servers.id, logCollectors.serverId))
@@ -67,7 +66,6 @@ export async function authenticateLogCollector(
   if (
     !row ||
     row.collector.desiredState !== "enabled" ||
-    !row.serverConfig.hostLogCollection ||
     !hash ||
     !timingSafeEqual(Buffer.from(hash), Buffer.from(hashLogCredential(token)))
   )

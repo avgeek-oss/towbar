@@ -171,6 +171,20 @@ Initial setup atomically creates one team and Admin, then closes permanently. Em
 
 `security.passwordBreachCheck` defaults to `true`; explicitly setting `false` supports isolated installations without the password corpus service. `security.passwordVerifyConcurrency` defaults to `2` (range 1–8), and `security.passwordVerifyQueueLimit` defaults to `16` (range 1–100). Benchmark resource usage before raising these limits. Saturation returns a retryable busy response.
 
+## Log storage
+
+Log collection is optional. Configure `observability.logs` in this file and restart Towbar. Keep database credentials on the control plane.
+
+| YAML setting                             | Default               | Purpose                            |
+| ---------------------------------------- | --------------------- | ---------------------------------- |
+| `observability.logs.retentionDays`       | `7`                   | Retained event history, 1–365 days |
+| `observability.logs.clickhouse.endpoint` | Required when enabled | External ClickHouse HTTP origin    |
+| `observability.logs.clickhouse.database` | Required when enabled | Dedicated log database             |
+| `observability.logs.clickhouse.username` | Required when enabled | Database account                   |
+| `observability.logs.clickhouse.password` | Required when enabled | Database password                  |
+
+See [Set up log collection](/docs/operate/log-collection) for grants, a complete YAML example, and server installation.
+
 ## Servers and worker capacity
 
 Register IP addresses, SSH access, and concurrency under [Servers](/docs/servers). These settings do not belong in the manifest. Cloudflare and [AWS credentials](/docs/integrations/aws) are optional integrations configured in YAML.

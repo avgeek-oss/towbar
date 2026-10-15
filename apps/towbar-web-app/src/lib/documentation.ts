@@ -69,8 +69,8 @@ export const documentationTopics = {
     "Register an Ubuntu server, configure trusted SSH access, and prepare it to run services and datastores.",
   ),
   logCollection: guide(
-    "servers#allow-docker-log-collection",
-    "Allow trusted collector Services to read this server's Docker logs and container metadata. Each Service must explicitly request access.",
+    "operate/log-collection#enable-a-server-collector",
+    "Install and manage Towbar’s native collector for this server. Logs are stored in your external ClickHouse database and searched in Monitor → Logs.",
   ),
   preparation: guide(
     "servers/setup",
@@ -381,8 +381,16 @@ export function documentationTopic(pathname: string): Topic | undefined {
 
 export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   "database storage": guide(
-    "monitoring#database-storage",
+    "monitoring#data-and-log-storage",
     "See what Towbar Data and Monitoring Data include, how often they are sampled, and what the chart excludes.",
+  ),
+  "data storage": guide(
+    "monitoring#data-and-log-storage",
+    "Understand PostgreSQL table sizes, sampling, and the 90-day storage history.",
+  ),
+  "log storage": guide(
+    "monitoring#data-and-log-storage",
+    "Track ClickHouse log storage and check the metadata permissions required for sampling.",
   ),
   "server setup": documentationTopics.preparation,
   "server inspection": guide(
@@ -410,6 +418,7 @@ export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   "server identity and capacity": documentationTopics.servers,
   "scout agent": documentationTopics.scout,
   "centralized logs": documentationTopics.centralizedLogs,
+  "otel logs collector": documentationTopics.logCollection,
   "docker logs": documentationTopics.logCollection,
   "unused docker objects": documentationTopics.cleanup,
   performance: documentationTopics.performance,

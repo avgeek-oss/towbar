@@ -888,6 +888,8 @@
     {
       "name": "system-health",
       "route": "/system-health",
+      "capturedAt": "2026-10-15T08:28:59.526Z",
+      "environment": "Local Towbar fixture on localhost:4036; examples are not production results",
       "guides": [
         "docs/docs/monitoring.mdx",
         "docs/blog/introducing-towbar.mdx"
@@ -897,15 +899,19 @@
           "theme": "light",
           "file": "docs/assets/release-v2/system-health-light.jpg",
           "width": 3200,
-          "height": 1800
+          "height": 2080
         },
         {
           "theme": "dark",
           "file": "docs/assets/release-v2/system-health-dark.jpg",
           "width": 3200,
-          "height": 1800
+          "height": 2080
         }
-      ]
+      ],
+      "viewport": {
+        "width": 1600,
+        "height": 1040
+      }
     },
     {
       "name": "team-members",

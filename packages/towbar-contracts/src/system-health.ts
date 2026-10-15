@@ -27,6 +27,8 @@ export type SystemHealth = {
     towbarBytes: number;
     monitoringBytes: number;
     analyticsBytes: number | null;
+    logsBytes: number | null;
+    logsError: string | null;
   }>;
   status: SystemHealthStatus;
   version: string;

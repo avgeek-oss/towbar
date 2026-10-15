@@ -5,6 +5,24 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.46] - 2026-10-15
+
+### Added
+
+- Install the OTEL Logs Collector after Caddy during server setup when ClickHouse is configured. Keep manual installation and disable controls in server settings.
+- Show ClickHouse log storage usage beside PostgreSQL data storage in System Health, now under Settings.
+
+### Changed
+
+- Replace the legacy log-access setting with native collector status, container eligibility, and connection indicators. Refresh the logs setup and troubleshooting documentation.
+- Use spinners for operations in progress, database icons for datastores, and compact cleanup result buttons. Move server IP addresses beside server names.
+
+### Fixed
+
+- Recover Caddy's restart-limit failure during cleanup without starting intentionally stopped services. Preserve routes and workload ownership when cleanup fails.
+- Keep relative timestamps current and avoid showing new requests in the future because of a stale clock snapshot.
+- Verify fresh installations against the complete migration journal and check the new log storage columns.
+
 ## [2.0.45] - 2026-10-15
 
 ### Added

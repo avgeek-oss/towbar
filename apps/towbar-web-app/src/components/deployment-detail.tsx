@@ -8,7 +8,7 @@ import {
   Alert02Icon,
   AlertCircleIcon,
   DashboardCircleIcon,
-  CubeIcon,
+  DatabaseIcon,
   FileViewIcon,
   GitBranchIcon,
   GitMergeIcon,
@@ -382,7 +382,7 @@ export function DeploymentDetail() {
                             item.deployableKind === "app" ||
                             item.deployableKind === "compose"
                               ? DashboardCircleIcon
-                              : CubeIcon
+                              : DatabaseIcon
                           }
                         />
                       }

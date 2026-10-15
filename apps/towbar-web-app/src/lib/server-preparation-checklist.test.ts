@@ -25,7 +25,7 @@ function completedPreparation(): ServerPreparation {
 void test("shows the full checklist before the first attempt", () => {
   const model = preparationChecklist(undefined, "pending");
   assert.equal(model.completed, 0);
-  assert.equal(model.total, 7);
+  assert.equal(model.total, 8);
   assert.deepEqual(
     model.steps
       .filter((step) => step.group === "inspection")
@@ -34,7 +34,7 @@ void test("shows the full checklist before the first attempt", () => {
   );
   assert.equal(
     model.steps.filter((step) => step.group === "prerequisites").length,
-    5,
+    6,
   );
   assert(model.steps.every((step) => step.status === "waiting"));
 });
@@ -55,7 +55,7 @@ void test("counts only recorded successful steps when preparation stops", () => 
 
 void test("retains completed step history without the overview's time limit", () => {
   const model = preparationChecklist(completedPreparation(), "ready");
-  assert.equal(model.completed, 7);
+  assert.equal(model.completed, 8);
   assert.equal(model.historyUnavailable, false);
 });
 
@@ -67,4 +67,14 @@ void test("does not present an earlier run as preparation for a changed configur
   const unknownHistory = preparationChecklist(undefined, "ready");
   assert.equal(unknownHistory.historyUnavailable, true);
   assert.equal(unknownHistory.completed, 0);
+});
+
+void test("keeps setup completed for history recorded before automatic collectors", () => {
+  const preparation = completedPreparation();
+  preparation.steps = preparation.steps.filter(
+    (step) => step.id !== "installing_log_collector",
+  );
+  const model = preparationChecklist(preparation, "ready");
+  assert.equal(model.completed, model.total);
+  assert.equal(model.total, 7);
 });

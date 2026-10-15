@@ -221,7 +221,7 @@ export const infrastructureTools: McpTool[] = [
   action(
     "server_configure",
     "Configure server",
-    "Update server SSH settings, build concurrency, and hostLogCollection opt-in. Inspect current settings first and preserve supported fields when saving; the server IP is immutable. Changing connectivity can disrupt deployments. Requires server.update; collector deployments separately require server.collectLogs.",
+    "Update server SSH settings, build concurrency, and custom-Service hostLogCollection permission. Inspect current settings and preserve supported fields; the server IP is immutable. Connectivity changes can disrupt deployments. Requires server.update. Native OTEL collection is managed separately with towbar_logs_collection_configure.",
     "PATCH",
     "/servers/:serverId",
     serverId,
