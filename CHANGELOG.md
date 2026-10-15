@@ -5,6 +5,8 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.45] - 2026-10-15
+
 ### Added
 
 - Add optional centralized container logs with external ClickHouse storage, YAML retention settings, per-server OpenTelemetry collection, and shared REST/MCP authorization.
