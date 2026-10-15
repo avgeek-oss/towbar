@@ -66,7 +66,7 @@ sudo towbar doctor
 sudo towbar version
 ```
 
-In **Manage → System health**, confirm that the API, database, Temporal and worker are healthy. GitHub may remain unconfigured during setup.
+In **Settings → System health**, confirm that the API, database, Temporal and worker are healthy. GitHub may remain unconfigured during setup.
 
 The `migrate`, `temporal-schema` and `temporal-namespace` jobs should exit successfully. API, worker, web app, PostgreSQL and Temporal should keep running. For startup errors:
 

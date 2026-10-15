@@ -53,58 +53,18 @@ Removing the Service from Git and successfully syncing its environment queues se
 
 ## Docker host logs
 
-For retained custom collector integrations, a trusted Service can request one fixed, read-only host mount. An Admin must explicitly set `hostLogCollection: true` through the server configuration API or MCP, then declare `container.hostLogs.dockerJsonFiles: true`. Towbar’s [native log collector](/docs/operate/centralized-logs) does not require this custom-Service permission.
+Use the [native OTEL Logs Collector](/docs/operate/log-collection) for Towbar's centralized logs. It does not need a custom Service.
 
-```yaml title=".towbar/services/host-logs.service.yml"
-id: host-logs
-name: Host logs
-deployment:
-  type: dockerfile
-  context: observability/fluent-bit
-  dockerfile: observability/fluent-bit/Dockerfile
-rollout:
-  type: recreate
-  maintenanceMode: true
-  reason: One collector writes the persistent cursor and buffer
-container:
-  port: 2020
-  resources:
-    cpus: 0.25
-    memory: 256m
-  hostLogs:
-    dockerJsonFiles: true
-  volumes:
-    - name: state
-      mountPath: /var/lib/fluent-bit
-      initialData: image
-health:
-  path: /api/v1/health
-  timeoutSeconds: 60
-environments:
-  production:
-    server: 192.0.2.10
-```
+Existing custom collectors can request `container.hostLogs.dockerJsonFiles: true`. This separate capability requires:
 
-Towbar reads `DockerRootDir` from the target daemon and mounts its `containers` directory at `/var/lib/docker/containers`. A custom Docker data directory is supported. The manifest cannot choose a host path, make this mount writable, or attach a Docker socket. Named volumes must not overlap the log mount. Compose workloads, deployment hooks, and scheduled jobs do not receive this capability, and collectors cannot enable Previews.
+- An Admin to set `hostLogCollection: true` through the server configuration API or MCP.
+- `deployment.create` and `server.collectLogs` authority.
+- CPU/memory limits, persistent collector state, and a maintenance rollout.
+- Rootful Docker without user namespace remapping.
 
-<Warning>
-  This mount exposes logs and container metadata for every container on the
-  server, including workloads outside the collector's Repository. Those files
-  can contain credentials and private data. Only deploy collector images and
-  configuration you trust with that access.
-</Warning>
+The mount is read-only at `/var/lib/docker/containers`, with no Docker socket. It exposes logs and metadata from every container on that server. Compose workloads, hooks, jobs, and previews cannot use it.
 
-The collector runs as UID/GID `0:0` with all Linux capabilities dropped, `no-new-privileges`, a read-only root filesystem, and a 16 MiB temporary `/tmp`. This requires rootful Docker without user namespace remapping. Towbar creates an owned `local` driver volume with fixed `bind,ro,private` options, checks its source and ownership before startup, and mounts it read-only with private propagation. Existing and future host submounts are excluded. The CPU and memory limits and persistent named storage are required; the example's 0.25 CPU and 256 MiB are a starting budget. Measure consumption and set a bounded on-disk buffer in the collector configuration. Collector runtime secrets cannot override Docker connection settings such as `DOCKER_HOST` or `DOCKER_CONTEXT`.
-
-For Fluent Bit, tail `/var/lib/docker/containers/*/*-json.log`, keep the Tail database and filesystem buffer under `/var/lib/fluent-bit`, and enable its HTTP server and health check on `0.0.0.0:2020`. See the [Tail input](https://docs.fluentbit.io/manual/data-pipeline/inputs/tail), [buffering](https://docs.fluentbit.io/manual/administration/buffering-and-storage), and [health check](https://docs.fluentbit.io/manual/administration/monitoring#health-check-for-fluent-bit) configuration. Towbar preserves the volume across replacement and requires a maintenance rollout so two collector versions cannot write it together.
-
-Towbar uses Docker's `local` logging driver for the collector itself, with rotation capped at three 10 MiB files. Its output is therefore excluded from the `*-json.log` glob without a container-ID exclusion rule. Other containers must use `json-file` to appear in that glob; this capability does not collect journald, `local`, or remote-driver logs.
-
-API keys need edit access with administrative operations enabled and explicit `deployment.create` and `server.collectLogs` grants. Towbar checks authority at admission and again when a queued deployment starts, including rollback to a retained collector image. It also checks the server's current opt-in. Disabling the setting prevents further collector deployments; stop and remove existing collector containers to revoke their mounted access. Changing the setting does not unmount or stop a running container.
-
-Resuming a paused collector rechecks the successful sync's captured actor and its current access. A blocked collector is skipped with a reason while other automatic deployments and Preview reconciliation continue. Server consent changes preserve workload deployment digests. Rollback restores the target release's collector mode, resource limits, state volumes, and maintenance rollout.
-
-After removing `hostLogs`, deployment cleanup reclaims the owned host-log bind volume once every container reference is gone, including stopped containers. Server orphan cleanup can also reclaim an unused host-log volume for an active Service. Persistent cursor and buffer volumes remain intact. Re-enabling collection recreates the bind from the daemon's current data-root; a changed data-root can replace a stale owned bind only after its container references have been removed.
+Disabling the server permission blocks future custom-collector deployments. Stop and remove existing custom collectors to revoke their mounted access. This permission does not control the native OTEL collector.
 
 ## Runtime commands and repository files
 

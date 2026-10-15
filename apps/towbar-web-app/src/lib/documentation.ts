@@ -69,7 +69,7 @@ export const documentationTopics = {
     "Register an Ubuntu server, configure trusted SSH access, and prepare it to run services and datastores.",
   ),
   logCollection: guide(
-    "operate/centralized-logs#enable-a-server-collector",
+    "operate/log-collection#enable-a-server-collector",
     "Install and manage Towbar’s native collector for this server. Logs are stored in your external ClickHouse database and searched in Monitor → Logs.",
   ),
   preparation: guide(

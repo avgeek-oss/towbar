@@ -151,7 +151,7 @@ export const logTools: McpTool[] = [
   tool(
     "logs_collection_configure",
     "Enable or disable server log collection",
-    "Install or update Towbar's pinned collector, or disable its collection. Requires an inspected server, configured ClickHouse, and allowed Docker log access. Returns an asynchronous generation; inspect logs_inspect until setup completes. Waiting does not prove successful ingestion. Disabling keeps accepted history until retention expires.",
+    "Install or update Towbar's pinned OTEL collector on a prepared server with configured ClickHouse, or disable collection. Server setup installs it automatically when configured. Inspect logs_inspect for the asynchronous result; waiting means no log has been accepted yet. Disabling keeps accepted history until expiry. Custom-Service host-log permission is not required.",
     z
       .object({ ...serverId, enabled: z.boolean(), idempotencyKey: actionKey })
       .strict(),

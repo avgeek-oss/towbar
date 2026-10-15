@@ -1,94 +1,81 @@
 ---
 title: "Monitoring, health, and capacity"
-description: "Read control-plane checks, runtime health, resource usage, and operation history."
+description: "Find logs, performance history, health checks, and storage usage."
 ---
 
 import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
-Towbar exposes several kinds of health. Read the relevant check and its timestamp before deciding whether an installation or workload is ready.
-
-Start with [Operate Towbar](/docs/operate/index) for an investigation path. Use [System and workload health](/docs/operate/health) for fresh checks, [Performance history](/docs/operate/performance) for Scout measurements, and [Investigate incidents](/docs/operate/incidents) for alert context and delivery outcomes.
-
 ## Navigate monitoring
 
-The workspace **Monitor** section contains **Logs**, **Incidents**, and **Vulnerabilities**. [Centralized logs](/docs/operate/centralized-logs) searches retained container output in an optional external ClickHouse database. Workload **Runtime Logs** continues to fetch current container output on demand. On Incidents, choose **Active** or **Resolved**, then optionally filter by severity. On mobile, open **Page menu** for these controls.
+| View                                    | Use it for                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Workspace **Monitor → Logs**            | [Retained application output](/docs/operate/centralized-logs) across workloads and previews |
+| Workspace **Monitor → Incidents**       | Active or resolved [alert conditions](/docs/operate/incidents)                              |
+| Workspace **Monitor → Vulnerabilities** | [Service image findings](/docs/vulnerability-scanning)                                      |
+| Entity **Monitor → Performance**        | [CPU, memory, disk, and network history](/docs/operate/performance) from Scout              |
+| Workload **Monitor → Runtime Logs**     | Current container output on demand, without ClickHouse                                      |
+| **Settings → System health**            | Towbar control-plane checks, updates, and storage usage                                     |
 
 ## Performance history
 
-Open a server, service, or datastore and select **Monitor → Performance**. Use the time range and chart controls to inspect CPU, memory, disk, and network measurements. Workload views also offer environment and container selection. The URL retains the chart filters, so a shared link opens the same view.
+Select a time range, environment, and container where available. Drag across a chart to zoom. URLs retain the performance filters. Deployment, restart, and hardware markers help correlate changes; missing measurements are gaps.
 
-Deployment, container restart, host restart, and hardware change markers connect changes in usage to operational events. Drag across a chart to zoom, or choose a custom time range. Missing measurements appear as gaps. See [Scout Agent](/docs/scout) for collection and retention, and [Deployment comparisons](/docs/deployment-comparisons) for comparing releases over equal windows.
+[Scout Agent](/docs/scout) supplies measurements. [Deployment comparisons](/docs/deployment-comparisons) compares two releases over equal observation windows.
 
 ## Alerts, incidents, and vulnerabilities
 
-Use workspace **Incidents** to review active or resolved conditions across every server, service, and datastore. Filter the list by severity. Configure and inspect alert rules from the relevant entity page; [Scout Alerts](/docs/scout-alerts) covers rules and notification destinations. **Vulnerabilities** provides a separate view of known package findings from Service image scans; see [Vulnerability scanning](/docs/vulnerability-scanning).
+Configure [Scout Alerts](/docs/scout-alerts) on the relevant entity. Workspace Incidents shows active and resolved conditions; filter by severity. Vulnerabilities shows image scan findings separately.
 
 ## System health
 
-Open **Settings → System health** to see the latest control-plane checks, their observation times, and the running version. Towbar checks Temporal at startup and every five minutes. Choose **Run checks** when you need a fresh result immediately. A check marked stale is older than 15 minutes.
-
-The **Towbar version** row shows the installed release and the last time Towbar
-checked for an update. A newer stable release gets a yellow **Update available**
-label. If your operator has enabled in-app upgrades, choose **Review upgrade**
-to check readiness and start the update. Progress and the final result appear
-in the same modal. See [Upgrades and recovery](/docs/self-hosting/upgrades#upgrade-from-system-health)
-for setup, backups, and help if an upgrade fails.
+Open **Settings → System health → Run checks** for fresh control-plane results. Read the observation time as well as the status. See [Health checks](/docs/operate/health) for diagnostics and [Upgrades](/docs/self-hosting/upgrades#upgrade-from-system-health) for **Review upgrade**.
 
 ### Data and log storage
 
-**Data Storage** stacks three parts of Towbar's control-plane PostgreSQL tables and indexes: **Towbar Data** for the platform's other records, **Monitoring Data** for Scout Agent measurements and alerts, and **Analytics Data** for service traffic and browser analytics. A dedicated Temporal workflow records their sizes every two hours and keeps 90 days of readings. The chart plots the recorded readings. Older readings made before the Analytics split include Analytics Data in Monitoring Data; their Analytics series is unavailable. The total excludes PostgreSQL system overhead, Temporal's database, backups, and data stored on workload servers. **Run checks** refreshes the control-plane checks; it does not take an extra storage reading.
+The two cards share equal width on desktop and stack on mobile.
 
-**Log Storage** appears alongside Data Storage and charts the active on-disk bytes of the configured ClickHouse `log_records` table. It uses [ClickHouse’s `system.parts` metadata](https://clickhouse.com/docs/operations/system-tables/parts), not an estimate from log message lengths. The same workflow samples it every two hours and retains 90 days of history. The measurement covers Towbar’s log table at the configured endpoint, excluding other tables, inactive parts, replicas on other nodes, and backups.
+| Chart        | Includes                                                              | Excludes                                                              |
+| ------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Data Storage | Towbar, Scout monitoring, and Analytics PostgreSQL tables and indexes | PostgreSQL system overhead, Temporal, backups, and workload databases |
+| Log Storage  | Active on-disk parts of the configured ClickHouse `log_records` table | Other tables, inactive parts, other replicas, and backups             |
 
-ClickHouse reads need `SELECT` access to `system.parts` for this chart. Missing configuration shows a setup link; failed samples appear as gaps with a sanitized reason. PostgreSQL readings continue if ClickHouse cannot be measured, and historical samples from before this feature remain unknown rather than zero. A newly enabled collector will have chart history after its first storage sample.
-
-| Section       | Checks                                     | What to investigate                                                                 |
-| ------------- | ------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Control plane | API/database, Temporal, worker/maintenance | API reachability, workflow admission, recent worker activity, and version alignment |
+- Readings are saved every **two hours** and retained for **90 days**. **Run checks** does not take a storage reading.
+- Log Storage needs `SELECT` access to `system.parts`. [Set up ClickHouse](/docs/operate/log-collection#connect-external-clickhouse) for the grants.
+- Failed or unavailable readings appear as gaps. PostgreSQL sampling continues if ClickHouse fails.
+- Older samples without a separate Analytics or Logs reading remain unknown, not zero. Older Analytics usage was included in Monitoring.
 
 <Screenshot
   light="/assets/release-v2/system-health-light.jpg"
   dark="/assets/release-v2/system-health-dark.jpg"
-  alt="System health shows control-plane checks and Towbar database storage."
+  alt="System health under Settings with Data Storage and Log Storage side by side."
   width="3200"
-  height="1800"
-  caption="System health focuses on Towbar's control plane; provider availability lives under Integrations."
+  height="2080"
+  caption="Control-plane checks and separate PostgreSQL and ClickHouse storage charts."
 />
 
 ## Server and workload health
 
-The server's Checks view records connectivity and runtime observations. Its Services and Datastores sidebar items separate the workloads assigned to the host. Health indicators and tooltips identify healthy, unhealthy, starting, and unavailable observations.
-
-A deployment can succeed and later become unhealthy. Check the latest runtime state and logs instead of relying only on deployment history.
+A successful deployment can become unhealthy later. Read the current runtime state and observation time, then inspect [health checks](/docs/operate/health) and logs.
 
 ## Allocated CPU and memory
 
-Allocation is the limit declared for a workload. Usage is the latest observed consumption relative to that allocation. CPU percentages account for the number of allocated CPUs; memory percentages use the configured memory limit.
-
-On **Servers → All servers**, the CPU and memory capacity columns describe each host's maximum capacity, not a workload's allocation. When Scout has measured usage, each capacity has a **% used** line below it; hover or focus that line to see when the sample was recorded. These columns are also available on mobile through the horizontally scrollable table. Missing measurements display as **Not measured**, rather than zero.
+Workload charts compare usage with declared limits. On **Servers → All servers**, CPU and memory columns show host capacity. A **% used** line appears when Scout has a measurement; hover or focus to see its age. Missing readings show **Not measured**.
 
 <Screenshot
   light="/assets/release-v2/server-workloads-light.jpg"
   dark="/assets/release-v2/server-workloads-dark.jpg"
-  alt="A server’s Services page compares observed usage with allocated CPU and memory."
+  alt="A server's Services page compares observed usage with allocated CPU and memory."
   width="3200"
   height="1800"
-  caption="A server’s Services page compares observed usage with allocated CPU and memory."
+  caption="Compare workload usage with allocated CPU and memory."
 />
 
 ## Follow an operation
 
-Deployment, preparation, backup, and restore histories show stage progress and final results. Durations update while an operation is running. Date columns show relative time first, with the local date and time below it as **15:26, 10 Sept 2026**. Hover or focus the timestamp to see its timezone.
+Deployment, preparation, backup, and restore histories show stage progress and final results. Relative timestamps refresh every 30 seconds while the page is visible. Absolute times use your account preferences.
 
-For runtime problems, inspect the workload's logs and latest health check. For control-plane problems, start with:
-
-```bash
-sudo towbar status
-sudo towbar logs api worker temporal
-```
-
-Configure [notifications](/docs/integrations/notifications) for events that need attention. Use [Troubleshooting](/docs/troubleshooting) to narrow down common symptoms.
+For control-plane failures, start with `sudo towbar doctor`. [Troubleshooting](/docs/troubleshooting) lists the next checks; [notifications](/docs/integrations/notifications) covers event delivery.
 
 ## Scout Agent
 
-[Scout Agent](/docs/scout) adds continuous performance history for servers, services, and datastores. Install it from **Server → Settings → Scout Agent** to receive updates every 30 seconds and keep up to 60 days of history. Read the [Scout Agent guide](/docs/scout) for installation, charts, retention, and troubleshooting.
+Install Scout from **Server → Settings → Scout Agent** for performance history. Its status and retention are independent of the OTEL Logs Collector. See [Scout Agent](/docs/scout) for reporting, retention, and upgrades.

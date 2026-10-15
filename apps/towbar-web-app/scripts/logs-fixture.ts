@@ -203,7 +203,7 @@ export function createLogsFixture(
           : null,
       code: state === "unavailable" ? "LOGS_AUTHENTICATION_FAILED" : null,
       checkedAt: new Date().toISOString(),
-      documentationUrl: "https://www.towbar.dev/docs/operate/centralized-logs",
+      documentationUrl: "https://www.towbar.dev/docs/operate/log-collection",
     };
   };
   return async (

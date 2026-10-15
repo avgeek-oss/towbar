@@ -29,6 +29,10 @@ Run `sudo towbar doctor` before changing installation state. It checks the host,
 | Pre-deploy hook fails      | Hook logs and stage secrets                                                    | Resolve the command failure; promotion has not completed                  |
 | New secrets are not in use | Save result and subsequent deployment                                          | Deploy after saving; save does not restart the container                  |
 
+## Missing logs
+
+For retained workload logs, use [Collector and storage troubleshooting](/docs/operate/log-collection#troubleshooting). **Runtime Logs** fetches current output without ClickHouse; deployment logs show build and rollout output. Check the correct view before changing collection settings.
+
 ## Preview problems
 
 A preview requires a same-repository pull request targeting a connected environment’s mapped branch, previews enabled for that environment and the Service, and matching input paths when configured. Fork pull requests are not eligible. **Sync now** can reconcile an existing eligible pull request after a missed webhook.

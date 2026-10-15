@@ -206,8 +206,14 @@
             "pages": [
               "docs/operate/health",
               "docs/operate/performance",
-              "docs/operate/centralized-logs",
               "docs/deployment-comparisons"
+            ]
+          },
+          {
+            "group": "Logs",
+            "pages": [
+              "docs/operate/centralized-logs",
+              "docs/operate/log-collection"
             ]
           },
           {

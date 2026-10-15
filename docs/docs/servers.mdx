@@ -109,13 +109,11 @@ Also account for the installation-wide [worker activity limit](/docs/self-hostin
 
 ## Log collection
 
-Open **Settings → OTEL Logs Collector** to install and manage Towbar's native log collector. The page remains visible when ClickHouse is not configured and explains what is needed before collection can be enabled. See [Centralized logs](/docs/operate/centralized-logs) for storage configuration, installation, and status.
+With ClickHouse configured, server setup installs the OTEL Logs Collector after Caddy. For an existing server, use **Settings → OTEL Logs Collector → Install & Enable Log Collection**. A green dot shows connected collection. See [Set up log collection](/docs/operate/log-collection) for configuration, controls, and troubleshooting.
 
-Native collection uses its own enabled state and revocable ingestion credential. It does not require Scout Agent or the legacy `hostLogCollection` permission used by custom collector Services.
+## Docker storage
 
-For existing custom collector Services, the REST server configuration and `towbar_server_configure` still accept the administrator-controlled `hostLogCollection` permission. It remains disabled by default and is separate from native collection. A custom Service must also request `container.hostLogs.dockerJsonFiles: true` and have the `server.collectLogs` permission. See [Docker host logs](/docs/services/configuration#docker-host-logs) for restrictions and access revocation.
-
-Storage preparation is separate. If a datastore must use an operator-managed disk, such as an EBS filesystem at `/srv/docker-data`, mount and verify that filesystem and configure Docker's data directory before preparing or deploying workloads. Check the daemon's `DockerRootDir`, disk capacity, boot-time mount, and existing data migration plan. Towbar's named volumes use Docker storage; this log capability does not add arbitrary host-directory mounts or configure disks. Follow [Docker daemon configuration](https://docs.docker.com/engine/daemon/#daemon-data-directory) when changing `data-root`.
+Mount operator-managed disks and configure Docker's data directory before server setup. Verify `DockerRootDir`, capacity, boot-time mounts, and any existing data migration. Towbar uses Docker-managed named volumes; it does not configure host disks or arbitrary host-directory mounts. See [Docker daemon configuration](https://docs.docker.com/engine/daemon/#daemon-data-directory).
 
 ## Read capacity and health
 

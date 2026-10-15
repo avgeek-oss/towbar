@@ -2,7 +2,7 @@ import { logStorageConfigurationSchema } from "@workspace/towbar-core";
 import { HttpError } from "../../http/errors.js";
 
 export const logsDocumentationUrl =
-  "https://www.towbar.dev/docs/operate/centralized-logs";
+  "https://www.towbar.dev/docs/operate/log-collection";
 
 export function parseLogConfiguration(raw: string | undefined) {
   if (!raw?.trim()) return null;
