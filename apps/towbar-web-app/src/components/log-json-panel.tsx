@@ -69,6 +69,8 @@ function LogJsonLine({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
+  const pointerAnchor = useRef<HTMLSpanElement>(null);
   const selectedText = useRef("");
   const line = useRef<HTMLSpanElement>(null);
   const path = field.path.join(".");
@@ -136,19 +138,48 @@ function LogJsonLine({
       <span
         ref={line}
         data-log-field={path}
-        className="group/log-field relative inline-block min-w-full"
+        data-menu-open={open || undefined}
+        className="group/log-field relative inline-flex min-w-full items-center rounded-sm align-middle"
+        style={
+          open
+            ? {
+                backgroundColor:
+                  "color-mix(in oklab, var(--accent) 12%, transparent)",
+              }
+            : undefined
+        }
         onContextMenu={(event) => {
           event.preventDefault();
           event.stopPropagation();
           captureSelection();
+          const bounds = event.currentTarget.getBoundingClientRect();
+          setPointer(
+            event.clientX || event.clientY
+              ? {
+                  x: event.clientX - bounds.left,
+                  y: event.clientY - bounds.top,
+                }
+              : null,
+          );
           setOpen(true);
         }}
       >
-        {children}
+        <span>{children}</span>
+        {pointer ? (
+          <span
+            ref={pointerAnchor}
+            aria-hidden="true"
+            className="pointer-events-none absolute size-0"
+            style={{ left: pointer.x, top: pointer.y }}
+          />
+        ) : null}
         <Dropdown.Trigger
           aria-label={`Actions for ${path}`}
-          className="ml-2 inline-flex size-5 [@media(pointer:coarse)]:size-11 items-center justify-center rounded text-muted opacity-100 hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover/log-field:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-visible:opacity-100"
-          onPressStart={captureSelection}
+          className="ml-2 inline-flex size-5 shrink-0 items-center justify-center rounded p-0 leading-none text-muted opacity-100 hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus [@media(pointer:coarse)]:size-11 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover/log-field:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:focus-visible:opacity-100"
+          onPressStart={() => {
+            captureSelection();
+            setPointer(null);
+          }}
           onKeyDown={(event) => {
             if (
               event.key === "ContextMenu" ||
@@ -156,6 +187,7 @@ function LogJsonLine({
             ) {
               event.preventDefault();
               captureSelection();
+              setPointer(null);
               setOpen(true);
             }
           }}
@@ -167,7 +199,13 @@ function LogJsonLine({
           />
         </Dropdown.Trigger>
       </span>
-      <Dropdown.Popover placement="bottom start" className="min-w-56">
+      <Dropdown.Popover
+        key={pointer ? `${pointer.x}:${pointer.y}` : "trigger"}
+        triggerRef={pointer ? pointerAnchor : undefined}
+        placement="bottom start"
+        offset={pointer ? 0 : 8}
+        className="min-w-56"
+      >
         <Dropdown.Menu
           aria-label={`Actions for ${path}`}
           onAction={(key) => void act(String(key))}
