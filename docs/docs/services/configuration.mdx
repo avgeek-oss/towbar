@@ -53,7 +53,7 @@ Removing the Service from Git and successfully syncing its environment queues se
 
 ## Docker host logs
 
-A trusted log collector Service can request one fixed, read-only host mount. First, an Admin must enable **Allow Docker log collection** under the target server's **Settings → Logs collection**. Then declare `container.hostLogs.dockerJsonFiles: true`:
+For retained custom collector integrations, a trusted Service can request one fixed, read-only host mount. An Admin must explicitly set `hostLogCollection: true` through the server configuration API or MCP, then declare `container.hostLogs.dockerJsonFiles: true`. Towbar’s [native log collector](/docs/operate/centralized-logs) does not require this custom-Service permission.
 
 ```yaml title=".towbar/services/host-logs.service.yml"
 id: host-logs

@@ -144,13 +144,8 @@ export async function admitLogCollection(input: {
       )
       .for("update");
     if (!server) throw notFound("Server");
-    if (
-      input.enabled &&
-      (!server.preparedAt || !server.config.hostLogCollection)
-    )
-      throw conflict(
-        "Prepare this server and allow Docker log collection before installing the collector.",
-      );
+    if (input.enabled && !server.preparedAt)
+      throw conflict("Prepare this server before installing the collector.");
     const [current] = await tx
       .select()
       .from(logCollectors)
@@ -260,11 +255,7 @@ export async function getLogCollectorExecutionContext(
     row.server.workspaceId,
     ["server.collectLogs"],
   );
-  if (row.collector.desiredState === "enabled") {
-    requireLogConfiguration();
-    if (!row.server.config.hostLogCollection)
-      throw conflict("Docker log access was revoked.");
-  }
+  if (row.collector.desiredState === "enabled") requireLogConfiguration();
   const credentials = await resolveServerCredentials({
     serverId,
     workspaceId: row.server.workspaceId,
@@ -344,7 +335,7 @@ export async function finishLogCollectorOperation(
         : {}),
       errorMessage: succeeded
         ? null
-        : "Log collector setup failed. Check SSH access, Docker, host log access, and outbound HTTPS.",
+        : "Log collector setup failed. Check SSH access, Docker log availability, and outbound HTTPS.",
       updatedAt: new Date(),
     })
     .where(

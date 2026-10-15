@@ -125,7 +125,7 @@ export async function reconcileLogCollector(
       );
       return;
     }
-    if (!context.config.hostLogCollection || !context.token)
+    if (!context.token)
       throw new Error("Log collection access is not available");
     staging = (
       await session.run("umask 077; mktemp -d /tmp/towbar-logs.XXXXXXXX", [], {

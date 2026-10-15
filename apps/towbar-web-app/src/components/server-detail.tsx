@@ -42,7 +42,6 @@ import {
 } from "./server-preparation";
 
 import { ServerEditor } from "./server-editor";
-import { ServerLogCollection } from "./server-log-collection";
 import { CloudProviderLogo } from "./cloud-provider-logo";
 import { ServerHardwareDescription } from "./server-hardware";
 
@@ -633,15 +632,13 @@ export function ServerDetail() {
                     },
                     {
                       value: "logs-collection",
-                      label: "Logs collection",
+                      label: "Log collection",
                       icon: <HugeiconsIcon icon={File02Icon} />,
                       content: (
-                        <ServerLogCollection
-                          canManage={
-                            server.data.canManageServer &&
-                            can("server.collectLogs")
-                          }
-                          server={item}
+                        <LogCollectorSettings
+                          serverId={serverId}
+                          canManage={can("server.collectLogs")}
+                          ready={setupStatus === "ready"}
                         />
                       ),
                     },
@@ -664,12 +661,6 @@ export function ServerDetail() {
                             serverId={serverId}
                             canManage={can("scout.configure")}
                             ready={setupStatus === "ready"}
-                          />
-                          <LogCollectorSettings
-                            serverId={serverId}
-                            canManage={can("server.collectLogs")}
-                            ready={setupStatus === "ready"}
-                            hostAccess={item.config.hostLogCollection === true}
                           />
                         </div>
                       ),

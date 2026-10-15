@@ -105,13 +105,13 @@ commands. It does not connect to a target server.
 
 Also account for the installation-wide [worker activity limit](/docs/self-hosting/environment-variables#servers-and-worker-capacity). Increasing concurrency consumes real CPU, memory, and disk bandwidth on the target.
 
-## Allow Docker log collection
+## Log collection
 
-Host-log access is disabled by default. An Admin can enable **Allow Docker log collection** under **Settings → Logs collection** for a server that will run a trusted collector. The server API accepts `hostLogCollection: true` in its configuration; omitting the field or setting it to `false` disables it. A Service must also request `container.hostLogs.dockerJsonFiles: true`; enabling the server alone gives ordinary Services no host mount.
+Open **Settings → Log collection** to install and manage Towbar's native log collector. The page remains visible when ClickHouse is not configured and explains what is needed before collection can be enabled. See [Centralized logs](/docs/operate/centralized-logs) for storage configuration, installation, and status.
 
-Server API responses and `towbar_server_inspect` return the effective `hostLogCollection` boolean. Preserve it when saving connection or capacity settings; `towbar_server_configure` accepts the same field. Configuration requires `server.update`, while deploying a collector separately requires `server.collectLogs`. REST identity and `towbar_workspace_inspect` report the authenticated actor's effective capabilities. Read-only, non-admin, and older keys without that explicit grant do not gain collector access; reissue an automation key with administrative permissions before using it for collector deployments.
+Native collection uses its own enabled state and revocable ingestion credential. It does not require Scout Agent or the legacy `hostLogCollection` permission used by custom collector Services.
 
-The collector can read Docker logs and container metadata from every workload on that server. See [Docker host logs](/docs/services/configuration#docker-host-logs) for the fixed mount, runtime restrictions, persistent buffer, and required permissions. Disabling the setting blocks further collector deployments. Stop and remove existing collectors to revoke their mounted access.
+For existing custom collector Services, the REST server configuration and `towbar_server_configure` still accept the administrator-controlled `hostLogCollection` permission. It remains disabled by default and is separate from native collection. A custom Service must also request `container.hostLogs.dockerJsonFiles: true` and have the `server.collectLogs` permission. See [Docker host logs](/docs/services/configuration#docker-host-logs) for restrictions and access revocation.
 
 Storage preparation is separate. If a datastore must use an operator-managed disk, such as an EBS filesystem at `/srv/docker-data`, mount and verify that filesystem and configure Docker's data directory before preparing or deploying workloads. Check the daemon's `DockerRootDir`, disk capacity, boot-time mount, and existing data migration plan. Towbar's named volumes use Docker storage; this log capability does not add arbitrary host-directory mounts or configure disks. Follow [Docker daemon configuration](https://docs.docker.com/engine/daemon/#daemon-data-directory) when changing `data-root`.
 

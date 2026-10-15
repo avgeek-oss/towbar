@@ -100,13 +100,19 @@ prove that any server is collecting logs.
 
 ## Enable a server collector
 
-1. Prepare the server and allow Docker host log collection in its server settings.
-2. Open the server's Scout settings and find **Centralized logs**.
-3. Choose **Enable collection**. Towbar queues installation over the server's
+1. Prepare the server.
+2. Open **Settings → Log collection** on the server. This page remains visible
+   without ClickHouse and shows any missing configuration or connection error.
+3. Once ClickHouse is ready, choose **Enable log collection**. Towbar queues installation over the server's
    configured SSH connection using its trusted host keys.
 4. Inspect the status, supported container count, backlog, and last accepted
    record. **Waiting** means setup completed without an accepted log record yet;
    it is not proof of ingestion.
+
+No separate Docker log-access checkbox or Scout installation is required. The
+native collector is enabled and disabled independently of custom collector
+Services. Disabling collection immediately revokes its ingestion credential and
+queues removal from the server.
 
 Towbar installs a systemd discovery helper and a pinned OpenTelemetry Collector
 container. The helper uses the host's Docker CLI to identify managed containers.

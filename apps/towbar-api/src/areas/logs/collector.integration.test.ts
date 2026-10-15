@@ -153,7 +153,7 @@ void test(
         config: normalizeServerConfiguration({
           ip: "192.0.2.211",
           ssh: { username: "deploy" },
-          hostLogCollection: true,
+          hostLogCollection: false,
         }),
       });
       await db.insert(logCollectors).values({

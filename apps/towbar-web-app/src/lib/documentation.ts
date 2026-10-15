@@ -69,8 +69,8 @@ export const documentationTopics = {
     "Register an Ubuntu server, configure trusted SSH access, and prepare it to run services and datastores.",
   ),
   logCollection: guide(
-    "servers#allow-docker-log-collection",
-    "Allow trusted collector Services to read this server's Docker logs and container metadata. Each Service must explicitly request access.",
+    "operate/centralized-logs#enable-a-server-collector",
+    "Install and manage Towbar’s native collector for this server. Logs are stored in your external ClickHouse database and searched in Monitor → Logs.",
   ),
   preparation: guide(
     "servers/setup",

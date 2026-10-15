@@ -17,12 +17,10 @@ export function LogCollectorSettings({
   serverId,
   canManage,
   ready,
-  hostAccess,
 }: {
   serverId: string;
   canManage: boolean;
   ready: boolean;
-  hostAccess: boolean;
 }) {
   const collector = useApiQuery<LogCollectionStatus>(
     `/v1/core/servers/${serverId}/log-collection`,
@@ -73,11 +71,13 @@ export function LogCollectorSettings({
           external ClickHouse database. Search retained history in Monitor →
           Logs.
         </p>
-        {collector.error || error ? (
-          <QueryError message={collector.error ?? error!} />
+        {collector.error || storage.error || error ? (
+          <QueryError message={collector.error ?? storage.error ?? error!} />
         ) : null}
         {!item || !storage.data ? (
-          <QueryLoading />
+          !collector.error && !storage.error ? (
+            <QueryLoading />
+          ) : null
         ) : (
           <>
             <dl className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-3">
@@ -131,10 +131,9 @@ export function LogCollectorSettings({
                 </InlineExternalLink>
               </p>
             ) : null}
-            {!hostAccess ? (
+            {!ready ? (
               <p className="text-sm text-muted">
-                An administrator must allow Docker log collection in this
-                server’s Docker logs settings.
+                Prepare this server before enabling log collection.
               </p>
             ) : null}
             {item.unsupportedContainers > 0 ? (
@@ -149,10 +148,7 @@ export function LogCollectorSettings({
                 <Button
                   variant="secondary"
                   isDisabled={
-                    pending ||
-                    !ready ||
-                    !hostAccess ||
-                    storage.data.state !== "ready"
+                    pending || !ready || storage.data.state !== "ready"
                   }
                   onPress={() => configure(true)}
                 >
@@ -160,7 +156,7 @@ export function LogCollectorSettings({
                     ? "Updating…"
                     : item.desiredState === "enabled"
                       ? "Update collector"
-                      : "Install log collection"}
+                      : "Enable log collection"}
                 </Button>
                 <Button
                   variant="secondary"

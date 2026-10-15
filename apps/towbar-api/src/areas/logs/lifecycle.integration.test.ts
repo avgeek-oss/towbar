@@ -34,6 +34,7 @@ import {
   admitLogCollection,
   finishLogCollectorOperation,
   getLogCollection,
+  getLogCollectorExecutionContext,
 } from "./lifecycle.js";
 import {
   authenticateLogCollector,
@@ -98,7 +99,7 @@ void test(
     const serverConfig = normalizeServerConfiguration({
       ip: "192.0.2.218",
       ssh: { username: "deploy" },
-      hostLogCollection: true,
+      hostLogCollection: false,
     });
     const manifest = normalizeDeploymentManifest({
       version: 2,
@@ -207,6 +208,19 @@ void test(
             withActor(actor, () => admitLogCollection(input)),
           ]);
           assert.equal(outcomes[0]!.generation, outcomes[1]!.generation);
+          const [server] = await db
+            .select()
+            .from(servers)
+            .where(eq(servers.id, serverId));
+          assert.equal(
+            server!.config.hostLogCollection ?? false,
+            false,
+            "native collection does not grant custom Services host-log access",
+          );
+          await assert.rejects(
+            getLogCollectorExecutionContext(serverId, outcomes[0]!.generation!),
+            /Configure.*SSH private key/,
+          );
           assert.equal(outcomes.filter((row) => row.replayed).length, 1);
           assert.equal(
             (
@@ -405,6 +419,22 @@ void test(
         })
         .where(eq(logCollectors.serverId, serverId));
       const principal = await authenticateLogCollector(serverId, token);
+      await t.test(
+        "native collector credentials are revoked by disabling collection",
+        async () => {
+          await db
+            .update(logCollectors)
+            .set({ desiredState: "disabled" })
+            .where(eq(logCollectors.serverId, serverId));
+          await assert.rejects(authenticateLogCollector(serverId, token), {
+            status: 401,
+          });
+          await db
+            .update(logCollectors)
+            .set({ desiredState: "enabled" })
+            .where(eq(logCollectors.serverId, serverId));
+        },
+      );
       await t.test(
         "server-managed deployment identities attribute production, datastore, Compose and previews",
         async () => {
