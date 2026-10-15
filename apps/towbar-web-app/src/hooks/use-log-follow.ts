@@ -11,6 +11,7 @@ export function useLogFollow(input: {
   onError: (message: string) => void;
 }) {
   const handlers = useRef(input);
+  const checkpoint = useRef<{ filters: LogFilter; cursor?: string }>(undefined);
   useEffect(() => {
     handlers.current = input;
   }, [input]);
@@ -18,7 +19,10 @@ export function useLogFollow(input: {
     if (!input.enabled || !input.filters) return;
     const controller = new AbortController(),
       filters = input.filters;
-    let cursor: string | undefined = input.cursor;
+    let cursor =
+      checkpoint.current?.filters === filters
+        ? checkpoint.current.cursor
+        : input.cursor;
     const run = async () => {
       while (!controller.signal.aborted) {
         const response = await fetch(
@@ -75,6 +79,7 @@ export function useLogFollow(input: {
                   accessRevision: string;
                 };
                 cursor = page.nextCursor;
+                checkpoint.current = { filters, cursor };
                 handlers.current.onRecords(page.records, page.accessRevision);
               }
             }

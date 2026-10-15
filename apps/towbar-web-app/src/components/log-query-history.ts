@@ -2,6 +2,7 @@ import type { LogCondition } from "./log-explorer-model";
 import type { CustomMonitoringRange } from "./monitoring-range";
 
 export type LogQueryState = {
+  search: string;
   range: string;
   customRange: CustomMonitoringRange | null;
   selection: { workload: string; environment: string; severity: string };
@@ -11,6 +12,7 @@ export type LogQueryState = {
 export type LogQueryHistory = { current: LogQueryState; past: LogQueryState[] };
 export const initialLogQueryHistory: LogQueryHistory = {
   current: {
+    search: "",
     range: "60",
     customRange: null,
     selection: { workload: "all", environment: "production", severity: "all" },
@@ -23,7 +25,7 @@ export const initialLogQueryHistory: LogQueryHistory = {
 export function logQueryHistoryReducer(
   state: LogQueryHistory,
   action:
-    | { type: "change"; patch: Partial<LogQueryState> }
+    | { type: "change"; patch: Partial<LogQueryState>; record?: boolean }
     | { type: "undo" }
     | { type: "clear" },
 ): LogQueryHistory {
@@ -39,7 +41,10 @@ export function logQueryHistoryReducer(
     ? state
     : {
         current: next,
-        past: [...state.past.slice(-49), state.current],
+        past:
+          action.record === false
+            ? state.past
+            : [...state.past.slice(-49), state.current],
       };
 }
 

@@ -47,13 +47,17 @@ The page starts in **Production**.
 
 Filters support equality, text matches, and existence checks where the field allows them. `stdout` and `stderr` identify output channels, not severity. Scroll down to load older records.
 
+Search, workload/server, environment, level, time range, and modal filters are kept in the URL. Reload, bookmark, or share the link to restore the query. Preset ranges stay relative to when the page opens; custom dates stay fixed. Shared links respect each viewer's log permissions.
+
+The loaded count shows records in the table; **~X records found** comes from the query's volume summary. Counts can be incomplete when the query budget is reached.
+
 Record times include seconds. The selected range uses minutes; chart-axis labels include seconds only for ranges shorter than 30 minutes. Dates use your account preferences.
 
 ## Table columns
 
 Open the header gear to choose columns, drag to reorder, or add a custom field such as `meta.username`. Drag a column header's right edge to resize it.
 
-Towbar saves column selection, order, custom fields, and widths to your account. It does not save the current search, filters, or time range.
+Towbar saves column selection, order, custom fields, and widths to your account. The current query is stored in the page URL.
 
 Double-click a row, press Enter, or tap on mobile to open **Message**, **Full log JSON**, and **Attributes**. Right-click a JSON field or open its action menu to filter by its value, add a column, search, or copy. Keyboard users can use **Shift-F10**.
 
