@@ -44,11 +44,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0026_mcp_role_revocation.sql",
     "0027_server_cleanup.sql",
     "0028_centralized_logs.sql",
+    "0029_log_table_preferences.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 28);
+  assert.equal(journal.entries.length, 29);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");
@@ -78,6 +79,7 @@ test("migration journal keeps notification destinations and failure subscription
   assert.equal(journal.entries[25].tag, "0026_mcp_role_revocation");
   assert.equal(journal.entries[26].tag, "0027_server_cleanup");
   assert.equal(journal.entries[27].tag, "0028_centralized_logs");
+  assert.equal(journal.entries[28].tag, "0029_log_table_preferences");
   const failureSubscriptions = await readFile(
     `${migrationsFolder}/0011_notification_deployment_failures.sql`,
     "utf8",
@@ -224,7 +226,7 @@ test(
       });
       const [{ count }] =
         await client`select count(*)::int as count from drizzle.__drizzle_migrations`;
-      assert.equal(count, 28);
+      assert.equal(count, 29);
       const roleTriggers =
         await client`select tgname from pg_trigger where tgname = 'towbar_revoke_mcp_on_role_change' and not tgisinternal`;
       assert.deepEqual(
@@ -263,6 +265,7 @@ test(
         ["towbar_api_key_policies", "creation_request_id"],
         ["towbar_api_key_policies", "permission_mode"],
         ["towbar_users", "must_change_password"],
+        ["towbar_users", "log_table_preferences"],
         ["towbar_auth_recovery_codes", "code_hashes"],
         ["towbar_sessions", "authenticated_at"],
         ["towbar_preview_environments", "cleanup_requested_by_actor"],

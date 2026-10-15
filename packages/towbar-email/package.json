@@ -15,7 +15,7 @@
   "dependencies": {
     "react": "catalog:",
     "react-dom": "catalog:",
-    "@avgeek-oss/design-system": "git+https://github.com/avgeek-oss/oss-design-system.git#c9a3d17ce4c73e83aaaaf49cbb597547103afbf6"
+    "@avgeek-oss/design-system": "1.2.18"
   },
   "devDependencies": {
     "@types/node": "catalog:",
