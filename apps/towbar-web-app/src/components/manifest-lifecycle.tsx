@@ -5,7 +5,6 @@ import {
   DashboardCircleIcon,
   DatabaseIcon,
   Delete02Icon,
-  GitBranchIcon,
   ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -28,11 +27,10 @@ import type {
 import { useApiQuery, refreshApiQueries } from "@/hooks/use-api-query";
 import { api } from "@/lib/api";
 import { DashboardPage, InlineLink } from "./page-parts";
-import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 import { useAccess } from "./access-context";
 import { EnvironmentIcon } from "./environment-icon";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
-import { RelativeTime } from "./last-synced-time";
+import { LifecycleDetails } from "./manifest-lifecycle-details";
 
 export function ManifestLifecycle({
   view: tab,
@@ -326,143 +324,6 @@ export function ManifestLifecycle({
         <RemoveRetirement item={removing} onClose={() => setRemoving(null)} />
       ) : null}
     </DashboardPage>
-  );
-}
-
-function LifecycleDetails({
-  item,
-  onClose,
-}: {
-  item: ManifestLifecycleItem;
-  onClose: () => void;
-}) {
-  return (
-    <Modal.Backdrop
-      isOpen
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <Modal.Container size="lg" scroll="inside">
-        <Modal.Dialog>
-          <Modal.Header>
-            <Modal.Heading>{item.manifestId}</Modal.Heading>
-            <Modal.CloseTrigger />
-          </Modal.Header>
-          <Modal.Body className="grid gap-5">
-            {item.reason ? (
-              <Alert status="warning">
-                <Alert.Indicator />
-                <Alert.Content>
-                  <Alert.Description>{item.reason}</Alert.Description>
-                </Alert.Content>
-              </Alert>
-            ) : null}
-            <div className="grid gap-1">
-              <span className="text-xs text-muted">Environment</span>
-              <span className="text-sm">{item.environment}</span>
-            </div>
-            {item.workloads.map((workload) => (
-              <div
-                key={workload.id}
-                className="grid gap-2 rounded-lg border p-4 text-sm"
-              >
-                <InlineLink href={workload.href}>{workload.name}</InlineLink>
-                <span className="text-xs text-muted">
-                  Current owner: {workload.repository}
-                </span>
-                <TypographyCode className="break-all text-xs">
-                  {workload.id}
-                </TypographyCode>
-                <span>
-                  Server: <TypographyCode>{workload.serverIp}</TypographyCode>
-                </span>
-                {workload.retiredAt ? (
-                  <RelativeTime label="Retired" value={workload.retiredAt} />
-                ) : null}
-                <span className="text-xs text-muted">
-                  {item.state === "removing"
-                    ? "Permanent removal was requested. Inspect cleanup results before reusing this ID."
-                    : "Runtime, secrets, volumes, backups and deployment history are retained."}
-                </span>
-              </div>
-            ))}
-            {item.declarations.map((source) => (
-              <div
-                key={source.sourceEnvironmentId}
-                className="grid gap-2 rounded-lg border p-4 text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <HugeiconsIcon
-                    icon={GitBranchIcon}
-                    className="size-4"
-                    aria-hidden="true"
-                  />
-                  <InlineLink
-                    className="inline-flex items-center gap-2"
-                    href={`/repositories/${source.sourceId}`}
-                  >
-                    <IntegrationProviderLogo
-                      provider={source.provider ?? "github"}
-                    />
-                    {source.repository}
-                  </InlineLink>
-                </span>
-                <span className="text-xs text-muted">
-                  {source.branch} ·{" "}
-                  <TypographyCode>
-                    {source.commitSha.slice(0, 12)}
-                  </TypographyCode>
-                </span>
-                {source.manifestFiles?.map((file) => (
-                  <span className="break-all text-xs" key={file.path}>
-                    {file.url ? (
-                      <InlineExternalLink href={file.url}>
-                        {file.path}
-                      </InlineExternalLink>
-                    ) : (
-                      <TypographyCode>{file.path}</TypographyCode>
-                    )}
-                  </span>
-                ))}
-                <span className="text-xs text-muted">
-                  {source.changedPaths.length
-                    ? "Configuration changes"
-                    : "No configuration differences"}
-                </span>
-                {source.changedPaths.length ? (
-                  <ul className="grid gap-1">
-                    {source.changedPaths.map((path) => (
-                      <li key={path}>
-                        <TypographyCode className="break-all text-xs">
-                          {path}
-                        </TypographyCode>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            ))}
-            {item.operations.map((operation) => (
-              <div className="grid gap-1 text-sm" key={operation.id}>
-                <StatusBadge status={operation.state} />
-                <TypographyCode className="break-all text-xs">
-                  {operation.id}
-                </TypographyCode>
-                {operation.errorMessage ? (
-                  <span className="text-danger">{operation.errorMessage}</span>
-                ) : null}
-              </div>
-            ))}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onPress={onClose}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
   );
 }
 
