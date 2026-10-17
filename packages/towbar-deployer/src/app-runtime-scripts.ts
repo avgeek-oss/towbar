@@ -75,9 +75,8 @@ for option in runtime_arguments[1::2]:
     if any(labels.get(key) != value for key, value in {
         "towbar.managed": "true", "towbar.storage": "app",
         "towbar.runtime": os.environ["TOWBAR_APP_ID"],
-        "towbar.source": os.environ["TOWBAR_SOURCE_ID"],
         "towbar.deployable": os.environ["TOWBAR_DEPLOYABLE_ID"],
-    }.items()):
+    }.items()) or labels.get("towbar.source") not in {os.environ["TOWBAR_SOURCE_ID"], *json.loads(os.environ.get("TOWBAR_PREVIOUS_SOURCE_IDS_JSON", "[]"))}:
         raise SystemExit("Persistent volume ownership changed before startup")
 
 ${containerRuntimeArgumentsScript}

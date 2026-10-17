@@ -39,13 +39,13 @@ def owner(labels, kind=None, name=None):
         if labels.get("towbar.managed") != "true" or not labels.get("towbar.source") or deployable not in owned:
             return None
         target = retiring.get(deployable)
-        if target and target["sourceId"] != labels["towbar.source"]: return None
+        if target and labels["towbar.source"] not in {target["sourceId"], *target.get("previousSourceIds", [])}: return None
         return deployable
     # Older ingress and Compose objects omit Towbar's source/deployable labels.
     # Require the stored runtime/release identity and the original renderer's labels.
     matches = []
     for target_id, target in retiring.items():
-        if labels.get("towbar.source") and labels["towbar.source"] != target["sourceId"]: continue
+        if labels.get("towbar.source") and labels["towbar.source"] not in {target["sourceId"], *target.get("previousSourceIds", [])}: continue
         if (kind == "container" and labels.get("towbar.managed") == "true"
             and labels.get("towbar.ingress") == "cloudflare-tunnel"
             and labels.get("towbar.app") in target["runtimeIds"]
@@ -234,7 +234,7 @@ for deployable, target in retiring.items():
             for receipt in config_path.glob("*/receipt.json"):
                 safe_path(receipt)
                 identity = json.loads(receipt.read_text())
-                if identity.get("deployableId") != deployable or identity.get("sourceId") != target["sourceId"]:
+                if identity.get("deployableId") != deployable or identity.get("sourceId") not in {target["sourceId"], *target.get("previousSourceIds", [])}:
                     raise RuntimeError("Configuration receipt has different ownership")
         routes = []
         for runtime in dict.fromkeys(target["runtimeIds"]):

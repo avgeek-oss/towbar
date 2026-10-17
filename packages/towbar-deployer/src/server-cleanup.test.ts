@@ -65,7 +65,12 @@ if os.environ.get("CLEANUP_TEST_FAIL") in (name, sys.argv[1]):
   }
   const targets = Array.from({ length: count }, () => {
     const id: string = randomUUID();
-    return { deployableId: id, sourceId: "source", runtimeIds: [id] };
+    return {
+      deployableId: id,
+      sourceId: "source",
+      previousSourceIds: [] as string[],
+      runtimeIds: [id],
+    };
   });
   const route = (runtime: string) => path.join(routes, `${runtime}.caddy`);
   const storage = (id: string) => path.join(data, "resources", id);
@@ -325,4 +330,42 @@ void test("invalid staged configuration cannot trigger start-limit recovery", as
     (await h.calls()).map((call) => call.name),
     ["caddy"],
   );
+});
+
+void test("retirement accepts transferred configuration receipts but rejects foreign ownership", async (t) => {
+  const h = await harness(t, 1);
+  const target = h.targets[0]!;
+  const directory = path.join(
+    h.data,
+    "config-files",
+    target.deployableId,
+    "release",
+  );
+  await mkdir(directory, { recursive: true });
+  const receipt = path.join(directory, "receipt.json");
+  await writeFile(
+    receipt,
+    JSON.stringify({
+      deployableId: "different-workload",
+      sourceId: "old-source",
+    }),
+  );
+  target.previousSourceIds = ["old-source"];
+  assert.equal(((await h.run()).retiredDeployableIds ?? []).length, 0);
+  await access(h.route(target.deployableId));
+  target.previousSourceIds = [];
+  await writeFile(
+    receipt,
+    JSON.stringify({
+      deployableId: target.deployableId,
+      sourceId: "old-source",
+    }),
+  );
+  assert.equal(((await h.run()).retiredDeployableIds ?? []).length, 0);
+  await access(receipt);
+  target.previousSourceIds = ["old-source"];
+  const result = await h.run();
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(result.retiredDeployableIds, [target.deployableId]);
+  await assert.rejects(access(directory));
 });

@@ -29,6 +29,7 @@ void test(
       operationId: randomUUID(),
       appId,
       sourceId,
+      previousSourceIds: [] as string[],
       containerName: container,
       imageTag: image,
       job: {
@@ -137,6 +138,13 @@ void test(
       assert.throws(
         () => execute(["true"], { sourceId: randomUUID() }),
         /failed/,
+      );
+      assert.equal(
+        execute(["sh", "-c", "echo transferred"], {
+          sourceId: randomUUID(),
+          previousSourceIds: [sourceId],
+        }).exitCode,
+        0,
       );
       assert.throws(
         () =>

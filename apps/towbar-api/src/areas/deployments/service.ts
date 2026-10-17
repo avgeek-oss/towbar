@@ -5,6 +5,7 @@ import {
 } from "./domain-claims.js";
 /* eslint-disable max-lines -- Deployment admission, snapshotting, and lifecycle transitions share one transactional service contract. */
 import { assertAppStorageServer } from "../apps/storage.js";
+import { getRuntimeSourceIds } from "../manifest-lifecycle/runtime-ownership.js";
 import {
   hostLogDeploymentPermissions,
   hostLogExecutionDeployables,
@@ -373,8 +374,16 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
           : (() => {
               throw new Error("GitLab source is missing its integration");
             })();
+  const runtimeSources = await getRuntimeSourceIds(
+    getTowbarDatabase(),
+    context.workspaceId,
+    [appId],
+  );
   return {
     ...publicContext,
+    previousSourceIds: (runtimeSources.get(appId) ?? []).filter(
+      (id) => id !== context.sourceId,
+    ),
     domainHandoffs,
     domainHandoffServers,
     currentRelease: currentRelease

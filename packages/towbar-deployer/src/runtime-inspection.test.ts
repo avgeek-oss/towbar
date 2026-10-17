@@ -237,6 +237,18 @@ if (args[1] === 'inspect') {
         "volume:b-removed",
       ],
     );
+
+    deployables[0]!.sourceId = "destination-source";
+    const unapproved = await inspectServerRuntime(input);
+    assert.equal(unapproved.runtime[0]?.driftStatus, "drifted");
+    deployables[0]!.previousSourceIds = ["source-a"];
+    const transferred = await inspectServerRuntime(input);
+    assert.equal(transferred.runtime[0]?.driftStatus, "in_sync");
+    deployables[0]!.deployableId = "10000000-0000-4000-8000-000000000099";
+    const sibling = await inspectServerRuntime(input);
+    assert.equal(sibling.runtime[0]?.driftStatus, "drifted");
+    deployables[0]!.deployableId = "10000000-0000-4000-8000-000000000001";
+
     const disconnected = await inspectServerRuntime({
       ...input,
       deployables: [],

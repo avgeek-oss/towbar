@@ -32,7 +32,8 @@ def cancelled(signum, frame):
 for signum in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
     signal.signal(signum, cancelled)
 
-runtime_id, deployable_id, source_id, deployment_id, image, previous, volumes_json = sys.argv[1:]
+runtime_id, deployable_id, source_id, deployment_id, image, previous, volumes_json = sys.argv[1:8]
+source_ids = {source_id, *json.loads(sys.argv[8] if len(sys.argv) > 8 else "[]")}
 volumes = json.loads(volumes_json)
 state = Path("/var/lib/towbar/apps") / runtime_id / "volumes"
 
@@ -53,7 +54,7 @@ def inspect(kind, name):
 def owned(labels):
     return (labels.get("towbar.managed") == "true" and
             labels.get("towbar.deployable") == deployable_id and
-            labels.get("towbar.source") == source_id)
+            labels.get("towbar.source") in source_ids)
 
 old = inspect("container", previous) if previous else None
 if old and (not owned(old.get("Config", {}).get("Labels") or {}) or
@@ -183,6 +184,7 @@ export async function prepareAppStorage(
           input.imageTag,
           input.context.currentRelease?.containerName ?? "",
           JSON.stringify(app.container.volumes ?? []),
+          JSON.stringify(input.context.previousSourceIds ?? []),
         ],
         { ...outputHandlers, signal: input.signal, timeoutMs: 1_800_000 },
       ),
