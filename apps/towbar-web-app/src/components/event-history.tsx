@@ -1,5 +1,7 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { usePageQuery } from "@/hooks/use-page-query";
+import { useUrlCursorPagination } from "@/hooks/use-url-pagination";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Input } from "@avgeek-oss/design-system/forms/input";
 import { Label } from "@avgeek-oss/design-system/forms/label";
@@ -21,36 +23,39 @@ import { CodeBlock } from "@avgeek-oss/design-system/typography/code-block";
 export type HistoryCursor = { before: string; beforeId: string } | null;
 export type HistoryResponse<T> = { items: T[]; nextCursor: HistoryCursor };
 export function useEventHistory<T>(path: string) {
-  const [filters, setFilters] = useState<Record<string, string>>({});
-  const [cursors, setCursors] = useState<HistoryCursor[]>([null]);
-  const params = new URLSearchParams({
-    limit: "25",
-    ...filters,
-    ...cursors.at(-1),
-  });
+  const { search, update } = usePageQuery();
+  const pagination = useUrlCursorPagination();
+  const filterKeys = path.includes("audit-logs")
+    ? ["event", "userId", "search"]
+    : ["provider", "category", "state", "entityId", "search"];
+  const filters: Record<string, string> = {};
+  for (const key of filterKeys) {
+    const value = search.get(key);
+    if (value && value.length <= 200) filters[key] = value;
+  }
+  const params = new URLSearchParams({ limit: "25", ...filters });
   const query = useApiQuery<HistoryResponse<T>>(
-    `${path}?${params}`,
-    cursors.length === 1 ? 30_000 : undefined,
+    `${path}?${params}${pagination.suffix}`,
+    pagination.page === 1 ? 30_000 : undefined,
     { keepPreviousData: true },
   );
   return {
     query,
     filters,
-    page: cursors.length,
+    page: pagination.page,
+    previousLabel: pagination.previousLabel,
     setFilter(key: string, value: string) {
-      setFilters((old) => {
-        const next = { ...old };
-        if (value) next[key] = value;
-        else delete next[key];
-        return next;
-      });
-      setCursors([null]);
+      if (filterKeys.includes(key))
+        update({
+          [key]: value.slice(0, 200) || null,
+          cursors: null,
+          cursorsPage: null,
+        });
     },
     changePage(page: number) {
       if (query.isPreviousData) return;
-      if (page < cursors.length) setCursors((old) => old.slice(0, page));
-      else if (query.data?.nextCursor)
-        setCursors((old) => [...old, query.data!.nextCursor]);
+      if (page < pagination.page) pagination.previous();
+      else if (query.data?.nextCursor) pagination.next(query.data.nextCursor);
     },
   };
 }
@@ -198,12 +203,15 @@ export function HistorySearch({
   label,
   placeholder,
   onSearch,
+  value: applied = "",
 }: {
   label: string;
   placeholder: string;
   onSearch: (value: string) => void;
+  value?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(applied);
+  useEffect(() => setValue(applied), [applied]);
   return (
     <form
       className="grid min-w-0 gap-1"
@@ -265,15 +273,27 @@ export function HistoryTable<T extends { id: string }>({
             }
           />
           {history.page > 1 || query.data.nextCursor ? (
-            <Pagination
-              aria-label={`${label} pages`}
-              page={history.page}
-              totalPages={null}
-              hasNextPage={
-                Boolean(query.data.nextCursor) && !query.isPreviousData
-              }
-              onPageChange={history.changePage}
-            />
+            <Pagination aria-label={`${label} pages`}>
+              <Pagination.Content>
+                <Pagination.Item>
+                  <Pagination.Previous
+                    isDisabled={history.page === 1 || query.isPreviousData}
+                    onPress={() => history.changePage(history.page - 1)}
+                  >
+                    {history.previousLabel}
+                  </Pagination.Previous>
+                </Pagination.Item>
+                <Pagination.Summary>Page {history.page}</Pagination.Summary>
+                <Pagination.Item>
+                  <Pagination.Next
+                    isDisabled={!query.data.nextCursor || query.isPreviousData}
+                    onPress={() => history.changePage(history.page + 1)}
+                  >
+                    Next
+                  </Pagination.Next>
+                </Pagination.Item>
+              </Pagination.Content>
+            </Pagination>
           ) : null}
         </>
       ) : (

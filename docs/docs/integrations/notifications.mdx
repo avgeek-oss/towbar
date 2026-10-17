@@ -50,3 +50,5 @@ Set `notifications.enabled: true` and add the relevant provider under `notificat
 Open **Manage → Notifications → Health → Deliveries** to filter persisted attempts by provider, category, or entity. The list includes workspace and manifest destinations. Inspect an attempt's status, timestamps, safe provider error, and retries before changing a route. A succeeded delivery means the provider accepted it; it does not prove a recipient read it.
 
 Towbar resolves credentials when a delivery runs, retries transient failures with bounded backoff, and keeps history after a destination is removed. Authentication failures call for correcting YAML and restarting; a wrong subscription calls for changing the destination's category in the dashboard. Repeated rate limits pause the affected destination rather than blocking the underlying service or datastore operation.
+
+Delivery history can be filtered by state, provider, category, entity, and search text. Its URL preserves the filters and current page, so a failed-delivery investigation can be bookmarked or shared.

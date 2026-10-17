@@ -1,6 +1,8 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
+import { useRouter } from "./use-guarded-router";
 
 export function useDetailNavigation() {
   const pathname = usePathname();

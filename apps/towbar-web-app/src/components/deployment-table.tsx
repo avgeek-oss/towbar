@@ -10,7 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Deployment } from "@workspace/towbar-web-client";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import {

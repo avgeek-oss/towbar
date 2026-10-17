@@ -265,6 +265,8 @@ export function createApplicationSidebar(
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
+          if (item.id === "conflicts" || item.id === "retirements")
+            return (counts[item.id] ?? 0) > 0;
           const permissions: Record<string, Action> = {
             health: "system.read",
             integrations: "integration.manage",

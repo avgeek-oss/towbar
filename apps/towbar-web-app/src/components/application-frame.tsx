@@ -1,4 +1,6 @@
 "use client";
+import { QueryRefreshNotice } from "./query-refresh-notice";
+import { UnsavedChangesBoundary } from "./unsaved-changes-boundary";
 import { NextNavigationProvider } from "@avgeek-oss/design-system/adapters/next";
 import { DemoBoundary, isPublicDemo } from "./demo-session";
 import { groupDeployableInstances } from "@/lib/deployable-groups";
@@ -18,7 +20,8 @@ import { SecondarySidebarLayout } from "./secondary-sidebar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 
 import type {
   App,
@@ -58,7 +61,11 @@ import { headingDocumentation } from "@/lib/documentation";
 export function ApplicationFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   if (isPublicDemo && pathname === "/demo") return children;
-  const frame = <AuthenticatedFrame>{children}</AuthenticatedFrame>;
+  const frame = (
+    <UnsavedChangesBoundary>
+      <AuthenticatedFrame>{children}</AuthenticatedFrame>
+    </UnsavedChangesBoundary>
+  );
   return (
     <NextNavigationProvider>
       {isPublicDemo ? <DemoBoundary>{frame}</DemoBoundary> : frame}
@@ -368,6 +375,7 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
                 variant={pathname === "/monitoring/logs" ? "full" : "broad"}
               >
                 <RelativeTimeProvider>
+                  <QueryRefreshNotice />
                   {routePermission(pathname) &&
                   !user.capabilities?.includes(routePermission(pathname)!) ? (
                     <EmptyState>

@@ -46,7 +46,8 @@ import { ServerHardwareDescription } from "./server-hardware";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useEffect, useState } from "react";
 import type {
   App,
@@ -64,7 +65,7 @@ import type {
 } from "@workspace/towbar-web-client";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";

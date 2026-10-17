@@ -1,6 +1,6 @@
 "use client";
 import { ScoutIcon } from "./scout-icons";
-import { useState } from "react";
+import { useUrlCursorPagination } from "@/hooks/use-url-pagination";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { useApiQuery } from "@/hooks/use-api-query";
 import type { ScoutIncident } from "./scout-controls";
@@ -31,48 +31,38 @@ export function useWorkspaceIncidents<T>(
   state: "active" | "resolved",
   severity: "all" | "critical" | "warning",
 ) {
-  const filterKey = `${state}:${severity}`;
-  const [cursorState, setCursorState] = useState({
-    key: filterKey,
-    cursors: [""],
-  });
-  const cursors = cursorState.key === filterKey ? cursorState.cursors : [""];
-  const setCursors = (value: string[] | ((old: string[]) => string[])) =>
-    setCursorState({
-      key: filterKey,
-      cursors: typeof value === "function" ? value(cursors) : value,
-    });
+  const pagination = useUrlCursorPagination();
   const query = useApiQuery<{
     items: T[];
     nextBefore: string | null;
     nextBeforeId: string | null;
   }>(
-    `/v1/core/monitoring/incidents?state=${state}&severity=${severity}&limit=20${cursors.at(-1)}`,
+    `/v1/core/monitoring/incidents?state=${state}&severity=${severity}&limit=20${pagination.suffix}`,
     30_000,
     { keepPreviousData: true },
   );
   return {
     query,
-    reset: () => setCursors([""]),
+    reset: pagination.reset,
     pagination: (
       <div className="flex items-center justify-end gap-3">
-        <span className="text-sm text-muted">Page {cursors.length}</span>
+        <span className="text-sm text-muted">Page {pagination.page}</span>
         <Button
           variant="secondary"
-          isDisabled={cursors.length === 1 || query.isPreviousData}
-          onPress={() => setCursors((old) => old.slice(0, -1))}
+          isDisabled={pagination.page === 1 || query.isPreviousData}
+          onPress={pagination.previous}
         >
           <ScoutIcon name="previous" />
-          Previous
+          {pagination.previousLabel}
         </Button>
         <Button
           variant="secondary"
           isDisabled={!query.data?.nextBefore || query.isPreviousData}
           onPress={() =>
-            setCursors((old) => [
-              ...old,
-              `&before=${encodeURIComponent(query.data!.nextBefore!)}&beforeId=${query.data!.nextBeforeId}`,
-            ])
+            pagination.next({
+              before: query.data!.nextBefore!,
+              beforeId: query.data!.nextBeforeId!,
+            })
           }
         >
           <ScoutIcon name="next" />

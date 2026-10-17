@@ -1,9 +1,10 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { FloppyDiskIcon } from "@hugeicons/core-free-icons";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 
 import type { AutoDeployControlResponse } from "@workspace/towbar-web-client";
@@ -30,12 +31,12 @@ export function AutoDeployControlEditor({
 }) {
   const endpoint = controlEndpoint(type, id);
   const query = useApiQuery<AutoDeployControlResponse>(endpoint);
-  const [paused, setPaused] = useState(false);
+  const [draftPaused, setPaused] = useState<boolean | null>(null);
+  const paused = draftPaused ?? query.data?.autoDeploy.paused ?? false;
+  const releaseDraft = useUnsavedChanges(
+    draftPaused !== null && paused !== query.data?.autoDeploy.paused,
+  );
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (query.data) setPaused(query.data.autoDeploy.paused);
-  }, [query.data]);
 
   if (query.error) return <QueryError message={query.error} />;
   if (!query.data) return <QueryLoading />;
@@ -45,6 +46,8 @@ export function AutoDeployControlEditor({
     setSaving(true);
     try {
       await api.patch<AutoDeployControlResponse>(endpoint, { paused });
+      releaseDraft();
+      setPaused(null);
       toast.success(
         paused
           ? "Automatic deployments paused"

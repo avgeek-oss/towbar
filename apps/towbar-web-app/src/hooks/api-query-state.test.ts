@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canKeepQueryData } from "./api-query-state";
+import { canKeepQueryData, canUseStaleData } from "./api-query-state";
+
+test("transient refresh failures can keep data but access and missing-entity errors cannot", () => {
+  for (const status of [undefined, 408, 429, 500, 502, 503])
+    assert.equal(canUseStaleData(status), true);
+  for (const status of [400, 401, 403, 404, 409])
+    assert.equal(canUseStaleData(status), false);
+});
 
 test("range, filter, and pagination changes retain the current view", () => {
   for (const [previous, next] of [

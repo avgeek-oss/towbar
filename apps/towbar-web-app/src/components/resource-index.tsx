@@ -25,7 +25,7 @@ import {
 } from "@avgeek-oss/design-system/overlays/tooltip";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import type { App, Resource, Source } from "@workspace/towbar-web-client";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
@@ -110,7 +110,7 @@ export function SourceIndex() {
       cell: (source) => (
         <span className="flex min-w-0 items-center gap-2">
           <IntegrationProviderLogo
-            provider="github"
+            provider={source.provider}
             className="size-5"
             size={20}
           />
@@ -176,7 +176,12 @@ export function SourceIndex() {
     {
       key: "last-synced",
       header: "Last synced",
-      cell: (source) => <LastSyncedTime value={source.updatedAt} />,
+      cell: (source) =>
+        source.lastSyncedAt ? (
+          <LastSyncedTime value={source.lastSyncedAt} />
+        ) : (
+          <span className="text-muted">Never</span>
+        ),
       className: "min-w-40 whitespace-nowrap",
     },
   ];

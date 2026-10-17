@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { useEffect, useState } from "react";
 import {
   EmailConfirmation,
@@ -12,6 +13,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api";
 
 export function EmailSettings() {
+  const draft = useUnsavedForm<HTMLDivElement>();
   const { user } = useAccess();
   const [resendAt, setResendAt] = useState(0);
   const query = useApiQuery<{
@@ -19,32 +21,35 @@ export function EmailSettings() {
   }>("/v1/core/profile/email-change");
   if (!user) return null;
   return (
-    <EmailChangeSettings
-      email={user.email}
-      isVerified={user.emailVerified}
-      pendingChange={query.data?.pending}
-      error={query.error}
-      formatDate={displayDate}
-      resendAvailableAt={resendAt}
-      onRequestChange={async (email) => {
-        await api.post("/v1/core/profile/email-change", { email });
-        query.refresh();
-        toast.success("Confirmation email queued");
-      }}
-      onCancelChange={async () => {
-        await api.delete("/v1/core/profile/email-change");
-        query.refresh();
-        toast.success("Email change cancelled");
-      }}
-      onResendVerification={async () => {
-        await api.post("/v1/public/auth/identity/send-verification-email", {
-          email: user.email,
-          callbackURL: `${window.location.origin}/settings/email-password`,
-        });
-        setResendAt(Date.now() + 60_000);
-        toast.success("Confirmation email queued");
-      }}
-    />
+    <div {...draft.formProps}>
+      <EmailChangeSettings
+        email={user.email}
+        isVerified={user.emailVerified}
+        pendingChange={query.data?.pending}
+        error={query.error}
+        formatDate={displayDate}
+        resendAvailableAt={resendAt}
+        onRequestChange={async (email) => {
+          await api.post("/v1/core/profile/email-change", { email });
+          draft.markSaved();
+          query.refresh();
+          toast.success("Confirmation email queued");
+        }}
+        onCancelChange={async () => {
+          await api.delete("/v1/core/profile/email-change");
+          query.refresh();
+          toast.success("Email change cancelled");
+        }}
+        onResendVerification={async () => {
+          await api.post("/v1/public/auth/identity/send-verification-email", {
+            email: user.email,
+            callbackURL: `${window.location.origin}/settings/email-password`,
+          });
+          setResendAt(Date.now() + 60_000);
+          toast.success("Confirmation email queued");
+        }}
+      />
+    </div>
   );
 }
 export function ConfirmEmailChange() {

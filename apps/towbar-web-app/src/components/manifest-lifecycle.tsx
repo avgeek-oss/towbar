@@ -1,4 +1,5 @@
 "use client";
+import { useUrlTablePagination } from "@/hooks/use-url-pagination";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
@@ -40,7 +41,8 @@ export function ManifestLifecycle({
 }: {
   view: "conflicts" | "retirements";
 }) {
-  const [offset, setOffset] = useState(0);
+  const { offset, setPage, setTotal } = useUrlTablePagination({ pageSize: 20 });
+  const setOffset = (value: number) => setPage(Math.floor(value / 20) + 1);
   const [acceptedRemovals, setAcceptedRemovals] = useState<
     Map<string, ManifestLifecycleItem>
   >(() => new Map());
@@ -53,6 +55,9 @@ export function ManifestLifecycle({
     `/v1/core/manifest-lifecycle?tab=${tab}&offset=${offset}&limit=20`,
     (data) => (acceptedRemovals.size || data?.counts.removing ? 3_000 : 30_000),
   );
+  useEffect(() => {
+    if (query.data && !query.isPreviousData) setTotal(query.data.total);
+  }, [query.data, query.isPreviousData, setTotal]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [removing, setRemoving] = useState<ManifestLifecycleItem | null>(null);
   useEffect(() => {

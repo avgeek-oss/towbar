@@ -6,7 +6,7 @@ import {
   Key01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import type {
   Deployment,
   InstanceSecretReadiness,

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useUrlTablePagination } from "@/hooks/use-url-pagination";
 import Image from "next/image";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { ScoutIcon } from "./scout-icons";
@@ -34,7 +34,7 @@ export function DeployableVulnerabilities({
   appId: string;
   kind: "app" | "resource";
 }) {
-  const [page, setPage] = useState(1);
+  const { page, setPage } = useUrlTablePagination();
   const query = useApiQuery<WorkspaceVulnerabilityFindings>(
     kind === "app"
       ? `/v1/core/monitoring/vulnerabilities?appId=${appId}&limit=50&page=${page}`

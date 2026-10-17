@@ -1,4 +1,5 @@
 "use client";
+import { useUrlTablePagination } from "@/hooks/use-url-pagination";
 
 import {
   TableCellStack,
@@ -8,7 +9,6 @@ import {
 
 import { SecondaryItems } from "./secondary-sidebar";
 import { ScoutIcon } from "./scout-icons";
-import { useState } from "react";
 import { useQueryChoice } from "@/hooks/use-page-query";
 import Image from "next/image";
 import { SecurityCheckIcon } from "@hugeicons/core-free-icons";
@@ -47,7 +47,7 @@ export function WorkspaceVulnerabilities() {
     ["all", ...severityOrder],
     "all",
   );
-  const [page, setPage] = useState(1);
+  const { page, setPage } = useUrlTablePagination();
   const query = useApiQuery<WorkspaceVulnerabilityFindings>(
     `/v1/core/monitoring/vulnerabilities?severity=${severity}&page=${page}&limit=20`,
     30_000,

@@ -14,7 +14,7 @@ import { ElapsedTime } from "./elapsed-time";
 import { ConfigurationLinks } from "./configuration-links";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useState } from "react";
 import type {
   Deployment,

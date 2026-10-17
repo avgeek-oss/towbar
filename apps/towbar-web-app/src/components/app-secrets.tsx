@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { useAccess } from "./access-context";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
@@ -420,6 +421,7 @@ function SecretVariablesEditor({
     Object.keys(replacements).length > 0 ||
     deletedKeys.length > 0 ||
     newEntries.length > 0;
+  useUnsavedChanges(hasChanges);
 
   function fileChanges() {
     const values = parseSecretEnv(fileText);

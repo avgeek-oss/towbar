@@ -5,6 +5,26 @@ type Deployable = Pick<
   "id" | "entityId" | "sourceId" | "manifestId"
 > & { environment: { name: string } | null };
 
+export function preferredDeployableInstance<
+  T extends { archivedAt: string | null; environment: { name: string } | null },
+>(items: T[], environment?: string) {
+  return (
+    items.find(
+      (item) =>
+        !item.archivedAt &&
+        environment &&
+        item.environment?.name === environment,
+    ) ??
+    items.find(
+      (item) =>
+        !item.archivedAt &&
+        item.environment?.name.toLowerCase() === "production",
+    ) ??
+    items.find((item) => !item.archivedAt) ??
+    items[0]!
+  );
+}
+
 export function groupDeployableInstances<T extends Deployable>(items: T[]) {
   const groups = new Map<
     string,

@@ -1,4 +1,7 @@
 "use client";
+import { usePageQuery } from "@/hooks/use-page-query";
+import { queryInteger } from "@/lib/page-query-state";
+import { deploymentComparisonQuerySchema } from "@workspace/towbar-contracts";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { ScoutIcon } from "./scout-icons";
 
@@ -82,12 +85,56 @@ export function ScoutComparison({ deployableId }: { deployableId: string }) {
   const deployments = useApiQuery<{ deployments: DeploymentChoice[] }>(
     `${endpoint}/comparison-deployments`,
   );
-  const [baseline, setBaseline] = useState("");
-  const [candidate, setCandidate] = useState("");
-  const [windowMinutes, setWindow] = useState(30);
-  const [warmupMinutes, setWarmup] = useState(2);
-  const [statistic, setStatistic] = useState("average");
-  const [applied, setApplied] = useState("");
+  const { search, update } = usePageQuery();
+  const urlValues = useMemo(
+    () => ({
+      baseline: search.get("baselineId") ?? "",
+      candidate: search.get("candidateId") ?? "",
+      windowMinutes: queryInteger(search.get("windowMinutes"), 30, 5, 1440),
+      warmupMinutes: queryInteger(search.get("warmupMinutes"), 2, 0, 60),
+      statistic: search.get("statistic") === "peak" ? "peak" : "average",
+    }),
+    [search],
+  );
+  const urlKey = JSON.stringify(urlValues);
+  const [draft, setDraft] = useState({ urlKey, values: urlValues });
+  useEffect(() => setDraft({ urlKey, values: urlValues }), [urlKey, urlValues]);
+  const values = draft.urlKey === urlKey ? draft.values : urlValues;
+  const { baseline, candidate, windowMinutes, warmupMinutes, statistic } =
+    values;
+  const change = <K extends keyof typeof values>(
+    key: K,
+    value: (typeof values)[K],
+  ) => setDraft({ urlKey, values: { ...values, [key]: value } });
+  const setBaseline = (value: string) => change("baseline", value);
+  const setCandidate = (value: string) =>
+    setDraft({ urlKey, values: { ...values, candidate: value, baseline: "" } });
+  const setWindow = (value: number) => change("windowMinutes", value);
+  const setWarmup = (value: number) => change("warmupMinutes", value);
+  const setStatistic = (value: string) => change("statistic", value);
+  const requested = deploymentComparisonQuerySchema.safeParse({
+    baselineId: urlValues.baseline,
+    candidateId: urlValues.candidate,
+    windowMinutes: urlValues.windowMinutes,
+    warmupMinutes: urlValues.warmupMinutes,
+    statistic: urlValues.statistic,
+  });
+  const allowed =
+    requested.success &&
+    [requested.data.baselineId, requested.data.candidateId].every((id) =>
+      deployments.data?.deployments.some((row) => row.id === id),
+    );
+  const applied = allowed
+    ? new URLSearchParams({
+        baselineId: urlValues.baseline,
+        candidateId: urlValues.candidate,
+        windowMinutes: String(urlValues.windowMinutes),
+        warmupMinutes: String(urlValues.warmupMinutes),
+        statistic: urlValues.statistic,
+      }).toString()
+    : "";
+  const setApplied = (next: string) =>
+    update(Object.fromEntries(new URLSearchParams(next)));
   const comparison = useApiQuery<ScoutComparisonResponse>(
     applied ? `${endpoint}/deployment-comparison?${applied}` : null,
     undefined,
@@ -155,7 +202,6 @@ export function ScoutComparison({ deployableId }: { deployableId: string }) {
               value={selectedCandidate?.id ?? ""}
               onChange={(id) => {
                 setCandidate(id);
-                setBaseline("");
               }}
               options={rows.map(choice)}
             />
@@ -213,6 +259,13 @@ export function ScoutComparison({ deployableId }: { deployableId: string }) {
           </div>
         </form>
       )}
+      {(urlValues.baseline || urlValues.candidate) &&
+      deployments.data &&
+      !allowed ? (
+        <p role="status" className="text-sm text-warning">
+          Choose two successful deployments from this environment to compare.
+        </p>
+      ) : null}
       {comparison.error ? <QueryError message={comparison.error} /> : null}
       {applied && !comparison.data && !comparison.error ? (
         <QueryLoading />

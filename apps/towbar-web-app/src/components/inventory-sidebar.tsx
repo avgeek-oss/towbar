@@ -1,6 +1,10 @@
 "use client";
+import { useEffect, useState } from "react";
+import { Chip } from "@avgeek-oss/design-system/data-display/chip";
+import { managedResourceTypes } from "@workspace/towbar-contracts";
 import { PageSelectionTitle } from "./page-selection-title";
 import {
+  Cancel01Icon,
   AlertCircleIcon,
   DatabaseIcon,
   DashboardCircleIcon,
@@ -114,10 +118,19 @@ export function InventorySidebar({
             {
               key: "resourceType",
               label: "Datastore type",
-              options: [
-                { id: "postgres", label: "PostgreSQL" },
-                { id: "redis", label: "Redis" },
-              ],
+              options: managedResourceTypes.map((id) => ({
+                id,
+                label: {
+                  postgres: "PostgreSQL",
+                  mysql: "MySQL",
+                  mariadb: "MariaDB",
+                  mongodb: "MongoDB",
+                  redis: "Redis",
+                  dragonfly: "Dragonfly",
+                  keydb: "KeyDB",
+                  clickhouse: "ClickHouse",
+                }[id],
+              })),
             },
           ]
         : []),
@@ -231,23 +244,39 @@ export function InventorySidebar({
               options={[{ id: "all", label: "All" }, ...control.options]}
             />
           ))}
-          {inventoryFilterKeys[kind].some((key) => search.has(key)) ? (
-            <Button
-              variant="secondary"
-              onPress={() =>
-                update(
-                  Object.fromEntries(
-                    inventoryFilterKeys[kind].map((key) => [key, null]),
-                  ),
-                )
-              }
-            >
-              <HugeiconsIcon icon={FilterResetIcon} className="size-4" />
-              Clear filters
-            </Button>
-          ) : null}
         </div>
       </SecondarySection>
+      <InventorySearch kind={kind} controls={controls} />
+    </>
+  );
+}
+
+function InventorySearch({
+  kind,
+  controls,
+}: {
+  kind: Kind;
+  controls: Array<{
+    key: string;
+    label: string;
+    options: Array<{ id: string; label: string }>;
+  }>;
+}) {
+  const { search, update } = usePageQuery();
+  const kindLabel = kindLabels[kind];
+  const queryText = search.get("q") ?? "";
+  const [text, setText] = useState(queryText);
+  useEffect(() => setText(queryText), [queryText]);
+  useEffect(() => {
+    if (text === queryText) return;
+    const timer = setTimeout(
+      () => update({ q: text || null, page: null }, true),
+      text ? 300 : 0,
+    );
+    return () => clearTimeout(timer);
+  }, [text, queryText, update]);
+  return (
+    <div className="grid min-w-0 gap-3">
       <Input
         className="w-full max-w-sm"
         aria-label={`Search ${kindLabel}`}
@@ -256,10 +285,70 @@ export function InventorySidebar({
             ? "Search server name or IP…"
             : `Search ${kindLabel}…`
         }
-        value={search.get("q") ?? ""}
+        value={text}
         maxLength={200}
-        onChange={(event) => update({ q: event.target.value }, true)}
+        onChange={(event) => setText(event.target.value)}
       />
-    </>
+      {inventoryFilterKeys[kind].some((key) => search.has(key)) ? (
+        <div
+          className="flex flex-wrap items-center gap-2"
+          aria-label="Active filters"
+        >
+          {inventoryFilterKeys[kind]
+            .filter((key) => search.has(key))
+            .map((key) => {
+              const value = search.get(key)!;
+              const control = controls.find((item) => item.key === key);
+              const label =
+                key === "q"
+                  ? `Search: ${value}`
+                  : key === "view"
+                    ? "Needs attention"
+                    : `${control?.label ?? key}: ${control?.options.find((item) => item.id === value)?.label ?? value}`;
+              return (
+                <button
+                  type="button"
+                  key={key}
+                  aria-label={`Remove ${label}`}
+                  onClick={() => {
+                    if (key === "q") setText("");
+                    update({ [key]: null, page: null });
+                  }}
+                  className="min-w-0 max-w-full cursor-pointer rounded-full focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  <Chip size="sm">
+                    <Chip.Label className="inline-flex min-w-0 max-w-64 items-center gap-1.5">
+                      <span className="truncate">{label}</span>
+                      <HugeiconsIcon
+                        aria-hidden="true"
+                        icon={Cancel01Icon}
+                        className="size-3.5 shrink-0"
+                      />
+                    </Chip.Label>
+                  </Chip>
+                </button>
+              );
+            })}
+          <Button
+            variant="secondary"
+            className="h-7! text-xs"
+            onPress={() => {
+              setText("");
+              update(
+                Object.fromEntries(
+                  [...inventoryFilterKeys[kind], "page"].map((key) => [
+                    key,
+                    null,
+                  ]),
+                ),
+              );
+            }}
+          >
+            <HugeiconsIcon icon={FilterResetIcon} className="size-3.5" />
+            Clear filters
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }
