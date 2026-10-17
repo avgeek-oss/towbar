@@ -8,7 +8,7 @@ import {
   RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import type {
   App,
@@ -33,19 +33,14 @@ import { resourceImageBrand, type ResourceBrand } from "./resource-image-brand";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { displayDateTime } from "@/lib/date-time-display";
+import {
+  breadcrumbEntityHref,
+  type BreadcrumbEntityKind,
+} from "@/lib/breadcrumb-entity-route";
 
-export type BreadcrumbEntityKind =
-  "apps" | "resources" | "servers" | "sources" | "syncs";
+export type { BreadcrumbEntityKind } from "@/lib/breadcrumb-entity-route";
 
 const entityLabels = {
-  apps: "services",
-  resources: "datastores",
-  servers: "servers",
-  sources: "repositories",
-  syncs: "syncs",
-} as const;
-
-const entityRoutes = {
   apps: "services",
   resources: "datastores",
   servers: "servers",
@@ -110,6 +105,7 @@ export function BreadcrumbEntitySwitcher({
   sourceId?: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const query = useApiQuery<{
     apps?: App[];
     resources?: Resource[];
@@ -275,9 +271,13 @@ export function BreadcrumbEntitySwitcher({
         const id = String(key ?? "");
         if (id !== currentId && options.some((option) => option.id === id)) {
           router.push(
-            kind === "syncs"
-              ? `/repositories/${sourceId}/syncs/${id}/overview`
-              : `/${entityRoutes[kind]}/${id}/${kind === "sources" ? "environments" : "overview"}`,
+            breadcrumbEntityHref({
+              currentId,
+              kind,
+              pathname,
+              sourceId,
+              targetId: id,
+            }),
           );
         }
       }}

@@ -33,7 +33,7 @@ test("primary navigation groups settings and preserves role visibility", () => {
     admin.groups
       .find((group) => group.id === "overview")
       ?.items.map((item) => item.id),
-    ["overview", "conflicts", "retirements", "deployments"],
+    ["overview", "deployments"],
   );
   const adminWorkspace = admin.groups.find((group) => group.id === "workspace");
   assert.equal(adminWorkspace?.label, "Manage");
@@ -99,6 +99,33 @@ test("primary navigation groups settings and preserves role visibility", () => {
     viewer.groups.find((group) => group.id === "workspace"),
     undefined,
   );
+});
+
+test("lifecycle links appear independently only when their count is positive", () => {
+  for (const [counts, expected] of [
+    [{}, ["overview", "deployments"]],
+    [{ conflicts: 0, retirements: 0 }, ["overview", "deployments"]],
+    [
+      { conflicts: 2, retirements: 0 },
+      ["overview", "conflicts", "deployments"],
+    ],
+    [
+      { conflicts: 0, retirements: 1 },
+      ["overview", "retirements", "deployments"],
+    ],
+    [
+      { conflicts: 1, retirements: 1 },
+      ["overview", "conflicts", "retirements", "deployments"],
+    ],
+  ] as const) {
+    const items = createApplicationSidebar(counts).groups.find(
+      (group) => group.id === "overview",
+    )!.items;
+    assert.deepEqual(
+      items.map((item) => item.id),
+      expected,
+    );
+  }
 });
 
 test("management routes preserve their specific permission boundaries", () => {
