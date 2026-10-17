@@ -11,7 +11,7 @@ import {
   UserAccountIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 
 import { repositoryUrl } from "@workspace/towbar-contracts/repository-identity";
 

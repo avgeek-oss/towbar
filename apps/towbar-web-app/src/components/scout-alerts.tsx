@@ -1,4 +1,6 @@
 "use client";
+import { useQueryChoice } from "@/hooks/use-page-query";
+import { useUrlCursorPagination } from "@/hooks/use-url-pagination";
 
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import {
@@ -57,9 +59,13 @@ export function ScoutAlerts({
   const [selectedIncident, setSelectedIncident] =
     useState<ScoutIncident | null>(null);
   const [editing, setEditing] = useState<ScoutRule | "new" | null>(null);
-  const [state, setState] = useState("active");
-  const [cursors, setCursors] = useState<string[]>([""]);
-  const cursor = cursors.at(-1)!;
+  const [state, setState] = useQueryChoice(
+    "state",
+    ["active", "resolved", "all"],
+    "active",
+  );
+  const pagination = useUrlCursorPagination();
+  const cursor = pagination.suffix;
   const incidents = useApiQuery<{
     incidents: ScoutIncident[];
     nextBefore: string | null;
@@ -87,7 +93,7 @@ export function ScoutAlerts({
               value={state}
               onChange={(value) => {
                 setState(value);
-                setCursors([""]);
+                pagination.reset();
               }}
               options={[
                 { id: "active", label: "Active" },
@@ -422,14 +428,14 @@ export function ScoutAlerts({
             <QueryLoading />
           )}
           <div className="flex items-center justify-end gap-3">
-            <span className="text-sm text-muted">Page {cursors.length}</span>
+            <span className="text-sm text-muted">Page {pagination.page}</span>
             <Button
               variant="secondary"
-              isDisabled={cursors.length === 1 || incidents.isPreviousData}
-              onPress={() => setCursors((old) => old.slice(0, -1))}
+              isDisabled={pagination.page === 1 || incidents.isPreviousData}
+              onPress={pagination.previous}
             >
               <ScoutIcon name="previous" />
-              Previous
+              {pagination.previousLabel}
             </Button>
             <Button
               variant="secondary"
@@ -437,10 +443,10 @@ export function ScoutAlerts({
                 !incidents.data?.nextBefore || incidents.isPreviousData
               }
               onPress={() =>
-                setCursors((old) => [
-                  ...old,
-                  `&before=${encodeURIComponent(incidents.data!.nextBefore!)}&beforeId=${incidents.data!.nextBeforeId}`,
-                ])
+                pagination.next({
+                  before: incidents.data!.nextBefore!,
+                  beforeId: incidents.data!.nextBeforeId!,
+                })
               }
             >
               <ScoutIcon name="next" />

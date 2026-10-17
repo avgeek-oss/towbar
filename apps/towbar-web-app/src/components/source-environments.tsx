@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import {
@@ -57,6 +58,9 @@ export function SourceEnvironments({
   );
   const [editing, setEditing] = useState<SourceEnvironment | null>(null);
   const [branch, setBranch] = useState("");
+  const releaseDraft = useUnsavedChanges(
+    Boolean(editing && branch !== editing.branch),
+  );
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   if (query.error && !query.data) return <QueryError message={query.error} />;
@@ -256,6 +260,7 @@ export function SourceEnvironments({
                       branch: branch.trim(),
                       expectedRevision: editing.mappingRevision,
                     });
+                    releaseDraft();
                     toast.success("Branch saved; sync queued");
                     setEditing(null);
                     refreshApiQueries();

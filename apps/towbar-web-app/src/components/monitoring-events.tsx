@@ -6,7 +6,7 @@ import {
   ResourceTable,
   type ResourceTableColumn,
 } from "@avgeek-oss/design-system/patterns/resource-table";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";

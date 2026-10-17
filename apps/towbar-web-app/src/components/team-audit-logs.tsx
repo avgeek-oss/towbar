@@ -166,6 +166,7 @@ export function TeamAuditLogs() {
           />
         </div>
         <HistorySearch
+          value={history.filters.search ?? ""}
           label="Search audit logs"
           placeholder="Event, user or ID"
           onSearch={(value) => history.setFilter("search", value)}

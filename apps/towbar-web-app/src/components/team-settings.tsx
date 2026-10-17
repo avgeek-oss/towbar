@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
+import { useUrlTablePagination } from "@/hooks/use-url-pagination";
 
 import { TeamAuditLogs } from "./team-audit-logs";
 import { canShowApiMcpSettings } from "@/lib/config";
@@ -9,7 +11,7 @@ import {
   type ComponentProps,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserGroupIcon,
@@ -218,13 +220,17 @@ export function TeamSettings({
 }
 
 function TeamGeneral() {
+  const draft = useUnsavedForm<HTMLDivElement>();
   const query = useApiQuery<{
     team: { name: string; description: string | null };
   }>("/v1/core/team");
   if (query.error) return <QueryError message={query.error} />;
   if (!query.data) return <QueryLoading />;
   return (
-    <div className="content-grid lg:grid-cols-2 lg:items-start">
+    <div
+      {...draft.formProps}
+      className="content-grid lg:grid-cols-2 lg:items-start"
+    >
       <TeamGeneralSettings
         mode="details"
         value={{
@@ -233,6 +239,7 @@ function TeamGeneral() {
         }}
         onSave={async (values) => {
           await api.patch("/v1/core/team", values);
+          draft.markSaved();
           refreshApiQueries();
           window.dispatchEvent(new Event("towbar:identity-changed"));
         }}
@@ -241,10 +248,14 @@ function TeamGeneral() {
   );
 }
 function TeamMembers() {
-  const [offset, setOffset] = useState(0);
+  const { offset, setPage, setTotal } = useUrlTablePagination({ pageSize: 25 });
+  const setOffset = (value: number) => setPage(Math.floor(value / 25) + 1);
   const members = useApiQuery<{ members: Member[]; total: number }>(
     `/v1/core/team/members?offset=${offset}&limit=25`,
   );
+  useEffect(() => {
+    if (members.data && !members.isPreviousData) setTotal(members.data.total);
+  }, [members.data, members.isPreviousData, setTotal]);
   const invitations = useApiQuery<{ invitations: Invitation[] }>(
     "/v1/core/team/invitations",
   );

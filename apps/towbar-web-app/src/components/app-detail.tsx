@@ -40,7 +40,8 @@ import {
   Notification01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import type { ReactNode } from "react";
 import type {
   App,
@@ -344,7 +345,11 @@ export function AppDetail() {
                     )}
                   </Attributes.Item>
                   <Attributes.Item
-                    icon={<IntegrationProviderLogo provider="github" />}
+                    icon={
+                      <IntegrationProviderLogo
+                        provider={source.data.source.provider}
+                      />
+                    }
                     label="Repository"
                   >
                     <InlineLink href={`/repositories/${item.sourceId}`}>

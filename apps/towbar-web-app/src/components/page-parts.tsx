@@ -1,4 +1,7 @@
 "use client";
+import { useRefreshFailures } from "@/hooks/query-refresh-failures";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
+import { pushPage, assignPage } from "@/lib/unsaved-navigation";
 import { useAccess } from "./access-context";
 import type { Action } from "@workspace/towbar-access";
 import {
@@ -268,7 +271,7 @@ export function PageTabs({
     const value = String(key);
     if (value === selectedKey) return;
     if (detail.base) {
-      window.history.pushState(null, "", detail.href(value));
+      pushPage(detail.href(value));
       window.scrollTo(0, 0);
       return;
     }
@@ -279,11 +282,7 @@ export function PageTabs({
     // Page tabs are client-only state. Native history keeps the permalink and
     // Next navigation hooks in sync without reprocessing the metadata head,
     // which would briefly clear the browser tab title on every selection.
-    window.history.pushState(
-      null,
-      "",
-      query ? `${pathname}?${query}` : pathname,
-    );
+    pushPage(query ? `${pathname}?${query}` : pathname);
   }
 
   const active = tabs.find((tab) => tab.value === selectedKey);
@@ -410,6 +409,7 @@ export function ActionButton<T>({
   variant?: "danger" | "primary" | "secondary";
 }) {
   const { can } = useAccess();
+  const stale = useRefreshFailures().length > 0;
   const [busy, setBusy] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   if (permission && !can(permission)) return null;
@@ -418,8 +418,8 @@ export function ActionButton<T>({
     try {
       const result = await action();
       if (redirectOnSuccess) {
-        window.location.assign(redirectOnSuccess(result));
-        await new Promise<never>(() => undefined);
+        assignPage(redirectOnSuccess(result));
+        return;
       }
       toast.success(success);
       onSuccess?.(result);
@@ -446,7 +446,7 @@ export function ActionButton<T>({
   const trigger = (
     <Button
       aria-label={ariaLabel}
-      isDisabled={busy || isDisabled}
+      isDisabled={busy || isDisabled || stale}
       isIconOnly={isIconOnly}
       variant={variant}
       onPress={confirm ? () => setIsConfirming(true) : runAction}
@@ -473,14 +473,14 @@ export function ActionButton<T>({
             <AlertDialog.Body>{confirm.description}</AlertDialog.Body>
             <AlertDialog.Footer>
               <Button
-                isDisabled={busy || isDisabled}
+                isDisabled={busy || isDisabled || stale}
                 variant="secondary"
                 onPress={() => setIsConfirming(false)}
               >
                 Cancel
               </Button>
               <Button
-                isDisabled={busy || isDisabled}
+                isDisabled={busy || isDisabled || stale}
                 variant={variant === "danger" ? "danger" : "primary"}
                 onPress={() => {
                   setIsConfirming(false);
@@ -563,6 +563,7 @@ export function SimpleForm({
   errorPresentation?: "inline" | "toast";
 }) {
   const formId = useId();
+  const draft = useUnsavedForm();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -580,6 +581,7 @@ export function SimpleForm({
     );
     try {
       await onSubmit(values);
+      draft.markSaved();
       toast.success(successMessage);
     } catch (caught) {
       const message =
@@ -591,7 +593,11 @@ export function SimpleForm({
     }
   }
   return (
-    <form className="content-grid max-w-xl" onSubmit={submit}>
+    <form
+      {...draft.formProps}
+      className="content-grid max-w-xl"
+      onSubmit={submit}
+    >
       {error ? (
         <Alert status="danger">
           <Alert.Indicator />

@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { TowbarApiError } from "@workspace/towbar-web-client";
+import { setRefreshFailure } from "./query-refresh-failures";
 
 import { api } from "@/lib/api";
 import { clearDateTimeLabels } from "@/lib/date-time-display";
-import { canKeepQueryData } from "./api-query-state";
+import { canKeepQueryData, canUseStaleData } from "./api-query-state";
 
 type ApiQueryCacheEntry = {
   cachedAt?: number;
@@ -43,8 +45,16 @@ async function loadApiQuery<T>(path: string, force = false): Promise<T> {
       apiQueryCache.set(path, { cachedAt: Date.now(), data });
     return data;
   } catch (error) {
-    if (apiQueryCache.get(path)?.promise === promise)
-      apiQueryCache.delete(path);
+    if (apiQueryCache.get(path)?.promise === promise) {
+      if (
+        cached?.data !== undefined &&
+        canUseStaleData(
+          error instanceof TowbarApiError ? error.status : undefined,
+        )
+      )
+        apiQueryCache.set(path, { ...cached, cachedAt: 0, promise: undefined });
+      else apiQueryCache.delete(path);
+    }
     throw error;
   }
 }
@@ -77,7 +87,12 @@ export function useApiQuery<T>(
       ? { data, path, generation: cacheGeneration }
       : undefined;
   });
-  const [failure, setFailure] = useState<{ message: string; path: string }>();
+  const [failure, setFailure] = useState<{
+    message: string;
+    path: string;
+    status?: number;
+  }>();
+  const failureId = useRef(Symbol("query-refresh"));
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
@@ -113,6 +128,7 @@ export function useApiQuery<T>(
           setFailure({
             message: cause instanceof Error ? cause.message : "Request failed",
             path,
+            status: cause instanceof TowbarApiError ? cause.status : undefined,
           });
       } finally {
         requestActive = false;
@@ -164,10 +180,21 @@ export function useApiQuery<T>(
     currentData === undefined &&
     availableResult !== undefined &&
     canKeepQueryData(availableResult.path, path, keepPreviousData);
+  const currentFailure = failure?.path === path ? failure : undefined;
+  const stale =
+    currentData !== undefined &&
+    currentFailure !== undefined &&
+    canUseStaleData(currentFailure.status);
+  useEffect(() => {
+    const id = failureId.current;
+    setRefreshFailure(id, stale && path ? { path, retry: refresh } : undefined);
+    return () => setRefreshFailure(id);
+  }, [stale, path, refresh]);
   return {
     data: currentData ?? (isPreviousData ? availableResult?.data : undefined),
     isPreviousData,
-    error: failure?.path === path ? failure.message : undefined,
+    error: currentFailure && !stale ? currentFailure.message : undefined,
+    refreshError: stale ? currentFailure.message : undefined,
     isRefreshing,
     refresh,
   };

@@ -129,3 +129,24 @@ test("environment grouping combines repositories while preserving every instance
   assert.equal(input[0]!.id, "staging");
   assert.deepEqual(groupDeployablesByEnvironment([]), []);
 });
+
+test("workload switching prefers the current environment and avoids archived fallbacks", async () => {
+  const { preferredDeployableInstance } = await import("./deployable-groups");
+  const production = { archivedAt: null, environment: { name: "production" } };
+  const staging = { archivedAt: null, environment: { name: "staging" } };
+  assert.equal(
+    preferredDeployableInstance([production, staging], "staging"),
+    staging,
+  );
+  assert.equal(
+    preferredDeployableInstance([production, staging], "review"),
+    production,
+  );
+  assert.equal(
+    preferredDeployableInstance(
+      [{ ...production, archivedAt: "2026-01-01" }, staging],
+      "review",
+    ),
+    staging,
+  );
+});

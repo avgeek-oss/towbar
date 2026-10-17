@@ -1,9 +1,10 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { ArrowRight01Icon, FloppyDiskIcon } from "@hugeicons/core-free-icons";
 
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useState } from "react";
 import type { FormEvent } from "react";
 
@@ -30,6 +31,8 @@ export function ServerEditor({
   server?: Server;
 }) {
   const router = useRouter();
+  const nameDraft = useUnsavedForm();
+  const configDraft = useUnsavedForm();
   const [busy, setBusy] = useState(false);
   const [savingName, setSavingName] = useState(false);
   const editing = Boolean(server);
@@ -45,6 +48,7 @@ export function ServerEditor({
       await api.patch(`/v1/core/servers/${server.id}/name`, {
         name: name || null,
       });
+      nameDraft.markSaved();
       toast.success("Server name saved");
       refreshApiQueries();
     } catch (error) {
@@ -85,6 +89,7 @@ export function ServerEditor({
             config,
           )
         : await api.post<{ server: Server }>("/v1/core/servers", config);
+      configDraft.markSaved();
       toast.success(editing ? "Server settings saved" : "Server added");
       refreshApiQueries();
       if (!editing)
@@ -103,7 +108,11 @@ export function ServerEditor({
     <div className="content-grid">
       {server ? (
         <FormCard title="Server info">
-          <form className="content-grid" onSubmit={saveName}>
+          <form
+            {...nameDraft.formProps}
+            className="content-grid"
+            onSubmit={saveName}
+          >
             <Field className="max-w-md">
               <FieldLabel htmlFor="server-name">Name</FieldLabel>
               <Input
@@ -140,7 +149,11 @@ export function ServerEditor({
           editing ? "Connection and capacity" : "Server identity and capacity"
         }
       >
-        <form className="content-grid" onSubmit={save}>
+        <form
+          {...configDraft.formProps}
+          className="content-grid"
+          onSubmit={save}
+        >
           <div className="content-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {!editing ? (
               <>

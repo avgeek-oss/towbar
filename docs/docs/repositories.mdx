@@ -27,6 +27,8 @@ Invalid manifests and unregistered server references fail the sync without parti
   caption="Repositories show their imported Service and Datastore inventories and latest sync time."
 />
 
+**Last synced** is the most recent successfully completed sync across the repository’s environments. Editing connection settings, queued attempts, and failed attempts do not advance it. **Never** means no successful sync has completed.
+
 ## Map environments to branches
 
 Use **Environments → Edit branch** to change the branch for an environment. Branch names belong in Towbar, not `towbar.yml`. Saving syncs that branch without deploying or copying another environment's secrets. An invalid sync preserves the last accepted inventory.

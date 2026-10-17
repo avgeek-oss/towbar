@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import {
@@ -116,6 +117,7 @@ function PrivateKeyModal({
   onOpenChange: (open: boolean) => void;
   onUpdated?: (privateKey: StoredPrivateKey) => void;
 }) {
+  const draft = useUnsavedForm();
   const nameId = useId();
   const descriptionId = useId();
   const publicKeyId = useId();
@@ -207,6 +209,7 @@ function PrivateKeyModal({
         toast.success("Private key added");
         onCreated?.(response.privateKey);
       }
+      draft.markSaved();
       refreshApiQueries();
       onOpenChange(false);
     } catch (caught) {
@@ -234,7 +237,11 @@ function PrivateKeyModal({
             <Modal.CloseTrigger isDisabled={busy} />
           </Modal.Header>
           <Modal.Body>
-            <form className="content-grid" onSubmit={submit}>
+            <form
+              {...draft.formProps}
+              className="content-grid"
+              onSubmit={submit}
+            >
               {!edit ? (
                 <Select
                   fullWidth

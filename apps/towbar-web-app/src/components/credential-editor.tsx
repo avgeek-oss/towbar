@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import {
   Alert02Icon,
@@ -9,7 +10,7 @@ import {
 } from "@hugeicons/core-free-icons";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 
 import { useEffect, useState, type FormEvent } from "react";
 import type {
@@ -99,6 +100,9 @@ function ServerCredentialForm({
 }) {
   const router = useRouter();
   const [selectedKeyId, setSelectedKeyId] = useState(selectedPrivateKeyId);
+  const releaseDraft = useUnsavedChanges(
+    selectedKeyId !== selectedPrivateKeyId,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [verification, setVerification] =
@@ -119,6 +123,7 @@ function ServerCredentialForm({
     if (verification?.status === "succeeded") {
       refresh();
       refreshApiQueries();
+      releaseDraft();
       toast.success("SSH private key verified and saved");
     }
     setVerificationOpen(false);

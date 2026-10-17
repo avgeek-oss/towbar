@@ -27,7 +27,8 @@ import { DomainLink } from "./domain-link";
 import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import type {
   Deployment,
   DeploymentPullRequest,

@@ -18,7 +18,8 @@ import { ElapsedTime } from "./elapsed-time";
 import { EnvironmentChip } from "./environment-chip";
 
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { type Key, type ReactNode } from "react";
 import type {
   App,
@@ -29,7 +30,7 @@ import type {
   Source,
   SourceSync,
 } from "@workspace/towbar-web-client";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";

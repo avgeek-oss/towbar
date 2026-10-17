@@ -6,7 +6,8 @@ import {
   Unlink01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useEffect, useRef, useState } from "react";
 import type {
   GitHubConnection,

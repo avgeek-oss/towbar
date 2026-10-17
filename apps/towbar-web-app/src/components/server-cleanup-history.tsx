@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import type { ResourceOperation } from "@workspace/towbar-web-client";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import {
   ResourceTable,

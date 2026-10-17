@@ -1,3 +1,5 @@
+import { analyticsUrlState } from "./page-query-state";
+
 export type BreadcrumbEntityKind =
   "apps" | "resources" | "servers" | "sources" | "syncs";
 
@@ -14,12 +16,14 @@ export function breadcrumbEntityHref({
   pathname,
   sourceId,
   targetId,
+  search = "",
 }: {
   currentId: string;
   kind: BreadcrumbEntityKind;
   pathname: string;
   sourceId?: string;
   targetId: string;
+  search?: string;
 }) {
   const base =
     kind === "syncs"
@@ -36,5 +40,18 @@ export function breadcrumbEntityHref({
     if (parts[0] === "services" || parts[0] === "datastores")
       section = parts[0];
   }
-  return `${base}/${targetId}/${section || (kind === "sources" ? "environments" : "overview")}`;
+  const params = new URLSearchParams();
+  if (section === "analytics" && kind === "apps") {
+    const current = new URLSearchParams(search);
+    const state = analyticsUrlState(current);
+    if (state.kind !== "pageview") params.set("measure", state.kind);
+    if (state.days !== 1) params.set("days", String(state.days));
+    if (state.filters.length)
+      params.set("filters", JSON.stringify(state.filters));
+    if (current.get("compare") === "on") params.set("compare", "on");
+    const metric = current.get("metric");
+    if (metric && ["count", "errors", "sessions", "visitors"].includes(metric))
+      params.set("metric", metric);
+  }
+  return `${base}/${targetId}/${section || (kind === "sources" ? "environments" : "overview")}${params.size ? `?${params}` : ""}`;
 }

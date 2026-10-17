@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useEffect, useState } from "react";
 
 import type { Server, ServerPreparation } from "@workspace/towbar-web-client";

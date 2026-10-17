@@ -8,7 +8,8 @@ import {
   RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 
 import type {
   App,
@@ -26,7 +27,10 @@ import {
 } from "@avgeek-oss/design-system/pickers/autocomplete";
 
 import { useApiQuery } from "@/hooks/use-api-query";
-import { groupDeployableInstances } from "@/lib/deployable-groups";
+import {
+  groupDeployableInstances,
+  preferredDeployableInstance,
+} from "@/lib/deployable-groups";
 import { ResourceLogo, ServiceLogo } from "./deployable-identity";
 import { CloudProviderLogo, type CloudProviderId } from "./cloud-provider-logo";
 import { resourceImageBrand, type ResourceBrand } from "./resource-image-brand";
@@ -74,20 +78,17 @@ type SwitchOption = {
 function deployableOptions<T extends App | Resource>(
   items: T[],
   identity: (item: T) => SwitchOption["identity"],
+  environment?: string,
 ): SwitchOption[] {
   return groupDeployableInstances(items).map((group) => {
-    const preferred =
-      group.items.find(
-        (item) => item.environment?.name.toLowerCase() === "production",
-      ) ??
-      group.items.find((item) => !item.archivedAt) ??
-      group.items[0]!;
+    const preferred = preferredDeployableInstance(group.items, environment);
     return {
       archived: group.items.every((item) => Boolean(item.archivedAt)),
       id: preferred.id,
       identity: identity(preferred),
       instanceIds: group.items.map((item) => item.id),
       label: preferred.name,
+      detail: preferred.environment?.name,
       sourceId: preferred.sourceId,
     };
   });
@@ -124,6 +125,10 @@ export function BreadcrumbEntitySwitcher({
     kind === "apps" || kind === "resources" ? "/v1/core/sources" : null,
     30_000,
   );
+  const currentEnvironment = [
+    ...(query.data?.apps ?? []),
+    ...(query.data?.resources ?? []),
+  ].find((item) => item.id === currentId)?.environment?.name;
   const options: SwitchOption[] =
     kind === "sources"
       ? (query.data?.sources ?? []).map((source) => ({
@@ -164,14 +169,25 @@ export function BreadcrumbEntitySwitcher({
               detail: server.name ? server.canonicalIp : undefined,
             }))
           : kind === "apps"
-            ? deployableOptions(query.data?.apps ?? [], (app) => ({
-                kind: "app",
-                app,
-              }))
-            : deployableOptions(query.data?.resources ?? [], (resource) => ({
-                kind: "resource",
-                brand: resourceImageBrand(resource.kind, resource.config.image),
-              }));
+            ? deployableOptions(
+                query.data?.apps ?? [],
+                (app) => ({
+                  kind: "app",
+                  app,
+                }),
+                currentEnvironment,
+              )
+            : deployableOptions(
+                query.data?.resources ?? [],
+                (resource) => ({
+                  kind: "resource",
+                  brand: resourceImageBrand(
+                    resource.kind,
+                    resource.config.image,
+                  ),
+                }),
+                currentEnvironment,
+              );
   if (kind !== "syncs")
     options.sort((left, right) => left.label.localeCompare(right.label));
   if (!options.some((option) => option.instanceIds.includes(currentId))) {
@@ -277,6 +293,7 @@ export function BreadcrumbEntitySwitcher({
               pathname,
               sourceId,
               targetId: id,
+              search: window.location.search,
             }),
           );
         }

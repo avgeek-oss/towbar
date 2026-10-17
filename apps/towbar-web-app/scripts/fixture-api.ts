@@ -150,6 +150,7 @@ const user: TowbarUser = {
 };
 
 const source: Source = {
+  lastSyncedAt: fixtureNow,
   createdAt: fixtureNow,
   id: fixtureIds.source,
   provider: "github",
@@ -3313,6 +3314,7 @@ export function createFixtureApiServer({
           const result = filterSources(
             [...sources, ...connections.sources].map((source) => ({
               ...source,
+              lastSyncedAt: source.lastSyncedAt ?? null,
               latestSyncStatus: [
                 ...environmentMappings,
                 ...connections.mappings,

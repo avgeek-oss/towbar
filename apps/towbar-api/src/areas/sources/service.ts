@@ -2,7 +2,7 @@ import {
   environmentSyncStatuses,
   summarizeSyncStatus,
 } from "./environment-status.js";
-import { and, desc, eq, inArray, notInArray } from "drizzle-orm";
+import { and, desc, eq, inArray, max, notInArray } from "drizzle-orm";
 import {
   apps,
   deployments,
@@ -35,8 +35,27 @@ export async function listSources(workspaceId: string) {
     .orderBy(desc(sources.updatedAt));
   const ids = rows.map((source) => source.id);
   const environments = await environmentSyncStatuses(ids);
+  const completed = ids.length
+    ? await database
+        .select({
+          sourceId: sourceSyncs.sourceId,
+          finishedAt: max(sourceSyncs.finishedAt),
+        })
+        .from(sourceSyncs)
+        .where(
+          and(
+            inArray(sourceSyncs.sourceId, ids),
+            eq(sourceSyncs.status, "succeeded"),
+          ),
+        )
+        .groupBy(sourceSyncs.sourceId)
+    : [];
+  const lastSynced = new Map(
+    completed.map((item) => [item.sourceId, item.finishedAt]),
+  );
   return rows.map((source) => ({
     ...source,
+    lastSyncedAt: lastSynced.get(source.id) ?? null,
     latestSyncStatus: summarizeSyncStatus(
       environments
         .filter(

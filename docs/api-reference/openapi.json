@@ -8431,6 +8431,12 @@
       "Response_422": {
         "type": "object",
         "properties": {
+          "lastSyncedAt": {
+            "anyOf": [
+              { "type": "null" },
+              { "type": "string", "format": "date-time" }
+            ]
+          },
           "latestSyncStatus": { "type": "string" },
           "autoDeployPaused": { "type": "boolean" },
           "createdAt": { "type": "string", "format": "date-time" },
@@ -8452,6 +8458,7 @@
           "updatedAt": { "type": "string", "format": "date-time" }
         },
         "required": [
+          "lastSyncedAt",
           "latestSyncStatus",
           "autoDeployPaused",
           "createdAt",

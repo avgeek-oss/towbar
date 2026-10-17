@@ -25,6 +25,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useId, useState } from "react";
+import { usePageQuery, useQueryChoice } from "@/hooks/use-page-query";
+import { analyticsUrlState } from "@/lib/page-query-state";
 import styles from "./scout-analytics.module.css";
 import {
   analyticsHttpFilterFields,
@@ -133,9 +135,14 @@ export function ScoutAnalytics({
   domain?: string;
   supported?: boolean;
 }) {
-  const [kind, setKind] = useState<"request" | "pageview">("pageview");
-  const [days, setDays] = useState(1);
-  const [filters, setFilters] = useState<AnalyticsFilter[]>([]);
+  const { search, update } = usePageQuery();
+  const { kind, days, filters } = analyticsUrlState(search);
+  const setFilters = (
+    next: AnalyticsFilter[] | ((old: AnalyticsFilter[]) => AnalyticsFilter[]),
+  ) => {
+    const value = typeof next === "function" ? next(filters) : next;
+    update({ filters: value.length ? JSON.stringify(value) : null });
+  };
   const filterLabels: Record<AnalyticsFilter["field"], string> = {
     path: "Path",
     referrer: "Referring website",
@@ -276,12 +283,14 @@ export function ScoutAnalytics({
                 next === "request"
                   ? analyticsHttpFilterFields
                   : analyticsWebFilterFields;
-              setFilters((current) =>
-                current.filter((filter) =>
-                  available.some((field) => field === filter.field),
-                ),
+              const filtered = filters.filter((filter) =>
+                available.some((field) => field === filter.field),
               );
-              setKind(next);
+              update({
+                measure: next === "pageview" ? null : next,
+                filters: filtered.length ? JSON.stringify(filtered) : null,
+                metric: null,
+              });
             }}
             options={[
               { id: "pageview", label: "Web analytics" },
@@ -291,7 +300,9 @@ export function ScoutAnalytics({
           <ScoutSelect
             label="Time range"
             value={String(days)}
-            onChange={(value) => setDays(Number(value))}
+            onChange={(value) =>
+              update({ days: Number(value) === 1 ? null : value })
+            }
             options={analyticsRanges
               .filter(
                 ({ days }) => days <= (query.data?.config?.retentionDays ?? 30),
@@ -342,10 +353,32 @@ export function AnalyticsView({
   onFilter: (field: AnalyticsFilter["field"], value: string) => void;
 }) {
   const [eventActive, setEventActive] = useState(false);
-  const [compareEnabled, setCompareEnabled] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<
-    "count" | "errors" | "visitors" | "sessions" | null
-  >(null);
+  const [comparison, setComparison] = useQueryChoice(
+    "compare",
+    ["off", "on"],
+    "off",
+  );
+  const compareEnabled = comparison === "on";
+  const setCompareEnabled = (value: boolean | ((old: boolean) => boolean)) =>
+    setComparison(
+      (typeof value === "function" ? value(compareEnabled) : value)
+        ? "on"
+        : "off",
+    );
+  const [metric, setMetric] = useQueryChoice(
+    "metric",
+    ["all", "count", "errors", "visitors", "sessions"],
+    "all",
+  );
+  const selectedMetric = metric === "all" ? null : metric;
+  const setSelectedMetric = (
+    value:
+      | typeof selectedMetric
+      | ((old: typeof selectedMetric) => typeof selectedMetric),
+  ) =>
+    setMetric(
+      (typeof value === "function" ? value(selectedMetric) : value) ?? "all",
+    );
   if (!report.enabled)
     return (
       <EmptyState>

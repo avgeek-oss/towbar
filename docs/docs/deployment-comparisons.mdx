@@ -7,6 +7,8 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
 Open a service or datastore and choose **Compare**. Select a baseline and a deployment to compare, choose the observation window, and select **Compare deployments**.
 
+After applying a comparison, copy or bookmark the URL to reopen its deployments, observation window, warm-up, and statistic. Switching workloads clears deployment IDs so another workload is not compared accidentally.
+
 Both deployments must have succeeded, belong to the same workload, and run in the same persistent environment. Preview deployments are excluded. The list includes the latest 100 successful deployments. The comparison uses the deployment identity reported by Scout, so another release's containers are not silently included.
 
 <Screenshot

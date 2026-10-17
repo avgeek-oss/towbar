@@ -1,6 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
+import { requestNavigation, approveNavigation } from "@/lib/unsaved-navigation";
+import { breadcrumbEntityHref } from "@/lib/breadcrumb-entity-route";
 import { useEffect, useRef, useState } from "react";
 import type { App, Resource } from "@workspace/towbar-web-client";
 import { ListBox } from "@avgeek-oss/design-system/collections/list-box";
@@ -18,6 +21,7 @@ export function InstanceEnvironmentChoice({
   kind: "apps" | "resources";
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [switchingTo, setSwitchingTo] = useState<string | null>(null);
   const pendingSwitch = useRef<string | null>(null);
   useEffect(() => {
@@ -55,11 +59,6 @@ export function InstanceEnvironmentChoice({
     .sort((left, right) =>
       left.environment.name.localeCompare(right.environment.name),
     );
-  const base = `/${kind}`;
-  const currentBase = `${base}/${item.id}`;
-  const section = pathname.startsWith(`${currentBase}/`)
-    ? pathname.slice(currentBase.length)
-    : "/overview";
   return (
     <SecondarySection className="order-[-1]" title="Environment">
       <div>
@@ -75,19 +74,27 @@ export function InstanceEnvironmentChoice({
               id !== item.id &&
               instances.some((instance) => instance.id === id)
             ) {
-              pendingSwitch.current = id;
-              setSwitchingTo(id);
-              const href = `${base}/${id}${section}`;
-              const navigate = () => {
-                if (pendingSwitch.current === id)
-                  window.history.pushState(null, "", href);
-              };
-              void prefetchApiQueries([
-                `/v1/core/${kind}/${id}`,
-                `/v1/core/sources/${item.sourceId}`,
-                `/v1/core/${kind}/${id}/deployments`,
-                `/v1/core/${kind}/${id}/releases`,
-              ]).then(navigate, navigate);
+              requestNavigation(() => {
+                pendingSwitch.current = id;
+                setSwitchingTo(id);
+                const href = breadcrumbEntityHref({
+                  kind,
+                  currentId: item.id,
+                  targetId: id,
+                  pathname,
+                  search: window.location.search,
+                });
+                const navigate = () => {
+                  if (pendingSwitch.current === id)
+                    approveNavigation(() => router.push(href));
+                };
+                void prefetchApiQueries([
+                  `/v1/core/${kind}/${id}`,
+                  `/v1/core/sources/${item.sourceId}`,
+                  `/v1/core/${kind}/${id}/deployments`,
+                  `/v1/core/${kind}/${id}/releases`,
+                ]).then(navigate, navigate);
+              });
             }
           }}
         >

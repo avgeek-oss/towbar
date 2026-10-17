@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { requestNavigation } from "@/lib/unsaved-navigation";
 import { ScoutIcon } from "./scout-icons";
 import { ScoutHttpEditor } from "./scout-http-editor";
 import { useId, useState, type FormEvent } from "react";
@@ -62,6 +64,8 @@ export function ScoutRuleEditor({
           deployableId: deployableId ?? null,
         },
   );
+  const [original] = useState(() => JSON.stringify(draft));
+  const releaseDraft = useUnsavedChanges(JSON.stringify(draft) !== original);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const nameId = useId();
@@ -115,6 +119,7 @@ export function ScoutRuleEditor({
       if (initial) await api.put(`${path}/${initial.id}`, result.data);
       else await api.post(path, result.data);
       toast.success(initial ? "Alert rule updated" : "Alert rule created");
+      releaseDraft();
       onSaved();
       onClose();
     } catch (cause) {
@@ -129,7 +134,7 @@ export function ScoutRuleEditor({
     <Modal.Backdrop
       isOpen
       onOpenChange={(open) => {
-        if (!open && !saving) onClose();
+        if (!open && !saving) requestNavigation(onClose);
       }}
     >
       <Modal.Container size="lg" scroll="inside">

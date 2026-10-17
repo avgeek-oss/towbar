@@ -275,7 +275,16 @@ export function NotificationDeliveries() {
   return (
     <div className="grid min-w-0 gap-6">
       <div className="grid items-end gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(16rem,2fr)]">
-        <div className="grid min-w-0 items-end gap-4 sm:grid-cols-3">
+        <div className="grid min-w-0 items-end gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <HistoryFilter
+            label="States"
+            value={history.filters.state}
+            options={Object.entries(stateLabels).map(([id, label]) => ({
+              id,
+              label,
+            }))}
+            onChange={(value) => history.setFilter("state", value)}
+          />
           <HistoryFilter
             label="Providers"
             value={history.filters.provider}
@@ -346,6 +355,7 @@ export function NotificationDeliveries() {
           />
         </div>
         <HistorySearch
+          value={history.filters.search ?? ""}
           label="Search deliveries"
           placeholder="Notification, entity or delivery ID"
           onSearch={(value) => history.setFilter("search", value)}

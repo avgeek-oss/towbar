@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { toast } from "@avgeek-oss/design-system/overlays/toast";
 import { useAccess } from "./access-context";
 import {
@@ -17,12 +18,16 @@ import { EmailSettings } from "./email-settings";
 import { RelativeTime } from "./last-synced-time";
 
 export function ProfileSettings() {
+  const draft = useUnsavedForm<HTMLDivElement>();
   const profile = useApiQuery<{ user: TowbarUser }>("/v1/core/profile");
   if (profile.error) return <QueryError message={profile.error} />;
   if (!profile.data) return <QueryLoading />;
 
   return (
-    <div className="content-grid min-w-0 lg:grid-cols-2 lg:items-start">
+    <div
+      {...draft.formProps}
+      className="content-grid min-w-0 lg:grid-cols-2 lg:items-start"
+    >
       <LibraryProfileSettings
         key={profile.data.user.name}
         value={profile.data.user.name}
@@ -30,6 +35,7 @@ export function ProfileSettings() {
         maxLength={120}
         onSave={async (displayName) => {
           await api.patch("/v1/core/profile", { displayName });
+          draft.markSaved();
           profile.refresh();
           window.dispatchEvent(new Event("towbar:identity-changed"));
         }}
@@ -39,17 +45,21 @@ export function ProfileSettings() {
 }
 
 export function EmailPasswordSettings() {
+  const draft = useUnsavedForm<HTMLDivElement>();
   const { user } = useAccess();
   return (
     <div className="content-grid min-w-0 lg:grid-cols-2 lg:items-start">
       <EmailSettings />
-      <PasswordChangeSettings
-        requireCurrentPassword={!user?.twoFactorEnabled}
-        onChangePassword={async (values) => {
-          await api.put("/v1/core/profile/password", values);
-          toast.success("Password changed");
-        }}
-      />
+      <div {...draft.formProps}>
+        <PasswordChangeSettings
+          requireCurrentPassword={!user?.twoFactorEnabled}
+          onChangePassword={async (values) => {
+            await api.put("/v1/core/profile/password", values);
+            draft.markSaved();
+            toast.success("Password changed");
+          }}
+        />
+      </div>
     </div>
   );
 }

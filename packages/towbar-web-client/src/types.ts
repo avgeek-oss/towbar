@@ -21,6 +21,7 @@ export type TowbarUser = {
 };
 
 export type Source = {
+  lastSyncedAt?: string | null;
   createdAt: string;
   id: string;
   provider: "github" | "gitlab";

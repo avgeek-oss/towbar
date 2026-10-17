@@ -17,7 +17,7 @@ import {
   type ResourceTableColumn,
 } from "@avgeek-oss/design-system/patterns/resource-table";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
-import { useTablePagination } from "@avgeek-oss/design-system/hooks/use-table-pagination";
+import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import { Tooltip } from "@avgeek-oss/design-system/overlays/tooltip";
@@ -181,7 +181,7 @@ export function DeploymentsIndex() {
     const next = new URLSearchParams(search.toString());
     if (value === "all" || value === "newest") next.delete(name);
     else next.set(name, value);
-    pagination.reset();
+    next.delete("page");
     window.history.pushState(
       null,
       "",
@@ -194,8 +194,7 @@ export function DeploymentsIndex() {
     5_000,
   );
   const { setTotal, reset } = pagination;
-  const filterKey = params.toString();
-  useEffect(() => reset(), [filterKey, reset]);
+
   useEffect(() => {
     if (!query.data || query.isPreviousData) return;
     setTotal(query.data.pagination.total);
@@ -280,7 +279,6 @@ export function DeploymentsIndex() {
             <Button
               variant="secondary"
               onPress={() => {
-                pagination.reset();
                 window.history.pushState(null, "", pathname);
               }}
             >

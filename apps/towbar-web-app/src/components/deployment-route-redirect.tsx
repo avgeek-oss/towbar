@@ -1,7 +1,8 @@
 "use client";
 
 import { Rocket01Icon } from "@hugeicons/core-free-icons";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useEffect, useRef } from "react";
 import type { Deployment } from "@workspace/towbar-web-client";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";

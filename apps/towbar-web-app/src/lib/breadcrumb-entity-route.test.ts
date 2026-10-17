@@ -22,6 +22,31 @@ test("switching services retains analytics and nested settings", () => {
   }
 });
 
+test("switching environments keeps safe analytics query state but drops entity-specific IDs", () => {
+  const href = breadcrumbEntityHref({
+    kind: "apps",
+    currentId: "production",
+    targetId: "staging",
+    pathname: "/services/production/analytics",
+    search:
+      "?measure=request&days=7&metric=errors&compare=on&baselineId=old&page=4&token=private",
+  });
+  assert.equal(
+    href,
+    "/services/staging/analytics?measure=request&days=7&compare=on&metric=errors",
+  );
+  assert.equal(
+    breadcrumbEntityHref({
+      kind: "resources",
+      currentId: "one",
+      targetId: "two",
+      pathname: "/datastores/one/restore",
+      search: "?backupId=old&page=5",
+    }),
+    "/datastores/two/restore",
+  );
+});
+
 test("switching entities does not carry another entity's deployment or sync ID", () => {
   assert.equal(
     breadcrumbEntityHref({

@@ -9,7 +9,7 @@ import {
 
 import { HugeiconsIcon } from "@hugeicons/react";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/hooks/use-guarded-router";
 import { useState } from "react";
 import type {
   GitHubConnectionMetadata,

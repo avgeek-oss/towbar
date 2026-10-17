@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import {
   dateFormatOptions,
   timeFormatOptions,
@@ -17,6 +18,7 @@ type PreferencesResponse = {
   options: DateTimePreferenceOptions;
 };
 export function DateTimePreferencesSettings() {
+  const draft = useUnsavedForm<HTMLDivElement>();
   const query = useApiQuery<PreferencesResponse>(
     "/v1/core/profile/preferences",
   );
@@ -24,7 +26,10 @@ export function DateTimePreferencesSettings() {
   if (!query.data) return <QueryLoading />;
   const data = query.data;
   return (
-    <div className="content-grid min-w-0 lg:grid-cols-2 lg:items-start">
+    <div
+      {...draft.formProps}
+      className="content-grid min-w-0 lg:grid-cols-2 lg:items-start"
+    >
       <PreferencesSettings
         key={JSON.stringify(data.preferences)}
         value={data.preferences}
@@ -35,6 +40,7 @@ export function DateTimePreferencesSettings() {
         }}
         onSave={async (preferences) => {
           await api.put("/v1/core/profile/preferences", preferences);
+          draft.markSaved();
           clearApiQueryCache();
           window.dispatchEvent(new Event("towbar:preferences-changed"));
           try {
