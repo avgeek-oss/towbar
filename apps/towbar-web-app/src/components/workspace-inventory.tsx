@@ -2,6 +2,7 @@
 import { useAccess } from "./access-context";
 import {
   InventorySidebar,
+  inventoryFilterKeys,
   useInventoryQuery,
   type InventoryCounts,
 } from "./inventory-sidebar";
@@ -13,6 +14,8 @@ import {
   ServerStack01Icon,
   Layers01Icon,
   LeftToRightListBulletIcon,
+  FilterResetIcon,
+  GitBranchIcon,
 } from "@hugeicons/core-free-icons";
 
 import {
@@ -35,7 +38,7 @@ import {
 } from "@avgeek-oss/design-system/patterns/resource-table";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
-import { ButtonLink } from "@avgeek-oss/design-system/buttons/button";
+import { Button, ButtonLink } from "@avgeek-oss/design-system/buttons/button";
 import {
   ToggleButton,
   ToggleButtonGroup,
@@ -43,7 +46,7 @@ import {
 
 import { DashboardPage } from "@/components/page-parts";
 import { useApiQuery } from "@/hooks/use-api-query";
-import { useQueryChoice } from "@/hooks/use-page-query";
+import { usePageQuery, useQueryChoice } from "@/hooks/use-page-query";
 import {
   getActiveDeploymentStates,
   resolveInventoryStatus,
@@ -294,9 +297,9 @@ function DeployableInventoryTable({
   servers,
 }: DeployableInventoryProps) {
   const [layout] = useInventoryLayout();
-  const filtered = useInventoryQuery(
-    kind === "app" ? "apps" : "resources",
-  ).includes("?");
+  const { update } = usePageQuery();
+  const inventoryKind = kind === "app" ? "apps" : "resources";
+  const filtered = useInventoryQuery(inventoryKind).includes("?");
   const runtimeById = useInventoryRuntimeCapacity();
   const activeDeploymentStates = getActiveDeploymentStates(deployments);
   const serversByIp = new Map(
@@ -412,16 +415,47 @@ function DeployableInventoryTable({
       servers={servers}
       ariaLabel={kind === "app" ? "Services" : "Datastores"}
       columns={columns}
+      emptyMedia={
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={kind === "app" ? DashboardCircleIcon : DatabaseIcon}
+          className="size-8"
+        />
+      }
+      emptyAction={
+        filtered ? (
+          <Button
+            variant="secondary"
+            onPress={() =>
+              update(
+                Object.fromEntries(
+                  inventoryFilterKeys[inventoryKind].map((key) => [key, null]),
+                ),
+              )
+            }
+          >
+            <HugeiconsIcon aria-hidden="true" icon={FilterResetIcon} />
+            Clear filters
+          </Button>
+        ) : (
+          <ButtonLink href="/repositories" variant="secondary">
+            <HugeiconsIcon aria-hidden="true" icon={GitBranchIcon} />
+            View repositories
+          </ButtonLink>
+        )
+      }
       emptyDescription={
         filtered
           ? "Try changing or clearing the filters."
           : kind === "app"
-            ? "A successful Repository sync imports services into this workspace."
-            : "A successful Repository sync imports datastores into this workspace."
+            ? "Add a service to a repository's Towbar manifest, then sync it."
+            : "Add a datastore to a repository's Towbar manifest, then sync it."
       }
       emptyTitle={
         filtered
-          ? "No matching workloads"
+          ? kind === "app"
+            ? "No matching services"
+            : "No matching datastores"
           : kind === "app"
             ? "No services yet"
             : "No datastores yet"

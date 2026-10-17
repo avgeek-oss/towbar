@@ -15,9 +15,16 @@ import {
   TypographyCode,
   TypographyText,
 } from "@avgeek-oss/design-system/typography/typography";
-import { GitBranchIcon } from "@hugeicons/core-free-icons";
+import {
+  DashboardCircleIcon,
+  DatabaseIcon,
+  GitBranchIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ManifestLifecycleItem } from "@workspace/towbar-contracts";
+import type { App, Resource } from "@workspace/towbar-web-client";
+import { ServiceLogo, ResourceLogo } from "./deployable-identity";
+import { resourceImageBrand } from "./resource-image-brand";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { EnvironmentChip } from "./environment-chip";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
@@ -28,9 +35,13 @@ type Declaration = ManifestLifecycleItem["declarations"][number];
 
 export function LifecycleDetails({
   item,
+  apps,
+  resources,
   onClose,
 }: {
   item: ManifestLifecycleItem;
+  apps: App[];
+  resources: Resource[];
   onClose: () => void;
 }) {
   const declarations: ResourceTableColumn<Declaration>[] = [
@@ -42,11 +53,14 @@ export function LifecycleDetails({
       cell: (source) => (
         <TableCellStack className="gap-2">
           <InlineLink
+            target="_blank"
             href={`/repositories/${source.sourceId}`}
-            className="inline-flex items-start gap-2 [overflow-wrap:anywhere]"
+            className="[overflow-wrap:anywhere]"
           >
-            <IntegrationProviderLogo provider={source.provider ?? "github"} />
-            {source.repository}
+            <span className="inline-flex min-w-0 items-center gap-2 whitespace-normal">
+              <IntegrationProviderLogo provider={source.provider ?? "github"} />
+              {source.repository}
+            </span>
           </InlineLink>
           <span className="flex flex-wrap items-center gap-2">
             <Chip className="max-w-full w-fit">
@@ -193,10 +207,20 @@ export function LifecycleDetails({
                 >
                   <Attributes.Item label="Workload" className="content-start">
                     <InlineLink
+                      target="_blank"
                       href={workload.href}
                       className="[overflow-wrap:anywhere]"
                     >
-                      {workload.name}
+                      <span className="inline-flex min-w-0 items-center gap-2 whitespace-normal">
+                        <WorkloadLogo
+                          kind={workload.kind}
+                          app={apps.find((app) => app.id === workload.id)}
+                          resource={resources.find(
+                            (resource) => resource.id === workload.id,
+                          )}
+                        />
+                        {workload.name}
+                      </span>
                     </InlineLink>
                   </Attributes.Item>
                   <Attributes.Item
@@ -210,17 +234,23 @@ export function LifecycleDetails({
                     className="content-start"
                   >
                     <InlineLink
+                      target="_blank"
                       href={`/repositories/${workload.sourceId}`}
-                      className="inline-flex items-start gap-2 [overflow-wrap:anywhere]"
+                      className="[overflow-wrap:anywhere]"
                     >
-                      <IntegrationProviderLogo
-                        provider={workload.provider ?? "github"}
-                      />
-                      {workload.repository}
+                      <span className="inline-flex min-w-0 items-center gap-2 whitespace-normal">
+                        <IntegrationProviderLogo
+                          provider={workload.provider ?? "github"}
+                        />
+                        {workload.repository}
+                      </span>
                     </InlineLink>
                   </Attributes.Item>
                   <Attributes.Item label="Server" className="content-start">
-                    <InlineLink href={`/servers/${workload.serverId}`}>
+                    <InlineLink
+                      target="_blank"
+                      href={`/servers/${workload.serverId}`}
+                    >
                       <TypographyCode>{workload.serverIp}</TypographyCode>
                     </InlineLink>
                   </Attributes.Item>
@@ -291,5 +321,33 @@ export function LifecycleDetails({
         </Modal.Dialog>
       </Modal.Container>
     </Modal.Backdrop>
+  );
+}
+
+function WorkloadLogo({
+  kind,
+  app,
+  resource,
+}: {
+  kind: string;
+  app?: App;
+  resource?: Resource;
+}) {
+  if (app) return <ServiceLogo app={app} size="small" />;
+  if (resource)
+    return (
+      <ResourceLogo
+        brand={resourceImageBrand(resource.kind, resource.config.image)}
+        size="small"
+      />
+    );
+  return (
+    <HugeiconsIcon
+      icon={
+        ["app", "compose"].includes(kind) ? DashboardCircleIcon : DatabaseIcon
+      }
+      className="size-6 shrink-0"
+      aria-hidden="true"
+    />
   );
 }
