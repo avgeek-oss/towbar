@@ -9,7 +9,7 @@ import type {
   ManifestLifecycleResponse,
 } from "@workspace/towbar-core";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { changedConfigurationPaths } from "./plan.js";
+import { changedConfigurationPaths, identityKey } from "./plan.js";
 import { loadManifestRegistry } from "./reconcile.js";
 
 export function listManifestLifecycle(
@@ -69,7 +69,7 @@ export function listManifestLifecycle(
           {
             key:
               plan.declarations.length === 0
-                ? `${plan.key}:${instances[0]!.app.id}`
+                ? `${identityKey(plan.environment, plan.manifestId)}:${instances[0]!.app.id}`
                 : plan.key,
             manifestId: plan.manifestId,
             environment: plan.environment,
@@ -151,6 +151,13 @@ export function listManifestLifecycle(
     const counts = {
       conflicts: items.filter((i) => i.state === "conflict").length,
       retirements: items.filter((i) => i.state !== "conflict").length,
+      removing: items.filter(
+        (item) =>
+          item.state === "removing" &&
+          item.operations.some((operation) =>
+            ["queued", "running"].includes(operation.state),
+          ),
+      ).length,
     };
     const filtered = items.filter(
       (i) =>

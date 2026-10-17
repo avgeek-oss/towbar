@@ -1613,6 +1613,7 @@ export const apps = pgTable(
       .default("active")
       .notNull(),
     retiredAt: timestamp("retired_at", { withTimezone: true }),
+    legacyArchivedAt: timestamp("legacy_archived_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()

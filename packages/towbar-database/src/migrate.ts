@@ -53,6 +53,22 @@ export async function runTowbarMigrations(
     logger.info("Acquiring Towbar migration lock");
     await client`select pg_advisory_lock(hashtext(${migrationLockKey}))`;
     lockAcquired = true;
+    const [legacy] = await client<{ exists: boolean }[]>`
+      select exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'towbar_apps'
+          and column_name = 'archived_at'
+      ) and not exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'towbar_apps'
+          and column_name = 'manifest_state'
+      ) as exists
+    `;
+    if (legacy?.exists)
+      await client`
+        create temporary table towbar_legacy_archives on commit preserve rows as
+        select id, archived_at from public.towbar_apps where archived_at is not null
+      `;
     await migrate(database, { migrationsFolder: resolveMigrationsFolder() });
     logger.info("Towbar database migrations completed");
   } catch (error) {

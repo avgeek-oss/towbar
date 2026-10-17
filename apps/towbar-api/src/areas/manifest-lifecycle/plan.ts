@@ -15,8 +15,10 @@ export type RegisteredWorkload = {
   manifestId: string;
   environment: string;
   sourceId: string;
+  sourceEnvironmentId?: string;
   config: NormalizedDeployable;
   manifestState: string;
+  legacyArchivedAt?: Date | null;
 };
 export type IdentityPlan = {
   key: string;
@@ -83,7 +85,8 @@ export function planManifestIdentities(
   for (const workload of workloads)
     if (workload.manifestState !== "removed")
       group(workload.environment, workload.manifestId).workloads.push(workload);
-  for (const entry of groups.values()) {
+  const plans = [...groups.values()].flatMap(separateLegacyRetirements);
+  for (const entry of plans) {
     if (
       entry.declarations.length > 1 ||
       (entry.declarations.length > 0 && entry.workloads.length > 1)
@@ -111,7 +114,38 @@ export function planManifestIdentities(
       }
     }
   }
-  return [...groups.values()].sort((a, b) => a.key.localeCompare(b.key));
+  return plans.sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function separateLegacyRetirements(entry: IdentityPlan): IdentityPlan[] {
+  if (entry.declarations.length !== 1 || entry.workloads.length < 2)
+    return [entry];
+  const declaration = entry.declarations[0]!;
+  const current = entry.workloads.filter(
+    (workload) => !workload.legacyArchivedAt,
+  );
+  const owner = current[0];
+  if (
+    current.length !== 1 ||
+    !owner ||
+    owner.manifestState === "removing" ||
+    owner.sourceEnvironmentId !== declaration.sourceEnvironmentId ||
+    owner.sourceId !== declaration.sourceId ||
+    declarationCompatibility(owner.config, declaration.config)
+  )
+    return [entry];
+  return [
+    { ...entry, workloads: [owner] },
+    ...entry.workloads
+      .filter((workload) => workload.legacyArchivedAt)
+      .map((workload) => ({
+        ...entry,
+        key: `${entry.key}:${workload.id}`,
+        declarations: [],
+        workloads: [workload],
+        state: "retired" as const,
+      })),
+  ];
 }
 
 // Return paths rather than configuration values: manifests can contain sensitive literals.

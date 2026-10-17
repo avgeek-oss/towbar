@@ -218,6 +218,13 @@
       "when": 1792200000000,
       "tag": "0031_manifest_lifecycle",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792245600000,
+      "tag": "0032_legacy_manifest_archives",
+      "breakpoints": true
     }
   ]
 }

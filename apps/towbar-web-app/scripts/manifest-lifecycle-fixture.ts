@@ -3,6 +3,7 @@ export function createManifestLifecycleFixture(
   sourceId: string,
   serverId: string,
   workloadId: string,
+  now: () => number = Date.now,
 ) {
   const revision = new Date().toISOString();
   const owner = {
@@ -90,11 +91,22 @@ export function createManifestLifecycleFixture(
     },
   ];
   const requests = new Map<string, { operations: { id: string }[] }>();
+  const acceptedAt = new Map<string, number>();
+  const completed = new Set<string>();
   return {
     list(query: URLSearchParams) {
+      for (const item of items) {
+        const accepted = acceptedAt.get(item.key);
+        if (accepted === undefined) continue;
+        const elapsed = now() - accepted;
+        if (elapsed >= 9_000) completed.add(item.key);
+        else if (elapsed >= 2_000)
+          for (const operation of item.operations) operation.state = "running";
+      }
       const tab = query.get("tab"),
         search = query.get("search")?.toLowerCase();
-      const filtered = items.filter(
+      const visible = items.filter((item) => !completed.has(item.key));
+      const filtered = visible.filter(
         (item) =>
           (!tab ||
             (tab === "conflicts"
@@ -109,8 +121,10 @@ export function createManifestLifecycleFixture(
         total: filtered.length,
         nextOffset: offset + limit < filtered.length ? offset + limit : null,
         counts: {
-          conflicts: items.filter((item) => item.state === "conflict").length,
-          retirements: items.filter((item) => item.state !== "conflict").length,
+          conflicts: visible.filter((item) => item.state === "conflict").length,
+          retirements: visible.filter((item) => item.state !== "conflict")
+            .length,
+          removing: visible.filter((item) => item.state === "removing").length,
         },
       };
     },
@@ -137,6 +151,7 @@ export function createManifestLifecycleFixture(
       )
         return null;
       item.state = "removing";
+      acceptedAt.set(item.key, now());
       const operation = {
         id: crypto.randomUUID(),
         state: "queued",

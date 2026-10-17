@@ -160,7 +160,7 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
     user && !user.mustChangePassword
       ? "/v1/core/manifest-lifecycle?limit=1"
       : null,
-    30_000,
+    (data) => (data?.counts.removing ? 3_000 : 30_000),
   );
   const monitoring = useApiQuery<{
     activeIncidents: number;

@@ -24,6 +24,14 @@ export const documentationTopics = {
     "#start-with-the-overview",
     "Check workload health, recent deployments, server capacity, and incidents across your team.",
   ),
+  conflicts: guide(
+    "repositories/conflicts-and-retirements#move-between-repositories",
+    "Fix competing manifest declarations in Git, then sync to restore one owner.",
+  ),
+  retirements: guide(
+    "repositories/conflicts-and-retirements#permanently-remove-a-retirement",
+    "Restore a missing manifest to keep its workload, or confirm permanent removal.",
+  ),
   repositories: guide(
     "repositories",
     "Connect GitHub repositories, map environments to branches, and sync the services and datastores declared in Git.",
@@ -334,6 +342,8 @@ export function documentationTopic(pathname: string): Topic | undefined {
     return integrationDocumentationTopic(path);
   if (path.startsWith("/repositories/") && /\/(danger|danger-zone)$/.test(path))
     return "repositoryRemoval";
+  if (path === "/conflicts") return "conflicts";
+  if (path === "/retirements") return "retirements";
   if (path === "/system-health") return "system";
   if (path === "/monitoring/logs") return "centralizedLogs";
   if (path === "/deployments") return "deployments";

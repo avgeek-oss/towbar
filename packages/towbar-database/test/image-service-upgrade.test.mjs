@@ -235,7 +235,12 @@ test(
       await migrateDatabase(isolated.href, folder);
       assert.deepEqual(
         (await client`select * from towbar_apps where id=${otherApp.id}`)[0],
-        { ...otherApp, manifest_state: "active", retired_at: null },
+        {
+          ...otherApp,
+          manifest_state: "active",
+          retired_at: null,
+          legacy_archived_at: null,
+        },
       );
       const [converted] =
         await client`select * from towbar_apps where id=${app.id}`;

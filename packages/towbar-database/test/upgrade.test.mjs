@@ -47,11 +47,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0029_log_table_preferences.sql",
     "0030_log_storage_samples.sql",
     "0031_manifest_lifecycle.sql",
+    "0032_legacy_manifest_archives.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 31);
+  assert.equal(journal.entries.length, 32);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");
@@ -262,6 +263,7 @@ test(
         ["towbar_servers", "canonical_ip"],
         ["towbar_servers", "name"],
         ["towbar_apps", "required_secrets"],
+        ["towbar_apps", "legacy_archived_at"],
         ["towbar_deployments", "target_environment"],
         ["towbar_deployments", "domain_handoff_snapshot"],
         ["towbar_domain_claims", "hostname"],

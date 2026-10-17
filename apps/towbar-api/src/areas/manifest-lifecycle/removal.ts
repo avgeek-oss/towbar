@@ -75,12 +75,14 @@ export async function removeRetiredWorkload(
       ({ app }) => app.id === input.workloadId,
     );
     if (!workload) throw notFound("Retired workload");
-    const { app, environment } = workload;
+    const { app } = workload;
+    const plan = registry.plans.find((entry) =>
+      entry.workloads.some((workload) => workload.id === app.id),
+    );
     if (
       !["retired", "removing"].includes(app.manifestState) ||
-      registry.declarations.some(
-        (d) => d.environment === environment && d.config.id === app.manifestId,
-      )
+      plan?.state !== "retired" ||
+      plan.declarations.length > 0
     )
       throw conflict(
         "A repository still declares this workload. Correct Git and sync before removing it.",

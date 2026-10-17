@@ -13545,9 +13545,10 @@
       "type": "object",
       "properties": {
         "conflicts": { "type": "number" },
-        "retirements": { "type": "number" }
+        "retirements": { "type": "number" },
+        "removing": { "type": "number" }
       },
-      "required": ["conflicts", "retirements"]
+      "required": ["conflicts", "retirements", "removing"]
     },
     "ManifestLifecycleResponse_1": {
       "type": "object",
