@@ -7,6 +7,7 @@ import {
   AlertCircleIcon,
   DashboardCircleIcon,
   DiscoverSquareIcon,
+  Delete02Icon,
   DatabaseIcon,
   GitBranchIcon,
   HealthIcon,
@@ -45,10 +46,15 @@ const sidebarIcons = defineSidebarIcons({
 });
 
 export type ApplicationSidebarCounts = Partial<
-  Record<"apps" | "resources" | "servers" | "sources", number>
+  Record<
+    "apps" | "resources" | "servers" | "sources" | "conflicts" | "retirements",
+    number
+  >
 >;
 
 const inventorySingularLabels = {
+  conflicts: "conflict",
+  retirements: "retirement",
   apps: "service",
   resources: "datastore",
   servers: "server",
@@ -56,6 +62,8 @@ const inventorySingularLabels = {
 } as const;
 
 const inventoryPluralLabels = {
+  conflicts: "conflicts",
+  retirements: "retirements",
   apps: "services",
   resources: "datastores",
   servers: "servers",
@@ -90,6 +98,20 @@ const sidebar = {
           label: "Overview",
           href: "/",
           icon: sidebarIcons.overview,
+        },
+        {
+          kind: "link",
+          id: "conflicts",
+          label: "Conflicts",
+          href: "/conflicts",
+          icon: AlertCircleIcon,
+        },
+        {
+          kind: "link",
+          id: "retirements",
+          label: "Retirements",
+          href: "/retirements",
+          icon: Delete02Icon,
         },
         {
           kind: "link",
@@ -261,7 +283,7 @@ export function createApplicationSidebar(
       }))
       .filter((group) => group.items.length > 0)
       .map((group) =>
-        group.id === "operate"
+        group.id === "operate" || group.id === "overview"
           ? {
               ...group,
               items: group.items.map((item) => {

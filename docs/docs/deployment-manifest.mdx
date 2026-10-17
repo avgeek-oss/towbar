@@ -68,4 +68,4 @@ Common settings sit at the top level of each workload file. An entry under `envi
 
 ## Workload removal
 
-Removing a Service or Datastore file from a valid repository snapshot archives that workload after sync and queues cleanup on every associated server. Cleanup deletes exclusively owned persistent volumes and data, containers, configuration files, and routes. Failed syncs preserve the previous inventory. Back up required data before removal and inspect the server's cleanup history afterward. See [Sync and automation](/docs/repositories/sync) for re-adding workloads, domain handoffs, and cleanup timing.
+Removing a Service or Datastore manifest and syncing marks the workload for retirement. Its runtime, secrets, volumes and history remain. Restore a compatible declaration with the same ID and environment to resume management, or explicitly confirm permanent removal on the **Retirements** page. Duplicate declarations appear on the **Conflicts** page and are corrected in Git. See [conflicts and retirements](/docs/repositories/conflicts-and-retirements).

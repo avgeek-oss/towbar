@@ -270,7 +270,7 @@ export const infrastructureTools: McpTool[] = [
   action(
     "server_cleanup",
     "Request server cleanup",
-    "Request server-level cleanup of unused Towbar objects and workloads removed from Git, including owned persistent volumes. Revalidates current ownership and usage; preserves active workloads and shared resources. Confirm server cleanup with the user before requesting it.",
+    "Request server-level cleanup of unused Towbar objects. Revalidates ownership and usage, and protects active workloads, manifest conflicts, pending retirements and shared resources. Permanent workload removal is a separate retirement action. Confirm server cleanup with the user before requesting it.",
     "POST",
     "/servers/:serverId/actions/cleanup-orphans",
     serverId,

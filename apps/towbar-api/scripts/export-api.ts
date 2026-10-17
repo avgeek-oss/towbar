@@ -115,6 +115,8 @@ const toolGroups: Record<string, string> = {
   inventory: "Discovery",
   repository: "Discovery",
   source: "Repositories",
+  manifest: "Repositories",
+  retirement: "Repositories",
   workload: "Services and datastores",
   autodeploy: "Services and datastores",
   deployment: "Deployments",

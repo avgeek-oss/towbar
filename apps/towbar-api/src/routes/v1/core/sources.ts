@@ -278,8 +278,9 @@ sourceRoutes.delete(
   operation({
     permissions: ["repository.disconnect"],
     responseSchema: 'sources.ts:delete:"/:sourceId"',
-    summary: "Delete source",
-    response: "No response body.",
+    summary: "Delete empty repository",
+    response:
+      "No response body. Repositories with retained workloads or deployment history cannot be deleted; disconnect their environments to stop syncing.",
     status: 204,
   }),
   async (context) => {

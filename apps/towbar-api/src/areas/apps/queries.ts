@@ -26,6 +26,7 @@ async function listDeployables(
   const appRows = await getTowbarDatabase()
     .select({
       archivedAt: apps.archivedAt,
+      manifestState: apps.manifestState,
       config: apps.config,
       createdAt: apps.createdAt,
       description: apps.description,
@@ -122,6 +123,7 @@ async function getDeployable(
   const [app] = await getTowbarDatabase()
     .select({
       archivedAt: apps.archivedAt,
+      manifestState: apps.manifestState,
       config: apps.config,
       createdAt: apps.createdAt,
       description: apps.description,

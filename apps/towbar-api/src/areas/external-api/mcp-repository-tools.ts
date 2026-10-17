@@ -11,6 +11,33 @@ import {
 } from "./mcp-toolkit.js";
 
 export const repositoryTools: McpTool[] = [
+  tool(
+    "manifest_lifecycle_list",
+    "Inspect conflicts and retirements",
+    "List duplicate manifest IDs, repository declarations, configuration diff paths and preserved retirements. Conflicts have no mutation action: correct Git and sync affected repositories. Use the returned workload revision when explicitly removing a retirement.",
+    z
+      .object({
+        tab: z.enum(["conflicts", "retirements"]).optional(),
+        search: z.string().max(255).optional(),
+        ...page,
+      })
+      .strict(),
+    async (args, context) =>
+      context.call({
+        method: "GET",
+        route: "/manifest-lifecycle",
+        query: args,
+      }),
+    { permissions: ["workload.read"] },
+  ),
+  action(
+    "retirement_remove",
+    "Permanently remove retired workload",
+    "Destructive: confirm the exact manifest ID and storage loss with the user first. Removes this workload's containers, routes and volumes across associated servers; preserves history and backups. A verified Git declaration blocks a new removal request. Once queued, removal reserves the ID until cleanup finishes. Poll every returned operation. Reuse the idempotency key only for a retry of this same request.",
+    "POST",
+    "/retirements/:workloadId/actions/remove",
+    { workloadId: id("Retired workload") },
+  ),
   action(
     "source_change_github_connection",
     "Change repository GitHub connection",

@@ -154,6 +154,14 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
     user && !user.mustChangePassword ? "/v1/core/sources" : null,
     30_000,
   );
+  const manifestLifecycle = useApiQuery<
+    import("@workspace/towbar-contracts").ManifestLifecycleResponse
+  >(
+    user && !user.mustChangePassword
+      ? "/v1/core/manifest-lifecycle?limit=1"
+      : null,
+    30_000,
+  );
   const monitoring = useApiQuery<{
     activeIncidents: number;
     criticalVulnerabilities: number;
@@ -274,6 +282,8 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
       resources: resources.data
         ? groupDeployableInstances(resources.data.resources).length
         : undefined,
+      conflicts: manifestLifecycle.data?.counts.conflicts,
+      retirements: manifestLifecycle.data?.counts.retirements,
       servers: servers.data?.servers.length,
       sources: sources.data?.sources.length,
     },

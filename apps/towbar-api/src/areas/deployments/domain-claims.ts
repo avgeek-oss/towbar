@@ -82,7 +82,11 @@ export async function synchronizeDomainClaims(
     scope,
   });
   const desired = new Map<string, typeof apps.$inferSelect>();
-  for (const app of instances.filter((app) => !app.archivedAt))
+  for (const app of instances.filter(
+    (app) =>
+      !app.archivedAt &&
+      !["retired", "removing", "removed"].includes(app.manifestState),
+  ))
     for (const hostname of deploymentPublicHostnames(app.config)) {
       if (!hostnames.has(hostname)) continue;
       const owner = desired.get(hostname);
@@ -185,8 +189,7 @@ async function reconcileDomainClaim(
   if (!environmentId) return;
   if (
     target &&
-    target.sourceEnvironmentId !== environmentId &&
-    (claim?.activeAppId || current.length)
+    hasDifferentEnvironmentOwner(target, environmentId, claim, current)
   )
     throw conflict(
       `Domain '${hostname}' is still served by another environment. Release it there before assigning it here.`,
@@ -201,7 +204,7 @@ async function reconcileDomainClaim(
       current,
       last,
     });
-  if (claim.desiredAppId !== (target?.id ?? null)) {
+  if (domainClaimNeedsUpdate(claim, target)) {
     await requireReservationFinished(database, claim);
     await database
       .update(domainClaims)
@@ -230,7 +233,9 @@ function canRetireAmbiguousOwners(
   owners: Array<{ appId: string }>,
 ) {
   const archived = new Set(
-    input.instances.filter((app) => app.archivedAt).map((app) => app.id),
+    input.instances
+      .filter((app) => app.archivedAt || app.manifestState === "retired")
+      .map((app) => app.id),
   );
   return !input.target && owners.every((owner) => archived.has(owner.appId));
 }
@@ -524,4 +529,26 @@ export async function resolveDeploymentDomainContext(deploymentId: string) {
     });
   }
   return { domainHandoffs, domainHandoffServers };
+}
+
+function hasDifferentEnvironmentOwner(
+  target: typeof apps.$inferSelect,
+  environmentId: string,
+  claim: typeof domainClaims.$inferSelect | undefined,
+  current: Array<{ appId: string }>,
+) {
+  return (
+    target.sourceEnvironmentId !== environmentId &&
+    (Boolean(claim?.activeAppId && claim.activeAppId !== target.id) ||
+      current.some((release) => release.appId !== target.id))
+  );
+}
+function domainClaimNeedsUpdate(
+  claim: typeof domainClaims.$inferSelect,
+  target: typeof apps.$inferSelect | undefined,
+) {
+  return (
+    claim.desiredAppId !== (target?.id ?? null) ||
+    Boolean(target && claim.sourceEnvironmentId !== target.sourceEnvironmentId)
+  );
 }

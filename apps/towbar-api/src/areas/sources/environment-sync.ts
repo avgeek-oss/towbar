@@ -1,19 +1,15 @@
 import {
   assertNoRunningCleanup,
   dispatchServerCleanups,
-  recordSyncCleanups,
 } from "../resource-operations/server-cleanup.js";
 import { actorAllows } from "@workspace/towbar-access";
-import { authorizeQueuedEffect } from "../auth/actor-context.js";
+import { authorizeQueuedEffect, withActor } from "../auth/actor-context.js";
 import { and, eq, isNull, ne } from "drizzle-orm";
 import {
   ManifestValidationError,
-  deploymentPublicHostnames,
-  reconcileManifest,
   resolveRepositoryEnvironment,
 } from "@workspace/towbar-core";
 import {
-  apps,
   servers,
   sourceEnvironments,
   sourceSyncs,
@@ -22,19 +18,12 @@ import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import type { fetchGitHubEnvironmentSnapshot } from "../github/environment-snapshot.js";
 import { fetchGitHubRepositoryTree } from "../github/client.js";
-import {
-  lockDomainClaims,
-  synchronizeDomainClaims,
-} from "../deployments/domain-claims.js";
-import { materializeEnvironment } from "./environment-materialization.js";
+import { lockDomainClaims } from "../deployments/domain-claims.js";
+import { reconcileRepositoryManifests } from "../manifest-lifecycle/reconcile.js";
 import { sourceRepository } from "./environments.js";
 import { fetchRepositoryEnvironmentSnapshot } from "./repository-provider.js";
 
-import type {
-  NormalizedApp,
-  NormalizedResource,
-  RepositoryTree,
-} from "@workspace/towbar-core";
+import type { RepositoryTree } from "@workspace/towbar-core";
 
 export async function executeEnvironmentSync(
   syncId: string,
@@ -158,32 +147,6 @@ export async function executeEnvironmentSync(
           );
         }
       }
-      const current = await transaction
-        .select()
-        .from(apps)
-        .where(eq(apps.sourceEnvironmentId, environment.id));
-      for (const kind of ["app", "compose", "resource"] as const) {
-        const hasExisting = current.some((entity) =>
-          kind === "app"
-            ? entity.kind === "app"
-            : kind === "compose"
-              ? entity.kind === "compose"
-              : entity.kind !== "app" && entity.kind !== "compose",
-        );
-        const directory =
-          kind === "resource" ? ".towbar/datastores" : ".towbar/services";
-        if (hasExisting && !snapshot.directories.includes(directory)) {
-          throw conflict(
-            `${directory} is missing; existing configuration was preserved`,
-            "ENTITY_DIRECTORY_MISSING",
-          );
-        }
-      }
-      const desired = [
-        ...resolved.manifest.apps,
-        ...(resolved.manifest.compose ?? []),
-        ...(resolved.manifest.resources ?? []),
-      ];
       // Sync updates inventory only. Server restoration is a separate admin action.
       const workspaceServers = await transaction
         .select()
@@ -199,61 +162,19 @@ export async function executeEnvironmentSync(
       const serverByIp = new Map(
         workspaceServers.map((server) => [server.canonicalIp, server]),
       );
-      const claimedDomains = new Set(
-        desired.flatMap((entity) => deploymentPublicHostnames(entity)),
+      const { reconciliation, issues } = await withActor(actor, () =>
+        reconcileRepositoryManifests(transaction, {
+          workspaceId,
+          allowAutomaticDeployment: actorAllows(actor, ["deployment.create"]),
+          scheduleAutomaticDeployment: sync.deployAfterSync,
+          environment,
+          manifest: resolved.manifest,
+          paths: resolved.manifestPaths,
+          commitSha: snapshot.commitSha,
+          tree,
+          serverByIp,
+        }),
       );
-      const otherInstances = await transaction
-        .select({ config: apps.config })
-        .from(apps)
-        .where(
-          and(
-            eq(apps.workspaceId, workspaceId),
-            ne(apps.sourceEnvironmentId, environment.id),
-            isNull(apps.archivedAt),
-          ),
-        );
-      for (const other of otherInstances) {
-        for (const domain of deploymentPublicHostnames(other.config)) {
-          if (claimedDomains.has(domain))
-            throw conflict(
-              `Domain '${domain}' is already assigned to another environment`,
-              "DOMAIN_CONFLICT",
-            );
-        }
-      }
-      const materialized = current.map((row) => ({
-        ...row,
-        identity: row.manifestId,
-      }));
-      const reconciliation = reconcileManifest({
-        currentApps: materialized
-          .filter((row) => row.kind === "app")
-          .map((row) => ({ ...row, config: row.config as NormalizedApp })),
-        currentCompose: materialized
-          .filter((row) => row.kind === "compose")
-          .map((row) => ({
-            ...row,
-            config:
-              row.config as import("@workspace/towbar-core").NormalizedComposeWorkload,
-          })),
-        currentResources: materialized
-          .filter((row) => row.kind !== "app" && row.kind !== "compose")
-          .map((row) => ({ ...row, config: row.config as NormalizedResource })),
-        desired: resolved.manifest,
-      });
-      await materializeEnvironment(transaction, {
-        reconciliation,
-        sourceId: source.id,
-        environment,
-        workspaceId,
-        commitSha: snapshot.commitSha,
-        tree,
-        serverByIp,
-        requiredSecrets: resolved.manifest.requiredSecrets,
-      });
-      await synchronizeDomainClaims(transaction, workspaceId, {
-        sourceEnvironmentId: environment.id,
-      });
       const [completed] = await transaction
         .update(sourceSyncs)
         .set({
@@ -267,7 +188,7 @@ export async function executeEnvironmentSync(
             files: snapshot.files,
           }),
           reconciliation,
-          issues: [],
+          issues,
         })
         .where(eq(sourceSyncs.id, sync.id))
         .returning();
@@ -284,22 +205,6 @@ export async function executeEnvironmentSync(
           updatedAt: new Date(),
         })
         .where(eq(sourceEnvironments.id, environment.id));
-      await recordSyncCleanups(transaction, {
-        workspaceId,
-        syncId: sync.id,
-        removedIds: [
-          ...reconciliation.apps,
-          ...reconciliation.compose,
-          ...reconciliation.resources,
-        ]
-          .filter(
-            (action) =>
-              action.action === "archive" &&
-              action.current &&
-              !action.current.archivedAt,
-          )
-          .map((action) => action.current!.id),
-      });
       return completed;
     });
     await (dependencies?.dispatchCleanup ?? dispatchServerCleanups)();

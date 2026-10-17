@@ -14,6 +14,8 @@ const categoryByRoot: Record<string, string> = {
   logs: "Workspace",
   observability: "Workspace",
   sources: "Repositories",
+  "manifest-lifecycle": "Repositories",
+  retirements: "Repositories",
   apps: "Services",
   resources: "Datastores",
   servers: "Servers",
@@ -78,6 +80,8 @@ const rules: Record<string, Array<[string, RegExp]>> = {
       /^\/monitoring\/(entities|alerts|incidents|vulnerabilities)$/,
     ],
   ],
+  "manifest-lifecycle": [["Lifecycle", /^\/manifest-lifecycle$/]],
+  retirements: [["Lifecycle", /^\/retirements\//]],
   sources: [
     ["Environments", /\/environments(?:\/|$)/],
     ["Sync & manifest", /^\/sources\/(discover|connect)$/],

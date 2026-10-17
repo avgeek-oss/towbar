@@ -14,6 +14,7 @@ export async function getInstanceEnvironment(
 ) {
   const [environment] = await database
     .select({
+      manifestState: apps.manifestState,
       id: sourceEnvironments.id,
       name: sourceEnvironments.name,
       previewsEnabled: sourceEnvironments.previewsEnabled,

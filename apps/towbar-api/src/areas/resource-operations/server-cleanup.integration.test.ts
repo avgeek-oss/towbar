@@ -21,7 +21,7 @@ import { seedEnvironmentTeam } from "../sources/environment-server-tests.js";
 
 const url = process.env.TOWBAR_TEST_DATABASE_URL;
 void test(
-  "sync removal and durable server cleanup preserve ownership until retirement",
+  "explicit retirement cleanup preserves ownership, scope and history",
   { skip: !url, timeout: 90_000 },
   async (t) => {
     assert(url && new URL(url).pathname.endsWith("_test"));
@@ -44,12 +44,6 @@ void test(
     const { finishResourceOperation } = await import("./completion.js");
     const { getOperationExecutionContext } = await import("./execution.js");
     const { listServerCleanups } = await import("./server-cleanup.js");
-    const {
-      lockDomainClaims,
-      synchronizeDomainClaims,
-      reserveDeploymentDomains,
-      deploymentDomainHandoffs,
-    } = await import("../deployments/domain-claims.js");
     const db = getTowbarDatabase();
     const workspaceId = randomUUID(),
       sourceId = randomUUID(),
@@ -258,94 +252,81 @@ void test(
         );
       },
     );
+
     await t.test(
-      "all removed owners commit and produce one attempt per associated server",
+      "removing manifests retains every runtime and never queues cleanup",
+      async () => {
+        desired = [];
+        await sync();
+        const retained = await db
+          .select()
+          .from(apps)
+          .where(eq(apps.sourceId, sourceId));
+        assert(
+          retained.every(
+            (app) => app.manifestState === "retired" && !app.archivedAt,
+          ),
+        );
+        assert.equal((await jobs()).length, 0);
+        const plan = await getCleanupExpected(first.id);
+        assert(plan.protectedDeployableIds?.includes(one.id));
+        assert(plan.protectedDeployableIds?.includes(two.id));
+        assert.equal(plan.retiring?.length, 0);
+      },
+    );
+    const { removeRetiredWorkload } =
+      await import("../manifest-lifecycle/removal.js");
+    async function remove(appId: string) {
+      const [app] = await db.select().from(apps).where(eq(apps.id, appId));
+      assert(app);
+      return withActor(actor, () =>
+        removeRetiredWorkload(
+          {
+            workspaceId,
+            workloadId: app.id,
+            expectedRevision: app.updatedAt.toISOString(),
+            confirmManifestId: app.manifestId,
+            reason: "Explicit fixture retirement",
+            idempotencyKey: randomUUID(),
+            requestedBy: userId,
+          },
+          () => Promise.resolve(0),
+        ),
+      );
+    }
+    await t.test(
+      "permanent removal requires all associated servers and queues only approved workload IDs",
       async () => {
         await db
           .update(servers)
           .set({ archivedAt: new Date() })
           .where(eq(servers.id, builder.id));
-        desired = [];
-        const completed = await sync();
-        assert(completed);
-        const attempts = await jobs();
-        assert.equal(attempts.length, 3);
-        const unavailable = attempts.find(
-          (attempt) => attempt.serverId === builder.id,
-        );
-        assert.equal(unavailable?.state, "failed");
-        assert.equal(unavailable?.errorCode, "SERVER_UNAVAILABLE");
-        assert.deepEqual(
-          new Set(attempts.map((operation) => operation.serverId)),
-          new Set([first.id, second.id, builder.id]),
-        );
-        assert(
-          attempts.every(
-            (operation) =>
-              operation.request.type === "cleanup_orphans" &&
-              operation.request.trigger === "sync",
-          ),
-        );
-        await executeEnvironmentSync(completed.id, workspaceId, dependencies);
-        assert.equal(
-          (await jobs()).length,
-          3,
-          "sync replay does not duplicate attempts",
-        );
-        assert.equal(
-          (
-            await db
-              .select()
-              .from(domainClaims)
-              .where(eq(domainClaims.workspaceId, workspaceId))
-          ).length,
-          0,
-          "does not invent an owner",
-        );
-      },
-    );
-    await t.test(
-      "hostname reuse remains blocked while retained routes have not been retired",
-      async () => {
-        desired = ["replacement"];
-        assigned = "replacement";
-        await assert.rejects(sync(), /multiple deployed owners/);
-        assert.equal((await jobs()).length, 3);
-      },
-    );
-    await t.test(
-      "re-added workloads and pending deployments are protected by a fresh plan",
-      async () => {
+        await assert.rejects(remove(one.id), /Register all servers/);
+        assert.equal((await jobs()).length, 0);
         await db
-          .update(apps)
+          .update(servers)
           .set({ archivedAt: null })
-          .where(eq(apps.id, one.id));
-        let plan = await getCleanupExpected(first.id);
-        assert(!plan.retiring?.some((app) => app.deployableId === one.id));
-        assert(
-          plan.imageTags.length >= 2,
-          "retained artifacts on every associated server are protected",
+          .where(eq(servers.id, builder.id));
+        const firstRemoval = await remove(one.id);
+        assert.equal(firstRemoval.operations.length, 3);
+        assert.equal((await getCleanupExpected(first.id)).retiring?.length, 0);
+        assert.deepEqual(
+          (await getCleanupExpected(first.id, db, one.id)).retiring?.map(
+            (app) => app.deployableId,
+          ),
+          [one.id],
         );
-        await db
-          .update(apps)
-          .set({ archivedAt: new Date() })
-          .where(eq(apps.id, one.id));
-        const pending = await seedRelease(two, first, "pending.example.com");
-        await db
-          .update(deployments)
-          .set({ state: "building" })
-          .where(eq(deployments.id, pending.id));
-        plan = await getCleanupExpected(first.id);
-        assert(plan.protectedDeployableIds?.includes(two.id));
-        assert(!plan.retiring?.some((app) => app.deployableId === two.id));
-        await db
-          .update(deployments)
-          .set({ state: "failed" })
-          .where(eq(deployments.id, pending.id));
+        assert(
+          (
+            await getCleanupExpected(first.id, db, one.id)
+          ).protectedDeployableIds?.includes(two.id),
+        );
+        await remove(two.id);
+        assert.equal((await jobs()).length, 4);
       },
     );
     await t.test(
-      "running cleanup locks sync; completion retains history and permits domain reuse",
+      "cleanup serializes sync, preserves history, and records partial failures idempotently",
       async () => {
         await db.insert(domainClaims).values({
           workspaceId,
@@ -354,11 +335,14 @@ void test(
           releasedAppId: one.id,
           activeDeploymentId: built.id,
         });
-        const attempts = await jobs();
-        for (const attempt of attempts) {
-          if (attempt.state === "failed") continue;
+        for (const attempt of await jobs()) {
           const context = await getOperationExecutionContext(attempt.id);
-          assert(context.cleanupExpected.retiring?.length);
+          assert.equal(context.cleanupExpected.retiring?.length, 1);
+          assert(attempt.request.type === "cleanup_orphans");
+          assert.equal(
+            context.cleanupExpected.retiring?.[0]?.deployableId,
+            attempt.request.retirementId,
+          );
           await assert.rejects(sync(), /cleanup is running/);
           const result = {
             cleaned: [],
@@ -377,26 +361,20 @@ void test(
           const completed = await finishResourceOperation(attempt.id, {
             state: "failed",
             errorCode: "CLEANUP_PARTIAL",
-            errorMessage: "Injected unrelated image failure",
+            errorMessage: "Unrelated image failure",
             result,
           });
-          assert.equal(completed.state, "failed");
-          assert.deepEqual(completed.result, result);
           const replay = await finishResourceOperation(attempt.id, {
             state: "succeeded",
             result,
           });
-          assert.equal(
-            replay.state,
-            "failed",
-            "terminal callbacks cannot rewrite history",
-          );
+          assert.equal(replay.state, "failed");
           assert.equal(
             replay.finishedAt?.getTime(),
             completed.finishedAt?.getTime(),
           );
         }
-        const [released] = await db
+        const [claim] = await db
           .select()
           .from(domainClaims)
           .where(
@@ -405,9 +383,7 @@ void test(
               eq(domainClaims.hostname, "released.example.com"),
             ),
           );
-        assert(
-          released && !released.releasedAppId && !released.activeDeploymentId,
-        );
+        assert(claim && !claim.releasedAppId && !claim.activeDeploymentId);
         assert(
           (await db.select().from(releases))
             .filter((release) => [one.id, two.id].includes(release.appId))
@@ -419,116 +395,29 @@ void test(
               .select()
               .from(deployments)
               .where(eq(deployments.workspaceId, workspaceId))
-          ).length >= 4,
+          ).length === 3,
         );
-        await sync();
-        const [claim] = await db
-          .select()
-          .from(domainClaims)
-          .where(
-            and(
-              eq(domainClaims.workspaceId, workspaceId),
-              eq(domainClaims.hostname, hostname),
-            ),
-          );
-        assert(claim?.desiredAppId && !claim.activeAppId);
-      },
-    );
-    await t.test(
-      "single-owner removal and replacement retain explicit handoff protection",
-      async () => {
-        const [replacement] = await db
+        const [retained] = await db
           .select()
           .from(apps)
-          .where(
-            and(
-              eq(apps.sourceId, sourceId),
-              eq(apps.manifestId, "replacement"),
-            ),
-          );
-        assert(replacement);
-        const previous = await seedRelease(replacement);
-        await db
-          .update(domainClaims)
-          .set({ activeAppId: replacement.id, activeDeploymentId: previous.id })
-          .where(eq(domainClaims.workspaceId, workspaceId));
-        desired = ["successor"];
-        assigned = "successor";
-        await sync();
-        const plan = await getCleanupExpected(first.id);
-        assert(plan.protectedDeployableIds?.includes(replacement.id));
-        const [successor] = await db
-          .select()
-          .from(apps)
-          .where(
-            and(eq(apps.sourceId, sourceId), eq(apps.manifestId, "successor")),
-          );
-        assert(successor);
-        const next = await seedRelease(successor);
-        await db.delete(releases).where(eq(releases.deploymentId, next.id));
-        await db.transaction(async (transaction) => {
-          await lockDomainClaims(transaction, workspaceId);
-          await reserveDeploymentDomains(transaction, next);
-          const handoffs = await deploymentDomainHandoffs(transaction, next);
-          assert.equal(handoffs[0]?.previousAppId, replacement.id);
-        });
-      },
-    );
-    await t.test(
-      "history is paginated without dropping failed or old attempts",
-      async () => {
-        const page = await listServerCleanups({
+          .where(eq(apps.id, one.id));
+        assert.equal(retained?.manifestState, "removing");
+        const firstPage = await listServerCleanups({
           serverId: first.id,
           workspaceId,
           page: 1,
           limit: 1,
         });
-        assert(page.pagination.total >= 2);
-        const next = await listServerCleanups({
+        const nextPage = await listServerCleanups({
           serverId: first.id,
           workspaceId,
           page: 2,
           limit: 1,
         });
-        assert.notEqual(page.operations[0]?.id, next.operations[0]?.id);
-        await db.transaction(async (transaction) => {
-          await lockDomainClaims(transaction, workspaceId);
-          await synchronizeDomainClaims(transaction, workspaceId, {
-            sourceEnvironmentId: environment.id,
-          });
-        });
-      },
-    );
-    await t.test(
-      "an actual sync re-add protects the stable workload identity before queued cleanup",
-      async () => {
-        desired = ["successor", "returning"];
-        await sync();
-        const [before] = await db
-          .select()
-          .from(apps)
-          .where(
-            and(eq(apps.sourceId, sourceId), eq(apps.manifestId, "returning")),
-          );
-        assert(before);
-        desired = ["successor"];
-        await sync();
-        assert(
-          (await getCleanupExpected(first.id)).retiring?.some(
-            (app) => app.deployableId === before.id,
-          ),
-        );
-        desired = ["successor", "returning"];
-        await sync();
-        const [after] = await db
-          .select()
-          .from(apps)
-          .where(eq(apps.id, before.id));
-        assert(after && !after.archivedAt);
-        assert(
-          !(await getCleanupExpected(first.id)).retiring?.some(
-            (app) => app.deployableId === before.id,
-          ),
+        assert(firstPage.pagination.total >= 2);
+        assert.notEqual(
+          firstPage.operations[0]?.id,
+          nextPage.operations[0]?.id,
         );
       },
     );

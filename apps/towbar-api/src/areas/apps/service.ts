@@ -1,3 +1,4 @@
+import { assertManifestManaged } from "../manifest-lifecycle/guards.js";
 import { assertNoRunningCleanup } from "../resource-operations/server-cleanup.js";
 import {
   lockDomainClaims,
@@ -165,6 +166,7 @@ export async function requestAppDeployment(input: {
     admission = await database.transaction(async (transaction) => {
       await lockDomainClaims(transaction, request.workspaceId);
       await assertNoRunningCleanup(transaction, request.workspaceId);
+      await assertManifestManaged(transaction, target.id);
       await lockDeploymentEnvironment(target.environment, transaction);
       const [currentApp] = await transaction
         .select({
@@ -399,6 +401,7 @@ export async function requestAppRollback(input: {
     deployment = await getTowbarDatabase().transaction(async (transaction) => {
       await lockDomainClaims(transaction, input.workspaceId);
       await assertNoRunningCleanup(transaction, input.workspaceId);
+      await assertManifestManaged(transaction, app.id);
       await lockDeploymentEnvironment(app.environment, transaction);
       const current = await lockRollbackInstance(
         transaction,

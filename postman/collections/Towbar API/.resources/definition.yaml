@@ -27,6 +27,7 @@ variables:
   stage: ""
   syncId: ""
   verificationId: ""
+  workloadId: ""
 auth:
   - id: afdceab3-c7a6-5e57-ad31-7943aa72e378
     type: bearer

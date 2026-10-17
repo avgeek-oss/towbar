@@ -1,3 +1,4 @@
+import { createManifestLifecycleFixture } from "./manifest-lifecycle-fixture.ts";
 import { createServerCleanupFixture } from "./server-cleanup-fixture.ts";
 import packageManifest from "../../../package.json" with { type: "json" };
 import { repositoryUrl } from "@workspace/towbar-core/repository-identity";
@@ -2477,6 +2478,11 @@ export function createFixtureApiServer({
     fixtureSystemHealth,
   );
   const notificationReadAt = new Map<string, string>();
+  const manifestLifecycle = createManifestLifecycleFixture(
+    fixtureIds.source,
+    fixtureIds.secondaryServer,
+    fixtureIds.app,
+  );
   const fixtureServer = createServer(async (request, response) => {
     useFixtureLocalization(response, teamAccess.getPreferences);
     if (!authorizeFixtureCorsRequest(response, request.headers.origin)) return;
@@ -2495,6 +2501,35 @@ export function createFixtureApiServer({
     )
       return;
     if (await teamAccess.handle(request, response, requestUrl)) return;
+    if (path === "/v1/core/manifest-lifecycle" && request.method === "GET") {
+      writeJson(response, 200, manifestLifecycle.list(requestUrl.searchParams));
+      return;
+    }
+    const retirementRemoval = path.match(
+      /^\/v1\/core\/retirements\/([^/]+)\/actions\/remove$/,
+    );
+    if (retirementRemoval && request.method === "POST") {
+      const result = manifestLifecycle.remove(
+        retirementRemoval[1]!,
+        (await readRequestJson(request)) as {
+          confirmManifestId: string;
+          expectedRevision: string;
+          reason: string;
+        },
+        String(request.headers["idempotency-key"] ?? ""),
+      );
+      writeJson(
+        response,
+        result ? 202 : 409,
+        result ?? {
+          error: {
+            message: "The retirement changed. Refresh and confirm again.",
+          },
+        },
+      );
+      return;
+    }
+
     if (
       path === "/v1/core/notifications/read-all" &&
       request.method === "POST"
@@ -6114,6 +6149,7 @@ const allowedFixtureOrigins = new Set([
   "http://[::1]:4021",
   "http://localhost:4021",
   "http://localhost:4036",
+  "http://localhost:4037",
 ]);
 
 function authorizeFixtureCorsRequest(

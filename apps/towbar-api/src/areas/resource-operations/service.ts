@@ -85,7 +85,7 @@ export async function listSourceBackups(sourceId: string, workspaceId: string) {
     .innerJoin(apps, eq(apps.id, resourceOperations.resourceId))
     .where(
       and(
-        eq(resourceOperations.sourceId, sourceId),
+        eq(apps.sourceId, sourceId),
         eq(resourceOperations.workspaceId, workspaceId),
         eq(resourceOperations.type, "backup"),
         eq(resourceOperations.state, "succeeded"),

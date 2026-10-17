@@ -1608,6 +1608,11 @@ export const apps = pgTable(
     deferredAutomaticDeployment: jsonb(
       "deferred_automatic_deployment",
     ).$type<DeferredAutomaticDeployment>(),
+    manifestState: varchar("manifest_state", { length: 16 })
+      .$type<"active" | "conflict" | "retired" | "removing" | "removed">()
+      .default("active")
+      .notNull(),
+    retiredAt: timestamp("retired_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -1642,9 +1647,12 @@ export const apps = pgTable(
       table.workspaceId,
       table.sourceId,
     ),
-    uniqueIndex("uq_towbar_apps_environment_entity").on(
-      table.sourceEnvironmentId,
-      table.entityId,
+    uniqueIndex("uq_towbar_apps_environment_entity")
+      .on(table.sourceEnvironmentId, table.entityId)
+      .where(sql`${table.manifestState} <> 'removed'`),
+    check(
+      "towbar_apps_manifest_state",
+      sql`${table.manifestState} IN ('active','conflict','retired','removing','removed')`,
     ),
     index("idx_towbar_apps_workspace").on(table.workspaceId),
     index("idx_towbar_apps_server").on(table.serverId),
@@ -2482,7 +2490,9 @@ export const managedSecrets = pgTable(
       name: "fk_towbar_secret_apps_owner",
       columns: [table.appId, table.workspaceId, table.sourceId],
       foreignColumns: [apps.id, apps.workspaceId, apps.sourceId],
-    }).onDelete("cascade"),
+    })
+      .onDelete("cascade")
+      .onUpdate("cascade"),
     foreignKey({
       name: "fk_towbar_secret_servers_owner",
       columns: [table.serverId, table.workspaceId],
@@ -3059,4 +3069,37 @@ export const logCollectorRequests = pgTable(
       .defaultNow(),
   },
   (table) => [primaryKey({ columns: [table.workspaceId, table.keyHash] })],
+);
+
+export const repositoryManifests = pgTable(
+  "towbar_repository_manifests",
+  {
+    sourceEnvironmentId: uuid("source_environment_id")
+      .primaryKey()
+      .references(() => sourceEnvironments.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    commitSha: varchar("commit_sha", { length: 64 }).notNull(),
+    manifest: jsonb("manifest")
+      .$type<
+        ReturnType<
+          typeof import("@workspace/towbar-core").resolveRepositoryEnvironment
+        >["manifest"]
+      >()
+      .notNull(),
+    paths: jsonb("paths")
+      .$type<Record<string, string[]>>()
+      .notNull()
+      .default({}),
+    tree: jsonb("tree").$type<
+      import("@workspace/towbar-core").RepositoryTree
+    >(),
+    observedAt: timestamp("observed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_towbar_repository_manifests_workspace").on(table.workspaceId),
+  ],
 );

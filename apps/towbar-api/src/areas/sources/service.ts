@@ -85,6 +85,22 @@ export async function deleteSource(sourceId: string, workspaceId: string) {
       .for("update")
       .limit(1);
     if (!source) throw notFound("Source");
+    const retained = await transaction
+      .select({ id: apps.id })
+      .from(apps)
+      .where(eq(apps.sourceId, sourceId))
+      .limit(1);
+    const provenance = await transaction
+      .select({ id: deployments.id })
+      .from(deployments)
+      .where(eq(deployments.sourceId, sourceId))
+      .limit(1);
+    if (retained.length || provenance.length)
+      throw conflict(
+        "This repository owns workloads or retained history. Disconnect its environments to stop syncing; review missing manifests on the Retirements page.",
+        "SOURCE_HAS_RETAINED_WORKLOADS",
+      );
+
     const [
       activeDeployment,
       activeSync,

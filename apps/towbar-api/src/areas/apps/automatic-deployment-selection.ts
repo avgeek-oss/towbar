@@ -1,6 +1,7 @@
 import type { DeployableKind } from "@workspace/towbar-core";
 
 type AutomaticDeploymentCandidate = {
+  manifestState?: string;
   archivedAt: Date | null;
   config: { autoDeploy?: boolean };
   deploymentDigest: string | null;
@@ -31,6 +32,7 @@ export function selectAutomaticDeploymentCandidates<
       Boolean(candidate.deploymentDigest) &&
       candidate.serverReady &&
       !candidate.archivedAt &&
+      (!candidate.manifestState || candidate.manifestState === "active") &&
       candidate.sourceRevision === input.commitSha &&
       !isCandidateCurrent(
         candidate,

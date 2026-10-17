@@ -7,7 +7,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
 A Repository connects a GitHub repository or GitLab project to Towbar. Its `towbar.yml` declares environments, and files under `.towbar/services` and `.towbar/datastores` define workloads. Each connected environment follows a branch selected in Towbar.
 
-Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), and [delete a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
+Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), [handle conflicts and retirements](/docs/repositories/conflicts-and-retirements), and [delete a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
 
 ## Add a Repository
 
@@ -56,7 +56,7 @@ For example, staging mapped to `develop` accepts eligible PRs targeting `develop
 
 Edit the entity files in Git and merge into the affected environment's mapped branch. A push webhook starts reconciliation; **Sync now** lets you request it explicitly. Review the sync's commit and issues before expecting a deployment.
 
-Rename the display `name` freely, but preserve each workload's `id`. Removing an ID archives that workload. Reintroducing the same ID and kind restores its identity and history.
+Rename the display `name` freely, but preserve each workload's `id`. Removing a manifest marks the workload for retirement and preserves runtime and data. Restoring a compatible declaration with the same ID and environment, including in another repository, reuses its identity and history. Resolve duplicate declarations in Git through the Conflicts page.
 
 ## Control automatic deployment
 

@@ -228,15 +228,19 @@ void test(
         },
       );
       await t.test(
-        "source deletion retains cleanup ownership but removes inventory",
+        "source deletion cannot discard retained workloads or their cleanup ownership",
         async () => {
-          await deleteSource(sourceId, workspaceId);
+          await assert.rejects(
+            deleteSource(sourceId, workspaceId),
+            /retained history|owns workloads/,
+          );
           assert.equal(
-            (await db.select().from(apps).where(eq(apps.id, appId))).length,
-            0,
+            (await db.select().from(apps).where(eq(apps.id, resourceId)))
+              .length,
+            1,
           );
           const expected = await getCleanupExpected(serverId);
-          assert.deepEqual(expected.deployableIds, []);
+          assert.deepEqual(expected.deployableIds, [resourceId]);
           assert.deepEqual(
             expected.ownedDeployableIds.sort(),
             [appId, resourceId].sort(),

@@ -1,5 +1,5 @@
 import { assertAppStorageServer } from "../apps/storage.js";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import {
   type IntegrationProvider,
   type IntegrationPurpose,
@@ -146,17 +146,29 @@ export async function materializeEnvironment(
             ),
           )
       )[0];
-    if (
-      !logicalEntity ||
-      logicalEntity.resourceType !==
-        (entity.kind === "app" || entity.kind === "compose"
-          ? null
-          : entity.kind)
-    ) {
-      throw conflict(
-        `Resource '${entity.id}' cannot change type between environments`,
-        "RESOURCE_TYPE_CHANGED",
-      );
+    if (!logicalEntity) throw new Error("Logical entity was not created");
+    const resourceType =
+      entity.kind === "app" || entity.kind === "compose" ? null : entity.kind;
+    if (logicalEntity.resourceType !== resourceType) {
+      const [retained] = await transaction
+        .select({ id: apps.id })
+        .from(apps)
+        .where(
+          and(
+            eq(apps.entityId, logicalEntity.id),
+            ne(apps.manifestState, "removed"),
+          ),
+        )
+        .limit(1);
+      if (retained)
+        throw conflict(
+          `Resource '${entity.id}' cannot change type while existing instances are retained`,
+          "RESOURCE_TYPE_CHANGED",
+        );
+      await transaction
+        .update(sourceEntities)
+        .set({ resourceType })
+        .where(eq(sourceEntities.id, logicalEntity.id));
     }
     const digest = calculateDesiredDeploymentDigest({
       commitSha: input.commitSha,
@@ -186,6 +198,8 @@ export async function materializeEnvironment(
       sourceRevision: input.commitSha,
       requiredSecrets: declarations,
       archivedAt: null,
+      manifestState: "active" as const,
+      retiredAt: null,
       updatedAt: new Date(),
     };
     const [instance] = action.current

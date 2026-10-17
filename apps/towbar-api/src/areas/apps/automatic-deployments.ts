@@ -308,6 +308,7 @@ async function scheduleEligibleAutomaticDeployments(input: {
   const candidates = await database
     .select({
       appId: apps.id,
+      manifestState: apps.manifestState,
       archivedAt: apps.archivedAt,
       autoDeployPaused: apps.autoDeployPaused,
       config: apps.config,

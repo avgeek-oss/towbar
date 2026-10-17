@@ -32,6 +32,7 @@ export async function requireActiveAutomation(input: {
         eq(apps.id, input.deployableId),
         eq(apps.workspaceId, input.workspaceId),
         isNull(apps.archivedAt),
+        eq(apps.manifestState, "active"),
         eq(sources.status, "active"),
         eq(sources.autoDeployPaused, false),
         eq(sourceEnvironments.autoDeployPaused, false),
