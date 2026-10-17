@@ -5,6 +5,8 @@ import { documentationTopic, headingDocumentation } from "./documentation";
 void test("detail routes keep help scoped to the feature being viewed", () => {
   const cases = [
     ["/", "overview"],
+    ["/conflicts", "conflicts"],
+    ["/retirements", "retirements"],
     ["/repositories/repo/settings/danger", "repositoryRemoval"],
     ["/repositories/repo/syncs/sync/issues", "sync"],
     ["/services/app/deployments/deploy/progress", "progress"],

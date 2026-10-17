@@ -234,11 +234,6 @@ export function ManifestLifecycle({
       icon={tab === "conflicts" ? AlertCircleIcon : Delete02Icon}
     >
       <div className="content-grid">
-        <p className="text-sm text-muted">
-          {tab === "conflicts"
-            ? "Correct manifest conflicts in Git, then sync the affected repositories. Running workloads stay unchanged."
-            : "Removed manifests keep their runtime and data. Restore a compatible declaration in Git to resume management, or explicitly remove the workload here."}
-        </p>
         {query.error ? (
           <QueryError message={query.error} />
         ) : !query.data ? (

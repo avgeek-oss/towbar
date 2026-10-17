@@ -208,6 +208,7 @@ async function clickControl(browser, label, selector = "button,a") {
 }
 
 async function prepareScreenshot(browser, screenshot) {
+  if (screenshot.openDetails) await clickControl(browser, "Details");
   if (screenshot.name === "incident-detail")
     await clickControl(browser, "View Incident");
   if (screenshot.measure === "pageview") {

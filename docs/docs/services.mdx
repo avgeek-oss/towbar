@@ -11,6 +11,8 @@ Towbar keeps the desired configuration in Git. The dashboard shows the effective
 
 One manifest `id` identifies the service across renames and file moves. A Repository sync imports that declaration for each mapped environment, but leaves the currently running release alone. A deployment then builds or resolves an image and promotes it on the environment's server after its checks pass. The service can reach a Datastore on the same private Docker network; its connection credentials live in Towbar secrets rather than Git. A Preview is a separate, temporary instance for an eligible pull request.
 
+See the [workload lifecycle](/docs/repositories/conflicts-and-retirements#service-and-datastore-lifecycle) for repository moves, missing manifests, restore and permanent removal.
+
 <Screenshot
   light="/assets/release-v2/app-overview-light.jpg"
   dark="/assets/release-v2/app-overview-dark.jpg"

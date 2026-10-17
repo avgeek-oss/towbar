@@ -908,10 +908,7 @@
           "height": 2080
         }
       ],
-      "viewport": {
-        "width": 1600,
-        "height": 1040
-      }
+      "viewport": { "width": 1600, "height": 1040 }
     },
     {
       "name": "team-members",
@@ -1088,6 +1085,67 @@
           "height": 1800
         }
       ]
+    },
+    {
+      "name": "manifest-conflicts",
+      "route": "/conflicts",
+      "guides": ["docs/docs/repositories/conflicts-and-retirements.mdx"],
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/manifest-conflicts-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/manifest-conflicts-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
+      ],
+      "capturedAt": "2026-10-17T14:07:26.085Z"
+    },
+    {
+      "name": "manifest-conflict-details",
+      "route": "/conflicts",
+      "guides": ["docs/docs/repositories/conflicts-and-retirements.mdx"],
+      "openDetails": true,
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/manifest-conflict-details-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/manifest-conflict-details-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
+      ],
+      "capturedAt": "2026-10-17T14:07:26.085Z"
+    },
+    {
+      "name": "manifest-retirements",
+      "route": "/retirements",
+      "guides": ["docs/docs/repositories/conflicts-and-retirements.mdx"],
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/manifest-retirements-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/manifest-retirements-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
+      ],
+      "capturedAt": "2026-10-17T14:07:26.085Z"
     }
   ]
 }
