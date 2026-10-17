@@ -3,6 +3,8 @@ title: "Set up log collection"
 description: "Connect ClickHouse, enable the OTEL Logs Collector, and resolve collection failures."
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 Towbar needs an external ClickHouse HTTP endpoint. It installs the pinned OTEL Logs Collector on prepared Ubuntu servers. Use an HTTPS Towbar API origin. Scout Agent is not required.
 
 ## Connect external ClickHouse
@@ -20,7 +22,7 @@ The last grant is optional for ingestion and search. It enables the **Log Storag
 
 Add this section to the root-owned `/etc/towbar/config.yml`:
 
-```yaml /etc/towbar/config.yml
+```yaml title="/etc/towbar/config.yml"
 observability:
   logs:
     retentionDays: 7
@@ -46,6 +48,14 @@ sudo towbar doctor
 1. Configure ClickHouse before [server setup](/docs/servers/setup). **Prerequisites → OTEL Logs Collector** installs and enables it immediately after Caddy.
 2. For an already prepared server, open **Settings → OTEL Logs Collector** and choose **Install & Enable Log Collection**.
 3. Emit a fresh workload log. Confirm **Active**, a recent **Last ingestion**, and results in **Monitor → Logs**.
+
+<Screenshot
+  light="/assets/release-v2/otel-logs-collector-light.jpg"
+  dark="/assets/release-v2/otel-logs-collector-dark.jpg"
+  alt="OTEL Logs Collector settings with its active state, container eligibility, ingestion time, and update and disable actions."
+  width="3200"
+  height="1800"
+/>
 
 Setup skips collection when ClickHouse is absent or the requesting account lacks `server.collectLogs`. It preserves an explicit disable. A configured but unavailable database or failed install stops setup at the collector step.
 

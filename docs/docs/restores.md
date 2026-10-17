@@ -5,15 +5,9 @@ description: "Validate a retained database backup, restore it in isolation, and 
 
 Towbar supports manual restores with validation and rollback protection for manifest-managed PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse datastores. Retained backups may use an enabled AWS S3, Cloudflare R2, generic S3-compatible, or Google Cloud Storage (GCS) runtime integration. Restores are never started automatically.
 
-## Dedicated restore page
+## Choose a backup
 
-Restore workflows are managed on a dedicated page under **Datastore → Settings → Restore** in the secondary sidebar:
-
-- **Restore source card**: Highlights the authoritative storage provider configuration and its exact object location.
-- **Restorable backups table**: Displays all retained backups from the authoritative provider along with their size, engine, format, and restore-assurance status.
-- **Status indicators**: If the authoritative provider is not enabled by the Towbar runtime environment, a warning indicator appears next to **Restore** in the secondary sidebar.
-
-An older backup retains its original provider and object location even after the manifest’s `restoreFrom` changes. Keep that provider enabled in the Towbar runtime environment for as long as you retain the backup.
+Open **Datastore → Settings → Restore**. Inspect the retained recovery point's provider, object location, engine, size, and restore-readiness. Keep its original provider enabled even if newer backups use a different destination.
 
 ## Before a restore
 
@@ -33,9 +27,9 @@ Freshness reports whether the latest scheduled recovery point meets its recovery
 The runtime provider identity needs read access to the declared backup storage:
 
 - **AWS S3, Cloudflare R2, and generic S3-compatible storage**: object read access on the declared bucket and prefix, including the retained object version where supported. AWS KMS backups also need decrypt access to the selected key.
-- **Google Cloud**: `storage.objects.get` on the bucket and prefix, plus Cloud KMS decrypt permissions if CMEK is enabled.
+- **Google Cloud**: `storage.objects.get` on the bucket and prefix. For CMEK, the bucket's Cloud Storage service agent also needs access to the encryption key; see [Google Cloud setup](/docs/integrations/gcp).
 
-The target Server must be prepared, have a healthy current Datastore release, use one Towbar-owned database volume, and have free Docker storage of at least three times the backup size (with a 1 GiB minimum).
+The target server must be prepared, have a healthy current datastore release, use one Towbar-owned database volume, and have free Docker storage of at least three times the backup size (with a 1 GiB minimum). Datastores with `container.configFiles` or an entrypoint override need engine-native recovery; managed restore rejects these configurations.
 
 <div className="towbar-doc-screenshot">
 <div className="towbar-product-light"><img src="/assets/release-v2/restore-source-light.jpg" alt="A restorable backup still needs configured provider credentials before Restore is available." width="3200" height="1800" loading="lazy" /></div>
@@ -45,13 +39,22 @@ The target Server must be prepared, have a healthy current Datastore release, us
 
 ## Restore flow
 
+```mermaid
+flowchart TD
+  Request[Confirm backup, datastore name, and reason] --> Candidate[Download, verify, and restore isolated candidate]
+  Candidate -->|Validation passes| Promote[Promote candidate volume]
+  Candidate -->|Failure or cancellation| Retain[Keep current runtime and volume]
+  Promote -->|Healthy| Success[Use restored data; retain previous volume]
+  Promote -->|Unhealthy| Rollback[Restore previous volume and runtime]
+```
+
 1. Open **Datastore → Settings → Restore**.
 2. Select a restore-ready retained backup from the table and choose **Restore**.
 3. In the confirmation dialog, enter an operator reason (at least 10 characters) and type the Datastore name exactly.
 4. Towbar serializes the restore operation with active deployments, backups, cleanups, and other work on the target Server.
 5. Towbar downloads the backup object from the authoritative provider, verifies checksum and version metadata, creates an isolated candidate volume and container, restores the archive, and validates database readability and health.
 6. Only after validation does Towbar atomically switch the stable active-volume pointer and recreate the managed runtime.
-7. If promotion health fails, Towbar immediately switches back to the previous volume and reports **Rolled back**. It never deletes that previous volume during promotion.
+7. If promotion health fails, Towbar attempts to switch back to the previous volume and reports **Rolled back** when recovery succeeds. If that rollback also fails, the operation reports the failure and requires operator intervention. Towbar never deletes the previous volume during promotion.
 
 Cancellation is available while work is queued, downloading, verifying, or restoring the candidate. Once volume promotion starts, Towbar must complete promotion or rollback, and the operation cannot be cancelled.
 

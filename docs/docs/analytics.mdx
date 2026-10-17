@@ -16,7 +16,7 @@ analytics:
   enabled: true
 ```
 
-Open **Services → your service → Analytics** and select **HTTP requests**. Visit the service; data usually appears within a minute. You can see request counts, errors, response times, and the most requested paths.
+Open **Services → your service → Analytics** and select **HTTP analytics**. Visit the service; data usually appears within a minute. You can see request counts, errors, response times, and the most requested paths.
 
 Requests include API calls, images, scripts, and bots, so request counts do not tell you how many people visited. Analytics is available for single-container services with a public primary domain.
 
@@ -45,7 +45,7 @@ Put this script once in your site’s shared page template:
 <script defer src="/.well-known/towbar-analytics/script.js"></script>
 ```
 
-Select **Pageviews** in Analytics. The script counts the first page and navigation within your site, including single-page applications. It is served from your own service domain. It also measures time spent while a page is visible and clicks to other websites. It does not measure conversions or scroll depth. Blocked scripts and disabled JavaScript reduce the count.
+Select **Web analytics** in Analytics. The script counts the first page and navigation within your site, including single-page applications. It is served from your own service domain. It also measures time spent while a page is visible and clicks to other websites. It does not measure conversions or scroll depth. Blocked scripts and disabled JavaScript reduce the count.
 
 <Screenshot
   light="/assets/release-v2/analytics-pageviews-light.jpg"
@@ -89,9 +89,9 @@ With the same pageview script, Analytics also shows:
 - **Exit pages:** the last page viewed in a finished visit. This also requires visitor estimates. Towbar cannot tell whether someone closed a tab, typed a new address, or opened another app.
 - **Outbound websites:** websites whose links visitors clicked. Only the destination hostname is stored. This includes links opened in a new tab; a click does not prove that the destination loaded or that the visitor left your site.
 
-Update Scout Agent to version 1.2.0 or later to collect viewing time, ordered exit pages, and outbound clicks. Keep the same script URL; no template change is needed. Older pageviews remain in the totals but cannot supply viewing time or a reliable final page when several pages arrived in the same batch. Exit pages use visits with the new page timestamps. If no new viewing-time records or finished visits are available, the metric shows a dash.
+Update Scout before enabling these measurements. Older records cannot supply missing viewing time or page-order information. Unavailable measurements appear as a dash.
 
-Filters select matching pages and visits. Bounce rate counts all pages in each matching visit so a visit with several pages does not become a bounce when a path filter matches just one. Visits that started before the selected range are excluded from bounce rate and exits. Exit page rows must also match the filters.
+Bounce rate counts all pages in each matching visit, even when a path filter matches only one page. Visits that began before the selected range are excluded from bounce and exit calculations.
 
 <Screenshot
   light="/assets/release-v2/analytics-exits-light.jpg"
@@ -104,15 +104,21 @@ Filters select matching pages and visits. Bounce rate counts all pages in each m
 
 ## Filter analytics
 
-Select **Filters** beside the Analytics title. Choose **Path**, then **is** for an exact path or **starts with** for a prefix, enter the path, and select **Apply**. The button shows the number of active filters. Path and referring website filters stay active when switching measures or changing the time range. Filters specific to one measure are cleared when switching to the other. Web analytics appears first and is selected by default whenever you open Analytics. Choose HTTP analytics in the Measure dropdown to view request data. Use **Clear filters** in the modal to reset them. You can also hover a row in **Paths** and select its filter icon to add an exact-path condition immediately. A row covered by an exact-path or prefix filter shows a red remove-filter icon on hover. Select it to remove the matching path conditions while keeping other filters active.
+Choose **Filters**, add conditions, and select **Apply**. All conditions must match. Filters affect totals, charts, breakdowns, and the previous-period comparison.
 
-HTTP analytics supports response codes, methods, referring websites, and response time ranges. Web analytics supports countries, cities, referring websites, browsers, devices, and outbound websites. Both measures also support paths. These dropdowns let you select multiple values; selected values have a tick beside them. Search cities by city, region, or country code. Breakdown widgets show the top 10 matching items initially. Show More in a widget’s footer expands it to at most 25 items, and Show Less collapses it again. Percentages use all matching activity, and filters can still select values outside the displayed items.
+| Measure       | Filters                                              |
+| ------------- | ---------------------------------------------------- |
+| Both          | Path and referring website                           |
+| HTTP requests | Status, method, and response-time range              |
+| Pageviews     | Country, city, browser, device, and outbound website |
 
-Response time filters use the recorded histogram ranges, from below 10 ms through above 2.5 seconds. Counts, trends, response codes, and methods include only requests in the selected ranges. When a stored aggregate contains requests in both selected and unselected ranges, its total duration and bytes cannot be split exactly. In that case, the filtered average response time and byte total are unavailable rather than estimated.
+Path filters support an exact match or prefix. `/docs/` matches child paths; `/docs` also matches `/docs-old`. Matches are case-sensitive. Omit query strings and fragments. Switching measures retains shared filters and clears filters specific to the old measure.
 
-An outbound website filter selects pages with a recorded click to that website during the selected period. It works with the page’s temporary ID and does not require persistent visitor identity. Outbound click totals include only the selected destinations. Older pageviews without a temporary page ID cannot be associated with an outbound click.
+Response-time filters select histogram ranges. If a stored aggregate spans selected and unselected ranges, Towbar cannot split its duration or bytes exactly; filtered averages and byte totals are unavailable instead of estimated.
 
-All conditions must match. For example, `/docs` as a prefix includes `/docs`, `/docs/api`, and `/docs-old`; use `/docs/` to match only paths beneath that directory. Matching is case-sensitive and treats `%` and `_` literally. Enter paths without query strings or fragments. Filters scope totals, trends, breakdowns, and the previous period consistently. A previous period with no matching activity is shown as unavailable.
+An outbound filter selects pages with a click to the chosen hostname during the period. It works without persistent visitor identity. Older pageviews without a temporary page ID cannot be associated with a click.
+
+Enable **Compare** to add the previous period of equal length. A comparison is unavailable when it falls outside retention or has no matching activity. Visitor/session estimates count identities per bucket; adding buckets can count a returning browser more than once.
 
 <Screenshot
   light="/assets/release-v2/analytics-filters-light.jpg"
@@ -124,8 +130,6 @@ All conditions must match. For example, `/docs` as a prefix includes `/docs`, `/
 />
 
 ## Technical details
-
-The sections below explain collection limits, privacy, storage, and how to diagnose missing data. They are useful when operating a busy service or reviewing what analytics stores.
 
 ### Settings and troubleshooting
 
@@ -150,11 +154,11 @@ Scout needs free loopback ports 9468 (UDP) and 9469 (TCP). If they are unavailab
 
 ### Browser behavior and identity storage
 
-The script reports the initial page and pathname changes through `pushState`, `replaceState`, and browser back/forward navigation. Changes limited to a query string or fragment do not create another pageview. A page restored from the browser’s back/forward cache counts as a new pageview. The script sends cumulative viewing time every 15 seconds while visible, when the tab becomes hidden, and before a pathname change. A `pagehide` handler covers normal navigation without blocking it. It does not install `unload` or `beforeunload` handlers. Cumulative snapshots use the highest recorded value for each page so retries and repeated visibility events do not add the same time twice. Abrupt browser termination or failed uploads can lose the final interval. This follows the browser’s [page visibility guidance](https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event) and uses small [keepalive requests](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive).
+The script counts the first page and pathname changes, including browser Back/Forward. Query-string or fragment changes alone do not create a pageview. Viewing time stops when the page is hidden; failed final uploads can lose the last interval.
 
-Allow your own origin in your Content Security Policy’s `script-src` and `connect-src`. The script honors Do Not Track and Global Privacy Control. Privacy signals, offline browsers, and failed requests reduce reported pageviews. Public analytics endpoints cannot prove that every event came from a human.
+Allow your own origin in Content Security Policy `script-src` and `connect-src`. The script honors Do Not Track and Global Privacy Control. Privacy signals, blocked scripts, and network failures reduce counts. The public endpoint cannot prove that every event came from a human.
 
-When visitor identity is enabled, cryptographically random visitor IDs expire after 30 days and session IDs expire after 30 minutes without reported visible-page activity. Returning after that interval starts another visit. Scout hashes each ID with the service ID before upload, so stored identities are scoped to one service. Removing `visitorIdentity` stops accepting new identity data; existing history expires with retention. Removing the script stops browser collection.
+With visitor identity enabled, random visitor IDs expire after 30 days and sessions after 30 minutes without visible-page activity. Scout hashes IDs with the service ID before upload. Disabling identity stops new identity collection; existing history follows retention.
 
 ### What each source measures
 
@@ -173,46 +177,39 @@ When visitor identity is enabled, cryptographically random visitor IDs expire af
 
 Referrer paths, queries, and credentials are discarded. Missing referrers are **Unknown**, not proof of a direct visit. Percentiles use the upper bound of the containing latency bucket: 10, 50, 100, 200, 500 ms, 1 and 2.5 seconds, followed by an unbounded bucket over 2.5 seconds. The first bucket is strictly below 10 ms; later bounded buckets include their upper limit. Caddy duration includes proxy handling and response transfer; it is not application CPU time or browser page-load time.
 
-Country and city lookup is available for browser pageviews only. Caddy’s [network log writer](https://caddyserver.com/docs/caddyfile/directives/log#net) falls back to stderr when its socket fails. Including the remote peer or Cloudflare client-IP headers in those records could therefore persist raw addresses in system logs before Scout could discard them. Request analytics removes those fields before logging and does not estimate location. The pageview endpoint passes the address directly to Scout for an in-memory lookup without adding it to the analytics log.
+Browser pageviews use a local IP lookup for approximate location. Request analytics omits location to keep raw addresses out of Caddy logs. Referrers and outbound destinations retain only hostnames, never their paths or credentials.
 
-Pageview location lookup uses the direct connection address for ordinary services. For `cloudflare-dns`, Scout accepts Cloudflare’s client-IP headers only when the connection comes from a published Cloudflare network. For `cloudflare-tunnel`, it accepts those headers only from the running, Towbar-managed tunnel container belonging to that service. The local Docker snapshot must be less than a minute old. Unverified Cloudflare connections, missing headers, private addresses, and addresses belonging to Cloudflare itself are Unknown. Original IPv6 addresses are preferred when Cloudflare uses pseudo IPv4.
-
-Cloudflare network ranges ship with Scout; newly added ranges remain untrusted until an agent update. Other CDNs are not recognized and may appear as the connection’s location. Cloudflare Workers can change the client address, so location estimates are not a security or identity signal. See [Cloudflare’s header behavior](https://developers.cloudflare.com/fundamentals/reference/http-headers/). IP geolocation is approximate; it does not locate an individual.
-
-Cities are approximate IP-based estimates, not a visitor’s precise location. Reports include the region and country to distinguish cities with the same name. Cities missing from the provider, private addresses, and older samples are **Unknown**. Towbar cannot fill in older city data because it never stored those IP addresses. City collection starts after Scout is updated and downloads the city database.
+Scout trusts Cloudflare client-IP headers only for verified Cloudflare connections or the service's Towbar-managed Tunnel. Other CDNs can appear as the connection's location. Missing, private, or unverified addresses are **Unknown**. Location is not an identity or security signal, and old records cannot be enriched because their IP addresses were not retained.
 
 ### Local geolocation database
 
-Scout downloads [DB-IP City Lite](https://db-ip.com/db/download/ip-to-city-lite) over HTTPS on initial startup and stores an MMDB file locally under `/var/lib/towbar-monitoring/geo/`. No visitor IP is sent to DB-IP or Towbar’s control plane. The Countries and Cities headers’ info icons identify DB-IP as the provider and link to this documentation. IP Geolocation is provided by [DB-IP](https://db-ip.com).
+Scout downloads [DB-IP City Lite](https://db-ip.com/db/download/ip-to-city-lite) over HTTPS and stores it under `/var/lib/towbar-monitoring/geo/`. Visitor IPs are used locally and never sent to DB-IP or the Towbar control plane. IP Geolocation is provided by [DB-IP](https://db-ip.com), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
-DB-IP publishes Lite editions monthly under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). A durable Temporal workflow requests a refresh every 24 hours. Agents check the current edition, bound compressed and expanded download sizes, validate MMDB structure and build metadata, reject older editions, and atomically replace the file. An already installed current-month edition needs no download. Failed refreshes retry after an hour and keep the last valid database. Without a valid file, location is Unknown and other analytics continues.
-
-Scout streams the larger city database to disk and uses a memory-mapped file. Its service memory limit is 256 MiB. The download is limited to 128 MiB compressed and 256 MiB expanded. Existing installations keep their country database until the city database passes validation and is installed successfully.
-
-We compared [ip-location-db](https://github.com/sapics/ip-location-db), whose original country datasets publish daily under PDDL but whose documented upstream geofeeds can lack explicit licenses, and [MaxMind GeoLite](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data/), which has additional account and license obligations. DB-IP provides a direct provider download and clear attribution requirement without an account or license key. A daily check does not imply daily source releases.
+Towbar checks for the monthly database edition every day. A failed download keeps the last valid database and retries later. Without a valid file, location is Unknown while other analytics continues.
 
 ### Privacy, reliability, and retention
 
-Caddy removes the request object and response headers before emitting its analytics log. It keeps only the pathname, method, sanitized referrer host, status, duration, byte count, and service identity. Browser requests are validated against the configured service and exact HTTPS Origin. The IP is used transiently for local location lookup and discarded. Scout never uploads raw IP addresses, headers, query strings, fragments, or raw user agents. Outbound links are reduced to a hostname; destination paths, credentials, queries, and fragments are discarded. Each page receives a random, temporary ID for cumulative time measurements. This ID is not stored in the browser and does not link different pages or visits when visitor identity is disabled.
+Caddy discards raw headers, query strings, fragments, and IP addresses from analytics logs. Scout uploads sanitized path and traffic aggregates. Browser IPs are used transiently for local location lookup. Raw user agents are reduced to browser/device categories. Optional identity hashes and aggregates are stored in Towbar's PostgreSQL database.
 
-Caddy sends records over loopback UDP so analytics does not depend on a remote collector being available. This is best-effort observation: UDP loss and Scout downtime cannot be reconstructed. Caddy may emit the same sanitized record to its system log when a network writer fails. Scout accepts at most 1,000 incoming records per second and bounds each pending batch to 512 dimension combinations across the server; new combinations beyond that limit are dropped and reported. Pending records expire after one minute if the performance collector stops producing snapshots. An interrupted process can lose the pending batch. High-volume services with many unique paths or visitor IDs can therefore undercount.
+Collection is best effort. Scout accepts up to 1,000 records per second and 512 dimension combinations per pending batch across a server. High-cardinality paths or visitor IDs can cause undercounting. The retry buffer holds at most 10 MiB or one hour; outages beyond that cannot be reconstructed.
 
-Accepted batches use Scout’s existing bounded, private retry directory: up to 10 MiB for one hour. Uploads use the server’s revocable credential; replayed sample IDs do not duplicate metrics or analytics. The control plane validates current service ownership and manifest opt-in again before storing a batch. Revoking Scout’s credential rejects uploads. Configuration older than two minutes stops local analytics acceptance. Removing analytics from the manifest stops server acceptance immediately after synchronization; redeploy to remove its Caddy routes.
-
-Reports require `scout.read` and are scoped to the authenticated workspace. Data is retained for the manifest’s duration and deleted by daily Temporal maintenance. Shorter retention applies to report queries immediately and to stored rows on the next sweep. Deleting a service cascades its analytics history. Backups follow their own retention policy. Aggregates and optional pseudonymous identity hashes live in Towbar’s PostgreSQL database; no third-party analytics service receives them.
+Reports require `scout.read`. Retention defaults to 30 days and supports 7, 30, or 90 days. Reducing it hides older records immediately and deletes them during maintenance. Increasing retention does not recover deleted history. Removing analytics from Git stops acceptance after sync; redeploy to remove the Caddy collection routes.
 
 ### API
 
-`GET /v1/core/apps/{appId}/analytics?kind=request&days=7` returns request totals, trends, ranked dimensions, and a latency histogram. Reports also include `comparison` totals and an aligned trend for the immediately preceding period of equal length. Comparison is unavailable when that period exceeds configured retention or has no collected samples. Tables describe only the selected period. Use `kind=pageview` for browser analytics. It also returns `bounceRate` as a percentage, `averageTimeMs`, ranked `exitPages` and `outboundLinks`, and their `exits` and `outboundClicks` totals. Request reports return null for the viewing-time and bounce metrics, and empty exit and outbound lists. `days` accepts 1/96–90 and is clamped to service retention. The picker offers 15 minutes (`days=0.010416666666666666`), 1 hour (`days=0.041666666666666664`), 3 hours (`days=0.125`), 12 hours (`days=0.5`), 24 hours, 7 days, 14 days, and longer ranges allowed by retention. Short ranges use minute-level trend buckets. Browser-only response dimensions are absent from request reports, and latency fields are not meaningful for pageviews.
+Use the [analytics endpoint](/api-reference/get_apps_by_id_analytics) with API-key authentication. All paths are relative to `/v1/api`:
 
-Pass an optional `filters` query parameter containing a URL-encoded JSON array of up to eight conditions:
+```bash
+curl "https://YOUR_TOWBAR_API_HOST/v1/api/apps/$APP_ID/analytics?kind=pageview&days=7" \
+  -H "Authorization: Bearer $TOWBAR_API_KEY"
+```
+
+Set `kind=request` for HTTP data or `kind=pageview` for browser data. `days` accepts 15 minutes through 90 days and is limited by the service's retention. Reports include the current and previous periods, ranked dimensions, and applicable metrics.
+
+The optional `filters` parameter is a URL-encoded JSON array of up to eight conditions:
 
 ```json
 [{ "field": "path", "operator": "startsWith", "value": "/docs/" }]
 ```
 
-Each condition has a field, operator, and value. Paths support `equals` and `startsWith` with a string value. All other fields support `in` with an array of up to 20 selected values. `status`, `method`, and `responseTime` require `kind=request`; `country`, `city`, `browser`, `device`, and `destination` require `kind=pageview`. `responseTime` values are the histogram range labels, such as `"<10 ms"` and `"500 ms to 1 s"`. `destination` values are outbound website hostnames. Obtain city values from `GET /v1/core/apps/{appId}/analytics/filter-options?kind=pageview&field=city&days=7`; the response contains an `options` array, with city, region when available, and country code in each value. Conditions use AND, and the response echoes the applied `filters`. Invalid fields, operators, or values return HTTP 400. Each path value is limited to 256 characters. Omitting `filters` returns the unfiltered report.
-
-The collection format follows [Caddy’s structured access log](https://caddyserver.com/docs/caddyfile/directives/log) and [log_append](https://caddyserver.com/docs/caddyfile/directives/log_append). Browser navigation follows the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History/pushState).
-
-Web analytics shows page views, estimated visitors, viewing time, and bounce rate in the summary cards. The Trends chart plots page views, estimated visitors, and estimated sessions per time bucket. Visitor and session estimates count distinct browser identities within each bucket, so adding bucket estimates can count the same identity more than once across a period. These estimates are unavailable when visitor identity is disabled. Both Web and HTTP analytics offer Enable Compare, which is off by default. Enable it to add lighter dashed lines for the corresponding metrics in the immediately preceding period. Tooltips pair each current metric with its previous-period value. Select a legend item to show only that metric and its comparison; select the same item again to restore all three metrics. Only one metric can be selected at a time.
+Use the [filter-options endpoint](/api-reference/get_apps_by_id_analytics_filter_options) for selectable values. The reference defines accepted operators, bounds, and response fields.

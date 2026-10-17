@@ -39,11 +39,11 @@ notifications:
 ## Configure
 
 1. Register and prepare the example server or servers, connect the repository, and map `production` to the branch containing these files.
-2. Configure and test `ops@example.com` as a workspace Email destination. The manifest selects which event categories it receives; it does not configure SMTP delivery.
+2. Configure SMTP and test delivery to `ops@example.com`. This manifest subscribes that address to this workload; the provider credentials belong in Towbar configuration.
 3. Sync the repository, inspect the resolved configuration, deploy manually, and perform the verification below before enabling automation.
 
 ## Verify
 
-The destination is enabled and has a tested delivery route.
+Trigger a test event and inspect delivery history. Confirm the configured destination receives it.
 
 For field constraints, see [Service manifest](/docs/services/manifest).

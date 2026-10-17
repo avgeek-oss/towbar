@@ -13,7 +13,7 @@ Use deployment, container restart, host restart, and hardware change markers to 
 
 ## Host restarts and hardware changes
 
-Scout Agent 1.3.0 reports the Linux boot ID, so a server reboot or cloud stop/start appears as **Host restart**. Restarting the Scout processes does not create a host restart. The first boot observation establishes a baseline; earlier restarts cannot be reconstructed. When the kernel boot timestamp is consistent with the surrounding observations, the marker uses that timestamp. Otherwise it uses the time Scout detected the restart.
+Scout Agent reports the Linux boot ID, so a server reboot or cloud stop/start appears as **Host restart**. Restarting the Scout processes does not create a host restart. The first boot observation establishes a baseline; earlier restarts cannot be reconstructed. When the kernel boot timestamp is consistent with the surrounding observations, the marker uses that timestamp. Otherwise it uses the time Scout detected the restart.
 
 **Machine type changed** shows the previous and new cloud instance types, for example `r8g.medium → r8g.large`. EC2 hosts with instance-type DMI metadata refresh this with each Scout collection. Other supported providers refresh their type through successful server checks. **Capacity changed** records a change in CPU count or total memory when there is no observed machine-type change. Small memory differences from kernel reservations do not produce a capacity marker.
 

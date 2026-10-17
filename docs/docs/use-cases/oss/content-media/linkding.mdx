@@ -7,7 +7,7 @@ import { UseCaseNavigation } from "/snippets/use-case-navigation.jsx";
 
 <UseCaseNavigation />
 
-**Upstream source:** [Current installation guide](https://github.com/sissbruecker/linkding#installation).
+**Upstream source:** [Current installation guide](https://linkding.link/installation/).
 
 linkding uses SQLite by default. Its database and generated signing key live under `/etc/linkding/data`, a mount path Towbar's single-Service manifest does not accept. A named Compose volume preserves both without introducing PostgreSQL.
 
@@ -54,7 +54,7 @@ volumes:
 ## Configure
 
 1. Prepare the example server, connect the repository, and map `production` to the branch containing these files. Replace the example server IP and domain.
-2. Commit every file shown below under `deploy/linkding/`. The Towbar manifest points to the Compose file; it does not create it for you.
+2. Commit the Towbar manifest under `.towbar/services/` and the Compose files under `deploy/linkding/`, using the paths shown above.
 3. Sync the repository and inspect the resolved Compose project. Save the runtime values below if this example declares any.
 4. Save the three runtime values before deploying. The initial administrator variables create a user only if that username does not already exist.
 5. Back up the `data` volume; it holds bookmarks, archived pages, and the signing key.

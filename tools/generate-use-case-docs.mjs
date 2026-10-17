@@ -401,6 +401,8 @@ function serviceFiles(entry) {
       inputs: ["package.json", "pnpm-lock.yaml", "apps/api/**"],
     };
   if (id === 36) {
+    app.domains = { primary: "app.example.com" };
+    app.tls = { mode: "direct" };
     app.preview = {
       enabled: true,
       domain: "preview.example.com",
@@ -596,6 +598,8 @@ function stackFiles(entry) {
     app.tls = { mode: "direct" };
   }
   if (id === 96) {
+    app.domains = { primary: "app.example.com" };
+    app.tls = { mode: "direct" };
     app.preview = {
       enabled: true,
       domain: "preview.example.com",
@@ -660,7 +664,7 @@ function configure(entry, files) {
   if (composeRecipe) {
     const steps = [
       `Prepare the example server, connect the repository, and map \`production\` to the branch containing these files. Replace the example server IP${composeRecipe.private ? "" : " and domain"}.`,
-      `Commit every file shown below under \`deploy/${caseId(entry)}/\`. The Towbar manifest points to the Compose file; it does not create it for you.`,
+      `Commit the Towbar manifest under \`.towbar/services/\` and the Compose files under \`deploy/${caseId(entry)}/\`, using the paths shown above.`,
       "Sync the repository and inspect the resolved Compose project. Save the runtime values below if this example declares any.",
       ...(composeRecipe.steps ?? []),
       "Deploy it manually and run the verification below before enabling auto-deploy.",
@@ -757,7 +761,7 @@ function configure(entry, files) {
     );
   if (entry.id === 39)
     steps.push(
-      "Configure and test `ops@example.com` as a workspace Email destination. The manifest selects which event categories it receives; it does not configure SMTP delivery.",
+      "Configure SMTP and test delivery to `ops@example.com`. This manifest subscribes that address to this workload; the provider credentials belong in Towbar configuration.",
     );
   if ([45, 53, 81, 82, 83, 84, 88, 99].includes(entry.id))
     steps.push(

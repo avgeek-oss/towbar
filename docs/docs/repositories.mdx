@@ -9,19 +9,14 @@ A Repository connects a GitHub repository or GitLab project to Towbar. Its `towb
 
 Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), [handle conflicts and retirements](/docs/repositories/conflicts-and-retirements), and [delete a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
 
-## Add a Repository
+## Connect and sync
 
-1. Configure the [GitHub](/docs/integrations/github) or [GitLab](/docs/integrations/gitlab) integration and grant it access to the repository or project.
-2. Register each target IP address under [Servers](/docs/servers).
-3. Commit a valid [manifest](/docs/deployment-manifest) to the repository.
-4. Open **Repositories → Add repository**, select the repository, then choose or add environments and map their deployment branches.
-5. Open the sync result and confirm it succeeded. The imported services and datastores should now appear under the Repository.
+1. Configure [GitHub](/docs/integrations/github) or [GitLab](/docs/integrations/gitlab) and grant repository access.
+2. Register the target [servers](/docs/servers) and commit a valid [manifest](/docs/deployment-manifest).
+3. Choose **Repositories → Add repository**, select environments, and map their branches.
+4. Inspect the initial sync. A successful sync imports configuration; deployment is a separate action.
 
-Manifest validation is atomic. Invalid configuration or a reference to an unregistered server fails the sync without partially changing inventory.
-
-Search the branch picker by name when mapping an environment. It includes available branches beyond the first page of results.
-
-Towbar suggests environments from the repository default branch when its configuration is available. You can add other environment names directly, even when the default branch has no manifest. Each selected environment is validated against `towbar.yml` on its mapped branch. Environment names must be unique within a Repository; there is no fixed environment-count limit. Server capacity and repository size still constrain what can run.
+Invalid manifests and unregistered server references fail the sync without partially changing inventory. See [Connect a repository](/docs/repositories/connect) for an example.
 
 <Screenshot
   light="/assets/release-v2/repositories-light.jpg"
@@ -34,14 +29,9 @@ Towbar suggests environments from the repository default branch when its configu
 
 ## Map environments to branches
 
-Open **Environments** inside the Repository to see its branch mappings and sync
-status. **Edit branch** changes a mapping in Towbar; branch names do not belong
-in `towbar.yml`. Saving validates and syncs the selected branch without deploying.
-If that branch cannot be read or its configuration is invalid, Towbar preserves
-the last valid configuration and existing secret values.
+Use **Environments → Edit branch** to change the branch for an environment. Branch names belong in Towbar, not `towbar.yml`. Saving syncs that branch without deploying or copying another environment's secrets. An invalid sync preserves the last accepted inventory.
 
-PR previews follow the branch mapped to an environment with previews enabled.
-For example, staging mapped to `develop` accepts eligible PRs targeting `develop`.
+See [Environment branches](/docs/repositories/environments) for overrides and preview targets.
 
 <Screenshot
   light="/assets/release-v2/repository-environments-light.jpg"
@@ -72,4 +62,6 @@ If a repository is missing or a webhook stops arriving, review the relevant [Git
 
 ## Delete a repository
 
-Deleting a repository removes its imported services, datastores, and operational history from Towbar. Running services and Docker data remain on their servers. After deletion, run **Check server** on each affected server and open **Settings → Docker cleanup** to review leftovers and remove them on demand. Volume deletion is a separate, permanent action. See [server cleanup](/docs/servers#clean-up-leftover-workloads).
+Towbar blocks deletion while a repository owns workloads or has retained deployment history. Disconnect its environments to stop syncing. Remove workload manifests in Git, then use **Retirements** for explicit cleanup. To transfer ownership, follow [Move between repositories](/docs/repositories/conflicts-and-retirements#move-between-repositories).
+
+Only an empty repository with no retained history or active operations can be [deleted](/docs/repositories/delete).

@@ -1,83 +1,51 @@
 ---
 title: "Configuration and restart"
-description: "Edit Towbar's YAML configuration, validate changes, and restart only after every preflight succeeds."
+description: "Edit the installation configuration, validate it, and apply changes to the current release."
 ---
 
-Towbar keeps installation and integration configuration in `/etc/towbar/config.yml`, owned by `root:root` with mode `600`. The CLI does not provide an editor or print its contents.
+Towbar keeps runtime configuration at `/etc/towbar/config.yml`, owned by `root:root` with mode `600`. Back up the file in restricted storage before editing it.
 
 ## `towbar config path`
 
-Print the active configuration path. The command accepts no arguments, does not require an installed release, and does not read or reveal the file.
+Print the configuration path without reading or revealing the file:
 
-```bash title="Print the configuration path"
+```bash
 towbar config path
 ```
 
-```text title="Default output"
-/etc/towbar/config.yml
-```
+Use that path with an editor:
 
-Use the result with an editor that can write a root-owned file:
-
-```bash title="Open the YAML file"
+```bash
 sudo nano "$(towbar config path)"
 ```
 
+For supported settings, see [Runtime configuration](/docs/self-hosting/environment-variables).
+
 ## `towbar config validate`
 
-Validate the current configuration without replacing running services.
+Validate the YAML and Compose model, API and worker settings, enabled integrations, notifications, and Caddy configuration:
 
 ```bash
 sudo towbar config validate
 ```
 
-The command accepts no parameters. It requires root, Docker Engine, Compose v2, an installed release, and the current configuration.
-
-Validation covers:
-
-- required installation and database values;
-- the complete Docker Compose model;
-- API and worker environment parsing;
-- runtime integration configuration;
-- notification configuration;
-- the selected local or public gateway service; and
-- Caddy configuration for the current domain and access mode.
-
-A successful validation prints `Towbar: Configuration is valid` and exits with status `0`. A failure prints the specific parser or Compose error and exits nonzero. Running services remain unchanged.
+Validation uses the installed release and leaves running services unchanged. Fix any reported error before restarting.
 
 ## `towbar restart`
 
-Apply a valid YAML change to the current release.
+Apply the validated configuration to the installed release:
 
 ```bash
 sudo towbar restart
+sudo towbar doctor
 ```
 
-The command accepts no parameters. It acquires the installation lock, validates the configuration, performs API, worker, integration, notification, and Caddy preflights, then recreates changed services and waits for health.
+Restart runs preflight checks before replacing services and waits for health afterward. A failed preflight leaves the running services untouched. If startup fails after replacement, inspect `sudo towbar logs api worker` and the doctor results.
 
-If a preflight fails, the CLI prints that running services were not restarted and directs the operator to `sudo towbar doctor`. If containers fail after replacement begins, the command returns nonzero and also directs the operator to diagnostics.
-
-<Steps>
-  <Step title="Back up the current file">
-    Preserve `/etc/towbar/config.yml` in restricted storage before changing
-    production configuration. The file contains credentials and encryption keys.
-  </Step>
-  <Step title="Edit the YAML configuration">
-    ```bash sudo nano "$(towbar config path)" ```
-  </Step>
-  <Step title="Validate without restarting">
-    ```bash sudo towbar config validate ```
-  </Step>
-  <Step title="Apply the validated change">
-    ```bash sudo towbar restart ```
-  </Step>
-  <Step title="Confirm health">```bash sudo towbar doctor ```</Step>
-</Steps>
+Restart reuses installed images. To change versions, use [Install and upgrade](/docs/self-hosting/cli/install-upgrade).
 
 <Warning>
-  Never replace `security.credentialsKey` on an existing installation. Stored
-  credentials are encrypted with that key. A database backup without the
-  matching key cannot recover those records.
+  Keep `security.credentialsKey` unchanged. A database backup needs the matching
+  key to recover encrypted credentials. Editing a database password in YAML does
+  not rotate the password inside an existing PostgreSQL volume.
 </Warning>
-
-Restart reuses the installed release and immutable images. It does not look up a newer release, pull replacement application images, or rebuild Towbar. Use `towbar upgrade` when changing versions.

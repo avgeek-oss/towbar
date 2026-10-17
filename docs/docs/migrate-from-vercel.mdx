@@ -23,51 +23,14 @@ Edge Runtime, Middleware, Incremental Static Regeneration, image optimization,
 or Vercel-specific routing needs a compatibility review and may need code
 changes before it can run in a container.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Towbar runs ordinary containers on servers you control, so applications can
-  use long-lived processes, private networks, local volumes, and custom system
-  packages without fitting a serverless runtime.
-- Workload policy, domains, jobs, resource limits, and environment membership
-  live in Git rather than in project settings spread across a hosted platform.
-- Infrastructure credentials and application secrets remain on the Towbar
-  installation.
-
-#### ⚠️ Cons
-
-- Towbar has no global edge network, serverless autoscaling, framework-aware CDN,
-  managed image optimization, or Vercel collaboration layer.
-- Vercel Functions, Edge Runtime, Middleware, ISR, and platform routing may need
-  application changes before they work in a persistent container.
-- You operate capacity, security updates, host recovery, observability, and the
-  control plane. Towbar previews also do not clone Datastores.
-
-### Vercel
-
-#### ✅ Pros
-
-- Vercel's [Git integration](https://vercel.com/docs/git) provides automatic
-  production and preview deployments, generated URLs, status checks, and a
-  polished review workflow with no server administration.
-- Its framework integrations, edge network, Functions, caching, image pipeline,
-  and frontend observability remove substantial application and infrastructure
-  work.
-- Serverless scaling suits bursty request workloads that would otherwise need
-  capacity planning.
-
-#### ⚠️ Cons
-
-- Platform-specific runtimes, routing, caching, image behavior, and framework
-  features can make a later container migration a code project rather than a
-  configuration change.
-- You accept Vercel's regions, quotas, supported runtimes, platform behavior,
-  and usage pricing instead of controlling the underlying compute.
-- Stateful services come from Blob, Marketplace providers, or external systems,
-  so a complete migration crosses several products and data boundaries.
+| Area           | Vercel                                                                         | Towbar                                                                 |
+| -------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Runtime        | [Functions and framework runtimes](https://vercel.com/docs/functions/runtimes) | Persistent containers or static builds served through Caddy            |
+| Infrastructure | Managed compute, edge routing, and caching                                     | Ubuntu servers you size, patch, and recover                            |
+| Previews       | Automatic Git preview deployments                                              | Opt-in Service previews with separate secrets; no Datastore cloning    |
+| Compatibility  | Platform routing, image optimization, and storage integrations                 | Replace platform dependencies in application code or external services |
 
 ## 1. Decide whether the workload is portable
 
@@ -178,8 +141,10 @@ URLs with explicit application configuration where the code still needs them.
 
 Vercel's Git integration creates production deployments from the production
 branch and preview deployments from other branches and pull requests. Towbar
-previews are opt-in per Service, deploy eligible same-repository pull requests, and
-use separate preview secrets.
+previews are opt-in per Service, deploy eligible same-repository pull or merge requests, and
+use separate preview secrets. Enable previews in the repository environment as well as in the Service manifest.
+
+Merge this fragment into the public Service manifest. It also needs a public domain and TLS configuration; see [Preview environments](/docs/previews).
 
 ```yaml title=".towbar/services/web.service.yml" highlight={2-5}
 id: web

@@ -233,13 +233,9 @@ export const ossRecipes = {
     port: 1880,
     volumes: ["/data"],
     public: false,
-    values: {
-      NODE_RED_CREDENTIAL_SECRET:
-        "Generate a unique key and keep it unchanged for existing encrypted credentials.",
-    },
-    why: "Node-RED stores flows and encrypted credentials in `/data`. The editor has no default login, so this first Service stays private. Add Node-RED admin authentication or an access gateway before assigning a public domain.",
+    why: "Node-RED stores flows, encrypted credentials, and its generated encryption key in `/data`. The editor has no default login, so this first Service stays private. Add Node-RED admin authentication or an access gateway before assigning a public domain.",
     check:
-      "Open the editor from a trusted connection, create a test flow, redeploy, and confirm it still runs. Keep the credential secret and data volume together in backups.",
+      "Open the editor from a trusted connection, create a test flow, redeploy, and confirm it still runs. Back up the whole `/data` volume, including its generated credential key.",
   },
   114: {
     image: "typesense/typesense:28.0",
@@ -362,7 +358,7 @@ export const ossRecipes = {
     },
     why: "MariaDB stores books and users; `/config` holds application files and uploads. Keep the generated `APP_KEY` stable after first deployment.",
     check:
-      "Create a page with an attachment, redeploy, and confirm both are still available.",
+      "Sign in with the upstream initial account and change its password. Create a page with an attachment, redeploy, and confirm both are still available.",
   },
   124: {
     image: "lscr.io/linuxserver/calibre-web:0.6.24",
@@ -373,7 +369,7 @@ export const ossRecipes = {
       "After deployment, transfer an existing Calibre library to the server and use `docker cp` to place the whole library, including `metadata.db`, under `/books` in the running container.",
     ],
     check:
-      "Import a real Calibre library into `/books`, point the first-run form at `/books/metadata.db`, and open a book. An empty volume cannot be used as a library.",
+      "Sign in and change the initial administrator password. Import a real Calibre library into `/books`, point the first-run form at `/books/metadata.db`, and open a book. An empty volume cannot be used as a library.",
   },
   125: {
     image: "photoprism/photoprism:250707",
@@ -383,6 +379,7 @@ export const ossRecipes = {
     values: {
       PHOTOPRISM_ADMIN_PASSWORD:
         "Generate a unique initial administrator password.",
+      PHOTOPRISM_SITE_URL: "https://photoprism.example.com/",
       PHOTOPRISM_DATABASE_DRIVER: "mysql",
       PHOTOPRISM_DATABASE_SERVER: "photoprism-mariadb:3306",
       PHOTOPRISM_DATABASE_NAME: "Same value as MYSQL_DATABASE.",
@@ -510,10 +507,17 @@ export const ossRecipes = {
     image:
       "docker.stirlingpdf.com/stirlingtools/stirling-pdf@sha256:66b6edb8ee62e307a8b335166e8931a6e65b39c9bf73b5e517fbfe9c613ba221",
     port: 8080,
-    volumes: ["/configs"],
-    why: "Stirling PDF stores its settings and embedded database in `/configs`. Current images enable login on first boot with a published default administrator password; change it immediately before using a public route.",
+    volumes: ["/configs", "/storage"],
+    resources: { cpus: 2, memory: "4g" },
+    values: {
+      SECURITY_INITIALLOGIN_USERNAME:
+        "Choose the first administrator username.",
+      SECURITY_INITIALLOGIN_PASSWORD:
+        "Generate a strong first administrator password.",
+    },
+    why: "Stirling PDF keeps its settings, generated keys, and embedded database in `/configs`. `/storage` holds files saved on the server. Set the initial login values before first deployment; they are ignored once users exist.",
     check:
-      "Sign in and change the initial password, process a sample PDF, and verify the account setting remains after redeployment. Back up `/configs`.",
+      "Sign in, process and save a sample PDF, then verify the account and saved file remain after redeployment. Back up both volumes. The standard image needs about 4 GB of memory; OCR and large documents may need more.",
   },
   138: {
     image:

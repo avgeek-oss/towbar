@@ -14,47 +14,14 @@ Render operates the service runtime and managed datastores. Towbar deploys to
 servers you own, so first account for the networking, capacity, backups,
 monitoring, and upgrades that move into your responsibility.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Towbar runs on servers and storage accounts you control, with deployment
-  configuration reviewed as part of the application repository.
-- It keeps immutable deployment inputs, server capacity, Scout monitoring,
-  vulnerability results, and supported database recovery in one history.
-- You can choose infrastructure based on hardware, location, network access, or
-  existing commitments rather than a fixed compute catalog.
-
-#### ⚠️ Cons
-
-- Towbar does not operate the hosts for you or provide Render's managed
-  autoscaling, high-availability data plans, private network, or global platform
-  operations.
-- You must handle security updates, host failures, spare capacity, backup
-  storage, and control-plane recovery.
-- Towbar's supported service and database shapes are narrower than Render's
-  service catalog.
-
-### Render
-
-#### ✅ Pros
-
-- Render has first-class [web, private, worker, cron, workflow, static, and data
-  service types](https://render.com/docs/service-types) on managed infrastructure.
-- Blueprints can declare multi-service systems, and the platform supplies
-  private networking, metrics, logs, scaling, previews, and managed datastores.
-- Teams can operate services without provisioning or patching virtual machines.
-
-#### ⚠️ Cons
-
-- You trade host-level control for Render's compute plans, regions, platform
-  limits, and pricing.
-- Configuration can be split between a Blueprint and dashboard state, so the
-  repository is not always the complete operating record.
-- Attached persistent disks constrain scaling, and managed data or platform
-  services require separate migration procedures when leaving Render.
+| Area                     | Render                                                                        | Towbar                                                |
+| ------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Infrastructure           | [Managed service types](https://render.com/docs/service-types) and data plans | Ubuntu servers you size, patch, and recover           |
+| Configuration            | Blueprints and dashboard settings                                             | Workload declarations and environment mappings in Git |
+| Processes                | Web services, private services, workers, and cron                             | Services and scheduled Service jobs                   |
+| Scaling and availability | Managed scaling and data-plan options                                         | Explicit server capacity; no managed host failover    |
 
 ## 1. Inventory Render
 

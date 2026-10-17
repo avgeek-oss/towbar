@@ -58,9 +58,7 @@ This complete manifest creates a PostgreSQL datastore with daily backups at 03:0
 ```yaml title="towbar.yml" highlight={2-5}
 version: 2
 environments:
-  production:
-    previews:
-      enabled: true
+  production: {}
 ```
 
 ```yaml title=".towbar/datastores/database.datastore.yml" highlight={5-20}
@@ -68,6 +66,9 @@ id: database
 name: Primary database
 type: postgres
 server: 192.0.2.10
+secrets:
+  runtime:
+    - POSTGRES_PASSWORD
 backup:
   schedule:
     cron: 0 3 * * *
@@ -94,18 +95,15 @@ Replace the host and storage values, then save `POSTGRES_PASSWORD` in the Datast
 
 Schedules use five-field UTC cron expressions and cannot run more frequently than hourly. Retention accepts 1–100 backups and defaults to 7. Omitting `schedule` leaves backups manual.
 
-## Backup management UI
+## Run and inspect a backup
 
-In the secondary sidebar under **Datastore → Settings → Backup**, Towbar provides an operational dashboard for your database backups:
+Open **Datastore → Settings → Backup**. Check the provider, destination, credential status, schedule, and retention. Choose **Back up now**, then follow the operation to its final result. Missing provider credentials block execution.
 
-1. **Credentials & health alert**: Displays an immediate warning if a manifest destination is not enabled by the Towbar YAML configuration.
-2. **Provider destination tabs**: Each configured destination (`AWS S3`, `Cloudflare R2`, generic S3-compatible storage, `Google Cloud Storage`) appears with its provider identity and exact object location.
-3. **Provider configuration card**: Inside each tab, view the destination URI, encryption mode, credentials status, backup schedule, and retention limit. The schedule shows cron notation; hover or focus it for a plain-language description.
-4. **Retained backups table**: Positioned directly beneath the configuration card, listing recovery points with creation timestamp, size, engine version, format, and object key.
+The retained backups table shows each recovery point's time, size, engine, format, and storage object. Use these details to select a [restore](/docs/restores).
 
 ## Verify a recovery point
 
-Choose **Back up now** to trigger an immediate backup run. Towbar performs a 3-stage verification pipeline:
+Each backup has three checks:
 
 - **Backup run**: Executes the engine-native export for PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, or ClickHouse inside the owned container and validates the resulting archive.
 - **Saved copy**: Uploads the archive to all configured destinations with SHA-256 checksum metadata.

@@ -52,7 +52,7 @@ Keep the manifest ID, environment name and workload type. Either Git order works
 - Add the destination first: sync it to see a conflict, remove the original declaration, then sync the original repository.
 - Remove the original first: sync it to see a retirement, add the destination declaration, then sync the destination.
 
-Once exactly one compatible declaration remains, Towbar transfers ownership using the existing workload UUID. Secrets, volumes, domains and deployment history stay attached. Historical deployments retain their original repository provenance. The transfer itself does not restart containers; configuration changes follow the destination's existing deployment settings and storage checks.
+Once exactly one compatible declaration remains, Towbar transfers ownership using the existing workload UUID. Secrets, volumes, domains and deployment history stay attached. Historical deployments retain their original repository provenance. The transfer itself does not restart containers; configuration changes follow the destination's existing deployment settings and storage checks. Existing containers retain their old repository labels until the next deployment, so server checks can report ownership-label drift while the workload remains healthy.
 
 The Conflicts page has no resolution actions. Its details show repositories, branches, manifest paths and changed configuration paths. Fix Git, then sync each affected repository. Values are omitted from the diff to avoid exposing credentials embedded in configuration.
 
@@ -138,8 +138,8 @@ flowchart TD
 
 ## REST and MCP
 
-`GET /v1/core/manifest-lifecycle` lists both pages. Optional parameters: `tab=conflicts|retirements`, `search`, `offset` and `limit`. All workspace members with workload read access can inspect it.
+`GET /v1/api/manifest-lifecycle` lists both pages. Optional parameters: `tab=conflicts|retirements`, `search`, `offset` and `limit`. All workspace members with workload read access can inspect it.
 
-`POST /v1/core/retirements/{workloadId}/actions/remove` requires administrator permission, an `Idempotency-Key`, and a body containing `expectedRevision`, `confirmManifestId` and `reason`. Inspect every returned operation using the existing resource-operation endpoint. Repeat an uncertain request with the same key.
+`POST /v1/api/retirements/{workloadId}/actions/remove` requires administrator permission, an `Idempotency-Key`, and a body containing `expectedRevision`, `confirmManifestId` and `reason`. Inspect every returned operation using the existing resource-operation endpoint. Repeat an uncertain request with the same key.
 
 MCP exposes `towbar_manifest_lifecycle_list` and `towbar_retirement_remove` with the same authorization and confirmation rules. There is no conflict-resolution mutation in REST or MCP.

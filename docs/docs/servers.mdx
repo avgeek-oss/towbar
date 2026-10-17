@@ -17,18 +17,11 @@ Preparation installs or validates Docker Engine 29 or newer with Buildx per-buil
 
 ## Register and trust the host
 
-1. Open **Servers → Add server**. Enter the canonical IP, SSH connection, and concurrency settings.
-2. Open **Settings → Configuration** and select a stored [SSH key](/docs/ssh-keys). Choose **Add private key** inside the dropdown to create one without leaving the server.
-3. Install the public key in the SSH user's `~/.ssh/authorized_keys`, then choose **Save**. Towbar checks the connection and discovers the server's host key.
-4. Compare its fingerprint with the server console or another independent, trusted channel before accepting it.
-5. Towbar attaches the selected private key only after SSH authentication succeeds. The **Host verified** badge appears in the credentials widget; hover or focus it to see when trust was recorded.
-
-After registering a server, use **Settings → Configuration → Server info** to give it an optional name. Towbar shows the name in the server list and navigation while keeping its canonical IP in a separate column. Renaming does not change the SSH connection or require server preparation.
+Open **Servers → Add server**, enter the IP and SSH connection, then select a stored SSH key under **Settings → Configuration**. Save and verify the discovered host fingerprint against an independent source before accepting it. See [Register a server](/docs/servers/register) for the full procedure.
 
 <Warning>
-  Docker access is root-equivalent. Do not share the deployment account with
-  untrusted users, and do not approve a changed SSH fingerprint without
-  investigating why it changed.
+  Docker access is root-equivalent. Use a dedicated deployment account and
+  investigate changed SSH fingerprints before approving them.
 </Warning>
 
 <Screenshot
@@ -42,17 +35,9 @@ After registering a server, use **Settings → Configuration → Server info** t
 
 ## Prepare the runtime
 
-Choose **Set up server** from the server's Overview or **Server Setup** page. The checklist groups connection and host checks under **Server Inspection**, followed by the installation and verification steps under **Prerequisites**. Progress updates automatically; expand a step to see the connection result, inspection findings, installed services, and captured terminal output. Terminal output is redacted and retained up to the most recent 32,768 characters per step. Workloads remain **Server Setup Pending** until setup succeeds.
+Choose **Set up server**. **Server Setup** records inspection, prerequisite installation, and failures. Expand a failed step, correct the host, and retry. Workloads remain **Server Setup Pending** until preparation succeeds.
 
-Overview shows a setup prompt before setup starts or when a failed attempt needs a retry. The full checklist and recorded output remain available under **Server Setup**, next to Overview in the server sidebar. A yellow warning marks a server that needs setup; a spinner marks queued or running setup. If setup fails, the failed step opens with its details so you can resolve the issue and retry.
-
-When ClickHouse is configured, setup installs and enables the OTEL Logs Collector in its own prerequisite step immediately after Caddy. Without ClickHouse, setup records the skip reason and continues. An explicitly disabled collector stays disabled. See [Centralized logs](/docs/operate/centralized-logs) for storage requirements and collection status.
-
-After setup succeeds, Towbar immediately queues a health check so capacity and workload status do not wait for the next scheduled check.
-
-Towbar reuses compatible installations. It does not remove conflicting packages or overwrite an unmanaged Caddy binary. If a step fails, read its output and error before changing the host. Retry after resolving the conflict; use a fresh host when ownership of existing services is unclear.
-
-If the server presents a different host key, Towbar pauses the connection and asks you to verify the new fingerprint. A server rebuild can cause this, but so can an intercepted connection. Update trust only after confirming the new identity independently.
+When ClickHouse is configured and the account has collection permission, setup installs the OTEL Logs Collector after Caddy. An explicit disable is preserved. Setup then queues a fresh health check. See [Prepare a server](/docs/servers/setup) for requirements and recovery.
 
 <Screenshot
   light="/assets/release-v2/server-preparation-light.jpg"
@@ -65,41 +50,9 @@ If the server presents a different host key, Towbar pauses the connection and as
 
 ## Interactive terminal
 
-Admins can open **Terminal** in a server's sidebar and choose **Connect**. Towbar
-uses the SSH username, port, private key and trusted host keys configured under
-Configuration. The server does not need to be prepared first. If no verified key
-is connected, the page links to Configuration.
+Admins can choose **Terminal → Connect** using the server's verified SSH credential. A recent sign-in is required. API keys and MCP cannot open a terminal.
 
-The shell has the same permissions as that SSH user. Commands run directly on
-the host and can change running workloads outside the deployment scheduler.
-Use the terminal for inspection and deliberate maintenance; use deployments
-and datastore operations when Towbar should track and coordinate the change.
-
-A recent sign-in is required. Terminal access is unavailable to Members,
-Viewers, personal API keys, team API keys and MCP. Connection tickets expire
-after 30 seconds, work once, and are bound to the issuing browser session.
-Private keys remain on the API. A changed or untrusted host identity prevents
-connection; resolve it through Configuration.
-
-Connections close when you disconnect, leave the page, lose the browser
-connection, reach one hour, or provide no input for 15 minutes. Towbar rechecks
-session, role, server configuration and credentials every five seconds and
-closes the shell when they change. Up to three sessions per user and 20 per API
-process are allowed. There is no automatic reconnect or command replay.
-
-Connection open/close events are audited. Towbar does not store terminal input
-or output; the remote shell may keep its own history. Terminal output is shown
-as received and is not subject to deployment-log secret redaction.
-
-Expose Towbar over HTTPS through its unified listener. The bundled gateway
-handles the `/v1/terminal` WebSocket upgrade. The API process needs network
-access to the target's SSH port, in addition to the worker's existing access.
-The standard Compose installation has one API process. If you run multiple API
-replicas, use connection affinity so the ticket request and WebSocket reach
-the same process; restarting that process disconnects its shells.
-
-The local fixture terminal is clearly marked and supports a few demonstration
-commands. It does not connect to a target server.
+Commands run with the SSH user's permissions and can change workloads outside Towbar's scheduler. Towbar audits connection events but does not store shell input or output. Sessions close after 15 minutes without input or one hour in total. See [Server operations](/docs/servers/operations#terminal).
 
 ## Set concurrency
 
@@ -117,7 +70,7 @@ Mount operator-managed disks and configure Docker's data directory before server
 
 ## Read capacity and health
 
-The Servers table shows each server's name (or IP if unnamed), IP, and hardware capacity. A server's Services and Datastores sidebar items show configured allocations alongside the latest observed consumption. Known cloud instance types appear below the server label. When only the provider is known, its logo appears beside observed CPU and memory capacity. If metadata is unavailable, Towbar shows hardware capacity or **Unknown Instance Type**.
+**Check server** refreshes host capacity, runtime state, and cloud metadata. Read the observation time as well as the result. Use [Scout Agent](/docs/scout) for continuous measurements.
 
 ### Automatic cloud detection
 
@@ -153,11 +106,11 @@ For public routes, continue with [Domains and TLS](/docs/domains-tls). For priva
 
 ## Clean up leftover workloads
 
-Deleting a repository removes its imported inventory and history from Towbar. It does not stop running services or delete Docker data. Choose **Check server**, wait for a successful check, then open **Settings → Docker cleanup** to review leftover containers, images, and volumes.
+**Settings → Docker cleanup → Request Cleanup** checks current ownership and usage before removing eligible objects. Its latest inventory is a snapshot; an empty table does not rule out leftover routes or configuration. Inspect **View result** for removed, skipped, or failed items.
 
-Towbar retains workload ownership separately from repositories. Cleanup lists only objects whose ownership is known to this server. Existing installations recover ownership from retained server-check history; objects with no surviving ownership evidence are excluded.
+Ordinary cleanup protects active workloads, conflicts, and pending retirements. To permanently remove a retired workload and its storage, confirm removal on **Retirements**. This is separate from deleting a repository, which is blocked while workloads or history remain.
 
-Container and image cleanup is separate from permanent volume deletion. Towbar checks ownership and current release references again before removing each selected object. Objects that are now in use are skipped. Volumes are never deleted automatically.
+See [Server cleanup](/docs/servers/operations#clean-up-leftover-workloads) for ownership checks, permanent removal, and Caddy recovery.
 
 ## Remove a server
 

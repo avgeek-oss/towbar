@@ -8,6 +8,12 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
 _By [Praveen Thirumurugan](https://github.com/praveentcom) · September 22, 2026_
 
+<Info>
+  This post describes the September 2026 launch. For current behavior and setup,
+  use the [guides](/docs) and [release
+  notes](https://github.com/avgeek-oss/towbar/blob/main/CHANGELOG.md).
+</Info>
+
 Today I am introducing Towbar, an open-source, Git-backed platform for deploying apps, databases, and supporting services to servers you own.
 
 Towbar grew out of a problem I kept running into: I wanted the convenience of a platform as a service, but I wanted the deployment model to begin and end with Git. The repository should describe what runs. A commit should show what changed. The server should remain mine. The credentials needed to operate the platform should stay on the Towbar instance rather than pass through somebody else's hosted control plane.
@@ -166,7 +172,7 @@ Towbar ships with a host installer and a small `towbar` command-line tool. A loc
 
 Release images are published for `amd64` and `arm64`. The CLI pulls immutable image digests, applies database migrations, checks service health, and verifies the running release. Upgrades retain the current and immediately previous Towbar release while removing obsolete Towbar images without touching application data or unrelated Docker workloads.
 
-Operational commands cover status, logs, configuration validation, restart, upgrade, database backup, diagnostics through `towbar doctor`, account recovery, and uninstall. A failed preflight does not replace healthy running containers. The root-owned `/etc/towbar/config.yml` file can be managed with ordinary system tools and backed up separately from the database.
+Operational commands cover status, logs, configuration validation, restart, upgrade, diagnostics through `towbar doctor`, account recovery, and uninstall. A failed preflight does not replace healthy running containers. The root-owned `/etc/towbar/config.yml` file can be managed with ordinary system tools and backed up separately from the database.
 
 <Screenshot
   light="/assets/release-v2/system-health-light.jpg"

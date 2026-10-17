@@ -18,8 +18,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/release-v2/overview-dark.jpg" />
-    <img src="docs/assets/release-v2/overview-light.jpg" alt="Towbar overview showing deployment trends, running workloads, servers, incidents, and recent deployments." width="1280" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/release-v2/overview-dark.png" />
+    <img src="docs/assets/release-v2/overview-light.png" alt="Towbar overview showing deployment trends, running workloads, servers, incidents, and recent deployments." width="1280" />
   </picture>
 </p>
 
@@ -27,34 +27,21 @@ Towbar lets you deploy Services and managed Datastores to servers you own.
 Connect a Git repository, describe what should run, and manage it from one
 dashboard.
 
-Towbar is self-hosted. Your Git credentials, secrets, deployment history, and
-monitoring data stay on your Towbar instance.
-
-## Why Towbar
-
-- **Your setup lives in Git.** Review deployment changes with your code and see
-  exactly which commit is running.
-- **Your servers and data stay yours.** Towbar runs on your infrastructure and
-  keeps credentials and secrets on your instance.
-- **One dashboard covers the work.** Deploy, preview, monitor, back up, restore,
-  and troubleshoot without piecing together separate tools.
-- **Environments remain separate.** Production, staging, and other environments
-  can follow different branches and keep their own secrets and data.
-- **It is open source and self-hosted.** You can inspect the code, change it, and
-  run Towbar without a hosted Towbar account.
+Towbar is self-hosted. Its control plane, deployment servers and optional
+external log storage run on infrastructure you manage.
 
 ## What's included
 
-| Area          | What you get                                                                                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Services      | Deploy from a Dockerfile, static site, buildpack, container image, or Docker Compose file                        |
-| Datastores    | PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse                                     |
-| Git workflows | GitHub and GitLab connections, branch-based environments, automatic deployments, and pull-request previews       |
-| Domains       | Custom domains and automatic HTTPS                                                                               |
-| Operations    | Logs, server and container monitoring, alerts, incidents, scheduled jobs, and vulnerability scans                |
-| Backups       | Scheduled backups, restores, retention rules, and common cloud-storage destinations                              |
-| Team access   | Admin, Member, and Viewer roles, invitations, passkeys, authenticator 2FA, sessions, API keys, and audit history |
-| Automation    | REST API keys and OAuth-authorized MCP access for HTTPS installations                                            |
+| Area          | What you get                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------- |
+| Services      | Deploy from a Dockerfile, static site, buildpack, container image, or Docker Compose file                  |
+| Datastores    | PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse                               |
+| Git workflows | GitHub and GitLab connections, branch-based environments, automatic deployments, and pull-request previews |
+| Domains       | Custom domains and automatic HTTPS                                                                         |
+| Operations    | Logs, server and container monitoring, alerts, incidents, scheduled jobs, and vulnerability scans          |
+| Backups       | Scheduled backups, restores, retention rules, and common cloud-storage destinations                        |
+| Team access   | Admin, Member, and Viewer roles, invitations, passkeys, sessions, API keys, and audit history              |
+| Automation    | REST API keys and OAuth-authorized MCP access for HTTPS installations                                      |
 
 ## Install Towbar
 
@@ -84,8 +71,8 @@ command.
 
 ## Declare a repository
 
-Towbar reads a root `towbar.yml` and entity files under `.towbar/services/`,
-`.towbar/datastores/`, and `.towbar/services/`.
+Towbar reads a root `towbar.yml` and entity files under `.towbar/services/`
+and `.towbar/datastores/`. Compose manifests also belong in `.towbar/services/`.
 
 ```yaml
 # towbar.yml
@@ -99,7 +86,12 @@ environments:
 
 Map each environment to a branch in Towbar. Every sync reads one immutable
 revision and applies the validated inventory atomically. Manifest files contain
-the required secret names, while encrypted values stay in Towbar and out of Git.
+the required secret names. Store values in Towbar or a configured secrets provider.
+
+Removing a manifest preserves its workload for retirement review. A compatible
+manifest can transfer management to another repository while keeping its identity,
+secrets, volumes and deployment history. See
+[Conflicts and retirements](https://www.towbar.dev/docs/repositories/conflicts-and-retirements).
 
 Start with the [example configuration](examples/) or follow
 [Your first deployment](https://www.towbar.dev/docs/getting-started). The
@@ -116,10 +108,12 @@ The control plane runs as a Docker Compose stack:
 - the **worker** executes durable Temporal workflows;
 - **PostgreSQL** stores control-plane state;
 - **Temporal** coordinates deployments and long-running operations; and
-- the optional **Caddy gateway** provides one HTTPS origin and automatic TLS.
+- the optional **Caddy gateway** provides separate dashboard and API HTTPS
+  origins with automatic TLS.
 
 Target servers run the workloads Towbar manages. Scout Agent is opt-in and
-reports server and container measurements back to the control plane.
+reports server and container measurements. The native OTEL collector sends
+container logs through the API to external ClickHouse when log storage is configured.
 
 Read the [architecture guide](https://www.towbar.dev/docs/architecture) for the
 service boundaries, repository layout, data model, workflow path, security
@@ -127,22 +121,22 @@ model, and direct links into the implementation.
 
 ## Documentation
 
-- **[Introduction](https://www.towbar.dev/docs)** — concepts, architecture,
+- **[Introduction](https://www.towbar.dev/docs)**: concepts, architecture,
   installation, CLI, first deployment, and migration guides.
-- **[Build & run](https://www.towbar.dev/docs/services)** — repositories,
+- **[Build & run](https://www.towbar.dev/docs/services)**: repositories,
   servers, Services, Datastores, releases, previews, domains, secrets, and manifests.
-- **[Datastores](https://www.towbar.dev/docs/datastores)** — supported engines,
+- **[Datastores](https://www.towbar.dev/docs/datastores)**: supported engines,
   configuration, health checks, backups, and restores.
-- **[Operate](https://www.towbar.dev/docs/monitoring)** — Scout Agent,
+- **[Operate](https://www.towbar.dev/docs/monitoring)**: Scout Agent,
   performance, alerts, incidents, vulnerability scanning, troubleshooting, and
   workspace access.
-- **[Integrations](https://www.towbar.dev/docs/integrations)** — source control,
+- **[Integrations](https://www.towbar.dev/docs/integrations)**: source control,
   registries, backup destinations, external secrets, platform services,
   and notifications.
-- **[API & MCP](https://www.towbar.dev/docs/api)** — authentication, endpoints,
+- **[API & MCP](https://www.towbar.dev/docs/api)**: authentication, endpoints,
   MCP tools, and automation workflows.
 
-Moving an existing workload? Start with the candid migration guides for
+For an existing workload, use the migration guide for
 [Coolify](https://www.towbar.dev/docs/migrate-from-coolify),
 [Dokploy](https://www.towbar.dev/docs/migrate-from-dokploy),
 [CapRover](https://www.towbar.dev/docs/migrate-from-caprover),

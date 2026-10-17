@@ -3,7 +3,7 @@ title: "Backup providers"
 description: "Choose and configure the object storage used for managed database backups and restores."
 ---
 
-Towbar writes managed database recovery points to an environment-configured
+Towbar writes managed database recovery points to a YAML-configured
 object-storage provider. Each provider has one installation-wide identity, and
 only complete configurations appear under **Manage → Integrations → Backup
 providers**.
@@ -31,12 +31,11 @@ providers**.
 
 ## Provider configuration and backup policy are separate
 
-The control-plane environment supplies provider identity, endpoint, bucket or
-container, and optional prefix. A Datastore manifest selects an enabled
+The control-plane YAML supplies provider identity, endpoint, bucket, and optional prefix. A Datastore manifest selects an enabled
 destination and declares its schedule and retention policy. Towbar never stores
 the provider credential in the manifest or returns it to the browser.
 
-A **Configured** chip means the environment shape passed validation. It does not
+A **Configured** chip means local configuration passed validation. It does not
 prove remote permissions, object retention, or restore readiness. Create a real
 backup, verify the stored object, and complete a restore rehearsal before you
 rely on a provider for recovery.

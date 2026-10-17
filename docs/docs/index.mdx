@@ -1,192 +1,70 @@
 ---
 title: "Towbar documentation"
-description: "Deploy from Git, run services on your own servers, and operate them with a clear history."
+description: "Install Towbar, deploy from Git, and manage services on your own servers."
 ---
 
-Towbar is an open source deployment platform for Ubuntu servers you control.
-Define Services and Datastores in Git, register your servers in Towbar, and follow
-each deployment from its source commit to the running service.
+Towbar deploys services and datastores to Ubuntu servers you control. Keep workload configuration in Git; manage server access, secret values, and deployment history in Towbar.
 
-## Browse the documentation
-
-Choose a section to see its focused sidebar. You can switch sections at any
-time from the documentation menu.
+## Get started
 
 <CardGroup cols={2}>
-  <Card title="Introduction" icon="book-open" href="/docs/getting-started">
-    Understand Towbar, install and operate the control plane, use the CLI,
-    deploy your first Service, or move an existing workload.
-  </Card>
-  <Card title="Build & run" icon="rocket" href="/docs/repositories">
-    Connect repositories and servers, define Services and Datastores, and
-    operate deployments, releases, previews, domains, and secrets.
-  </Card>
-  <Card title="Datastores" icon="database" href="/docs/datastores">
-    Choose a managed engine and declare its runtime inputs, persistence, private
-    access, backups, and restores.
-  </Card>
-  <Card title="Operate" icon="activity" href="/docs/monitoring">
-    Monitor workloads, configure Scout Agent and alerts, compare deployments,
-    investigate failures, and manage your workspace.
-  </Card>
-  <Card title="Integrations" icon="plug" href="/docs/integrations">
-    Connect source control, backup storage, notifications, secret providers, and
-    platform services.
-  </Card>
-  <Card title="API & MCP" icon="square-terminal" href="/docs/api/overview">
-    Automate Towbar through its REST API or connect an AI client through MCP.
-  </Card>
-  <Card title="Blog" icon="newspaper" href="/blog">
-    Read launch news, product context, and the decisions behind Towbar.
-  </Card>
-</CardGroup>
-
-## Start with the overview
-
-The homepage pairs the seven-day **Deployments trend** with Service, Datastore, server, and active-incident counts. Click a count to open its list page. Status chips summarize the inventory, and the incident card changes appearance when attention is needed. The recent deployments table shows each workload, environment, ID, status, and request time.
-
-## Start with a working deployment
-
-<CardGroup cols={2}>
-  <Card
-    title="Your first deployment"
-    icon="rocket"
-    href="/docs/getting-started"
-  >
-    Deploy a Dockerfile Service and verify its public route, one step at a time.
-  </Card>
   <Card
     title="Install Towbar"
     icon="server"
     href="/docs/self-hosting/installation"
   >
-    Run the control plane with Docker Compose and create your team and first
-    Admin account.
+    Install the control plane and create your team.
   </Card>
-</CardGroup>
-
-New to the model? Read [Core concepts](/docs/concepts) for the difference between
-Repositories, servers, workloads, deployments, and releases.
-
-## Move an existing installation
-
-<CardGroup cols={2}>
   <Card
-    title="Migration guides"
+    title="Your first deployment"
+    icon="rocket"
+    href="/docs/getting-started"
+  >
+    Deploy an example Dockerfile service and verify its HTTPS route.
+  </Card>
+  <Card
+    title="Move an existing application"
     icon="arrow-right-left"
     href="/docs/migrations"
   >
-    Start with a platform-neutral checklist and choose the guide for your
-    current deployment platform.
+    Plan a migration from another platform, including data and DNS cutover.
   </Card>
-  <Card
-    title="Migrate from Coolify"
-    icon="arrow-right-left"
-    href="/docs/migrate-from-coolify"
-  >
-    Inventory applications and state, convert configuration to Git, rehearse
-    data movement, and cut over with a rollback path.
-  </Card>
-  <Card
-    title="Migrate from Dokploy"
-    icon="arrow-right-left"
-    href="/docs/migrate-from-dokploy"
-  >
-    Map applications, Compose projects, variables, domains, and databases into
-    Towbar's deployment model.
-  </Card>
-  <Card
-    title="Migrate from CapRover or Dokku"
-    icon="arrow-right-left"
-    href="/docs/migrate-from-caprover"
-  >
-    Move self-hosted apps, service configuration, domains, plugins, databases,
-    and persistent files.
-  </Card>
-  <Card
-    title="Migrate from a cloud PaaS"
-    icon="arrow-right-left"
-    href="/docs/migrate-from-heroku"
-  >
-    Plan a move from Heroku, Railway, or Render to servers you operate.
-  </Card>
-  <Card
-    title="Migrate from Vercel"
-    icon="arrow-right-left"
-    href="/docs/migrate-from-vercel"
-  >
-    Move projects, functions, previews, domains, variables, and data services
-    into containerized workloads.
+  <Card title="Architecture" icon="network" href="/docs/architecture">
+    See how Git, the control plane, deployment servers, and log storage connect.
   </Card>
 </CardGroup>
 
-## Build and deploy
+## Start with the overview
 
-<CardGroup cols={3}>
-  <Card title="Services" icon="boxes" href="/docs/services">
-    Configure Dockerfile builds, health checks, and resource allocations.
-  </Card>
-  <Card title="Datastores" icon="database" href="/docs/datastores">
-    Run eight supported database and cache engines with managed storage and
-    recovery.
-  </Card>
-  <Card
-    title="Preview environments"
-    icon="git-pull-request"
-    href="/docs/previews"
-  >
-    Review pull requests at stable URLs with separate secrets.
-  </Card>
-</CardGroup>
+Open **Overview** to review recent deployments, active incidents, and workloads needing attention. Follow a workload into its current runtime state or deployment history before retrying an operation.
 
-## Filter and share views
+## Build and run
 
-The secondary sidebar contains the current page’s filters and sections. On mobile, open **Page menu**. Services, Datastores, Servers, and Repositories have **All** and **Needs attention** views with counts for the full inventory.
+| Task                                                  | Guide                                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| Register a host and verify SSH access                 | [Servers](/docs/servers)                                                  |
+| Connect GitHub or GitLab and map branches             | [Repositories](/docs/repositories)                                        |
+| Choose Dockerfile, Compose, an image, or a build tool | [Services](/docs/services)                                                |
+| Add a database or cache                               | [Datastores](/docs/datastores)                                            |
+| Look up workload configuration                        | [Deployment manifest](/docs/deployment-manifest)                          |
+| Supply secret values                                  | [Secrets](/docs/secrets)                                                  |
+| Configure domains and certificates                    | [Domains and TLS](/docs/domains-tls)                                      |
+| Deploy, roll back, or inspect an attempt              | [Deployments and releases](/docs/deployments)                             |
+| Review a pull request in isolation                    | [Preview environments](/docs/previews)                                    |
+| Move ownership or review a removed manifest           | [Conflicts and retirements](/docs/repositories/conflicts-and-retirements) |
 
-- **Services and Datastores:** filter by Repository, server, running state, and health. Datastores also supports engine type.
-- **Servers:** filter by setup status, latest check health, and Scout Agent status. An absent or unfinished check is shown as unknown.
-- **Repositories:** filter by latest sync result and whether automatic deployments are enabled or paused.
+## Operate
 
-Needs attention includes workloads with unprepared servers, unhealthy runtime checks, configuration drift, or a missing/stopped container that should be running. Servers need attention when setup is pending or failed, the latest check failed, or an enabled Scout Agent is offline or in error. Repositories need attention after a failed latest sync. An intentionally stopped workload or a disabled Scout Agent does not by itself need attention.
+| Task                                               | Guide                                                   |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| Search retained container output                   | [Centralized logs](/docs/operate/centralized-logs)      |
+| Install the collector and connect ClickHouse       | [Set up log collection](/docs/operate/log-collection)   |
+| Read performance charts, health, and storage usage | [Monitoring](/docs/monitoring)                          |
+| Configure alerts and investigate an incident       | [Scout Alerts](/docs/scout-alerts)                      |
+| Protect and recover data                           | [Backups](/docs/backups) and [Restores](/docs/restores) |
+| Diagnose a failed operation                        | [Troubleshooting](/docs/troubleshooting)                |
+| Upgrade the control plane                          | [Upgrades and recovery](/docs/self-hosting/upgrades)    |
 
-Search and filter selections are stored in the URL. Opening a copied URL restores the view; browser Back and Forward restore earlier selections. Monitoring links preserve the time range, environment, aggregation, and instance selection, while secret-editor links preserve the selected stage and, where applicable, environment. Secret values are never included in these links.
+For automation, use the [REST API](/docs/api/overview), [MCP](/docs/api/mcp), or host [CLI](/docs/self-hosting/cli). [Integrations](/docs/integrations) covers source control, storage, notifications, and secret providers.
 
-## Operate with context
-
-| I want to…                    | Read                                                                                 |
-| ----------------------------- | ------------------------------------------------------------------------------------ |
-| Connect a repository          | [Repositories](/docs/repositories)                                                   |
-| Add or prepare a host         | [Servers](/docs/servers)                                                             |
-| Set environment values        | [Secrets](/docs/secrets)                                                             |
-| Expose a service securely     | [Domains and TLS](/docs/domains-tls)                                                 |
-| Protect database data         | [Backups](/docs/backups) and [Restores](/docs/restores)                              |
-| Understand a failed operation | [Health and capacity](/docs/monitoring) and [Troubleshooting](/docs/troubleshooting) |
-| Configure Slack or email      | [Notifications](/docs/integrations/notifications)                                    |
-| Review available providers    | [Integrations](/docs/integrations)                                                   |
-| Look up a manifest field      | [Deployment manifest](/docs/deployment-manifest)                                     |
-
-## Monitor and investigate
-
-- [Performance and health](/docs/monitoring): select an entity, inspect measurements, and follow operational history.
-- [Scout Alerts](/docs/scout-alerts): configure thresholds and HTTP checks, inspect incidents, and verify notification delivery.
-- [Deployment comparisons](/docs/deployment-comparisons): compare resource usage over equal observation windows.
-- [Vulnerability scanning](/docs/vulnerability-scanning): review image findings and available package fixes.
-
-## Manage your workspace
-
-- [Team settings](/docs/team-settings): manage members, invitations, roles, and team API keys.
-- [Personal settings](/docs/personal-settings): update your account, configure sign-in methods, and manage personal API keys.
-- [SSH keys](/docs/ssh-keys): store the keys used for server connections.
-
-For product context and engineering decisions, read the [Towbar blog](/blog).
-
-## What Towbar expects
-
-Towbar is designed for teams that manage their own Ubuntu hosts and trust the
-repositories they deploy. Builds run on those hosts. Host administration, DNS,
-backup storage, and repository access remain under your control.
-
-Before exposing an installation publicly, review [installation
-configuration](/docs/self-hosting/environment-variables) and the [security
-model](/docs/self-hosting/security). For implementation details, see the
-[architecture](/docs/architecture).
+Manage access in [Team settings](/docs/team-settings) and your account in [Personal settings](/docs/personal-settings). Before exposing Towbar publicly, review the [security model](/docs/self-hosting/security).

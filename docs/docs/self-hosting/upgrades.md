@@ -8,7 +8,7 @@ Upgrade the API, worker, and dashboard together from a reviewed release. Before 
 ## Prepare an upgrade
 
 1. Pause automatic deployments and allow active operations to finish.
-2. Preserve the file reported by `towbar config path` and its credential-encryption key with restricted access.
+2. [Back up the control plane](#back-up-the-control-plane), including every PostgreSQL database and the protected configuration file.
 3. Run `sudo towbar version` and record the installed release.
 4. Review the target release and its migration notes.
 5. Run the CLI upgrade, inspect migration output, and verify System health before resuming deployments.
@@ -21,17 +21,17 @@ sudo towbar status
 sudo towbar logs migrate api worker
 ```
 
-To install a reviewed version explicitly, pass its release tag:
+To select a reviewed version, pass its published release tag. For example:
 
 ```bash
-sudo towbar upgrade v2.1.0
+sudo towbar upgrade v2.0.52
 ```
 
 The CLI accepts validated stable releases in its supported major version. It verifies GitHub Release assets by checksum, pulls images by digest, validates configuration, applies migrations and checks health and the running commit. Update discovery uses GitHub’s latest published stable release; draft and failed candidates leave latest unchanged.
 
 If service replacement fails, the CLI attempts to restore the previous release and images. It cannot reverse database migrations. Review migration compatibility before reverting. See [Install and upgrade](/docs/self-hosting/cli/install-upgrade) for command details.
 
-The updated CLI renames an existing `/etc/towbar/towbar.yml` to `/etc/towbar/config.yml` during upgrade, preserving its contents and permissions. If both paths exist, the upgrade stops so an operator can resolve the conflict without losing either file. An upgrade started with an older CLI installs the updated CLI first; run `sudo towbar restart` afterward to complete the rename. The repository-root `towbar.yml` manifest is unrelated and stays unchanged.
+If an installation still uses `/etc/towbar/towbar.yml`, the CLI renames it to `/etc/towbar/config.yml` during upgrade, preserving its contents and permissions. If both paths exist, the upgrade stops so an operator can resolve the conflict without losing either file. An upgrade started with an older CLI installs the updated CLI first; run `sudo towbar restart` afterward to complete the rename. The repository-root `towbar.yml` manifest is unrelated and stays unchanged.
 
 Successful upgrades retain the current and previous releases and images. Cleanup removes only older Towbar releases and unreferenced application images. Data volumes and unrelated Docker workloads remain untouched.
 
@@ -44,6 +44,28 @@ sudo towbar restart
 ```
 
 Do not replace `security.credentialsKey`: existing encrypted records require the matching key. Changing database values in the file does not rotate credentials inside the existing PostgreSQL volume.
+
+## Back up the control plane
+
+The PostgreSQL volume contains Towbar and Temporal databases. Back up the whole cluster, not just the `towbar` database. After active operations finish, stop the API and worker during the export so they cannot change control-plane state. Deployed workloads keep running. On a standard CLI installation:
+
+```bash
+set -o pipefail
+sudo towbar compose stop web-app api worker
+backup_dir="/var/backups/towbar/$(date -u +%Y%m%dT%H%M%SZ)"
+sudo install -d -m 0700 "$backup_dir"
+sudo towbar compose exec -T postgres pg_dumpall -U towbar | \
+  sudo sh -c 'umask 077; cat > "$1/control-plane.sql"' sh "$backup_dir"
+```
+
+After a successful export, resume the control plane:
+
+```bash
+sudo towbar compose up --detach --wait api worker web-app
+sudo towbar status
+```
+
+Keep a restricted backup of the file reported by `sudo towbar config path` separately from the database export. It contains the keys needed to decrypt stored credentials. Copy the backups off the host and test them against an isolated installation before relying on them. If the export command fails, discard its partial file and retry after resolving the error.
 
 ## Upgrade legacy image workloads
 
@@ -103,7 +125,7 @@ If the migration reports an incompatible mount, keep the upgrade paused. Back up
 
 ## Passkey authentication
 
-The passkey update removes authenticator codes and their secrets. Registered passkeys are preserved. Existing passkey and authenticator sessions are revoked once during migration; password-only sessions remain valid. Authenticator-only accounts can sign in with their password and add a passkey. Existing passkey users can generate recovery codes from **My Settings → Passkeys**.
+The passkey update removes authenticator codes and their secrets. Registered passkeys are preserved. Existing passkey and authenticator sessions are revoked once during migration; password-only sessions remain valid. Authenticator-only accounts can sign in with their password and add a passkey. Existing passkey users can generate recovery codes from **Account Settings → Passkeys**.
 
 ## Admin account recovery
 
@@ -152,7 +174,7 @@ An Admin can upgrade from **System Health → Towbar version** after the install
 4. Keep the modal open to follow progress. It reconnects automatically if the dashboard loses contact during a restart.
 5. Check the final result in the same modal. A successful upgrade shows the installed version; a failed upgrade links to the recovery instructions below. You can reopen the modal with **View upgrade**.
 
-The screenshots show a local v2.0.16-to-v2.0.17 example.
+The screenshots use a local fixture to demonstrate upgrade states.
 
 <Tabs>
   <Tab title="Ready">

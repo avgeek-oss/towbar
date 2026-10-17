@@ -14,48 +14,14 @@ There is no safe one-click conversion from a Coolify instance to Towbar. Treat t
 
 Coolify's own [application migration guide](https://coolify.io/docs/applications/operations/migrate-between-instances) follows the same principle: recreate configuration on the destination, test through a temporary domain, migrate each stateful dependency deliberately, and retain the source for rollback.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Workload configuration and environment mappings live in reviewed repository
-  files. The dashboard does not become a second source of deployment truth.
-- Deployments retain the source commit or image digest and pass through a
-  stricter policy before reaching a server.
-- Preview history, Scout monitoring, vulnerability results, backups, restores,
-  audit logs, and team access use one control plane.
-
-#### ⚠️ Cons
-
-- Towbar has a much smaller workload, provider, and database surface.
-- Its Compose policy rejects privileged containers, Docker socket mounts, host
-  bind mounts, fixed public host ports, remote includes, and external
-  namespaces. Some valid Coolify workloads cannot move without redesign.
-- Towbar has no hosted control-plane option or one-click application catalog.
-  You operate the Towbar instance and every workload server.
-
-### Coolify
-
-#### ✅ Pros
-
-- Coolify supports dashboard-managed applications, databases, arbitrary Compose
-  stacks, and a broad [one-click Service catalog](https://coolify.io/docs/services/overview).
-- It supports both self-hosting and Coolify Cloud while keeping workloads on
-  servers you provide.
-- The dashboard exposes terminals, logs, variables, domains, storage, scheduled
-  tasks, and lifecycle controls for a wider range of Docker workloads.
-
-#### ⚠️ Cons
-
-- A workload can depend on configuration stored only in Coolify. Git may not
-  contain enough information to reproduce the running service.
-- One-click templates are copied when a service is created. Later catalog
-  changes do not update the saved definition, so upgrades still need operator
-  review.
-- The broader Docker and Compose surface permits configurations that are harder
-  to review consistently and easier to couple to one server.
+| Area          | Coolify                                                                                       | Towbar                                                                |
+| ------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Configuration | Dashboard settings and repository files                                                       | Workload declarations and environment mappings in Git                 |
+| Workloads     | Applications, databases, and a [service catalogue](https://coolify.io/docs/services/overview) | Services, supported Datastores, and validated Compose projects        |
+| Compose       | Broader Docker configuration                                                                  | No privileged mode, socket mounts, host binds, or external namespaces |
+| Operations    | Self-hosted or Coolify Cloud control plane                                                    | You operate the control plane and workload servers                    |
 
 ## 1. Inventory Coolify
 
@@ -98,7 +64,7 @@ Create `towbar.yml` and one entity file per Service or Datastore. Run schema val
 
 ## 3. Recreate credentials and integrations
 
-Configure GitHub or GitLab, registries, backup storage, notifications, Cloudflare, and external-secret providers in Towbar's runtime configuration. Check platform providers under **Manage → Integrations**, and notification providers under Manage → Notifications.
+Configure GitHub or GitLab, registries, backup storage, notifications, Cloudflare, and external-secret providers in Towbar's protected YAML configuration. Check platform providers under **Manage → Integrations**, and notification providers under Manage → Notifications.
 
 Save application values in [Towbar](/docs/secrets/towbar) or load them from a supported [external provider](/docs/secrets/external). Use shared secrets when several workloads need the same value. Do not copy Coolify's encrypted database rows or encryption key into Towbar. Rotate long-lived credentials where practical, and update OAuth callback URLs, provider webhooks, CI secrets, and allowlists for the new Towbar origin.
 

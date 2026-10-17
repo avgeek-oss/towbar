@@ -38,6 +38,10 @@ health:
 environments:
   production:
     server: 192.0.2.10
+domains:
+  primary: app.example.com
+tls:
+  mode: direct
 preview:
   enabled: true
   domain: preview.example.com
@@ -54,6 +58,6 @@ preview:
 
 ## Verify
 
-Preview secrets are isolated; do not assume a Datastore is cloned for each PR.
+Open an eligible pull request and verify its preview with isolated secrets. Connect explicitly to a disposable database if needed.
 
 For field constraints, see [Service manifest](/docs/services/manifest).

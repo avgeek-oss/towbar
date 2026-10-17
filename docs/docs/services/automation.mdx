@@ -37,6 +37,10 @@ environments:
 ```
 
 ```yaml title=".towbar/services/web.service.yml"
+domains:
+  primary: staging.example.com
+tls:
+  mode: direct
 preview:
   enabled: true
   domain: preview.example.com
@@ -48,7 +52,7 @@ environments:
 
 </CodeGroup>
 
-Eligible pull requests target the branch mapped to `staging`. Preview secrets are isolated from persistent environment values; datastores do not create previews. Read [Preview environments](/docs/previews) for expiry and cleanup.
+The Service block is a fragment to merge into its existing declaration. Eligible GitHub pull requests and GitLab merge requests target the branch mapped to `staging`. Preview secrets are isolated from persistent environment values; datastores do not create previews. Read [Preview environments](/docs/previews) for expiry and cleanup.
 
 ## Other automation
 

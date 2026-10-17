@@ -9,7 +9,7 @@ description: Automate your Towbar control plane with a REST API or connect an AI
   localhost-only installations.
 </Warning>
 
-Towbar exposes infrastructure operations through REST and MCP. Manage repositories, services, datastores, servers, deployments, previews, secrets, integration settings, and your current identity using your current workspace permissions.
+Towbar exposes infrastructure operations through REST and MCP. Manage repositories, services, datastores, servers, deployments, previews, secrets, and your current identity. Inspect integrations with your current workspace permissions.
 
 | Interface             | Endpoint                              | Authentication |
 | --------------------- | ------------------------------------- | -------------- |
@@ -17,15 +17,15 @@ Towbar exposes infrastructure operations through REST and MCP. Manage repositori
 | MCP                   | `https://YOUR_TOWBAR_API_HOST/v1/mcp` | OAuth sign-in  |
 | OpenAPI specification | `GET /v1/api/openapi.json`            | API key        |
 
-Reference examples use `YOUR_TOWBAR_API_HOST`; replace it with the API hostname from `installation.apiBaseUrl`, such as `towbar-api.example.com`. The dashboard uses the separate `installation.appUrl` hostname. Your control plane shows its MCP endpoint in **My Settings → MCP Guide**.
+Reference examples use `YOUR_TOWBAR_API_HOST`; replace it with the API hostname from `installation.apiBaseUrl`, such as `towbar-api.example.com`. The dashboard uses the separate `installation.appUrl` hostname. Your control plane shows its MCP endpoint in **Account Settings → MCP Guide**.
 
 An MCP client that supports sign-in can connect through OAuth without copying
 an API key. Towbar asks you to approve the client and its access. Follow
-[MCP setup](/docs/api/mcp) for either connection method.
+[MCP setup](/docs/api/mcp) for client configuration.
 
 <Steps>
   <Step title="Create a key">
-    Open **Manage → My Settings → API Keys** and create an API key. Name it for its consumer, choose its permissions and expiry, then copy it. Towbar only shows the secret once.
+    Open **Settings → Account Settings → API Keys** and create an API key. Name it for its consumer, choose its permissions and expiry, then copy it. Towbar only shows the secret once.
   </Step>
   <Step title="Send a request">
     Set `TOWBAR_API_KEY` through your shell or secret manager and replace `YOUR_TOWBAR_API_HOST` below with the API hostname.
@@ -49,7 +49,7 @@ The dashboard calls Git connections Repositories and workloads Services or Datas
 
 Services and datastores are defined in your Git manifest. To create or change them, update the manifest and sync its repository. The API does not invent a separate configuration model. Read the sync result to inspect validation issues and imported changes.
 
-All documented paths are relative to `/v1/api`. Browser-only login, logout, initial setup, provider webhooks, and signed worker endpoints are separate protocols. They are not exposed as MCP tools. API key management, profile editing, password changes, browser-session management, GitHub installation, and GitLab OAuth handoff are available only in the control plane. Provider credentials and notification routes come from the control-plane runtime configuration. `GET /identity` identifies the current actor and team.
+All documented paths are relative to `/v1/api`. Browser-only login, logout, initial setup, provider webhooks, and signed worker endpoints are separate protocols. They are not exposed as MCP tools. API key management, profile editing, password changes, browser-session management, GitHub installation, and GitLab OAuth handoff are available only in the control plane. Provider credentials and available notification destinations come from the protected control-plane configuration. Manage workspace notification subscriptions in the dashboard and workload subscriptions in Git. `GET /identity` identifies the current actor and team.
 
 REST provides individual routes; MCP offers a separate [task-oriented tool catalogue](/docs/api/mcp-tools), including combined inspections and shared service/datastore actions.
 
@@ -65,7 +65,7 @@ The reference is grouped by the thing you manage, with smaller sections for each
 | Servers                   | Overview, Inventory, Capacity, Checks & preparation, Credentials & trust, Scout Agent, Scout Alerts |
 | Deployments               | Overview, Progress & logs, Actions, Security scans, Performance comparisons                         |
 | Previews                  | Lifecycle                                                                                           |
-| Manage                    | Team identity, shared secrets, and System health                                                    |
+| Workspace                 | Team identity, shared secrets, centralized logs, and System health                                  |
 | Integrations              | GitHub, GitLab, storage, registry, secrets, platform and notifications                              |
 
 For common tasks, start with the [automation workflows](/docs/api/workflows). Expand only the relevant reference section when you need a schema or an individual operation.
@@ -110,7 +110,7 @@ The `timestamps` map is keyed by each original ISO timestamp (or calendar date) 
 
 Calendar-date values retain their original date and have `null` for `time`, `dateTime`, and `inputDateTime`; changing time zone does not move a daily calendar bucket to a different day. Responses without timestamps have an empty map. A `204` response still has no body.
 
-Use the original timestamps for requests, sorting, scheduling, and relative-time calculations. Change account preferences from **My Settings → Preferences**; API keys cannot edit account settings.
+Use the original timestamps for requests, sorting, scheduling, and relative-time calculations. Change account preferences from **Account Settings → Preferences**; API keys cannot edit account settings.
 
 ## Asynchronous actions and retries
 

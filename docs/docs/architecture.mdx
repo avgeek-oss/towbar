@@ -14,13 +14,13 @@ Towbar has a Docker Compose control plane and an SSH deployment executor. The [s
 
 ## Runtime topology
 
-Caddy routes `/v1/*` to the Hono API and other requests to the Next.js dashboard. PostgreSQL stores application state. Temporal schedules durable workflows; the worker executes them and connects to deployment servers over SSH.
+Caddy serves the dashboard and API on separate origins. The dashboard origin routes to Next.js; the API origin routes REST, MCP, webhooks, and browser API requests to Hono. PostgreSQL stores application state. Temporal schedules durable workflows; the worker executes them and connects to deployment servers over SSH.
 
 ```mermaid
 flowchart LR
   Clients[Browser, REST, MCP and webhooks] --> Caddy
-  Caddy --> Dashboard[Next.js dashboard]
-  Caddy --> API[Hono API]
+  Caddy -->|Dashboard origin| Dashboard[Next.js dashboard]
+  Caddy -->|API origin| API[Hono API]
   API --> DB[(PostgreSQL)]
   API --> Temporal
   Temporal --> Worker
@@ -30,7 +30,7 @@ flowchart LR
   SSH --> Servers[Deployment servers]
 ```
 
-`docker-compose.yml` defines the stack; `infra/gateway/Caddyfile` defines routing. PostgreSQL and Temporal stay on the private network. Local installations expose only `127.0.0.1:4021`.
+`docker-compose.yml` defines the stack. `infra/gateway/Caddyfile.public` routes the two HTTPS hostnames; `infra/gateway/Caddyfile` serves local mode on loopback ports 4021 (dashboard) and 4020 (API). PostgreSQL and Temporal stay on the private network. The Temporal operator UI is available separately on loopback port 8233.
 
 ## Repository map
 
@@ -49,7 +49,7 @@ flowchart LR
 | `packages/towbar-web-ui`, `@avgeek-oss/design-system` | UI components and layouts                         |
 | `infra/towbar-cli`, `infra/upgrade-runner`            | Host installation and upgrades                    |
 
-Browser code imports `towbar-contracts`; it has no Node or server dependencies. Core re-exports existing contract paths for compatibility.
+Browser code imports `towbar-contracts`; it has no Node or server dependencies.
 
 The API owns database changes. Worker activities perform network and filesystem work. The deployer has no database dependency, and the dashboard accesses data through the API.
 

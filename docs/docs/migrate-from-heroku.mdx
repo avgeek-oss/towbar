@@ -15,48 +15,14 @@ owner. Before migrating workloads, prepare the Ubuntu servers, DNS, backup
 storage, monitoring, and provider credentials that Heroku previously operated
 for you.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- You choose the servers, regions, network paths, storage providers, and cost
-  profile instead of renting an opaque dyno abstraction.
-- Deployment policy is reviewed in Git, while the Towbar instance keeps runtime
-  credentials and application secret values under your control.
-- Towbar combines deployment history, host capacity, Scout monitoring,
-  vulnerability results, backups, and restores for its supported workloads.
-
-#### ⚠️ Cons
-
-- You become responsible for host security, capacity, operating-system updates,
-  backups, disaster recovery, networking, and the Towbar control plane.
-- Towbar has no equivalent to Heroku's add-on marketplace, managed dyno fleet,
-  Private Spaces, or platform autoscaling.
-- Moving a mature Heroku app often means replacing add-ons and splitting
-  Procfile process types into several Towbar Services.
-
-### Heroku
-
-#### ✅ Pros
-
-- Heroku's [dyno and release model](https://devcenter.heroku.com/articles/how-heroku-works)
-  handles builds, process supervision, routing, logs, scaling, and release
-  history without exposing servers.
-- Pipelines, review apps, add-ons, one-off dynos, and managed data services form
-  a mature workflow with a large ecosystem.
-- Teams can scale processes and replace infrastructure without maintaining the
-  underlying hosts.
-
-#### ⚠️ Cons
-
-- You have limited control over the host, network, and runtime internals, and
-  platform behavior can become part of the application contract.
-- Dyno filesystems are ephemeral, and durable state must live in an add-on or
-  external service.
-- Costs rise with dyno count and managed services, while moving away requires
-  replacing add-ons, config, routing, and operational assumptions.
+| Area           | Heroku                                                                               | Towbar                                                       |
+| -------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| Infrastructure | [Managed dynos and releases](https://devcenter.heroku.com/articles/how-heroku-works) | Containers on Ubuntu servers you size, patch, and recover    |
+| Processes      | Procfile web and worker process types                                                | Separate Services with explicit commands and limits          |
+| Data           | Add-ons and managed data plans                                                       | Supported Datastores or external providers; no add-on import |
+| Scaling        | Managed dyno fleet and platform scaling                                              | Explicit server capacity and workload replicas               |
 
 ## 1. Inventory each app
 

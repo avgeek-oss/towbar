@@ -10,7 +10,7 @@ The Towbar control plane and workloads deployed to target servers have separate 
 1. Pause automatic deployments and scheduled operations. Let active deployments, backups, restores, and server setup finish.
 2. Keep a verified copy of the Towbar PostgreSQL database and `/etc/towbar/config.yml` in restricted storage. Encrypted credentials in the database need `security.credentialsKey`. Record the installed release with `sudo towbar version`.
 3. If you are retiring the target servers too, use Towbar's workload and server cleanup controls while the control plane is available. Review each container and volume; volume deletion permanently removes its files.
-4. Disable Scout Agent on targets that will continue running independently. Remove or update GitHub webhooks that still target this installation.
+4. Disable Scout Agent and the OTEL Logs Collector on targets that will continue running independently. Wait for their removal before stopping the control plane. Remove or update GitHub webhooks that still target this installation.
 
 Do not delete backups or workload volumes as part of stopping Towbar. See [Server cleanup](/docs/servers#clean-up-leftover-workloads) and [Persistent service files](/docs/services/configuration#persistent-storage) for their separate retention behavior.
 
@@ -43,7 +43,7 @@ Use the CLI so the command targets the installed release and configuration:
 sudo towbar compose down --volumes --remove-orphans
 ```
 
-The `--volumes` flag permanently deletes the PostgreSQL volume declared by this Compose project. Do not run it during an upgrade or temporary shutdown. Do not use global `docker system prune` or `docker volume prune` as an uninstall step: other applications may share the host.
+The `--volumes` flag permanently deletes this Compose project's PostgreSQL and Caddy certificate/configuration volumes. Do not run it during an upgrade or temporary shutdown. Do not use global `docker system prune` or `docker volume prune` as an uninstall step: other applications may share the host.
 
 After removing the stack, delete `/opt/towbar`, `/etc/towbar`, and `/usr/local/bin/towbar` only after confirming the database backup and encryption key are stored elsewhere. Remove only Towbar-specific images and volumes; Docker and shared host packages may still be used by other workloads.
 

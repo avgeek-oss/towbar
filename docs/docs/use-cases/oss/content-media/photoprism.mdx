@@ -71,6 +71,7 @@ rollout:
 secrets:
   runtime:
     - PHOTOPRISM_ADMIN_PASSWORD
+    - PHOTOPRISM_SITE_URL
     - PHOTOPRISM_DATABASE_DRIVER
     - PHOTOPRISM_DATABASE_SERVER
     - PHOTOPRISM_DATABASE_NAME
@@ -111,6 +112,7 @@ Save these values on the Service after the repository sync. The manifest declare
 | Key                            | Value to save                                     |
 | ------------------------------ | ------------------------------------------------- |
 | `PHOTOPRISM_ADMIN_PASSWORD`    | Generate a unique initial administrator password. |
+| `PHOTOPRISM_SITE_URL`          | https://photoprism.example.com/                   |
 | `PHOTOPRISM_DATABASE_DRIVER`   | mysql                                             |
 | `PHOTOPRISM_DATABASE_SERVER`   | photoprism-mariadb:3306                           |
 | `PHOTOPRISM_DATABASE_NAME`     | Same value as MYSQL_DATABASE.                     |

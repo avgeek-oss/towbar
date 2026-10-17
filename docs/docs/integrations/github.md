@@ -22,7 +22,12 @@ Towbar configures one GitHub App per Towbar installation and can connect it to m
 
 3. Set **Setup URL** to `https://towbar.example.com/manage/integrations/github` and enable **Redirect on update**. Keep the webhook active, set **Webhook URL** to `https://towbar-api.example.com/v1/public/webhooks/github`, and leave SSL verification enabled. Use `installation.appUrl` for the Setup URL and `installation.apiBaseUrl` for the Webhook URL. The webhook secret is optional. If you set one in GitHub, enter the same value as `integrations.github.webhookSecret` in Towbar.
 
-   ![Set the GitHub App setup and webhook URLs.](/assets/guides/github-app/setup-and-webhook.png)
+   | GitHub field       | Value                                                      |
+   | ------------------ | ---------------------------------------------------------- |
+   | Setup URL          | `https://towbar.example.com/manage/integrations/github`    |
+   | Webhook URL        | `https://towbar-api.example.com/v1/public/webhooks/github` |
+   | Redirect on update | Enabled                                                    |
+   | SSL verification   | Enabled                                                    |
 
 4. Open **Repository permissions**. Grant **Contents** read-only access; GitHub grants **Metadata** read-only access automatically. For Preview deployments, grant **Deployments** and **Pull requests** read and write access.
 
@@ -93,7 +98,7 @@ The connected accounts table shows each account, account type, connection status
 
 ## Maintain the connection
 
-Use **Review access** after adding App permissions or repositories. Use **Reconnect** when GitHub suspends or removes an installation. If webhooks stop arriving, inspect the App’s recent deliveries in GitHub and confirm that the webhook URL uses `installation.apiBaseUrl`. Rotate the private key or configured webhook secret in `config.yml`, then validate and restart Towbar.
+Use **Review access** after adding App permissions or repositories. Use **Reconnect** when GitHub suspends or removes an installation. If webhooks stop arriving, inspect the App's recent deliveries in GitHub and confirm that the webhook URL uses `installation.apiBaseUrl`. Rotate the private key or configured webhook secret in `config.yml`, then validate and restart Towbar.
 
 ## Connect multiple GitHub accounts
 

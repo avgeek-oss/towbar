@@ -11,7 +11,7 @@ MCP requires an HTTPS Towbar installation. It is unavailable in the default loca
 
 1. Add `https://YOUR_TOWBAR_API_HOST/v1/mcp` to your app's MCP connections. Choose OAuth sign-in.
 2. Follow the connection prompt and sign in to Towbar.
-3. Check the app name and requested access, then choose **Allow access**.
+3. Check the app name and requested access, then choose **Approve**.
 4. Reconnect after 30 days. To stop access sooner, revoke the connection in **Account Settings → MCP Connections**.
 
 You choose Read-only, Write, or Administrator in the browser consent form. The client does not select the granted access. Each choice remains bounded by your current Towbar role, including permission to update secrets. Signing in does not give an app administrative access, account management, or permission to reveal stored credentials. Existing API keys keep their permissions and expiry.
@@ -124,7 +124,9 @@ To disconnect a client, revoke it in **Account Settings → MCP Connections** an
 
 ## OAuth implementation and compatibility
 
-Towbar implements authorization discovery and protections from the [MCP 2026-07-28 authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization). The MCP message transport remains on the installed TypeScript SDK v1.30, which negotiates protocol versions through `2025-11-25`. This OAuth feature does not add the `2026-07-28` stateless message transport. See the [SDK migration guide](https://ts.sdk.modelcontextprotocol.io/v2/migration/support-2026-07-28).
+<Accordion title="Protocol details for MCP client developers">
+
+Towbar implements authorization discovery and protections from the [MCP 2026-07-28 authorization specification](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization). The bundled TypeScript SDK negotiates message protocol versions through `2025-11-25`. This OAuth feature does not add the `2026-07-28` stateless message transport. See the [SDK migration guide](https://ts.sdk.modelcontextprotocol.io/v2/migration/support-2026-07-28).
 
 | Endpoint                                       | Purpose                                            |
 | ---------------------------------------------- | -------------------------------------------------- |
@@ -166,3 +168,5 @@ codex mcp login towbar
 Towbar prefers HTTPS Client ID Metadata Documents (CIMD) and supports Dynamic Client Registration (DCR) for older clients. A metadata document establishes its publishing domain, not the identity of the running app. DCR names are unverified, even if they match a familiar app. Runtime MCP `clientInfo` and User-Agent never establish token attribution. Known metadata domains use bundled logos; unknown clients use the MCP icon. Towbar does not load client-supplied remote logos.
 
 The consent form shows the application and a scope selector, followed by **Deny**, **Approve**, and **Back to the application**. Changing your team role, including a promotion, or removing your membership revokes your MCP connections and unexchanged authorization codes. Reconnect with your new role; restoring the old role does not reactivate a revoked connection.
+
+</Accordion>

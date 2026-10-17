@@ -13,13 +13,13 @@ Replace example IPs and hostnames with your own values.
 
 ## 1. Create your service repository
 
-Create a GitHub repository and copy `server.mjs`, `Dockerfile`, and
-`.dockerignore` from the example directory into its root. Grant the connected
+Create a GitHub repository and copy `Dockerfile`, `.dockerignore`,
+`package.json`, and the `src/` directory from the [starter application](https://github.com/avgeek-oss/towbar/tree/main/examples) into its root. Grant the connected
 GitHub App access to your repository. The service needs no dependencies or secrets.
 Run it locally with Node.js 24 or newer:
 
 ```sh
-node server.mjs
+npm start
 ```
 
 Open `http://localhost:3000` and check `http://localhost:3000/health`.

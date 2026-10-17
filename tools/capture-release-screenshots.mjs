@@ -22,6 +22,10 @@ const delay = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 async function validateFixture() {
+  for (const origin of [appOrigin, apiOrigin]) {
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(origin).hostname))
+      throw new Error("Screenshot capture requires local fixture origins");
+  }
   const response = await fetch(
     new URL("/v1/core/notifications/providers", apiOrigin),
   );
@@ -209,20 +213,65 @@ async function clickControl(browser, label, selector = "button,a") {
 
 async function prepareScreenshot(browser, screenshot) {
   if (screenshot.openDetails) await clickControl(browser, "Details");
-  if (screenshot.name === "incident-detail")
-    await clickControl(browser, "View Incident");
-  if (screenshot.measure === "pageview") {
-    await evaluate(
+  if (screenshot.name === "deployment-comparison") {
+    await clickControl(browser, "Compare deployments");
+    await waitForPage(browser);
+    const ready = await evaluate(
+      browser,
+      "Boolean(document.querySelector('[aria-label=\"Deployment comparison results\"]'))",
+    );
+    if (!ready) throw new Error("Deployment comparison results are missing");
+  }
+  if (screenshot.openLogDetails) {
+    const point = await evaluate(
       browser,
       `(() => {
-      const control = [...document.querySelectorAll("button")].find(
-        (element) => element.textContent?.includes("HTTP requests"),
-      );
-      if (!control) throw new Error("Analytics measure selector is missing");
-      control.click();
-    })()`,
+        const grid = document.querySelector('[aria-label="Centralized log records"]');
+        if (!grid?.querySelector("canvas")) throw new Error("Log records are not ready");
+        grid.scrollIntoView({ block: "nearest" });
+        const bounds = grid.getBoundingClientRect();
+        return { x: bounds.left + 100, y: bounds.top + 42 };
+      })()`,
     );
-    await clickControl(browser, "Pageviews", '[role="option"]');
+    await browser.client.send(
+      "Input.dispatchMouseEvent",
+      { ...point, type: "mouseMoved" },
+      browser.sessionId,
+    );
+    for (const clickCount of [1, 2])
+      for (const type of ["mousePressed", "mouseReleased"])
+        await browser.client.send(
+          "Input.dispatchMouseEvent",
+          { ...point, type, button: "left", clickCount },
+          browser.sessionId,
+        );
+    await delay(1000);
+    const opened = await evaluate(
+      browser,
+      'document.body.innerText.includes("Log details")',
+    );
+    if (!opened) throw new Error("Log details did not open");
+  }
+  if (screenshot.name === "incident-detail")
+    await clickControl(browser, "View Incident");
+  if (screenshot.measure) {
+    const label =
+      screenshot.measure === "pageview" ? "Web analytics" : "HTTP analytics";
+    const current = await evaluate(
+      browser,
+      `(() => {
+        const control = [...document.querySelectorAll("button")].find(
+          (element) => ["Web analytics", "HTTP analytics"].some(
+            (label) => element.textContent?.includes(label),
+          ),
+        );
+        if (!control) throw new Error("Analytics measure selector is missing");
+        const selected = control.textContent?.includes(${JSON.stringify(label)});
+        if (!selected) control.click();
+        return selected;
+      })()`,
+    );
+    if (!current) await clickControl(browser, label, '[role="option"]');
     await waitForPage(browser);
   }
   if (screenshot.openFilters) {
@@ -315,6 +364,30 @@ async function capture(browser, screenshot, theme) {
     throw new Error(
       "Start the fixture with upgradeScenario enabled for screenshot capture",
     );
+  if (screenshot.name === "shared-secrets") {
+    const response = await fetch(
+      new URL("/v1/core/settings/secrets", apiOrigin),
+    );
+    if (!response.ok) throw new Error("Could not read fixture shared secrets");
+    const { bindings } = await response.json();
+    const runtime = bindings.find((binding) => binding.stage === "deployment");
+    if (!runtime) throw new Error("Fixture runtime secret stage is missing");
+    const saved = await fetch(
+      new URL("/v1/core/settings/secrets/production/deployment", apiOrigin),
+      {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          expectedRevision: runtime.revision,
+          set: {
+            API_TOKEN: "fixture-only-screenshot-token",
+            DATABASE_PASSWORD: "fixture-only-screenshot-password",
+          },
+        }),
+      },
+    );
+    if (!saved.ok) throw new Error("Could not seed fixture shared secrets");
+  }
   const viewport = screenshot.viewport ?? defaultViewport;
   const density = screenshot.deviceScaleFactor ?? deviceScaleFactor;
   await browser.client.send(
@@ -462,8 +535,7 @@ else {
     delete screenshot.capturedAt;
   });
 }
-manifest.environment =
-  "Local Towbar fixture on localhost:4021; examples are not production results";
+manifest.environment = `Local Towbar fixture on ${appOrigin}; examples are not production results`;
 manifest.viewport =
   "1600 × 900 CSS pixels by default, rendered at 2× density unless a screenshot specifies otherwise; individual screenshots may specify a taller viewport. Every image is limited to the visible viewport";
 await updateDocumentDimensions({ screenshots });
