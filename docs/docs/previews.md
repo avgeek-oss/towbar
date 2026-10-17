@@ -17,20 +17,45 @@ Preview environments let you review a service before merging a pull request. Eac
 
 ## Enable previews
 
-Previews are opt-in per service. Opening a same-repository pull request
-that targets a connected environment's mapped branch with previews enabled builds its immutable head commit and promotes it
-to one stable PR URL. Draft pull requests are supported. Datastores are not
-cloned, and production shared or Service secrets are never inherited.
+Enable previews for an environment and opt each service in. Previews support GitHub pull requests and GitLab merge requests from the same repository. The service needs a public domain and TLS configuration; datastores are not cloned.
 
-```yaml title=".towbar/services/hello-towbar.service.yml" highlight={2-5}
-id: hello-towbar
+<CodeGroup>
+
+```yaml title="towbar.yml"
+version: 2
+environments:
+  staging:
+    previews:
+      enabled: true
+```
+
+```yaml title=".towbar/services/web.service.yml"
+id: web
+name: Web
+deployment:
+  type: dockerfile
+  context: .
+  dockerfile: Dockerfile
+container:
+  port: 3000
+health:
+  path: /health
+domains:
+  primary: staging.example.com
+tls:
+  mode: direct
 preview:
   enabled: true
   domain: preview.example.com
   ttlHours: 72
 environments:
-  production: {}
+  staging:
+    server: 192.0.2.11
 ```
+
+</CodeGroup>
+
+Map `staging` to the target branch in **Repository → Environments**, register and prepare the server, then sync. Save isolated preview secrets before opening a pull request. Preview instances have separate release histories and isolated Towbar-managed secret values.
 
 ## Set up DNS
 
@@ -60,7 +85,7 @@ never removed. Reopening an eligible pull request recreates its Preview.
 ## Pull request eligibility
 
 Towbar reconciles `opened`, `reopened`, `synchronize`, `edited`, and `closed`
-webhooks against the pull request's current GitHub state. This makes duplicate,
+webhooks against the pull request's current GitHub state. GitLab merge-request hooks use the same branch, identity, and cleanup rules. This makes duplicate,
 delayed, and out-of-order deliveries safe and keeps branch renames under the
 same PR identity. Pull requests from forks and pull requests targeting another
 base branch are not deployed. When a Service configures `autoDeploy.inputs`,
@@ -89,12 +114,18 @@ each state change.
 
 Temporary failures delivering GitHub statuses or comments are retried automatically in the background. Towbar publishes the latest Preview state, respects GitHub rate limits, and reuses existing deployments and comments. Reporting delays do not restart or stop a Preview. Delivery errors remain available through the GitHub integration API for diagnostics.
 
+## GitLab reporting
+
+GitLab previews publish a commit status with the preview URL and update one merge-request comment. A reporting delay does not change the running preview. Inspect provider access and webhook delivery if the status is missing.
+
 ## Separate secrets and trust
 
 Treat Preview pull requests as executable deployment input. Use separate,
 least-privilege Preview values with disposable or non-production
-credentials. Production branch, target server, domains, Datastore
-configuration remain controlled by the production manifest. Secret assignments are controlled only by the Towbar editor.
+credentials. The connected environment controls the target server and Preview
+base domain; the pull request does not move its Datastores. Save separate Preview
+values in Towbar. Shared-secret references and external providers need their own
+non-production values or scope.
 
 ## Verify a preview
 

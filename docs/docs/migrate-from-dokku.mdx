@@ -16,47 +16,14 @@ repository, validates a declarative manifest, and records immutable deployment
 inputs. Plan the move as a configuration and data migration rather than a host
 copy.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Towbar provides a web control plane for several servers, with Repository
-  sync, previews, monitoring, incident history, vulnerability results, and team
-  roles built into the product.
-- Workload declarations are validated in Git and deployments retain immutable
-  source and image identities.
-- Services, databases, backups, restores, notifications, and audit history use one
-  model instead of a collection of unrelated plugins.
-
-#### ⚠️ Cons
-
-- Towbar is heavier to install and operate than a small Dokku host.
-- It supports a narrower set of extensions and rejects deployment patterns
-  outside its manifest policy.
-- Towbar does not reproduce Dokku's direct `git push` workflow or its large
-  plugin ecosystem.
-
-### Dokku
-
-#### ✅ Pros
-
-- Dokku is a lean, CLI-native PaaS that can build from a Git push with
-  Buildpacks or a Dockerfile on a [single server](https://dokku.com/docs/getting-started/installation/).
-- Procfile process types, config commands, and datastore plugins feel familiar
-  to teams coming from Heroku.
-- Its plugin system lets an experienced operator assemble only the capabilities
-  a host needs.
-
-#### ⚠️ Cons
-
-- The default scheduler manages one server. Multi-node operation needs another
-  scheduler and a more complex architecture.
-- Operational state is spread across host commands, app config, storage mounts,
-  proxy settings, and plugins rather than one reviewed repository contract.
-- Plugin compatibility, upgrades, backups, observability, and access control
-  remain the operator's responsibility.
+| Area       | Dokku                                                                                                 | Towbar                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Deployment | Git push, Dockerfiles, and buildpacks                                                                 | Repository sync followed by deployment                            |
+| Operations | CLI and plugins on a [single server by default](https://dokku.com/docs/getting-started/installation/) | Web, REST, and MCP controls across registered Ubuntu servers      |
+| Processes  | Procfile process types and scaling commands                                                           | Separate Service declarations with commands and limits            |
+| Extensions | Datastore and operational plugins                                                                     | Supported engines and integrations; no Dokku plugin compatibility |
 
 ## 1. Inventory apps and plugins
 
@@ -89,7 +56,7 @@ health, scaling, limits, and operational history.
 Copy the names and intended scope of Dokku config values, then enter the values
 in Towbar's encrypted secret stores. Do not commit output containing secrets.
 Recreate registry access, notifications, external secrets, and
-DNS automation through Towbar's environment-configured integrations.
+DNS automation through integrations in Towbar's protected YAML configuration.
 
 Deploy to temporary domains. Verify the exact image or commit, process command,
 health check, internal service names, outbound access, jobs, queues, webhooks,

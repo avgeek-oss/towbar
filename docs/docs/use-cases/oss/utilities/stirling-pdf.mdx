@@ -7,9 +7,9 @@ import { UseCaseNavigation } from "/snippets/use-case-navigation.jsx";
 
 <UseCaseNavigation />
 
-**Upstream source:** [Current installation guide](https://docs.stirlingpdf.com/Installation/Docker%20Install/).
+**Upstream source:** [Current installation guide](https://docs.stirlingpdf.com/Server/Install/Docker/).
 
-Stirling PDF stores its settings and embedded database in `/configs`. Current images enable login on first boot with a published default administrator password; change it immediately before using a public route.
+Stirling PDF keeps its settings, generated keys, and embedded database in `/configs`. `/storage` holds files saved on the server. Set the initial login values before first deployment; they are ignored once users exist.
 
 ## Towbar manifest
 
@@ -22,9 +22,15 @@ deployment:
   image: docker.stirlingpdf.com/stirlingtools/stirling-pdf@sha256:66b6edb8ee62e307a8b335166e8931a6e65b39c9bf73b5e517fbfe9c613ba221
 container:
   port: 8080
+  resources:
+    cpus: 2
+    memory: 4g
   volumes:
     - name: configs
       mountPath: /configs
+      initialData: image
+    - name: storage
+      mountPath: /storage
       initialData: image
 environments:
   production:
@@ -33,6 +39,10 @@ rollout:
   type: recreate
   maintenanceMode: true
   reason: Persistent application data uses a single writer
+secrets:
+  runtime:
+    - SECURITY_INITIALLOGIN_USERNAME
+    - SECURITY_INITIALLOGIN_PASSWORD
 domains:
   primary: stirling-pdf.example.com
 tls:
@@ -42,11 +52,21 @@ tls:
 ## Configure
 
 1. Prepare the example server, connect the repository, and map `production` to the branch containing these manifests. Replace the example server IP and domain. Commit the manifests, then sync the repository and inspect the resolved configuration.
-2. Keep the Service's named volumes attached across deployments. Towbar's Datastore backup policy does not back up Service volumes, so include them in your own recovery plan.
-3. Deploy the Service, then perform the checks below before enabling auto-deploy.
+2. Set the Service's declared runtime values under **Service → Settings → Secrets** using the table below. Replace descriptions and placeholders with actual values; do not commit passwords or keys.
+3. Keep the Service's named volumes attached across deployments. Towbar's Datastore backup policy does not back up Service volumes, so include them in your own recovery plan.
+4. Deploy the Service, then perform the checks below before enabling auto-deploy.
+
+## Runtime values
+
+Save these values on the Service after the repository sync. The manifest declares required keys, not their values.
+
+| Key                              | Value to save                                   |
+| -------------------------------- | ----------------------------------------------- |
+| `SECURITY_INITIALLOGIN_USERNAME` | Choose the first administrator username.        |
+| `SECURITY_INITIALLOGIN_PASSWORD` | Generate a strong first administrator password. |
 
 ## Verify
 
-Sign in and change the initial password, process a sample PDF, and verify the account setting remains after redeployment. Back up `/configs`.
+Sign in, process and save a sample PDF, then verify the account and saved file remain after redeployment. Back up both volumes. The standard image needs about 4 GB of memory; OCR and large documents may need more.
 
 For field constraints, see [Service manifest](/docs/services/manifest).

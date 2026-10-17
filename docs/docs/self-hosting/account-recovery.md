@@ -37,7 +37,7 @@ sudo towbar compose run --rm --no-deps api node dist/cli/recover-admin.js \
   --email=old-admin@example.com --new-email=new-admin@example.com
 ```
 
-This also resets the password and revokes access as described above. An address already used by another account is rejected without changing either account. The new address starts unverified. After signing in with the printed password and choosing a new one, verify the address in **My Settings → Email & Password**. Security notices are queued for the old and new addresses when SMTP becomes available.
+This also resets the password and revokes access as described above. An address already used by another account is rejected without changing either account. The new address starts unverified. After signing in with the printed password and choosing a new one, verify the address in **Account Settings → Email & Password**. Security notices are queued for the old and new addresses when SMTP becomes available.
 
 ## Reset passkey recovery codes for any user
 
@@ -48,7 +48,7 @@ sudo towbar compose run --rm --no-deps api node dist/cli/reset-user-mfa.js \
   --email=person@example.com
 ```
 
-It removes recovery codes, revokes sessions, personal API keys and pending recovery links, and records an audit event. It retains the current password and passkeys. The user can sign in with their password, verify any retained passkey, and add a replacement under **My Settings → Passkeys**. If the password is also lost, use email password recovery; an Admin account can use the password command above.
+It removes recovery codes, revokes sessions, personal API keys and pending recovery links, and records an audit event. It retains the current password and passkeys. The user can sign in with their password, verify any retained passkey, and add a replacement under **Account Settings → Passkeys**. If the password is also lost, use email password recovery; an Admin account can use the password command above.
 
 For an Admin who lost both password and passkeys, combine recovery in one command:
 

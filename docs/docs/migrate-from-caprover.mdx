@@ -15,46 +15,14 @@ configuration boundary is different. CapRover keeps much of the desired state
 in its control plane. Towbar expects workloads and their environment mappings
 to be reviewed in Git.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Deployment configuration, environment mappings, and review history stay with
-  the repository instead of only in the control plane.
-- Towbar records immutable deployment inputs and includes previews, Scout
-  monitoring, deployment comparisons, vulnerability results, and database
-  recovery history.
-- Each server remains an explicit deployment target, which makes workload and
-  capacity ownership visible.
-
-#### ⚠️ Cons
-
-- Towbar has no Docker Swarm scheduler or automatic cross-node distribution.
-- It has no one-click application catalog. Every workload needs a reviewed Service,
-  Datastore, or Compose declaration.
-- Its managed database and Compose support is narrower, and it requires more
-  up-front configuration than a small CapRover installation.
-
-### CapRover
-
-#### ✅ Pros
-
-- CapRover offers a straightforward dashboard, CLI, one-click apps, automatic
-  HTTPS, and several deployment inputs with little setup.
-- It uses Docker Swarm and can [add worker nodes and distribute replicas](https://caprover.com/docs/app-scaling-and-cluster.html).
-- Teams already comfortable with Captain definitions can keep a compact,
-  Docker-native operating model.
-
-#### ⚠️ Cons
-
-- Much of the desired state lives in CapRover rather than in a complete
-  repository declaration.
-- Docker Swarm is part of the runtime contract, which is a poor fit if you do
-  not want to operate Swarm.
-- CapRover documents that apps with persistent data stay on one node, so adding
-  cluster nodes does not make those workloads highly available.
+| Area            | CapRover                                                                                         | Towbar                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Configuration   | Captain definitions and dashboard settings                                                       | Workload declarations and environment mappings in Git                               |
+| Applications    | One-click apps and several deployment inputs                                                     | Declared Services, Datastores, and Compose projects                                 |
+| Scheduling      | [Docker Swarm worker nodes and replicas](https://caprover.com/docs/app-scaling-and-cluster.html) | Explicit servers; no Swarm scheduler                                                |
+| Persistent data | Persistent apps remain on one node                                                               | Named volumes on the selected server; backups and restores for supported Datastores |
 
 ## 1. Inventory CapRover
 

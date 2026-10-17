@@ -1,0 +1,359 @@
+{
+  "baseline": "v2.0.52",
+  "reviewedOn": "2026-10-17",
+  "scope": "Ports, required runtime variables, persistence, dependency topology and first-run checks for all 52 OSS recipes.",
+  "limits": [
+    "Schema/admission validation is separate from upstream semantic review.",
+    "These recipes have not all been deployed end to end.",
+    "Pinned versions are examples, not a claim that every tag is the latest release.",
+    "Upstream URLs and future releases can change; review compatibility before upgrading."
+  ],
+  "recipes": [
+    {
+      "page": "docs/docs/use-cases/oss/analytics/umami.mdx",
+      "upstreamSources": ["https://docs.umami.is/docs/install"],
+      "review": "PostgreSQL connection URL, port 3000, administrator setup and persistence."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/grafana.mdx",
+      "upstreamSources": [
+        "https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/"
+      ],
+      "review": "SQLite default, port 3000, Grafana data volume and initial administrator password."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/gitea.mdx",
+      "upstreamSources": [
+        "https://docs.gitea.com/installation/install-with-docker/"
+      ],
+      "review": "SQLite installer, port 3000, /data and HTTP-only clone routing."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/forgejo.mdx",
+      "upstreamSources": [
+        "https://forgejo.org/docs/latest/admin/installation/docker/"
+      ],
+      "review": "SQLite default, port 3000, /data and separate SSH exposure."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/security/vaultwarden.mdx",
+      "upstreamSources": [
+        "https://github.com/dani-garcia/vaultwarden/blob/main/README.md"
+      ],
+      "review": "HTTPS and DOMAIN, port 80, SQLite and attachments in /data."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/uptime-kuma.mdx",
+      "upstreamSources": [
+        "https://github.com/louislam/uptime-kuma/wiki/%F0%9F%94%A7-How-to-Install"
+      ],
+      "review": "Version 2, port 3001, /app/data and local filesystem locking."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/analytics/metabase.mdx",
+      "upstreamSources": [
+        "https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker"
+      ],
+      "review": "PostgreSQL application database distinct from analytics sources, MB_DB_* and port 3000."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/paperless-ngx.mdx",
+      "upstreamSources": [
+        "https://docs.paperless-ngx.com/setup/",
+        "https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/v2.18.4/docker/compose/docker-compose.postgres.yml"
+      ],
+      "review": "PostgreSQL plus Redis broker, port 8000, document/index mounts and first upload."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/meilisearch.mdx",
+      "upstreamSources": [
+        "https://www.meilisearch.com/integrations/docker",
+        "https://raw.githubusercontent.com/meilisearch/meilisearch/v1.15.2/Dockerfile"
+      ],
+      "review": "Port 7700, production master key and /meili_data persistence."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/jellyfin.mdx",
+      "upstreamSources": [
+        "https://jellyfin.org/docs/general/installation/container/"
+      ],
+      "review": "Port 8096, config/cache/media mounts and explicit media import; no hardware or DLNA claim."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/analytics/plausible-ce.mdx",
+      "upstreamSources": [
+        "https://github.com/plausible/community-edition",
+        "https://raw.githubusercontent.com/plausible/community-edition/v3.2.1/compose.yml"
+      ],
+      "review": "Release v3.2.1 Compose: PostgreSQL 16, ClickHouse 24.12, startup migration command, app data and BASE_URL/SECRET_KEY_BASE."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/analytics/matomo.mdx",
+      "upstreamSources": [
+        "https://matomo.org/faq/how-to-install/install-matomo-with-docker/"
+      ],
+      "review": "MariaDB connection variables, port 80, configuration volume and required follow-up archive schedule."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/glitchtip.mdx",
+      "upstreamSources": ["https://glitchtip.com/documentation/install/"],
+      "review": "GlitchTip 6 all-in-one web/worker, PostgreSQL 14+, optional Valkey, explicit empty VALKEY_URL and SMTP."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/prometheus.mdx",
+      "upstreamSources": [
+        "https://prometheus.io/docs/prometheus/latest/installation/"
+      ],
+      "review": "Port 9090, scrape configuration, /prometheus storage and explicit self-scrape only."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/victoriametrics.mdx",
+      "upstreamSources": [
+        "https://docs.victoriametrics.com/victoriametrics/quick-start/"
+      ],
+      "review": "Single-node port 8428, /victoria-metrics-data and private ingestion."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/observability/gatus.mdx",
+      "upstreamSources": [
+        "https://github.com/TwiN/gatus",
+        "https://raw.githubusercontent.com/TwiN/gatus/master/README.md"
+      ],
+      "review": "Port 8080, /config/config.yaml and a concrete endpoint/status condition."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/security/keycloak.mdx",
+      "upstreamSources": ["https://www.keycloak.org/server/containers"],
+      "review": "Production start, PostgreSQL, port 8080 behind TLS, hostname/proxy settings and bootstrap admin."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/security/authentik.mdx",
+      "upstreamSources": [
+        "https://docs.goauthentik.io/install-config/install/docker-compose/",
+        "https://goauthentik.io/docker-compose.yml"
+      ],
+      "review": "PostgreSQL 16, server/worker roles, port 9000, shared /data, certificates and documented host requirements; Docker socket omitted."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/ghost.mdx",
+      "upstreamSources": [
+        "https://github.com/TryGhost/ghost-docker",
+        "https://raw.githubusercontent.com/docker-library/docs/master/ghost/README.md"
+      ],
+      "review": "Ghost 6 production MySQL configuration, port 2368 and /var/lib/ghost/content; not the different Ghost 7 layout."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/wordpress.mdx",
+      "upstreamSources": ["https://hub.docker.com/_/wordpress"],
+      "review": "Apache variant, WordPress DB variables, proxy TLS handling and wp-content persistence."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/wiki-js.mdx",
+      "upstreamSources": ["https://docs.requarks.io/install/docker"],
+      "review": "PostgreSQL DB_* variables and port 3000; no bundled database claim."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/navidrome.mdx",
+      "upstreamSources": ["https://navidrome.org/docs/installation/docker/"],
+      "review": "Port 4533, writable /data and populated /music."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/automation/node-red.mdx",
+      "upstreamSources": [
+        "https://nodered.org/docs/getting-started/docker",
+        "https://raw.githubusercontent.com/node-red/node-red/master/packages/node_modules/node-red/settings.js"
+      ],
+      "review": "Port 1880, /data, generated credential key and private editor. Removed env var ignored without a settings.js override."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/typesense.mdx",
+      "upstreamSources": [
+        "https://typesense.org/docs/guide/install-typesense.html",
+        "https://typesense.org/docs/28.0/api/server-configuration.html"
+      ],
+      "review": "Typesense 28 port 8108, TYPESENSE_DATA_DIR/API_KEY and restricted search keys."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/searxng.mdx",
+      "upstreamSources": [
+        "https://docs.searxng.org/admin/installation-docker.html",
+        "https://raw.githubusercontent.com/searxng/searxng/master/searx/settings.yml"
+      ],
+      "review": "Port 8080, environment-backed signing/base-URL/limiter settings and cache; private until bot protection or access gateway exists."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/freshrss.mdx",
+      "upstreamSources": [
+        "https://github.com/FreshRSS/FreshRSS/blob/edge/Docker/README.md"
+      ],
+      "review": "Port 80, SQLite/data and extensions volumes, CRON_MIN scheduler."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/linkding.mdx",
+      "upstreamSources": [
+        "https://linkding.link/installation/",
+        "https://linkding.link/options/"
+      ],
+      "review": "Port 9090, /etc/linkding/data, superuser initialization and trusted origins; Compose handles the otherwise restricted mount."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/hedgedoc.mdx",
+      "upstreamSources": ["https://docs.hedgedoc.org/setup/docker/"],
+      "review": "Port 3000, PostgreSQL CMD_DB_URL, HTTPS external URL and uploaded assets."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/automation/huginn.mdx",
+      "upstreamSources": [
+        "https://github.com/huginn/huginn/blob/master/doc/docker/install.md",
+        "https://raw.githubusercontent.com/huginn/huginn/master/docker/multi-process/README.md"
+      ],
+      "review": "Official multi-process image, external MySQL HUGINN_DATABASE_* variables, no database creation, stable secret and seeded administrator."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/automation/changedetection.mdx",
+      "upstreamSources": [
+        "https://github.com/dgtlmoon/changedetection.io/blob/master/docker-compose.yml"
+      ],
+      "review": "Port 5000 and /datastore; JavaScript browser sidecar explicitly optional."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/files/nextcloud.mdx",
+      "upstreamSources": [
+        "https://github.com/nextcloud/docker#running-this-image-with-docker-compose"
+      ],
+      "review": "Apache port 80, MariaDB variables, trusted domain, TLS override and whole /var/www/html persistence."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/immich.mdx",
+      "upstreamSources": [
+        "https://docs.immich.app/install/docker-compose/",
+        "https://github.com/immich-app/immich/releases/download/v3.3.3/docker-compose.yml"
+      ],
+      "review": "Published v3.3.3 Compose topology: server/ML, Valkey 9 and matching vector-enabled PostgreSQL 14; library/cache/database paths."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/bookstack.mdx",
+      "upstreamSources": [
+        "https://docs.linuxserver.io/images/docker-bookstack/"
+      ],
+      "review": "MariaDB DB_* variables, APP_URL/APP_KEY, /config and initial password replacement."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/calibre-web.mdx",
+      "upstreamSources": [
+        "https://docs.linuxserver.io/images/docker-calibre-web/"
+      ],
+      "review": "Port 8083, /config and existing Calibre metadata.db under /books; initial password replacement."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/photoprism.mdx",
+      "upstreamSources": [
+        "https://docs.photoprism.app/getting-started/docker-compose/",
+        "https://docs.photoprism.app/getting-started/config-options/"
+      ],
+      "review": "MariaDB environment variables, site URL, originals/storage directories and explicit media import."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/miniflux.mdx",
+      "upstreamSources": ["https://miniflux.app/docs/docker.html"],
+      "review": "PostgreSQL URL, port 8080, migrations and one-time administrator variables removed after setup."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/notifications/ntfy.mdx",
+      "upstreamSources": [
+        "https://docs.ntfy.sh/install/#docker",
+        "https://docs.ntfy.sh/config/"
+      ],
+      "review": "serve command, SQLite cache/auth files, deny-all access policy and administrator creation."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/developer-tools/jenkins.mdx",
+      "upstreamSources": ["https://www.jenkins.io/doc/book/installing/docker/"],
+      "review": "Port 8080, /var/jenkins_home, unlock flow and separate build agents."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/collaboration/vikunja.mdx",
+      "upstreamSources": [
+        "https://vikunja.io/docs/installing/",
+        "https://vikunja.io/docs/config-options/"
+      ],
+      "review": "Port 3456, SQLite path, upload directory, stable service secret and UID permissions."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/collaboration/kanboard.mdx",
+      "upstreamSources": ["https://docs.kanboard.org/v1/admin/docker/"],
+      "review": "Port 80, SQLite/attachments and plugins directories, administrator password change."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/collaboration/excalidraw.mdx",
+      "upstreamSources": [
+        "https://github.com/excalidraw/excalidraw/blob/master/dev-docs/docs/introduction/development.mdx"
+      ],
+      "review": "Port 80 client-only image; self-hosted collaboration and sharing are not included."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/collaboration/memos.mdx",
+      "upstreamSources": ["https://usememos.com/docs/deploy/docker-compose"],
+      "review": "Port 5230, SQLite/default local storage and external instance URL."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/notifications/gotify.mdx",
+      "upstreamSources": ["https://gotify.net/docs/install"],
+      "review": "Port 80, /app/data and GOTIFY_DEFAULTUSER_PASS."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/files/file-browser.mdx",
+      "upstreamSources": [
+        "https://github.com/filebrowser/filebrowser/blob/master/docs/installation.md"
+      ],
+      "review": "Port 80, files/database/config mounts, one-time random password in logs and private first route."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/utilities/actual-budget.mdx",
+      "upstreamSources": ["https://actualbudget.org/docs/install/docker/"],
+      "review": "Port 5006, /data and HTTPS secure context."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/content-media/audiobookshelf.mdx",
+      "upstreamSources": [
+        "https://audiobookshelf.org/docs/documentation/install/docker/"
+      ],
+      "review": "Port 80, local SQLite/config, metadata and media directories; media import required."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/utilities/stirling-pdf.mdx",
+      "upstreamSources": [
+        "https://docs.stirlingpdf.com/Server/Install/Docker/",
+        "https://docs.stirlingpdf.com/Server/Security/Sign-in-and-Security/"
+      ],
+      "review": "Port 8080, current image login defaults, explicit initial credentials, /configs and /storage persistence and 4 GB memory guidance."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/utilities/cyberchef.mdx",
+      "upstreamSources": ["https://github.com/gchq/CyberChef#running-locally"],
+      "review": "Official client image port 8080; no database or persistent server volume."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/utilities/it-tools.mdx",
+      "upstreamSources": ["https://github.com/CorentinTh/it-tools#self-host"],
+      "review": "Official static image port 80; no database or persistent server volume."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/ai/ollama.mdx",
+      "upstreamSources": ["https://docs.ollama.com/docker"],
+      "review": "CPU Docker image port 11434, /root/.ollama model storage and private unauthenticated API."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/ai/localai.mdx",
+      "upstreamSources": ["https://localai.io/docs/installation/containers/"],
+      "review": "CPU container port 8080; all four model/backend/configuration/data paths persisted and private API."
+    },
+    {
+      "page": "docs/docs/use-cases/oss/files/copyparty.mdx",
+      "upstreamSources": [
+        "https://github.com/9001/copyparty/blob/hovudstraum/scripts/docker/README.md"
+      ],
+      "review": "Port 3923, /w and /cfg; default writable anonymous share kept private."
+    }
+  ]
+}

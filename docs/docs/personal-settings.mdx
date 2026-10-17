@@ -5,7 +5,7 @@ description: "Manage your profile, sign-in methods, browser sessions, and person
 
 import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
-Open **Manage → My Settings**, or select your name at the bottom of the sidebar for quick links to Profile, Preferences, Auth & Security, and My API Keys. The account menu also links to the changelog and documentation, opens an email for feedback, and lets you log out.
+Open **Settings → Account Settings**. The menu under your name also links to Profile, Preferences, Email & Password, and API Keys.
 
 These settings affect your own account. Your team role determines which operational actions you can take, but every user can secure their account and review their sessions.
 
@@ -17,7 +17,7 @@ Use **Profile → Display name** to change the name shown in the sidebar and tea
 
 Open **Preferences → Date and time** to choose a date format, time format, and time zone. Search for a city such as `Kolkata` or choose `UTC`. The preview shows how your selection will appear. Select **Save** to apply it across Towbar.
 
-Absolute dates and times in tables, charts, logs, and tooltips use these settings. Relative labels such as “5 minutes ago” are unchanged. The default is `16 Sept 2026`, `14:30`, and UTC. Your preferences follow your account, including across browsers and devices.
+Absolute dates and times in tables, charts, logs, and tooltips use these settings. Relative labels such as "5 minutes ago" are unchanged. The default is `16 Sept 2026`, `14:30`, and UTC. Your preferences follow your account, including across browsers and devices.
 
 Custom monitoring ranges use your saved format and time zone. If a time occurs twice during a daylight-saving change, choose the first or second occurrence. Towbar rejects times skipped by a clock change.
 
@@ -30,10 +30,10 @@ Open **Email & Password** for the separate email and password forms. Save each f
 <Screenshot
   light="/assets/release-v2/email-password-light.jpg"
   dark="/assets/release-v2/email-password-dark.jpg"
-  alt="Email and password have separate forms in My Settings."
+  alt="Email and password have separate forms in Account Settings."
   width="3200"
   height="1800"
-  caption="Email and password have separate forms in My Settings."
+  caption="Email and password have separate forms in Account Settings."
 />
 
 ### Change your email
@@ -50,17 +50,17 @@ The Towbar operator must configure [SMTP](/docs/integrations/notifications/email
 
 Confirm with your passkey, then enter the new password twice. Accounts without a passkey also enter their current password. Use at least 15 characters. Password managers and paste are supported. Towbar checks new passwords against a list of known compromised passwords. If the check is unavailable, try again later.
 
-An account created by an admin starts with a temporary password. The user must replace it during the first sign-in before opening the dashboard.
+After host-based password recovery, replace the temporary password during sign-in before opening the dashboard.
 
 ## Sessions
 
 The Sessions table lists your active browser sessions, when each was last used, and when it expires. **This browser** identifies your current session. Revoke a session when you no longer use or recognize it.
 
-Choose **Logout** from the account menu, or use the sign-out icon beside the theme switcher in the header, to end the current browser session. The confirmation links back to these settings for managing other sessions. Signing out does not revoke your personal API keys.
+Choose **Sign out** from the account menu to end the current browser session. Signing out does not revoke your personal API keys.
 
 ## Passkeys
 
-Open **My Settings → Passkeys** to add, rename, or remove a passkey. Use **Sign in with Passkey** to sign in without a password. Password sign-in also requires a passkey when one is registered.
+Open **Account Settings → Passkeys** to add, rename, or remove a passkey. Use **Sign in with Passkey** to sign in without a password. Password sign-in also requires a passkey when one is registered.
 
 Towbar requires device verification, such as a fingerprint, face scan, or PIN. Biometric data stays on the device. Sensitive actions use your passkey; accounts without a passkey confirm their password.
 

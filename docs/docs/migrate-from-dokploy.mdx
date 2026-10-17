@@ -12,48 +12,14 @@ keywords:
 
 A Dokploy installation cannot be imported directly into Towbar. Recreate the desired workload configuration in Git, move persistent data through supported backup or file-transfer paths, verify the destination without production traffic, and cut over only after the new deployment is healthy.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Services, Datastores, environments, domains, jobs, and deployment policy live in
-  reviewed Git files and resolve from an immutable source revision.
-- Preview secrets stay separate from production, and repository sync,
-  deployment history, Scout monitoring, vulnerability results, and recovery
-  records share one model.
-- Integrations are enabled from the Towbar runtime environment rather than
-  accumulating provider credentials in control-plane forms.
-
-#### ⚠️ Cons
-
-- Towbar does not provide Docker Swarm cluster scheduling, Dokploy's template
-  breadth, or the same degree of raw Traefik and Compose control.
-- Supported databases and Compose features are deliberately narrow. A valid
-  Dokploy stack may fail Towbar admission.
-- You must model the workload in Towbar manifests before deploying it; there is
-  no dashboard-only shortcut for an ad hoc service.
-
-### Dokploy
-
-#### ✅ Pros
-
-- Dokploy's [application and Compose features](https://docs.dokploy.com/docs/core/features)
-  cover several builders, raw Compose, templates, terminals, metrics, logs,
-  domains, volumes, backups, and direct Traefik configuration.
-- Docker Swarm settings and replicas suit teams already operating Swarm.
-- A separate build server can build an Application once and publish it through
-  a registry to deployment servers.
-
-#### ⚠️ Cons
-
-- Important desired state can live in Dokploy's database and dashboard rather
-  than beside the application source.
-- Its broader raw Docker, Compose, Swarm, and Traefik controls leave more
-  low-level decisions with the operator.
-- Build servers and remote-server deployment do not cover every path. Dokploy
-  documents that build servers are unavailable for Compose deployments.
+| Area                 | Dokploy                                                                                    | Towbar                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| Configuration        | Dashboard settings and repository files                                                    | Workload declarations and environment mappings in Git          |
+| Runtime              | [Applications, Compose, and Traefik controls](https://docs.dokploy.com/docs/core/features) | Containers on explicit Ubuntu servers, routed through Caddy    |
+| Scheduling           | Docker Swarm and cluster configuration                                                     | No Swarm scheduler or automatic cross-node distribution        |
+| Migration constraint | Existing templates and raw Compose settings                                                | Each workload must pass Towbar manifest and Compose validation |
 
 ## 1. Inventory Dokploy
 
@@ -94,7 +60,7 @@ Dokploy manages application and Compose [domains](https://docs.dokploy.com/docs/
 
 ## 3. Recreate integrations and secrets
 
-Configure the Towbar runtime for the Git provider, registry, backup storage, notifications and any external-secret provider. Platform integrations appear when configured; Notifications lists all supported providers and shows which need configuration.
+Configure the Git provider, registry, backup storage, notifications, and external-secret providers in Towbar's protected YAML configuration. Platform integrations appear when configured; Notifications lists all supported providers and shows which need configuration.
 
 Save variable values in [Towbar](/docs/secrets/towbar) or load them from a supported [external provider](/docs/secrets/external). Use shared secrets only where several workloads need the same value. Preserve build/runtime intent and preview isolation rather than copying every Dokploy variable into one global scope. Rotate credentials where practical, and update OAuth callbacks, Git webhooks, CI secrets, DNS automation, email allowlists, and receiving webhooks.
 

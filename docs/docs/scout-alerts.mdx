@@ -37,26 +37,20 @@ A server without notification destinations still creates incidents in Towbar. Ad
 | Container restart loop  | At least 3 restarts within 5 minutes | Fewer than 3 restarts in the window |
 | Scout stopped reporting | No report collected for 3 minutes    | Reports resume                      |
 
-The examples above are starting points for your own thresholds. New metric and HTTP rules created in the dashboard default to a one-minute duration. A breach must remain continuous for the selected duration; missing or stale readings cannot complete it. Existing rules without a duration continue to fire on the first qualifying reading until you choose a duration. Restart rules instead count events in a configurable 1-to-60-minute window, and missing-report rules use their report-age threshold. An incident recovers on the first fresh measurement that no longer meets the trigger condition. Each incident sends one firing notification, with no repeats while active. New rules start active; use **Pause** and **Resume** in the rule list to control evaluation. Each server, service, or datastore supports up to 10 alert rules, including paused rules. Delete a rule to free a slot. Production and preview rules share the same entity limit. A server supports up to 100 rules across all its entities, including at most 10 public HTTP checks.
+Metric and HTTP rules created in the dashboard default to a one-minute duration. A breach must remain continuous for the selected duration; missing or stale readings cannot complete it. Older rules without a duration fire on the first qualifying reading until edited. Restart rules count events in a 1-to-60-minute window; missing-report rules use their report-age threshold. Recovery follows the first fresh measurement that clears the trigger.
 
-## Workspace monitoring
+Use **Pause** and **Resume** to control evaluation. Paused rules still count toward these limits:
 
-The **Monitor** sidebar section brings your workspace together:
-
-- **Incidents** lists active and resolved incidents across the workspace, with pagination and a severity filter. **View Incident** opens the details drawer on this page.
-- **Vulnerabilities** lists package findings from the latest Service image scans.
-
-The sidebar shows active incidents and critical or high vulnerabilities in red counts. Counts refresh every 30 seconds and disappear at zero.
+| Scope                            | Limit                                                    |
+| -------------------------------- | -------------------------------------------------------- |
+| Server, Service, or Datastore    | 10 rules per entity, shared by production and previews   |
+| One server and all its workloads | 100 rules total, including at most 10 public HTTP checks |
 
 ## Inspect an incident
 
-Select **View Incident** to open its details in a drawer without leaving the incident list. The **Overview** tab shows the original trigger condition, entity, status, severity, start and end times, latest or final reading, and when a notification was last queued. Dates include relative times.
+Open **Monitor → Incidents** for workspace history, or select **View Incident** beside a rule. The drawer separates the trigger and its readings from notification delivery. A queued message is not a successful delivery.
 
-The **Monitoring** tab shows the relevant graph. The **Notifications** tab lists the incident’s notification deliveries, including destination, delivery status, and queued and sent times. Delivery history is paginated. Queued or retrying notifications are distinct from successfully sent notifications; failures show an error code.
-
-The monitoring chart covers the incident start through now, including after recovery, and refreshes every 30 seconds while open. It shows the relevant metric, the rule’s threshold, and a recovery or closure marker. Tooltip timestamps include the time zone. Longer periods use at most 361 points, preserving the highest reading for upper thresholds or the lowest for lower thresholds. Dotted bridges mark gaps between measurements; they are not measured values.
-
-History follows the server’s retention setting. Restart windows use individual counter measurements available for the last 24 hours; report-age history is estimated from retained report timestamps. The drawer explains when older measurements or an older incident’s original configuration are unavailable.
+Use the Monitoring tab to compare the metric with its threshold. Dotted spans mark missing measurements. History follows the server's retention setting; restart and traffic windows are available for the last 24 hours. See [Investigate incidents](/docs/operate/incidents) for recovery, closure reasons, and delivery checks.
 
 <Screenshot
   light="/assets/release-v2/incident-detail-light.jpg"
@@ -103,9 +97,9 @@ These checks measure availability **from your Towbar control plane**. They are n
 
 Configure provider credentials under `notifications` in `/etc/towbar/config.yml` and run `sudo towbar restart`. Then select destination categories in the dashboard. See [notifications](/docs/integrations/notifications) for the schema. Server and workload alerts use the matching routes.
 
-Every valid route is active until the runtime environment changes; there are no per-rule channel selections. Incidents and notification delivery are separate: an active incident does not prove that a provider received the message. Inspect delivery outcomes in the notification center.
+Incident routes follow workspace subscriptions and any workload-specific destinations declared in Git. There are no per-rule channel selections. The incident remains visible even if no destination is configured or delivery fails.
 
-Firing and recovery transitions are saved with durable notification intents. Concurrent evaluations do not create duplicate active incidents. An active incident does not send repeat alerts. Recovery messages are sent only to destinations that successfully received an earlier alert for that incident. Changing configuration or disabling a rule suppresses queued messages that no longer apply. A message already being sent may still arrive.
+Towbar sends one firing notification per incident. Recovery messages go only to destinations that received the firing notification. Pausing or changing a rule suppresses queued messages that no longer apply; a message already being sent may still arrive. See [notification delivery history](/docs/integrations/notifications#delivery-history) for retries and provider failures.
 
 ## API and MCP
 

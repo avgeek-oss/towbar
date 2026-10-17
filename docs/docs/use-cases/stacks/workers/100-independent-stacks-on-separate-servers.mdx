@@ -117,6 +117,6 @@ secrets:
 
 ## Verify
 
-Each Service reaches only its local Datastore; a same-name Docker network on two servers does **not** connect them.
+Query each datastore from its local service. Docker networks with the same name on different servers do not connect the hosts.
 
 For field constraints, see [Service manifest](/docs/services/manifest) and [Datastore manifest](/docs/datastores/manifest).

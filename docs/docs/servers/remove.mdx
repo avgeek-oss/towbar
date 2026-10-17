@@ -5,6 +5,8 @@ description: "Understand the control-plane and host effects before removing a ma
 
 Admins can use **Danger zone → Remove server** after active checks, preparations, deployments, datastore operations, and vulnerability scans finish. The server can still be named in a service or datastore manifest, so inspect assigned workloads first.
 
+If the [OTEL Logs Collector](/docs/operate/log-collection) is installed, choose **Disable collection** and wait for its removal before removing the server. Towbar uninstalls an enabled Scout Agent before archiving the server; wait for that operation to finish too.
+
 Removing a server stops Towbar management and scheduled checks, archives assigned inventory, deletes its stored SSH credential, revokes trusted host keys, and closes remaining preview records. It does **not** terminate the cloud instance, stop the host's running services, erase Docker data, or change the installation-wide Cloudflare integration.
 
 If a later repository sync finds the same IP in a manifest, Towbar restores the archived server in **Server Setup Pending**. Reconfigure its SSH credential, verify host-key trust, and [prepare it again](/docs/servers/setup). Preparation may remove old Towbar-managed Service containers on a best-effort basis; Datastore volumes and other data remain. Historical ownership records stay available for [cleanup](/docs/servers/operations#clean-up-leftover-workloads).

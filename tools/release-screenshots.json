@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-28T07:58:27.470Z",
-  "environment": "Local Towbar fixture on localhost:4021; examples are not production results",
+  "capturedAt": "2026-10-17T17:46:28.607Z",
+  "environment": "Local Towbar fixture on http://localhost:4037; examples are not production results",
   "viewport": "1600 × 900 CSS pixels by default, rendered at 2× density unless a screenshot specifies otherwise; individual screenshots may specify a taller viewport. Every image is limited to the visible viewport",
   "screenshots": [
     {
@@ -43,8 +43,7 @@
           "width": 3200,
           "height": 1800
         }
-      ],
-      "capturedAt": "2026-09-28T08:01:47.047Z"
+      ]
     },
     {
       "name": "analytics-locations",
@@ -66,8 +65,7 @@
           "width": 3200,
           "height": 1800
         }
-      ],
-      "capturedAt": "2026-09-28T08:03:54.982Z"
+      ]
     },
     {
       "name": "analytics-pageviews",
@@ -106,7 +104,8 @@
           "width": 3200,
           "height": 1800
         }
-      ]
+      ],
+      "measure": "request"
     },
     {
       "name": "app-external-secrets",
@@ -258,7 +257,8 @@
           "width": 3200,
           "height": 1800
         }
-      ]
+      ],
+      "capturedAt": "2026-10-17T17:49:27.354Z"
     },
     {
       "name": "deployment-vulnerabilities",
@@ -488,8 +488,7 @@
           "width": 6400,
           "height": 4400
         }
-      ],
-      "capturedAt": "2026-10-08T09:16:37.590Z"
+      ]
     },
     {
       "name": "performance",
@@ -845,7 +844,8 @@
           "width": 3200,
           "height": 1800
         }
-      ]
+      ],
+      "capturedAt": "2026-10-17T17:49:27.354Z"
     },
     {
       "name": "slack-notifications",
@@ -868,7 +868,7 @@
     },
     {
       "name": "ssh-keys",
-      "route": "/team-settings/ssh-keys",
+      "route": "/manage/ssh-keys",
       "guides": ["docs/docs/ssh-keys.mdx"],
       "themes": [
         {
@@ -888,7 +888,6 @@
     {
       "name": "system-health",
       "route": "/system-health",
-      "capturedAt": "2026-10-15T08:28:59.526Z",
       "environment": "Local Towbar fixture on localhost:4036; examples are not production results",
       "guides": [
         "docs/docs/monitoring.mdx",
@@ -1103,8 +1102,7 @@
           "width": 3200,
           "height": 1800
         }
-      ],
-      "capturedAt": "2026-10-17T14:07:26.085Z"
+      ]
     },
     {
       "name": "manifest-conflict-details",
@@ -1124,8 +1122,7 @@
           "width": 3200,
           "height": 1800
         }
-      ],
-      "capturedAt": "2026-10-17T14:07:26.085Z"
+      ]
     },
     {
       "name": "manifest-retirements",
@@ -1144,8 +1141,69 @@
           "width": 3200,
           "height": 1800
         }
+      ]
+    },
+    {
+      "name": "centralized-logs",
+      "route": "/monitoring/logs?range=1440",
+      "guides": ["docs/docs/operate/centralized-logs.mdx"],
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/centralized-logs-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/centralized-logs-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
       ],
-      "capturedAt": "2026-10-17T14:07:26.085Z"
+      "capturedAt": "2026-10-17T17:48:30.940Z"
+    },
+    {
+      "name": "log-details",
+      "route": "/monitoring/logs?range=1440&search=%22message%22&level=info",
+      "guides": ["docs/docs/operate/centralized-logs.mdx"],
+      "openLogDetails": true,
+      "viewport": { "width": 1600, "height": 1000 },
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/log-details-light.jpg",
+          "width": 3200,
+          "height": 2000
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/log-details-dark.jpg",
+          "width": 3200,
+          "height": 2000
+        }
+      ],
+      "capturedAt": "2026-10-17T17:48:30.940Z"
+    },
+    {
+      "name": "otel-logs-collector",
+      "route": "/servers/21111111-1111-4111-8111-222222222222/settings/logs-collection",
+      "guides": ["docs/docs/operate/log-collection.mdx"],
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/otel-logs-collector-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/otel-logs-collector-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
+      ],
+      "capturedAt": "2026-10-17T17:48:30.940Z"
     }
   ]
 }

@@ -167,7 +167,7 @@ See [Vulnerability scanning](/docs/vulnerability-scanning) for workspace finding
 
 ## Account security
 
-Initial setup atomically creates one team and Admin, then closes permanently. Email recovery, MFA and the local recovery command are documented in [Team access](/docs/self-hosting/team-access).
+Initial setup atomically creates one team and Admin, then closes permanently. Email recovery, passkeys and host recovery are documented in [Team access](/docs/self-hosting/team-access).
 
 `security.passwordBreachCheck` defaults to `true`; explicitly setting `false` supports isolated installations without the password corpus service. `security.passwordVerifyConcurrency` defaults to `2` (range 1–8), and `security.passwordVerifyQueueLimit` defaults to `16` (range 1–100). Benchmark resource usage before raising these limits. Saturation returns a retryable busy response.
 

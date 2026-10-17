@@ -5,9 +5,9 @@ description: Compare two deployments with equal observation windows, resource us
 
 import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
-Open a service or datastore and choose **Monitor → Compare deployments**. Select a baseline and a deployment to compare, choose the observation window, and select **Compare deployments**.
+Open a service or datastore and choose **Compare**. Select a baseline and a deployment to compare, choose the observation window, and select **Compare deployments**.
 
-Both deployments must have succeeded, belong to the same workload, and run in the same production or individual preview environment. The list includes the latest 100 successful deployments. The comparison uses the deployment identity reported by Scout, so another release's containers are not silently included.
+Both deployments must have succeeded, belong to the same workload, and run in the same persistent environment. Preview deployments are excluded. The list includes the latest 100 successful deployments. The comparison uses the deployment identity reported by Scout, so another release's containers are not silently included.
 
 <Screenshot
   light="/assets/release-v2/deployment-comparison-light.jpg"
@@ -32,11 +32,13 @@ Choose **Average usage** for sustained resource demand or **Peak usage** for spi
 | ------------------- | -------------------------------------------------------------------------- |
 | Higher usage        | CPU or memory increased beyond both configured sensitivity thresholds      |
 | Lower usage         | CPU or memory decreased beyond both thresholds                             |
-| Within sensitivity  | The change is smaller than either sensitivity threshold                    |
+| No change           | The difference falls below a requested API sensitivity threshold           |
 | Activity comparison | Network or block I/O changed; more activity is not inherently a regression |
 | Insufficient data   | One or both windows lack the required sample coverage                      |
 
-The default sensitivity requires at least **20%** change and an absolute change of **0.05 CPU cores** or **16 MiB memory**. Configure these under **Advanced comparison settings**. The minimum required coverage defaults to 80% and can be set from 50% to 100%. Relative change from a zero baseline is undefined; the absolute threshold still applies.
+The dashboard compares available measurements without additional sensitivity or coverage cutoffs. Check the coverage beside each result before interpreting a change, especially while a window is still collecting data. Relative change from a zero baseline is undefined.
+
+API clients can require a minimum coverage percentage and both relative and absolute sensitivity thresholds. For example, request `minimumCoveragePercent=80`, `regressionPercent=20`, `cpuFloorCores=0.05`, and `memoryFloorMiB=16` to ignore smaller changes or incomplete windows. These are optional request parameters, not dashboard settings.
 
 CPU is compared in consumed cores and memory in bytes, so changing a container's configured limit does not make an identical workload appear cheaper merely by changing the denominator. Network received/sent and block read/write are available as context. Restarts count observed counter increments within the deployment's container identities; missing counter data is not reported as zero.
 
@@ -54,10 +56,10 @@ Use `GET /v1/api/workloads/{deployableId}/comparison-deployments` to discover su
 | `windowMinutes`             | 30        | 5–1440                                |
 | `warmupMinutes`             | 2         | 0–60                                  |
 | `statistic`                 | `average` | `average`, `peak`                     |
-| `regressionPercent`         | 20        | 1–500                                 |
-| `minimumCoveragePercent`    | 80        | 50–100                                |
-| `cpuFloorCores`             | 0.05      | 0–1024                                |
-| `memoryFloorMiB`            | 16        | 0–1048576                             |
+| `regressionPercent`         | 0         | 0–500                                 |
+| `minimumCoveragePercent`    | 0         | 0–100                                 |
+| `cpuFloorCores`             | 0         | 0–1024                                |
+| `memoryFloorMiB`            | 0         | 0–1048576                             |
 
 The response includes deployment metadata, equal observation windows, bounded points, metric summaries and deltas, restart information, and coverage warnings. These are read-only operations scoped to the authenticated workspace.
 

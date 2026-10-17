@@ -13,7 +13,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
   aria-hidden="true"
 />
 
-Towbar posts operational notifications through one Slack bot token. Create a Slack app with a bot allowed to post messages, install it in the intended workspace, and invite the bot to each target channel. Copy the channel ID rather than the display name so channel renames do not change routing.
+Towbar posts operational notifications through one Slack bot token. Create a Slack app with the [`chat:write` bot scope](https://docs.slack.dev/reference/scopes/chat.write/), install it in the intended workspace, and invite the bot to each target channel. Copy the channel ID rather than the display name so channel renames do not change routing.
 
 ```yaml title="/etc/towbar/config.yml"
 notifications:

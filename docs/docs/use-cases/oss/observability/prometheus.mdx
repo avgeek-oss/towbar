@@ -68,7 +68,7 @@ scrape_configs:
 ## Configure
 
 1. Prepare the example server, connect the repository, and map `production` to the branch containing these files. Replace the example server IP.
-2. Commit every file shown below under `deploy/prometheus/`. The Towbar manifest points to the Compose file; it does not create it for you.
+2. Commit the Towbar manifest under `.towbar/services/` and the Compose files under `deploy/prometheus/`, using the paths shown above.
 3. Sync the repository and inspect the resolved Compose project. Save the runtime values below if this example declares any.
 4. Keep this service private until you put authentication in front of its UI and API.
 5. Edit `prometheus.yml` to add only targets reachable from this Compose network. The sample self-scrape cannot discover Towbar Services automatically.

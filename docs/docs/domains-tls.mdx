@@ -16,7 +16,7 @@ For [Compose projects](/docs/services/modes/compose#route-tls-per-service), decl
 | `direct`         | Point public DNS at the target and allow ACME validation to reach Caddy           | No Cloudflare token                            |
 | `cloudflare-dns` | Use a Cloudflare zone; Towbar manages its owned records and validates through DNS | Scoped Account API token in the Towbar runtime |
 
-Set the primary hostname without a scheme or path. A TLS declaration requires a primary domain. A publicly routed workload also needs a container port and an HTTP health check.
+Set the primary hostname without a scheme or path. A TLS declaration requires a primary domain. A publicly routed workload also needs a container port and a successful public HTTP probe. Readiness may use a separate port or a command with a [public probe path](/docs/services/configuration#readiness-and-public-probes).
 
 ## Direct TLS
 
@@ -38,7 +38,7 @@ Point the hostname at the target server. Allow inbound HTTP and HTTPS traffic re
 
 Set `integrations.cloudflare.enabled: true`, `accountId`, and `apiToken` in `/etc/towbar/config.yml`, then validate and restart Towbar. Each service or datastore selects Cloudflare DNS validation in its manifest. A deployment using `tls.mode: cloudflare-dns` is rejected if the runtime integration is missing. Towbar prepares the server's Caddy DNS module when the first such deployment runs.
 
-Create the token under **Manage Account → Account API Tokens** in Cloudflare. Grant **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read**, restricted to the zones Towbar should manage. Zone Settings Read lets Towbar verify that SSL/TLS mode is Full (strict) for proxied records. Creating account tokens requires the Super Administrator role. See [Cloudflare's account-token guide](https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/).
+Create the token under **Manage Account → Account API Tokens** in Cloudflare. Grant **Zone → Zone → Read**, **Zone → DNS → Edit**, and **Zone → Zone Settings → Read**, restricted to the zones Towbar should manage. Zone Settings Read lets Towbar verify that SSL/TLS mode is Full (strict) for proxied records. Creating account tokens requires Super Administrator status or API Token Provisioning capability. See [Cloudflare's account-token guide](https://developers.cloudflare.com/fundamentals/api/get-started/account-owned-tokens/).
 
 Use a scoped account token rather than a personal or global API key. `integrations.cloudflare.zoneId` is optional when the token can discover the required zones. Towbar installs the Cloudflare DNS module on the target server when needed.
 
@@ -73,11 +73,21 @@ For proxied nested hostnames, check Cloudflare's certificate coverage as well as
 
 ## Cloudflare Tunnel ingress
 
-Use `ingress.type: cloudflare-tunnel` when the workload server should not expose a public inbound application port. Create a named Cloudflare integration with a scoped account API token, account ID, optional zone ID, and Towbar's reviewed cloudflared image digest. Reference its slug and optionally a dedicated tunnel name in the Service or Compose service manifest.
+Use `ingress.type: cloudflare-tunnel` when the workload server should not expose a public inbound application port. Configure the installation-wide [Cloudflare integration](/docs/integrations/cloudflare) and give its token tunnel-management access for the selected account, in addition to zone and DNS access. Reference it as `cloudflare` in the workload:
+
+```yaml title="Service manifest fragment"
+domains:
+  primary: app.example.com
+ingress:
+  type: cloudflare-tunnel
+  integration: cloudflare
+```
+
+Omit `tls` for Tunnel routes. Cloudflare manages the public certificate. An optional `tunnel` sets the tunnel name; Towbar requires matching ownership before reusing an existing tunnel.
 
 Towbar creates or attaches only resources carrying its ownership identity, writes generated tunnel credentials to root-owned transient storage, starts cloudflared without a Docker socket or published administration port, and verifies the route before promotion. DNS and tunnel routes are reconciled on redeploy. Preview and removed routes are cleaned only when ownership matches; an uncertain provider response leaves a visible cleanup warning for later reconciliation.
 
-Enabling Tunnel does not expose SSH, the Docker API, Towbar's control plane, or another service on the host. Cloudflare Access is an explicit manifest choice. Credential rotation replaces the runtime configuration on the next reconciliation.
+Enabling Tunnel does not expose SSH, the Docker API, Towbar's control plane, or another service on the host. Set `ingress.access: true` only after configuring an exact Cloudflare Access application with an allow or service-auth policy and no bypass policy. Towbar verifies that policy; it does not create it. The token also needs access to read the application and its policies. Credential rotation takes effect after updating YAML and restarting Towbar.
 
 <Screenshot
   light="/assets/release-v2/previews-light.jpg"

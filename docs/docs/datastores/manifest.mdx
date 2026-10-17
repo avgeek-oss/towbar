@@ -34,6 +34,7 @@ Register the server, save each declared secret value under **Datastore → Setti
 | `server`, `environments`        | Target host and allowed environment overrides.                              | [Environment branches](/docs/repositories/environments)                                           |
 | `container`, `health`, `access` | Limits, network, storage, readiness, and optional private access.           | [Datastores](/docs/datastores#connect-privately)                                                  |
 | `secrets`, `externalSecrets`    | Runtime key names and an external-secret source.                            | [Towbar secrets](/docs/secrets/towbar), [external secrets](/docs/secrets/external)                |
+| `logs`                          | Restrict retained log access to Admins.                                     | [Centralized logs](/docs/operate/centralized-logs#restrict-sensitive-workloads)                   |
 | `backup`                        | Schedule, destinations, and retention for managed databases.                | [Backups](/docs/backups)                                                                          |
 | `autoDeploy`, `notifications`   | Deployment automation and extra event destinations.                         | [Sync and automation](/docs/repositories/sync), [Notifications](/docs/integrations/notifications) |
 | `domains`, `ingress`, `tls`     | Routing for Datastores that expose a public endpoint.                       | [Domains and TLS](/docs/domains-tls)                                                              |
@@ -49,7 +50,7 @@ same [runtime configuration contract](/docs/services/configuration#runtime-comma
 as Services. The default managed data volume, resource limits, health command,
 and engine image remain in effect unless explicitly overridden. Repository
 files are mounted read-only and retained with the release for deployment
-rollback. An executable function can use mode `0555` at a file path inside the
+rollback. An executable script can use mode `0555` at a file path inside the
 managed data volume.
 
 HTTP health checks may declare a `port` independent of `container.port`, and

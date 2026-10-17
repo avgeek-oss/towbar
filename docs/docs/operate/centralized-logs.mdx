@@ -3,6 +3,8 @@ title: "Centralized logs"
 description: "Search retained container logs, inspect records, and control access."
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 Open **Monitor → Logs** to search retained output from Services, Datastores, Compose services, and previews.
 
 | Need                                       | Where to go                                           |
@@ -49,6 +51,20 @@ Filters support equality, text matches, and existence checks where the field all
 
 Search, workload/server, environment, level, time range, and modal filters are kept in the URL. Reload, bookmark, or share the link to restore the query. Preset ranges stay relative to when the page opens; custom dates stay fixed. Shared links respect each viewer's log permissions.
 
+For example, this link opens the last hour of production errors containing `timeout`:
+
+```text
+https://towbar.example.com/monitoring/logs?range=60&environment=production&level=error&search=timeout
+```
+
+<Screenshot
+  light="/assets/release-v2/centralized-logs-light.jpg"
+  dark="/assets/release-v2/centralized-logs-dark.jpg"
+  alt="Centralized log search with workload and severity filters, a volume chart, and the records table."
+  width="3200"
+  height="1800"
+/>
+
 The loaded count shows records in the table; **~X records found** comes from the query's volume summary. Counts can be incomplete when the query budget is reached.
 
 Record times include seconds. The selected range uses minutes; chart-axis labels include seconds only for ranges shorter than 30 minutes. Dates use your account preferences.
@@ -62,6 +78,14 @@ Towbar saves column selection, order, custom fields, and widths to your account.
 Double-click a row, press Enter, or tap on mobile to open **Message**, **Full log JSON**, and **Attributes**. Right-click a JSON field or open its action menu to filter by its value, add a column, search, or copy. Keyboard users can use **Shift-F10**.
 
 JSON messages are formatted automatically, including previously collected logs. The parsed view expands the body and hides repeated attributes. Use **View raw** or **View parsed** beside **Copy** to switch views. Expanded fields still support filters and custom columns.
+
+<Screenshot
+  light="/assets/release-v2/log-details-light.jpg"
+  dark="/assets/release-v2/log-details-dark.jpg"
+  alt="Parsed JSON message and full log JSON in the log details drawer, with an inline View raw action."
+  width="3200"
+  height="2000"
+/>
 
 ## Undo filters
 

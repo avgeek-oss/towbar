@@ -13,7 +13,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
   aria-hidden="true"
 />
 
-Create a Google Cloud project and a Cloud Storage bucket for recovery points. Give a dedicated service account access to list, create, read, and remove the objects Towbar owns in the intended bucket; include Cloud KMS access when the bucket uses a customer-managed encryption key. Export a JSON key for that account, encode the complete file as Base64, and add it to `/etc/towbar/config.yml`:
+Create a Google Cloud project and a Cloud Storage bucket for recovery points. Give a dedicated service account access to list, create, read, and remove the objects Towbar owns in the intended bucket. If the bucket uses a customer-managed encryption key, grant its [Cloud Storage service agent access to that key](https://docs.cloud.google.com/storage/docs/encryption/using-customer-managed-keys). Export a JSON key for that account, encode the complete file as Base64, and add it to `/etc/towbar/config.yml`:
 
 ```yaml title="/etc/towbar/config.yml"
 integrations:

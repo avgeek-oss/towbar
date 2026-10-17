@@ -97,6 +97,7 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm docs:api:check
+      - run: pnpm docs:examples:check
       - run: pnpm postman:check
       - run: pnpm typecheck
       - run: pnpm test:verification-runner

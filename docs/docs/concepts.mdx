@@ -39,7 +39,7 @@ flowchart LR
 
 ## Configuration has three homes
 
-**Git describes the workload.** The root file declares environments. Entity files define images or Dockerfiles, health checks, domains, resource limits, required secret keys, and deployment policy. Keep stable IDs when renaming a Service or Datastore so its history stays attached.
+**Git describes the workload.** The root file declares environments. Entity files define images or Dockerfiles, health checks, domains, resource limits, required secret keys, and deployment policy. Keep stable IDs when renaming a service or datastore so its history stays attached. IDs must be unique within a workspace and environment, including across repositories. See [ownership and retirement](/docs/repositories/conflicts-and-retirements) before moving or removing a manifest.
 
 **Towbar stores workspace state and workload secrets.** Environment-to-branch mappings, SSH credentials and trust, concurrency, and encrypted workload secret values belong in Towbar. Saving a secret does not deploy it.
 

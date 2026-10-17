@@ -14,49 +14,14 @@ Railway manages infrastructure around project services. Towbar runs on your own
 control-plane and workload servers, so the migration must replace both service
 configuration and the managed operational boundary.
 
-## Compare the tradeoffs
+## What changes
 
-### Towbar
-
-#### ✅ Pros
-
-- Towbar keeps workload configuration in Git and runs on infrastructure you
-  choose, including servers you already own or rent directly.
-- Immutable source and image identities, server setup, Scout monitoring,
-  vulnerability results, and database recovery are visible in one control
-  plane.
-- Provider credentials that operate Towbar stay in the Towbar runtime
-  environment rather than in application configuration screens.
-
-#### ⚠️ Cons
-
-- Towbar does not provide Railway's managed compute, project canvas, template
-  marketplace, or automatically provisioned service networking.
-- You must size, patch, monitor, and recover the control plane and workload
-  servers yourself.
-- Its database versions, builders, and Compose policy cover fewer cases than
-  Railway's general container service model.
-
-### Railway
-
-#### ✅ Pros
-
-- Railway's [service model](https://docs.railway.com/services) makes persistent
-  services, scheduled jobs, variables, metrics, logs, public routes, and
-  volumes quick to configure.
-- Persistent, staging, and pull-request environments can isolate complete sets
-  of services without server administration.
-- Its template marketplace and visual project canvas reduce the work needed to
-  assemble a common stack.
-
-#### ⚠️ Cons
-
-- Service configuration, generated networking, variables, and volumes live in
-  Railway, so the repository may not be enough to recreate a project elsewhere.
-- You accept Railway's compute pricing, product limits, regional availability,
-  and platform outages instead of controlling the underlying hosts.
-- Volumes and template-provisioned databases still need explicit export and
-  cutover plans when leaving the platform.
+| Area           | Railway                                                                                   | Towbar                                                |
+| -------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Infrastructure | Managed compute and service networking                                                    | Ubuntu servers you size, patch, and recover           |
+| Configuration  | [Project services](https://docs.railway.com/services), variables, and repository settings | Workload declarations and environment mappings in Git |
+| Data           | Template databases and attached volumes                                                   | Supported Datastores or declared Service volumes      |
+| Previews       | Project environments with service dependencies                                            | Opt-in Service previews; Datastores are not cloned    |
 
 ## 1. Inventory projects and environments
 

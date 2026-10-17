@@ -23,22 +23,23 @@ Show recent output from every service or a selected list of Compose services.
 sudo towbar logs [SERVICE...]
 ```
 
-| Parameter    | Required | Accepted value                           | Default      | Behavior                                |
-| ------------ | -------- | ---------------------------------------- | ------------ | --------------------------------------- |
-| `SERVICE...` | No       | One or more Towbar Compose service names | All services | Limits output to the selected services. |
+Logs default to the latest 200 lines. Pass Compose log options such as `--follow`, or set `TOWBAR_LOG_TAIL` to change the limit:
 
-The CLI asks Docker Compose for the most recent 200 lines by default. Set `TOWBAR_LOG_TAIL` for a different limit. Additional Docker Compose log options, such as `--follow`, are passed through.
+<CodeGroup>
 
-<Tabs>
-  <Tab title="All services">```bash sudo towbar logs ```</Tab>
-  <Tab title="Selected services">```bash sudo towbar logs api worker ```</Tab>
-  <Tab title="Follow output">
-    ```bash sudo towbar logs --follow api worker ```
-  </Tab>
-  <Tab title="More history">
-    ```bash sudo TOWBAR_LOG_TAIL=1000 towbar logs api ```
-  </Tab>
-</Tabs>
+```bash title="Selected services"
+sudo towbar logs api worker
+```
+
+```bash title="Follow output"
+sudo towbar logs --follow api worker
+```
+
+```bash title="More history"
+sudo TOWBAR_LOG_TAIL=1000 towbar logs api
+```
+
+</CodeGroup>
 
 | Service              | Role                                                        |
 | -------------------- | ----------------------------------------------------------- |
@@ -108,8 +109,8 @@ towbar version
 ```
 
 ```text title="Installed example"
-Towbar v2.0.15
-CLI 2.0.15
+Towbar v2.0.52
+CLI 2.0.52
 ```
 
 If the CLI exists without an installation, the first line is `Towbar is not installed`. `towbar -v` and `towbar --version` are aliases.

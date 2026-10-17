@@ -60,7 +60,7 @@ endpoints:
 ## Configure
 
 1. Prepare the example server, connect the repository, and map `production` to the branch containing these files. Replace the example server IP and domain.
-2. Commit every file shown below under `deploy/gatus/`. The Towbar manifest points to the Compose file; it does not create it for you.
+2. Commit the Towbar manifest under `.towbar/services/` and the Compose files under `deploy/gatus/`, using the paths shown above.
 3. Sync the repository and inspect the resolved Compose project. Save the runtime values below if this example declares any.
 4. Replace the example endpoint with a URL you control. Add alerting only after the basic check works; destination credentials belong in Towbar runtime secrets, not this file.
 5. Deploy it manually and run the verification below before enabling auto-deploy.

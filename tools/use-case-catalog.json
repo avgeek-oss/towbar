@@ -26,7 +26,7 @@
     "title": "Gitea",
     "approach": "Adapt the upstream Compose project, preserving its persistent data volume.",
     "verify": "Preserve `/data`; web routing does not by itself expose Git-over-SSH.",
-    "upstream": "https://docs.gitea.com/next/installation/install-with-docker/",
+    "upstream": "https://docs.gitea.com/installation/install-with-docker/",
     "description": "Gitea is a lightweight Git hosting service for repositories, code reviews, and team collaboration."
   },
   {
@@ -105,7 +105,7 @@
     "slug": "011-existing-dockerfile",
     "title": "Existing Dockerfile",
     "approach": "Use `deployment.type: dockerfile`, `context`, and `dockerfile`. [Example](/docs/services/modes/dockerfile)",
-    "verify": "The Dockerfile is inside the committed repository context."
+    "verify": "Deploy the committed Dockerfile and open its health endpoint. Confirm the deployment records the intended commit."
   },
   {
     "id": 12,
@@ -113,7 +113,7 @@
     "slug": "012-multi-stage-dockerfile",
     "title": "Multi-stage Dockerfile",
     "approach": "Add `deployment.target` to select the runtime stage. [Example](/docs/services/modes/dockerfile)",
-    "verify": "The selected stage contains the executable and listens on `container.port`."
+    "verify": "Deploy the selected target stage and check its health endpoint. Confirm build tools are absent from the runtime image."
   },
   {
     "id": 13,
@@ -121,7 +121,7 @@
     "slug": "013-private-package-at-build-time",
     "title": "Private packages",
     "approach": "Declare `secrets.build` and mount it through BuildKit in a Dockerfile. [Secrets](/docs/secrets/towbar)",
-    "verify": "The credential is not copied into an image layer or browser bundle."
+    "verify": "Build with the declared secret and inspect the final image and generated assets for accidental credential inclusion."
   },
   {
     "id": 14,
@@ -129,7 +129,7 @@
     "slug": "014-separate-build-server",
     "title": "Build server",
     "approach": "Set `buildServer` for a source-build Service. [Modes](/docs/platform-deployments)",
-    "verify": "The builder is registered and has capacity; the runtime server remains the environment target."
+    "verify": "Check the deployment logs identify the selected builder and runtime servers, then verify the service on its runtime host."
   },
   {
     "id": 15,
@@ -137,7 +137,7 @@
     "slug": "015-static-site",
     "title": "Static site",
     "approach": "Use `deployment.type: static`, `buildCommand`, and `output`. [Example](/docs/services/modes/static)",
-    "verify": "The output directory exists and the runtime listens on the declared port."
+    "verify": "Open the deployed site and a static asset. Confirm the build produced the configured output directory."
   },
   {
     "id": 16,
@@ -145,7 +145,7 @@
     "slug": "016-single-page-app",
     "title": "Single-page app",
     "approach": "In static mode, set `spaFallback: true`. [Example](/docs/services/modes/static)",
-    "verify": "Direct navigation to a client-side route returns the entry page."
+    "verify": "Open a client-side route directly, then reload it. Both requests should load the application."
   },
   {
     "id": 17,
@@ -153,7 +153,7 @@
     "slug": "017-railpack-detected-project",
     "title": "Railpack-detected project",
     "approach": "Use the pinned `railpack` version and frontend image from its guide. [Example](/docs/services/modes/railpack)",
-    "verify": "Inspect the detected build and start process; this mode cannot use build secrets."
+    "verify": "Inspect the detected build and start command, then check the deployed health endpoint. Use Dockerfile mode if the build needs credentials."
   },
   {
     "id": 18,
@@ -161,7 +161,7 @@
     "slug": "018-existing-nixpacks-project",
     "title": "Nixpacks project",
     "approach": "Use the pinned `nixpacks` builder and optional `configFile`. [Example](/docs/services/modes/nixpacks)",
-    "verify": "Its generated image starts correctly; this mode cannot use build secrets."
+    "verify": "Check the generated image starts and passes readiness. Use Dockerfile mode if the build needs credentials."
   },
   {
     "id": 19,
@@ -169,7 +169,7 @@
     "slug": "019-buildpack-project",
     "title": "Buildpack project",
     "approach": "Pin `packImage` and a reviewed `builder`. [Example](/docs/services/modes/buildpack)",
-    "verify": "An arbitrary builder digest is rejected; this mode cannot use build secrets."
+    "verify": "Deploy with the reviewed builder digest and check the resulting process and readiness endpoint."
   },
   {
     "id": 20,
@@ -177,7 +177,7 @@
     "slug": "020-prebuilt-oci-image",
     "title": "OCI image",
     "approach": "Run a reviewed OCI image with an explicit digest. [Image deployment](/docs/services/modes/image)",
-    "verify": "`latest` is rejected; pin a reviewed tag or digest and verify the image listens on the declared port."
+    "verify": "Confirm the deployment records an immutable image digest and the image answers on the declared port."
   },
   {
     "id": 21,
@@ -185,7 +185,7 @@
     "slug": "021-http-api",
     "title": "HTTP API",
     "approach": "Set `container.port` and `health.path`. [Container and health](/docs/services/configuration)",
-    "verify": "The process listens on the container interface and the path answers without login."
+    "verify": "Call the health endpoint without a login. Confirm the process listens on the container interface rather than loopback."
   },
   {
     "id": 22,
@@ -193,7 +193,7 @@
     "slug": "022-slow-startup",
     "title": "Slow startup",
     "approach": "Increase `health.timeoutSeconds` only to a measured startup bound. [Container and health](/docs/services/configuration)",
-    "verify": "A candidate still fails when it never becomes ready."
+    "verify": "Measure startup time from the deployment stages. Set the timeout above that bound and confirm promotion waits for readiness."
   },
   {
     "id": 23,
@@ -201,7 +201,7 @@
     "slug": "023-cpu-bound-process",
     "title": "CPU-bound process",
     "approach": "Set `container.resources.cpus` and `memory`. [Container and health](/docs/services/configuration)",
-    "verify": "The target server has capacity for the new and old copies during rollout."
+    "verify": "Check CPU and memory during a representative load. For rolling replacement, leave memory headroom for the additional containers."
   },
   {
     "id": 24,
@@ -209,7 +209,7 @@
     "slug": "024-private-api",
     "title": "Private API",
     "approach": "Set `container.network` and omit public `domains`. [Private connectivity](/docs/services/configuration#private-connectivity)",
-    "verify": "A peer on the same server and network can resolve the alias."
+    "verify": "From a peer on the same host and network, resolve the API alias and call its endpoint."
   },
   {
     "id": 25,
@@ -217,7 +217,7 @@
     "slug": "025-service-plus-postgresql",
     "title": "PostgreSQL service",
     "approach": "Give both workloads `container.network: application`; use the Datastore alias and port in a secret URL. [PostgreSQL](/docs/databases/postgresql)",
-    "verify": "No credential is committed and the app can connect after database readiness."
+    "verify": "After database readiness, query PostgreSQL from the service using its saved connection URL."
   },
   {
     "id": 26,
@@ -225,7 +225,7 @@
     "slug": "026-service-plus-redis",
     "title": "Redis service",
     "approach": "Share a private network and save an authenticated Redis URL as a runtime secret. [Redis](/docs/databases/redis)",
-    "verify": "The app uses the declared Redis password and the datastore is healthy."
+    "verify": "Connect from the service using the saved Redis password and perform an application-level read and write."
   },
   {
     "id": 27,
@@ -233,7 +233,7 @@
     "slug": "027-persistent-uploaded-files",
     "title": "Persistent files",
     "approach": "Add a named `container.volumes` mount and a `recreate` rollout. [Storage](/docs/services/configuration#persistent-storage)",
-    "verify": "The runtime user can write the mount and files survive a redeploy."
+    "verify": "Write a test file as the application user, redeploy, and confirm the file remains readable."
   },
   {
     "id": 28,
@@ -241,7 +241,7 @@
     "slug": "028-public-https",
     "title": "Public HTTPS",
     "approach": "Set `domains.primary` and a supported `tls.mode`. [Routing and TLS](/docs/services/routing)",
-    "verify": "DNS, ingress, and certificate prerequisites are ready before traffic changes."
+    "verify": "Open the HTTPS hostname and inspect its certificate and application response after deployment."
   },
   {
     "id": 29,
@@ -249,7 +249,7 @@
     "slug": "029-alternate-domain",
     "title": "Alternate domain",
     "approach": "Add a domain alias according to [routing](/docs/services/routing).",
-    "verify": "Both hostnames resolve and route to the intended Service."
+    "verify": "Request both hostnames and confirm each serves the intended service or configured redirect."
   },
   {
     "id": 30,
@@ -257,7 +257,7 @@
     "slug": "030-single-writer-data",
     "title": "Single-writer data",
     "approach": "Use `rollout.type: recreate` with `maintenanceMode: true` and a reason. [Storage](/docs/services/configuration#persistent-storage)",
-    "verify": "A second process never writes the same volume concurrently."
+    "verify": "Inspect replacement stages to confirm the old writer stops before the new one starts. Verify existing files afterward."
   },
   {
     "id": 31,
@@ -265,7 +265,7 @@
     "slug": "031-required-runtime-credential",
     "title": "Runtime credential",
     "approach": "List its key under `secrets.runtime`, then save the value in **Settings → Secrets**. [Towbar secrets](/docs/secrets/towbar)",
-    "verify": "Deployment blocks until the selected environment has the value."
+    "verify": "Save the declared value in the selected environment, deploy, and confirm the application can use it without logging it."
   },
   {
     "id": 32,
@@ -273,7 +273,7 @@
     "slug": "032-private-build-dependency",
     "title": "Build dependency",
     "approach": "Declare a build-stage key and use a Dockerfile BuildKit secret mount. [Towbar secrets](/docs/secrets/towbar)",
-    "verify": "The value does not appear in the committed file or final image."
+    "verify": "Inspect the build result and final image for accidental credential inclusion. Keep the value out of committed files."
   },
   {
     "id": 33,
@@ -281,7 +281,7 @@
     "slug": "033-infisical-folder",
     "title": "Infisical folder",
     "approach": "Set `externalSecrets.integration: infisical`, project, and optional `environmentSlug` or `secretPath`. [External secrets](/docs/secrets/external)",
-    "verify": "The selected folder returns the required runtime keys."
+    "verify": "Deploy using the selected Infisical folder and confirm the application receives every required runtime key."
   },
   {
     "id": 34,
@@ -289,7 +289,7 @@
     "slug": "034-doppler-config",
     "title": "Doppler config",
     "approach": "Set `externalSecrets.integration: doppler`, project, and optional config. [External secrets](/docs/secrets/external)",
-    "verify": "The runtime token can read that config at deployment time."
+    "verify": "Deploy using the selected Doppler config and confirm the application can use its required runtime values."
   },
   {
     "id": 35,
@@ -297,7 +297,7 @@
     "slug": "035-monorepo-auto-deploy",
     "title": "Monorepo auto-deploy",
     "approach": "List relevant paths in `autoDeploy.inputs`. [Automation](/docs/services/automation)",
-    "verify": "Shared packages and lockfiles are included, not only the app directory."
+    "verify": "Push a relevant application change and a shared dependency change. Confirm each queues deployment; an unrelated change should not."
   },
   {
     "id": 36,
@@ -305,7 +305,7 @@
     "slug": "036-pull-request-preview",
     "title": "Pull-request preview",
     "approach": "Enable previews in root `towbar.yml`, then set the Service `preview` block. [Previews](/docs/previews)",
-    "verify": "Preview secrets are isolated and the preview domain resolves."
+    "verify": "Open an eligible pull request, wait for preview deployment, and check its URL. Verify it uses isolated preview credentials."
   },
   {
     "id": 37,
@@ -313,7 +313,7 @@
     "slug": "037-daily-report",
     "title": "Daily report",
     "approach": "Add a `jobs` entry with an argument-array command and five-field cron. [Jobs](/docs/services/jobs)",
-    "verify": "It runs from the deployed image and does not overlap itself."
+    "verify": "Run the job manually, inspect its output and final state, then verify the next scheduled run appears."
   },
   {
     "id": 38,
@@ -321,7 +321,7 @@
     "slug": "038-pre-deploy-migration",
     "title": "Pre-deploy migration",
     "approach": "Use a pre-deploy hook and stage-specific secrets. [Deployment hooks](/docs/deployments#deployment-hooks)",
-    "verify": "The migration is safe to retry and compatible with rollback."
+    "verify": "Run the migration against test data, verify the schema, and check compatibility with the previous application release."
   },
   {
     "id": 39,
@@ -329,7 +329,7 @@
     "slug": "039-event-notifications",
     "title": "Event notifications",
     "approach": "Add `notifications` to select workspace-configured destinations. [Notifications](/docs/integrations/notifications)",
-    "verify": "The destination is enabled and has a tested delivery route."
+    "verify": "Trigger a test event and inspect delivery history. Confirm the configured destination receives it."
   },
   {
     "id": 40,
@@ -337,7 +337,7 @@
     "slug": "040-image-vulnerability-scan",
     "title": "Vulnerability scanning",
     "approach": "Set `vulnerabilityScanning` and review the result before release. [Scanning](/docs/vulnerability-scanning)",
-    "verify": "Findings are assessed for the exact image digest being deployed."
+    "verify": "Inspect the completed scan for the deployed image digest and review its package findings and fixed versions."
   },
   {
     "id": 41,
@@ -345,7 +345,7 @@
     "slug": "041-postgresql-for-one-service",
     "title": "Single-service PostgreSQL",
     "approach": "Set `type: postgres`, a private network, and the required `POSTGRES_PASSWORD`.",
-    "verify": "The Service uses the declared private network alias on port 5432 and its own secret connection URL."
+    "verify": "Query PostgreSQL from the service using the private alias on port 5432 and its saved connection URL."
   },
   {
     "id": 42,
@@ -353,7 +353,7 @@
     "slug": "042-postgresql-with-named-database",
     "title": "Named PostgreSQL",
     "approach": "Declare `POSTGRES_USER` and `POSTGRES_DB` alongside the password.",
-    "verify": "Set values before first initialization; changing them later does not rename an existing role or database."
+    "verify": "After first initialization, connect and check the configured database and role exist. Later changes require SQL, not just new secret values."
   },
   {
     "id": 43,
@@ -361,7 +361,7 @@
     "slug": "043-postgresql-for-an-operator-laptop",
     "title": "PostgreSQL tunnel",
     "approach": "Add `access.sshTunnel.hostPort` to the Datastore.",
-    "verify": "Reach the loopback-bound port through SSH; do not publish the database port publicly."
+    "verify": "Forward the loopback-bound database port over SSH and connect with a local PostgreSQL client."
   },
   {
     "id": 44,
@@ -369,7 +369,7 @@
     "slug": "044-postgresql-with-daily-backups",
     "title": "PostgreSQL backups",
     "approach": "Add a [backup policy](/docs/backups) with an enabled provider, daily cron, and retention.",
-    "verify": "Create and restore-test a representative recovery point."
+    "verify": "Create a backup, check restore-readiness, then perform a restore drill with disposable data."
   },
   {
     "id": 45,
@@ -377,7 +377,7 @@
     "slug": "045-mysql-for-an-api",
     "title": "MySQL API",
     "approach": "Use `type: mysql`, a private network, and `MYSQL_ROOT_PASSWORD`.",
-    "verify": "The app uses port `3306` with an application user, not Towbar's root credential."
+    "verify": "Connect from the application on port 3306 using its application user rather than the datastore root credential."
   },
   {
     "id": 46,
@@ -385,7 +385,7 @@
     "slug": "046-mysql-application-schema",
     "title": "MySQL schema",
     "approach": "Declare `MYSQL_DATABASE`, `MYSQL_USER`, and `MYSQL_PASSWORD` before first deployment.",
-    "verify": "Check the user and schema actually exist after initialization."
+    "verify": "Connect as the application user and check it can access the configured MySQL database."
   },
   {
     "id": 47,
@@ -393,7 +393,7 @@
     "slug": "047-mysql-with-off-host-copies",
     "title": "MySQL copies",
     "approach": "Add a backup destination and retention policy.",
-    "verify": "The provider credentials are enabled and a restore into a fresh target succeeds."
+    "verify": "Create a backup, inspect its saved object, and complete a restore drill with disposable data."
   },
   {
     "id": 48,
@@ -401,7 +401,7 @@
     "slug": "048-mariadb-for-a-cms",
     "title": "MariaDB CMS",
     "approach": "Use `type: mariadb`, private networking, and `MYSQL_ROOT_PASSWORD`.",
-    "verify": "The CMS image's client and schema are compatible with this MariaDB major version."
+    "verify": "Run the CMS initialization and a representative read/write against the selected MariaDB version."
   },
   {
     "id": 49,
@@ -409,7 +409,7 @@
     "slug": "049-mariadb-application-role",
     "title": "MariaDB role",
     "approach": "Declare `MYSQL_DATABASE`, `MYSQL_USER`, and `MYSQL_PASSWORD` at creation.",
-    "verify": "Do not assume changing the saved values rotates an existing role."
+    "verify": "Connect as the application user and check its privileges. Rotate existing users with SQL before updating saved credentials."
   },
   {
     "id": 50,
@@ -417,7 +417,7 @@
     "slug": "050-mariadb-with-ssh-access",
     "title": "MariaDB tunnel",
     "approach": "Add a loopback-only SSH tunnel port and keep regular app traffic private.",
-    "verify": "An SSH-forwarded client connects; the server firewall does not expose `3306`."
+    "verify": "Connect through the SSH-forwarded port. Confirm port 3306 remains unavailable to public clients."
   },
   {
     "id": 51,
@@ -425,7 +425,7 @@
     "slug": "051-mongodb-for-a-private-api",
     "title": "MongoDB API",
     "approach": "Use `type: mongodb` and the same `container.network` as the API.",
-    "verify": "The API reaches the Datastore alias on port `27017`."
+    "verify": "Connect from the API through the MongoDB alias on port 27017 and query the intended database."
   },
   {
     "id": 52,
@@ -433,7 +433,7 @@
     "slug": "052-mongodb-root-initialization",
     "title": "MongoDB initialization",
     "approach": "Declare `MONGO_INITDB_ROOT_USERNAME` and `MONGO_INITDB_ROOT_PASSWORD`.",
-    "verify": "Set them before the data volume is initialized."
+    "verify": "Deploy to an empty volume, then authenticate with the configured root user against the admin database."
   },
   {
     "id": 53,
@@ -441,7 +441,7 @@
     "slug": "053-mongodb-app-specific-user",
     "title": "MongoDB user",
     "approach": "Create a least-privilege database user after initialization.",
-    "verify": "The Service uses that user; Towbar's managed root credential stays separate."
+    "verify": "Query from the service using the application user and verify it lacks administrative privileges."
   },
   {
     "id": 54,
@@ -449,7 +449,7 @@
     "slug": "054-mongodb-operator-access",
     "title": "MongoDB access",
     "approach": "Add `access.sshTunnel.hostPort` without public database routing.",
-    "verify": "The client authenticates to the correct database through SSH."
+    "verify": "Connect a MongoDB client through SSH using the intended authentication database."
   },
   {
     "id": 55,
@@ -457,7 +457,7 @@
     "slug": "055-mongodb-recovery",
     "title": "MongoDB recovery",
     "approach": "Schedule a provider-backed backup and practice a fresh-target restore.",
-    "verify": "The archive can be read by an application after restore."
+    "verify": "Restore disposable data, then query it with an application client after the operation completes."
   },
   {
     "id": 56,
@@ -465,7 +465,7 @@
     "slug": "056-clickhouse-for-event-analytics",
     "title": "ClickHouse analytics",
     "approach": "Use `type: clickhouse` on the analytics Service's private network.",
-    "verify": "The Service reaches the preset's HTTP port `8123`."
+    "verify": "Send an authenticated query from the service to the ClickHouse alias on HTTP port 8123."
   },
   {
     "id": 57,
@@ -473,7 +473,7 @@
     "slug": "057-clickhouse-credentials",
     "title": "ClickHouse credentials",
     "approach": "Declare `CLICKHOUSE_USER` and `CLICKHOUSE_PASSWORD`.",
-    "verify": "The values are saved in the selected environment before deployment."
+    "verify": "Save the values in the selected environment, deploy, and test an authenticated ClickHouse query."
   },
   {
     "id": 58,
@@ -481,7 +481,7 @@
     "slug": "058-clickhouse-database-selection",
     "title": "ClickHouse selection",
     "approach": "Optionally declare `CLICKHOUSE_DB` before initial deployment.",
-    "verify": "The intended database exists and the client is pointed at it."
+    "verify": "Query the configured database and confirm the consuming service selects it."
   },
   {
     "id": 59,
@@ -489,7 +489,7 @@
     "slug": "059-clickhouse-resource-sizing",
     "title": "ClickHouse sizing",
     "approach": "Set `container.resources` for measured ingest and query load.",
-    "verify": "The target server has enough CPU, memory, and disk headroom."
+    "verify": "Run representative ingestion and queries, then inspect CPU, memory, and disk growth before choosing production limits."
   },
   {
     "id": 60,
@@ -497,7 +497,7 @@
     "slug": "060-clickhouse-recovery",
     "title": "ClickHouse recovery",
     "approach": "Add a supported backup provider and test a fresh-target archive restore.",
-    "verify": "Query representative data on the restored Datastore."
+    "verify": "Complete a restore drill and query representative data from the restored ClickHouse datastore."
   },
   {
     "id": 61,
@@ -505,7 +505,7 @@
     "slug": "061-redis-for-sessions",
     "title": "Redis sessions",
     "approach": "Use `type: redis`, a private network, and `REDIS_PASSWORD`.",
-    "verify": "The Service uses an authenticated URL on port `6379`."
+    "verify": "Create and retrieve a session through the application using its authenticated Redis connection."
   },
   {
     "id": 62,
@@ -513,7 +513,7 @@
     "slug": "062-redis-for-a-queue",
     "title": "Redis queue",
     "approach": "Give the producer and worker the same private network and secret URL.",
-    "verify": "Both clients handle reconnection and use the intended database or key prefix."
+    "verify": "Enqueue and process a test job. Restart the client and verify reconnection and the intended key prefix."
   },
   {
     "id": 63,
@@ -521,7 +521,7 @@
     "slug": "063-redis-with-operator-tunnel",
     "title": "Redis tunnel",
     "approach": "Add `access.sshTunnel.hostPort`.",
-    "verify": "The loopback port is reached only over SSH; no public cache port is needed."
+    "verify": "Forward the loopback-bound cache port over SSH and run an authenticated client command."
   },
   {
     "id": 64,
@@ -529,7 +529,7 @@
     "slug": "064-redis-recovery",
     "title": "Redis recovery",
     "approach": "Run a backup and verify a fresh-target RDB restore.",
-    "verify": "The restored data supports the application and append-only persistence resumes."
+    "verify": "After a restore drill, query the dataset and confirm append-only persistence resumes."
   },
   {
     "id": 65,
@@ -537,7 +537,7 @@
     "slug": "065-dragonfly-for-a-redis-protocol-client",
     "title": "Dragonfly client",
     "approach": "Use `type: dragonfly` and `REDIS_PASSWORD`.",
-    "verify": "Test the application's actual commands against Dragonfly, not just connection establishment."
+    "verify": "Run the application or queue library's actual Redis-protocol commands against Dragonfly, beyond a connection check."
   },
   {
     "id": 66,
@@ -545,7 +545,7 @@
     "slug": "066-dragonfly-private-endpoint",
     "title": "Dragonfly endpoint",
     "approach": "Share `container.network` with the consuming Service.",
-    "verify": "The Service reaches the Dragonfly alias on port `6379`."
+    "verify": "From the service, authenticate to the Dragonfly alias on port 6379 and read/write a test key."
   },
   {
     "id": 67,
@@ -553,7 +553,7 @@
     "slug": "067-dragonfly-recovery",
     "title": "Dragonfly recovery",
     "approach": "Test a verified snapshot and a same-engine restore.",
-    "verify": "The restored dataset is readable before traffic moves."
+    "verify": "Complete a restore drill, then query the restored Dragonfly dataset through its client."
   },
   {
     "id": 68,
@@ -561,7 +561,7 @@
     "slug": "068-keydb-on-an-amd64-server",
     "title": "KeyDB amd64",
     "approach": "Use `type: keydb` and `REDIS_PASSWORD`.",
-    "verify": "KeyDB's reviewed image is amd64-only; admission rejects arm64."
+    "verify": "Choose an amd64 server, deploy, and verify an authenticated client command. The reviewed KeyDB image does not support arm64."
   },
   {
     "id": 69,
@@ -569,7 +569,7 @@
     "slug": "069-keydb-private-endpoint",
     "title": "KeyDB endpoint",
     "approach": "Share a network with the consuming Service and keep the port private.",
-    "verify": "An authenticated client can use port `6379`."
+    "verify": "Use an authenticated client on the private network to read/write a test key on port 6379."
   },
   {
     "id": 70,
@@ -577,7 +577,7 @@
     "slug": "070-keydb-recovery",
     "title": "KeyDB recovery",
     "approach": "Back up and restore into a fresh KeyDB target.",
-    "verify": "The target uses the supported KeyDB major version."
+    "verify": "Restore a backup from the same KeyDB major version, then verify the dataset on an amd64 target."
   },
   {
     "id": 71,
@@ -585,7 +585,7 @@
     "slug": "071-manual-backup-before-a-change",
     "title": "Manual backup",
     "approach": "Configure an enabled storage provider and choose **Back up now**.",
-    "verify": "The stored copy passes Towbar's restore-readiness check."
+    "verify": "Run a manual backup and inspect its final result, storage object, and restore-readiness."
   },
   {
     "id": 72,
@@ -593,7 +593,7 @@
     "slug": "072-daily-retention",
     "title": "Daily retention",
     "approach": "Add `backup.schedule` with UTC cron and `retention.keepLast`.",
-    "verify": "The schedule is at least hourly and old copies are eventually removed."
+    "verify": "Check the next scheduled run completes. After exceeding keepLast, confirm retention removes older copies."
   },
   {
     "id": 73,
@@ -601,7 +601,7 @@
     "slug": "073-aws-s3-destination",
     "title": "AWS S3",
     "approach": "Use `backup.integration: aws` with the runtime AWS provider enabled.",
-    "verify": "The runtime identity can write, read, and delete under the intended location."
+    "verify": "Create a backup and restore drill in the selected bucket and prefix. Check retention can delete expired objects."
   },
   {
     "id": 74,
@@ -609,7 +609,7 @@
     "slug": "074-s3-compatible-destination",
     "title": "S3-compatible destination",
     "approach": "Select an enabled `s3` or `r2` provider as appropriate.",
-    "verify": "Endpoint, bucket, encryption, and credentials match the runtime integration."
+    "verify": "Create and inspect a backup using the configured endpoint, bucket, encryption settings, and credentials."
   },
   {
     "id": 75,
@@ -617,7 +617,7 @@
     "slug": "075-google-cloud-destination",
     "title": "Google Cloud",
     "approach": "Select an enabled `gcs` provider.",
-    "verify": "The runtime identity can write and read the designated bucket."
+    "verify": "Create a backup in the designated bucket and verify a restore drill using the configured Google Cloud identity."
   },
   {
     "id": 76,
@@ -625,7 +625,7 @@
     "slug": "076-two-cloud-copies",
     "title": "Cloud copies",
     "approach": "Declare both `s3` and `gcs` destinations and set `restoreFrom`.",
-    "verify": "Both copies verify; the chosen restore source remains accessible."
+    "verify": "Inspect both stored copies and their assurance results. Run a restore drill using the selected authoritative provider."
   },
   {
     "id": 77,
@@ -633,7 +633,7 @@
     "slug": "077-restore-drill",
     "title": "Restore drill",
     "approach": "Restore a known recovery point into a fresh target.",
-    "verify": "Query representative data through an application client before promotion."
+    "verify": "Restore disposable data, wait for the final result, then query representative records through an application client."
   },
   {
     "id": 78,
@@ -641,7 +641,7 @@
     "slug": "078-new-server-placement",
     "title": "Server placement",
     "approach": "Override the Datastore's server in another environment.",
-    "verify": "Save that environment's secrets and confirm its server supports the engine architecture."
+    "verify": "Deploy on the selected environment's server and verify authenticated connectivity with that environment's secrets."
   },
   {
     "id": 79,
@@ -649,7 +649,7 @@
     "slug": "079-database-password-rotation",
     "title": "Password rotation",
     "approach": "Change the user inside the database first, then update Towbar's saved value.",
-    "verify": "Health, application connections, backup, and restore operations all authenticate."
+    "verify": "After rotation, test database login, the application connection, and a backup using the new credential."
   },
   {
     "id": 80,
@@ -657,7 +657,7 @@
     "slug": "080-incident-investigation",
     "title": "Incident investigation",
     "approach": "Inspect recovery-point freshness and operation events.",
-    "verify": "Distinguish a late backup from an unreadable or incompatible one."
+    "verify": "Inspect freshness separately from object-readiness errors. Follow the failed check before retrying backup or restore."
   },
   {
     "id": 81,
@@ -665,7 +665,7 @@
     "slug": "081-api-with-postgresql",
     "title": "PostgreSQL stack",
     "approach": "Dockerfile Service + scoped PostgreSQL Datastore; the secret URL uses the Datastore's declared network alias on port 5432. [PostgreSQL](/docs/databases/postgresql)",
-    "verify": "The app can query using a non-root application role."
+    "verify": "Query PostgreSQL from the application using a role with only the required privileges."
   },
   {
     "id": 82,
@@ -673,7 +673,7 @@
     "slug": "082-api-with-mysql",
     "title": "MySQL stack",
     "approach": "Dockerfile Service + scoped MySQL Datastore; the secret URL uses the Datastore's declared network alias on port 3306. [MySQL](/docs/databases/mysql)",
-    "verify": "The chosen client and schema match MySQL 8.4."
+    "verify": "Run an application read/write against MySQL 8.4 and confirm its schema initialization succeeds."
   },
   {
     "id": 83,
@@ -681,7 +681,7 @@
     "slug": "083-cms-with-mariadb",
     "title": "MariaDB stack",
     "approach": "CMS Service + `mariadb` Datastore; share a network and use an app user. [MariaDB](/docs/databases/mariadb)",
-    "verify": "The CMS release supports the managed MariaDB version."
+    "verify": "Initialize the CMS against MariaDB, then create and retrieve a test record."
   },
   {
     "id": 84,
@@ -689,7 +689,7 @@
     "slug": "084-api-with-mongodb",
     "title": "MongoDB stack",
     "approach": "API Service + `mongodb` Datastore; create an app user apart from Towbar's root user. [MongoDB](/docs/databases/mongodb)",
-    "verify": "The URL selects the correct authentication database."
+    "verify": "Query MongoDB from the application using the intended user and authentication database."
   },
   {
     "id": 85,
@@ -697,7 +697,7 @@
     "slug": "085-web-sessions-with-redis",
     "title": "Session stack",
     "approach": "Web Service + `redis` Datastore; use a secret authenticated URL. [Redis](/docs/databases/redis)",
-    "verify": "Session behavior remains correct after a Redis restart."
+    "verify": "Create a session, restart Redis in a test environment, and check the application's expected session behavior."
   },
   {
     "id": 86,
@@ -705,7 +705,7 @@
     "slug": "086-queue-client-with-dragonfly",
     "title": "Dragonfly queue",
     "approach": "Producer Service + worker Service + `dragonfly` Datastore. [Dragonfly](/docs/databases/dragonfly)",
-    "verify": "The queue library's actual commands work with Dragonfly."
+    "verify": "Enqueue and process a job with the actual queue library, then verify reconnection behavior."
   },
   {
     "id": 87,
@@ -713,7 +713,7 @@
     "slug": "087-search-backed-api",
     "title": "Search-backed API",
     "approach": "API Service with `SEARCH_URL` and `SEARCH_KEY` for an existing Meilisearch endpoint. [Meilisearch upstream](https://www.meilisearch.com/integrations/docker)",
-    "verify": "The API can reach the configured search endpoint. Keep the master key in runtime secrets and back up Meilisearch separately."
+    "verify": "Index and search a test document through the API. Keep the Meilisearch master key in runtime secrets and back up its volume separately."
   },
   {
     "id": 88,
@@ -721,7 +721,7 @@
     "slug": "088-event-analytics",
     "title": "Event analytics",
     "approach": "Ingest Service + `clickhouse` Datastore on one private network. [ClickHouse](/docs/databases/clickhouse)",
-    "verify": "Measure ingest, query, and disk usage before sizing the server."
+    "verify": "Ingest and query representative events, then measure disk growth and query resource use."
   },
   {
     "id": 89,
@@ -729,7 +729,7 @@
     "slug": "089-internal-metabase",
     "title": "Internal Metabase",
     "approach": "Metabase and its PostgreSQL application database in one adapted Compose project. [Metabase upstream](https://www.metabase.com/docs/latest/installation-and-operation/running-metabase-on-docker)",
-    "verify": "Configure Metabase's application database per upstream guidance."
+    "verify": "Complete Metabase setup with its PostgreSQL application database. Confirm settings survive a project redeployment."
   },
   {
     "id": 90,
@@ -737,7 +737,7 @@
     "slug": "090-umami-analytics",
     "title": "Umami analytics",
     "approach": "Umami image Service + `postgres` Datastore; `DATABASE_URL` is a runtime secret. [Umami upstream](https://docs.umami.is/docs/install)",
-    "verify": "Use current PostgreSQL guidance and verify the site after first login."
+    "verify": "Sign in, change the initial administrator password, and confirm a test site records a pageview."
   },
   {
     "id": 91,
@@ -745,7 +745,7 @@
     "slug": "091-api-worker-and-redis",
     "title": "API-worker stack",
     "approach": "Deploy `redis`, then private API and worker Services on its network.",
-    "verify": "Both Services use authenticated runtime URLs and handle reconnects."
+    "verify": "Submit a job through the API, confirm the worker processes it, and test client reconnection."
   },
   {
     "id": 92,
@@ -753,7 +753,7 @@
     "slug": "092-api-with-a-daily-report",
     "title": "Daily reports",
     "approach": "Declare a [job](/docs/services/jobs) on the API's deployed image.",
-    "verify": "The command is present, bounded, and safe to rerun."
+    "verify": "Run the report manually, inspect bounded output, and verify a repeat run does not duplicate its effects."
   },
   {
     "id": 93,
@@ -761,7 +761,7 @@
     "slug": "093-webhook-receiver-and-worker",
     "title": "Webhook worker",
     "approach": "Keep the receiver public, worker private, and share a cache or database on one server.",
-    "verify": "The worker has no public domain and failed work can be retried safely."
+    "verify": "Send a test webhook and confirm worker processing. Verify the worker has no public route."
   },
   {
     "id": 94,
@@ -769,7 +769,7 @@
     "slug": "094-static-frontend-and-routed-api",
     "title": "Frontend API",
     "approach": "Deploy a static Service and a separately routed API Service.",
-    "verify": "Browser requests use a reachable HTTPS API origin; private Docker DNS is not available to browsers."
+    "verify": "Open the frontend and confirm browser requests reach the HTTPS API. Browser clients cannot resolve private Docker aliases."
   },
   {
     "id": 95,
@@ -777,7 +777,7 @@
     "slug": "095-multi-process-repository",
     "title": "Multi-process repository",
     "approach": "Use a `.compose.yml` project when components must be deployed together. [Compose](/docs/services/modes/compose)",
-    "verify": "Commit and validate the Compose file; no forbidden host mounts or public host ports remain."
+    "verify": "Inspect the resolved Compose project, deploy it, and verify every required service is healthy."
   },
   {
     "id": 96,
@@ -785,7 +785,7 @@
     "slug": "096-pull-request-preview-for-web",
     "title": "Web previews",
     "approach": "Enable root environment previews and Service preview settings. [Previews](/docs/previews)",
-    "verify": "Preview secrets are isolated; do not assume a Datastore is cloned for each PR."
+    "verify": "Open an eligible pull request and verify its preview with isolated secrets. Connect explicitly to a disposable database if needed."
   },
   {
     "id": 97,
@@ -793,7 +793,7 @@
     "slug": "097-staging-and-production",
     "title": "Staging production",
     "approach": "Map each environment to its branch and server. [Environment branches](/docs/repositories/environments)",
-    "verify": "Credentials, domains, and capacities are separately set for each environment."
+    "verify": "Deploy both environments and confirm each uses its own hostname, credentials, server, and resource limits."
   },
   {
     "id": 98,
@@ -801,7 +801,7 @@
     "slug": "098-stateful-web-app",
     "title": "Stateful web",
     "approach": "Use a single-writer Service volume with `recreate` rollout plus a Datastore.",
-    "verify": "Back up the Service volume separately from Towbar-managed Datastore backups."
+    "verify": "Write a test upload, redeploy, and verify it persists. Test the separate backup process for the service volume."
   },
   {
     "id": 99,
@@ -809,7 +809,7 @@
     "slug": "099-two-services-and-one-database",
     "title": "Shared database",
     "approach": "Deploy the database, save a separate URL in each Service, then deploy them.",
-    "verify": "The least-privilege roles and connection limits fit both clients."
+    "verify": "Query from both services using their own least-privilege database roles and check connection limits under representative load."
   },
   {
     "id": 100,
@@ -817,7 +817,7 @@
     "slug": "100-independent-stacks-on-separate-servers",
     "title": "Isolated stacks",
     "approach": "Place each Service and its Datastore on one server, with a second independent pair on another server.",
-    "verify": "Each Service reaches only its local Datastore; a same-name Docker network on two servers does **not** connect them."
+    "verify": "Query each datastore from its local service. Docker networks with the same name on different servers do not connect the hosts."
   },
   {
     "id": 101,
@@ -1068,7 +1068,7 @@
     "port": 9090,
     "approach": "Run linkding with a persistent bookmark database.",
     "verify": "Create an initial admin account and confirm bookmarks survive a redeployment.",
-    "upstream": "https://github.com/sissbruecker/linkding#installation",
+    "upstream": "https://linkding.link/installation/",
     "setup": [
       "Persist /etc/linkding/data with a named volume and configure trusted origins for the public domain if needed."
     ],
@@ -1326,7 +1326,7 @@
     "title": "Stirling PDF",
     "approach": "Run the official image with persistent configuration and change its initial administrator password.",
     "verify": "Process a test PDF and verify the settings survive redeployment.",
-    "upstream": "https://docs.stirlingpdf.com/Installation/Docker%20Install/",
+    "upstream": "https://docs.stirlingpdf.com/Server/Install/Docker/",
     "description": "Stirling PDF offers browser-based tools for editing and converting PDF files."
   },
   {
@@ -1366,7 +1366,7 @@
     "title": "LocalAI",
     "approach": "Run the CPU image privately with persistent models, backends, configuration, and data volumes.",
     "verify": "Install a small compatible model and query it through the private API.",
-    "upstream": "https://localai.io/docs/getting-started/",
+    "upstream": "https://localai.io/docs/installation/containers/",
     "description": "LocalAI runs AI models locally behind an API compatible with common model clients."
   },
   {

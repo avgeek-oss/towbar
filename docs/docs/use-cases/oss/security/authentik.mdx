@@ -103,7 +103,7 @@ volumes:
 ## Configure
 
 1. Prepare the example server, connect the repository, and map `production` to the branch containing these files. Replace the example server IP and domain.
-2. Commit every file shown below under `deploy/authentik/`. The Towbar manifest points to the Compose file; it does not create it for you.
+2. Commit the Towbar manifest under `.towbar/services/` and the Compose files under `deploy/authentik/`, using the paths shown above.
 3. Sync the repository and inspect the resolved Compose project. Save the runtime values below if this example declares any.
 4. Use a server with at least two CPU cores and 2 GB of RAM, as required by the upstream Compose guide. Save `PG_PASS` and `AUTHENTIK_SECRET_KEY` before deploying.
 5. Back up PostgreSQL and the shared data/certificate volumes together. Without the Docker socket, deploy any future outposts manually.

@@ -77,13 +77,20 @@ or changing published manifest examples, regenerate the checked-in artifacts:
 ```bash
 pnpm docs:sync
 pnpm docs:check
+pnpm docs:examples:check
 ```
 
 `pnpm docs:check` rejects edits to shared generated files and verifies page
 metadata, navigation, internal links, and published artifacts. Import snippets
 from `/snippets/oss/` directly in MDX pages; never edit `docs/oss-docs.css`,
 `docs/oss-docs.js`, `docs/docs.json`, or `docs/snippets/oss/` by hand. Keep
-product-only logo styles in `docs/style.css`. Core tests parse the YAML examples against the deployment contract.
+product-only logo styles in `docs/style.css`.
+
+Edit recipe inputs in `tools/use-case-catalog.json`, `tools/oss-use-case-recipes.mjs`
+or `tools/oss-compose-recipes.mjs`, then run `pnpm docs:use-cases`. Do not edit
+generated recipe pages directly. `pnpm docs:examples:check` validates complete
+workload examples with Towbar's resolver and OSS Compose projects with its admission
+validator. Partial YAML snippets are parsed only; they are not complete manifests.
 
 Install the [Mintlify CLI](https://www.mintlify.com/docs/cli/install), then run
 `mint dev` from `docs/` for a local preview. Before publishing, run `mint validate`

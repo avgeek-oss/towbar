@@ -32,8 +32,8 @@ environments:
 
 ## Configure it
 
-The example builds only `examples/platform-modes/node-app` and selects its `runtime` stage. `context` limits the files sent to Docker; `dockerfile` points to the file in that context. Keep both paths inside the repository checkout. The declared `container.port` and `health.path` describe the result after build.
+The example builds only `examples/platform-modes/node-app` and selects its `runtime` stage. Both `context` and `dockerfile` are relative to the repository root. The Dockerfile must be inside the context, which limits the files sent to Docker. The declared `container.port` and `health.path` describe the result after build.
 
 If this Service needs private packages during build, declare a build secret name in the Service manifest and use a BuildKit secret mount in the Dockerfile. Do not put credentials in build arguments or a committed file. A cache is workload-scoped unless an authorized shared `cache.scope` is configured.
 
-Map the named environment to a branch, register and prepare its server, then sync the repository. Start with a manual deployment and verify the running service before opting into automation. See [Service manifest](/docs/services/manifest) for shared fields and [Deployment modes](/docs/platform-deployments) to compare modes.
+See [Service manifest](/docs/services/manifest) for shared fields and [Deployment modes](/docs/platform-deployments) to compare build choices.

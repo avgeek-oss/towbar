@@ -37,6 +37,10 @@ health:
 environments:
   production:
     server: 192.0.2.10
+domains:
+  primary: app.example.com
+tls:
+  mode: direct
 preview:
   enabled: true
   domain: preview.example.com
@@ -53,6 +57,6 @@ preview:
 
 ## Verify
 
-Preview secrets are isolated and the preview domain resolves.
+Open an eligible pull request, wait for preview deployment, and check its URL. Verify it uses isolated preview credentials.
 
 For field constraints, see [Service manifest](/docs/services/manifest).
