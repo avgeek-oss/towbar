@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import postgres from "postgres";
+import { runTowbarMigrations } from "../dist/migrate.js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 const url = process.env.TOWBAR_TEST_DATABASE_URL;
@@ -34,9 +35,7 @@ test(
       const journal = JSON.parse(
         await readFile(join(previous, "meta/_journal.json"), "utf8"),
       );
-      journal.entries = journal.entries.filter(
-        (entry) => entry.tag !== "0031_manifest_lifecycle",
-      );
+      journal.entries = journal.entries.filter((entry) => entry.idx < 31);
       await writeFile(
         join(previous, "meta/_journal.json"),
         JSON.stringify(journal),
@@ -93,8 +92,14 @@ test(
       }
       const secrets =
         await client`select * from towbar_managed_secrets order by id`;
-      await migrateDatabase(isolated.href, folder);
-      await migrateDatabase(isolated.href, folder);
+      await runTowbarMigrations({
+        databaseUrl: isolated.href,
+        logger: { info() {}, error() {} },
+      });
+      await runTowbarMigrations({
+        databaseUrl: isolated.href,
+        logger: { info() {}, error() {} },
+      });
       const upgraded = await client`select * from towbar_apps order by id`;
       assert.equal(upgraded.length, 3);
       assert(oldRetirement);
@@ -105,6 +110,7 @@ test(
           archived_at: null,
           manifest_state: "retired",
           retired_at: oldRetirement.archived_at,
+          legacy_archived_at: oldRetirement.archived_at,
         },
       );
       for (const original of originals) {
@@ -113,6 +119,7 @@ test(
           ...original,
           manifest_state: "conflict",
           retired_at: null,
+          legacy_archived_at: null,
         });
       }
       assert.deepEqual(

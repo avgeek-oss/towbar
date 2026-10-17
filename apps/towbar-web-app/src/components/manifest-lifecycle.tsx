@@ -1,5 +1,5 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
   DashboardCircleIcon,
@@ -41,6 +41,9 @@ export function ManifestLifecycle({
   view: "conflicts" | "retirements";
 }) {
   const [offset, setOffset] = useState(0);
+  const [acceptedRemovals, setAcceptedRemovals] = useState<
+    Map<string, ManifestLifecycleItem>
+  >(() => new Map());
   const apps = useApiQuery<{ apps: App[] }>("/v1/core/apps", 60_000);
   const resources = useApiQuery<{ resources: Resource[] }>(
     "/v1/core/resources",
@@ -48,10 +51,28 @@ export function ManifestLifecycle({
   );
   const query = useApiQuery<ManifestLifecycleResponse>(
     `/v1/core/manifest-lifecycle?tab=${tab}&offset=${offset}&limit=20`,
-    30_000,
+    (data) => (acceptedRemovals.size || data?.counts.removing ? 3_000 : 30_000),
   );
-  const [selected, setSelected] = useState<ManifestLifecycleItem | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [removing, setRemoving] = useState<ManifestLifecycleItem | null>(null);
+  useEffect(() => {
+    const data = query.data;
+    if (!data || !acceptedRemovals.size) return;
+    const settled = [...acceptedRemovals.keys()].filter((key) => {
+      const item = data.items.find((item) => item.key === key);
+      return !item || item.state === "removing";
+    });
+    if (!settled.length) return;
+    setAcceptedRemovals((current) => {
+      const next = new Map(current);
+      for (const key of settled) next.delete(key);
+      return next;
+    });
+  }, [query.data, acceptedRemovals]);
+  const items = query.data?.items.map(
+    (item) => acceptedRemovals.get(item.key) ?? item,
+  );
+  const selected = items?.find((item) => item.key === selectedKey);
   const { can } = useAccess();
   const columns: ResourceTableColumn<ManifestLifecycleItem>[] = [
     {
@@ -176,7 +197,7 @@ export function ManifestLifecycle({
             variant="secondary"
             size="sm"
             className="pointer-coarse:min-h-11"
-            onPress={() => setSelected(item)}
+            onPress={() => setSelectedKey(item.key)}
           >
             <HugeiconsIcon
               icon={ViewIcon}
@@ -231,7 +252,7 @@ export function ManifestLifecycle({
                   : "Pending retirements"
               }
               columns={columns}
-              items={query.data.items}
+              items={items ?? []}
               getRowKey={(item) => item.key}
               tableClassName="min-w-[760px]"
               emptyTitle={
@@ -277,10 +298,21 @@ export function ManifestLifecycle({
         )}
       </div>
       {selected ? (
-        <LifecycleDetails item={selected} onClose={() => setSelected(null)} />
+        <LifecycleDetails
+          item={selected}
+          onClose={() => setSelectedKey(null)}
+        />
       ) : null}
       {removing ? (
-        <RemoveRetirement item={removing} onClose={() => setRemoving(null)} />
+        <RemoveRetirement
+          item={removing}
+          onClose={() => setRemoving(null)}
+          onAccepted={(item) =>
+            setAcceptedRemovals((current) =>
+              new Map(current).set(item.key, item),
+            )
+          }
+        />
       ) : null}
     </DashboardPage>
   );
@@ -289,9 +321,11 @@ export function ManifestLifecycle({
 function RemoveRetirement({
   item,
   onClose,
+  onAccepted,
 }: {
   item: ManifestLifecycleItem;
   onClose: () => void;
+  onAccepted: (item: ManifestLifecycleItem) => void;
 }) {
   const [confirmation, setConfirmation] = useState("");
   const [reason, setReason] = useState("");
@@ -305,7 +339,7 @@ function RemoveRetirement({
     setBusy(true);
     setError(undefined);
     try {
-      await api.post(
+      const result = await api.post<{ operations: { id: string }[] }>(
         `/v1/core/retirements/${workload.id}/actions/remove`,
         {
           expectedRevision: workload.revision,
@@ -314,6 +348,15 @@ function RemoveRetirement({
         },
         { "idempotency-key": idempotencyKey },
       );
+      onAccepted({
+        ...item,
+        state: "removing",
+        operations: result.operations.map(({ id }) => ({
+          id,
+          state: "queued",
+          errorMessage: null,
+        })),
+      });
       refreshApiQueries();
       onClose();
     } catch (caught) {

@@ -200,6 +200,7 @@ export async function materializeEnvironment(
       archivedAt: null,
       manifestState: "active" as const,
       retiredAt: null,
+      legacyArchivedAt: null,
       updatedAt: new Date(),
     };
     const [instance] = action.current

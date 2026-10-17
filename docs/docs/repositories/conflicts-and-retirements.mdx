@@ -28,7 +28,7 @@ The Conflicts page has no resolution actions. Its details show repositories, bra
 
 Changing workload type, moving datastore or Compose storage to another server, or changing a datastore image during a transfer blocks adoption. Complete the relevant migration or upgrade first. Active operations also block transfer; sync again after they finish.
 
-Existing duplicate workloads are preserved on upgrade. Storage deleted by earlier cleanup cannot be recovered by this migration. Towbar never merges their data or chooses a winner. Give independent workloads distinct IDs in Git and review the old records before retiring them.
+Existing duplicate workloads are preserved on upgrade. A record proven to have been archived before lifecycle tracking can appear as a separate retirement when one compatible declaration already owns a unique current workload. Its data stays intact until explicit removal. Competing declarations and other duplicate workloads remain conflicts; Towbar never merges their data. Storage deleted by earlier cleanup cannot be recovered.
 
 ## Permanently remove a retirement
 
@@ -38,7 +38,9 @@ Admins can select **Remove**, type the exact manifest ID and give a reason. This
 - Preserves deployment history and backups.
 - Reserves the ID until all cleanup operations report successful retirement.
 
-A declaration restored before removal is requested blocks removal. Once removal is queued or running, inspect its result before reusing the ID; do not rely on a new manifest to cancel a destructive operation. Failed removal stays visible for inspection and retry. After completion, reusing the ID creates a fresh workload and fresh storage.
+A declaration restored for the retiring workload before removal is requested blocks removal. An unrelated current workload with the same manifest ID does not block removal of a separately identified legacy retirement. Once removal is queued or running, inspect its result before reusing the ID; do not rely on a new manifest to cancel a destructive operation. Failed removal stays visible for inspection and retry. After completion, reusing the ID creates a fresh workload and fresh storage.
+
+The page and sidebar refresh every 3 seconds while cleanup is queued or running, and every 30 seconds otherwise. An accepted request immediately shows **Removing**. Open details track the latest operation state. Polling pauses in hidden tabs and refreshes when you return.
 
 To retain data, restore a compatible manifest instead. To stop the runtime without deleting storage, open the existing workload and use its runtime controls.
 

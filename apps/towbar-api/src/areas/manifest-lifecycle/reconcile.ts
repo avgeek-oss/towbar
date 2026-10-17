@@ -21,7 +21,11 @@ import { terminalDeploymentStates } from "@workspace/towbar-core/temporal";
 import type { SecretDatabase } from "../secrets/store.js";
 import { materializeEnvironment } from "../sources/environment-materialization.js";
 import { synchronizeDomainClaims } from "../deployments/domain-claims.js";
-import { type ManifestDeclaration, planManifestIdentities } from "./plan.js";
+import {
+  type ManifestDeclaration,
+  identityKey,
+  planManifestIdentities,
+} from "./plan.js";
 
 type MaterializationInput = Parameters<typeof materializeEnvironment>[1];
 export function manifestEntities(manifest: NormalizedDeploymentManifest) {
@@ -131,7 +135,7 @@ export async function reconcileRepositoryManifests(
   const issues: { message: string; path: string[] }[] = [];
   const environmentIds = new Set([input.environment.id]);
   for (const plan of registry.plans) {
-    if (!touched.has(plan.key)) continue;
+    if (!touched.has(identityKey(plan.environment, plan.manifestId))) continue;
     await reconcileIdentity(database, {
       input,
       registry,
@@ -185,10 +189,9 @@ async function reconcileIdentity(
         .update(apps)
         .set({
           manifestState: plan.state,
-          retiredAt:
-            plan.state === "retired"
-              ? (existing?.retiredAt ?? new Date())
-              : null,
+          ...(plan.state === "retired"
+            ? { retiredAt: existing?.retiredAt ?? new Date() }
+            : {}),
           updatedAt: new Date(),
         })
         .where(inArray(apps.id, retainedIds));

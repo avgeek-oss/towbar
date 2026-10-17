@@ -66,7 +66,7 @@ export function refreshApiQueries() {
 
 export function useApiQuery<T>(
   path: string | null,
-  refreshMs?: number,
+  refreshMs?: number | ((data: T | undefined) => number),
   { keepPreviousData = true }: { keepPreviousData?: boolean } = {},
 ) {
   const [result, setResult] = useState<
@@ -81,12 +81,24 @@ export function useApiQuery<T>(
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
+  const pollingMs =
+    typeof refreshMs === "function"
+      ? refreshMs(
+          result?.path === path && result.generation === cacheGeneration
+            ? result.data
+            : getCachedApiQuery<T>(path),
+        )
+      : refreshMs;
   useEffect(() => {
     if (!path) return;
     let active = true;
     let requestActive = false;
+    let refreshQueued = false;
     const load = async (force = false) => {
-      if (requestActive) return;
+      if (requestActive) {
+        if (force) refreshQueued = true;
+        return;
+      }
       const generation = cacheGeneration;
       requestActive = true;
       if (active) setIsRefreshing(true);
@@ -105,6 +117,10 @@ export function useApiQuery<T>(
       } finally {
         requestActive = false;
         if (active) setIsRefreshing(false);
+        if (active && refreshQueued) {
+          refreshQueued = false;
+          void load(true);
+        }
       }
     };
     const handleRefresh = () => void load(true);
@@ -117,27 +133,27 @@ export function useApiQuery<T>(
       if (!document.hidden) void load(true);
     };
     void load(revision > 0);
-    const timer = refreshMs
+    const timer = pollingMs
       ? setInterval(() => {
           if (!document.hidden) void load(true);
-        }, refreshMs)
+        }, pollingMs)
       : undefined;
     window.addEventListener("towbar:refresh", handleRefresh);
     window.addEventListener("towbar:clear-private-data", handleClear);
-    if (refreshMs)
+    if (pollingMs)
       document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       active = false;
       if (timer) clearInterval(timer);
       window.removeEventListener("towbar:refresh", handleRefresh);
       window.removeEventListener("towbar:clear-private-data", handleClear);
-      if (refreshMs)
+      if (pollingMs)
         document.removeEventListener(
           "visibilitychange",
           handleVisibilityChange,
         );
     };
-  }, [path, refreshMs, revision]);
+  }, [path, pollingMs, revision]);
   const availableResult =
     result?.generation === cacheGeneration ? result : undefined;
   const currentData =

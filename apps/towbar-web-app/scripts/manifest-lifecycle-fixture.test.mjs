@@ -77,3 +77,35 @@ test("viewer can inspect conflicts and retirements but cannot remove", async (t)
     403,
   );
 });
+
+test("retirement fixtures progress from queued to running and disappear after completion", async () => {
+  const { createManifestLifecycleFixture } =
+    await import("./manifest-lifecycle-fixture.ts");
+  let now = 0;
+  const api = createManifestLifecycleFixture(
+    "source",
+    "server",
+    "workload",
+    () => now,
+  );
+  const query = new URLSearchParams("tab=retirements");
+  const item = api.list(query).items[0];
+  const input = {
+    confirmManifestId: item.manifestId,
+    expectedRevision: item.workloads[0].revision,
+    reason: "Retire fixture",
+  };
+  const accepted = api.remove(item.workloads[0].id, input, "attempt");
+  assert(accepted);
+  assert.equal(api.list(query).counts.removing, 1);
+  assert.equal(api.list(query).items[0].operations[0].state, "queued");
+  now = 3_000;
+  assert.equal(api.list(query).items[0].operations[0].state, "running");
+  now = 9_000;
+  assert.equal(api.list(query).total, 0);
+  assert.equal(api.list(query).counts.removing, 0);
+  assert.deepEqual(
+    api.remove(item.workloads[0].id, input, "attempt"),
+    accepted,
+  );
+});

@@ -32,7 +32,7 @@ export type ManifestLifecycleItem = {
 };
 export type ManifestLifecycleResponse = {
   items: ManifestLifecycleItem[];
-  counts: { conflicts: number; retirements: number };
+  counts: { conflicts: number; retirements: number; removing: number };
   total: number;
   nextOffset: number | null;
 };
