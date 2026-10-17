@@ -291,7 +291,7 @@ export function createApplicationSidebar(
                 const value = counts[id];
                 const singular = inventorySingularLabels[id];
                 const plural = inventoryPluralLabels[id];
-                return value === undefined || !singular
+                return value === undefined || value < 1 || !singular
                   ? item
                   : {
                       ...item,
