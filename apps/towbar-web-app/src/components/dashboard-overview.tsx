@@ -126,7 +126,7 @@ export function DashboardOverview() {
       detailCount: activeApps.filter(
         (item) => item.runtimeState.observedState === "running",
       ).length,
-      detailLabel: "running instances",
+      detailLabel: "workloads",
       value: groupDeployableInstances(activeApps).length,
     },
     {
@@ -137,7 +137,7 @@ export function DashboardOverview() {
       detailCount: activeResources.filter(
         (item) => item.runtimeState.observedState === "running",
       ).length,
-      detailLabel: "running instances",
+      detailLabel: "workloads",
       value: groupDeployableInstances(activeResources).length,
     },
     {
@@ -188,7 +188,7 @@ export function DashboardOverview() {
                   <StatusBadge
                     context="runtime"
                     status={metric.detailCount ? metric.status : "inactive"}
-                    label={`${metric.detailCount} ${metric.detailCount === 1 ? metric.detailLabel.replace("instances", "instance") : metric.detailLabel}`}
+                    label={`${metric.detailCount} ${metric.detailCount === 1 ? metric.detailLabel.replace("workloads", "workload") : metric.detailLabel}`}
                   />
                 </div>
                 <Image
