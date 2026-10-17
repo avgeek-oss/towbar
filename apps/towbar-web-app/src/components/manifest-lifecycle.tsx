@@ -94,7 +94,7 @@ export function ManifestLifecycle({
             <InlineLink
               href={`/repositories/${source.sourceId}`}
               key={source.sourceId}
-              className="inline-flex items-center gap-2"
+              className="inline-flex min-w-0 items-start gap-2 [overflow-wrap:anywhere]"
             >
               <IntegrationProviderLogo provider={source.provider ?? "github"} />
               {source.repository}
@@ -110,6 +110,7 @@ export function ManifestLifecycle({
         item.state === "removing" ? (
           <StatusBadge
             status={removalInProgress(item) ? "running" : "failed"}
+            label={removalInProgress(item) ? "Removing" : "Removal failed"}
           />
         ) : (
           <Chip color={item.state === "conflict" ? "danger" : "warning"}>
@@ -132,6 +133,7 @@ export function ManifestLifecycle({
           <Button
             variant="secondary"
             size="sm"
+            className="pointer-coarse:min-h-11"
             onPress={() => setSelected(item)}
           >
             <HugeiconsIcon
@@ -145,6 +147,7 @@ export function ManifestLifecycle({
             <Button
               size="sm"
               variant="danger-soft"
+              className="pointer-coarse:min-h-11"
               isDisabled={removalInProgress(item)}
               onPress={() => setRemoving(item)}
             >
@@ -153,7 +156,9 @@ export function ManifestLifecycle({
                 aria-hidden="true"
                 className="size-4"
               />
-              Remove
+              {item.state === "removing" && !removalInProgress(item)
+                ? "Retry removal"
+                : "Remove"}
             </Button>
           ) : null}
         </div>
@@ -208,6 +213,7 @@ export function ManifestLifecycle({
                   <Button
                     variant="secondary"
                     size="sm"
+                    className="pointer-coarse:min-h-11"
                     isDisabled={offset === 0}
                     onPress={() => setOffset(Math.max(0, offset - 20))}
                   >
@@ -216,6 +222,7 @@ export function ManifestLifecycle({
                   <Button
                     variant="secondary"
                     size="sm"
+                    className="pointer-coarse:min-h-11"
                     isDisabled={query.data.nextOffset === null}
                     onPress={() => setOffset(offset + 20)}
                   >
@@ -252,7 +259,7 @@ function RemoveRetirement({
   const workload = item.workloads[0]!;
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || confirmation !== item.manifestId || !reason.trim()) return;
     setBusy(true);
     setError(undefined);
     try {
@@ -285,8 +292,13 @@ function RemoveRetirement({
       <Modal.Container size="lg">
         <Modal.Dialog>
           <Modal.Header>
-            <Modal.Heading>Permanently remove {item.manifestId}?</Modal.Heading>
-            <Modal.CloseTrigger isDisabled={busy} />
+            <Modal.Heading className="pr-8 break-words pointer-coarse:pr-12">
+              Permanently remove {item.manifestId}?
+            </Modal.Heading>
+            <Modal.CloseTrigger
+              isDisabled={busy}
+              className="pointer-coarse:size-11"
+            />
           </Modal.Header>
           <Modal.Body>
             <form
@@ -307,30 +319,23 @@ function RemoveRetirement({
               </Alert>
               <p className="text-sm">
                 To retain the data, cancel and add a compatible{" "}
-                <span className="inline-flex items-center gap-2">
-                  <HugeiconsIcon
-                    icon={
-                      item.workloads[0]?.kind &&
-                      !["app", "compose"].includes(item.workloads[0].kind)
-                        ? DatabaseIcon
-                        : DashboardCircleIcon
-                    }
-                    className="size-4 shrink-0 text-muted"
-                    aria-hidden="true"
-                  />
-                  <TypographyCode className="break-all">
-                    {item.manifestId}
-                  </TypographyCode>
-                </span>{" "}
+                <TypographyCode className="break-all">
+                  {item.manifestId}
+                </TypographyCode>{" "}
                 manifest to a repository instead.
               </p>
               {error ? <QueryError message={error} /> : null}
               <Field>
-                <FieldLabel htmlFor="retirement-confirm" isRequired>
+                <FieldLabel
+                  htmlFor="retirement-confirm"
+                  className="[overflow-wrap:anywhere]"
+                  isRequired
+                >
                   Type {item.manifestId} to confirm
                 </FieldLabel>
                 <Input
                   id="retirement-confirm"
+                  disabled={busy}
                   value={confirmation}
                   onChange={(event) => setConfirmation(event.target.value)}
                   autoComplete="off"
@@ -343,6 +348,7 @@ function RemoveRetirement({
                 </FieldLabel>
                 <Input
                   id="retirement-reason"
+                  disabled={busy}
                   value={reason}
                   onChange={(event) => setReason(event.target.value)}
                   maxLength={500}
@@ -352,11 +358,17 @@ function RemoveRetirement({
             </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" isDisabled={busy} onPress={onClose}>
+            <Button
+              variant="secondary"
+              className="pointer-coarse:min-h-11"
+              isDisabled={busy}
+              onPress={onClose}
+            >
               Cancel
             </Button>
             <Button
               variant="danger"
+              className="pointer-coarse:min-h-11"
               type="submit"
               form="remove-retirement"
               isPending={busy}

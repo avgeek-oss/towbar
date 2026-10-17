@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@avgeek-oss/design-system/buttons/button";
+import { CodeBlock } from "@avgeek-oss/design-system/typography/code-block";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import { TableCellStack } from "@avgeek-oss/design-system/data-display/table-cell-text";
@@ -56,14 +57,17 @@ export function LifecycleDetails({
             </Chip>
           ) : null}
           <span className="flex flex-wrap items-center gap-2">
-            <Chip>
-              <Chip.Label className="inline-flex items-center gap-1.5">
+            <Chip className="max-w-full">
+              <Chip.Label
+                className="inline-flex min-w-0 items-center gap-1.5"
+                title={source.branch}
+              >
                 <HugeiconsIcon
                   icon={GitBranchIcon}
-                  className="size-3.5"
+                  className="size-3.5 shrink-0"
                   aria-hidden="true"
                 />
-                {source.branch}
+                <span className="truncate">{source.branch}</span>
               </Chip.Label>
             </Chip>
             <span className="inline-flex items-center gap-1.5 text-muted">
@@ -111,7 +115,7 @@ export function LifecycleDetails({
     },
     {
       key: "changes",
-      header: "Configuration changes",
+      header: "Changes from current workload",
       headerClassName: "md:w-1/3",
       className: "whitespace-normal",
       mobileFullWidth: true,
@@ -119,7 +123,7 @@ export function LifecycleDetails({
         <span className="flex flex-wrap gap-1.5">
           {source.changedPaths.length ? (
             source.changedPaths.map((path) => (
-              <Chip key={path} color="warning">
+              <Chip key={path} color="warning" className="max-w-full">
                 <Chip.Label className="whitespace-normal break-all">
                   {path}
                 </Chip.Label>
@@ -175,10 +179,10 @@ export function LifecycleDetails({
       <Modal.Container size="lg" scroll="inside">
         <Modal.Dialog className="w-full max-w-4xl sm:w-[calc(100vw-5rem)]">
           <Modal.Header>
-            <Modal.Heading className="pr-8 break-words">
+            <Modal.Heading className="pr-8 break-words pointer-coarse:pr-12">
               {item.manifestId}
             </Modal.Heading>
-            <Modal.CloseTrigger />
+            <Modal.CloseTrigger className="pointer-coarse:size-11" />
           </Modal.Header>
           <Modal.Body className="text-foreground">
             <div className="content-grid">
@@ -199,15 +203,24 @@ export function LifecycleDetails({
                   title="Existing workload"
                   columns={2}
                 >
-                  <Attributes.Item label="Workload">
-                    <InlineLink href={workload.href}>
+                  <Attributes.Item label="Workload" className="content-start">
+                    <InlineLink
+                      href={workload.href}
+                      className="[overflow-wrap:anywhere]"
+                    >
                       {workload.name}
                     </InlineLink>
                   </Attributes.Item>
-                  <Attributes.Item label="Environment">
+                  <Attributes.Item
+                    label="Environment"
+                    className="content-start"
+                  >
                     <EnvironmentChip name={item.environment} />
                   </Attributes.Item>
-                  <Attributes.Item label="Current repository">
+                  <Attributes.Item
+                    label="Current repository"
+                    className="content-start"
+                  >
                     <InlineLink
                       href={`/repositories/${workload.sourceId}`}
                       className="inline-flex items-start gap-2 [overflow-wrap:anywhere]"
@@ -218,18 +231,28 @@ export function LifecycleDetails({
                       {workload.repository}
                     </InlineLink>
                   </Attributes.Item>
-                  <Attributes.Item label="Server">
+                  <Attributes.Item label="Server" className="content-start">
                     <InlineLink href={`/servers/${workload.serverId}`}>
                       <TypographyCode>{workload.serverIp}</TypographyCode>
                     </InlineLink>
                   </Attributes.Item>
-                  <Attributes.Item label="Workload ID" className="col-span-2">
-                    <TypographyCode className="break-all">
-                      {workload.id}
-                    </TypographyCode>
+                  <Attributes.Item
+                    label="Workload ID"
+                    className="col-span-2 content-start"
+                  >
+                    <span className="flex min-w-0 items-start gap-2">
+                      <TypographyCode className="min-w-0 break-all">
+                        {workload.id}
+                      </TypographyCode>
+                      <CodeBlock.CopyButton
+                        code={workload.id}
+                        aria-label="Copy workload ID"
+                        className="shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+                      />
+                    </span>
                   </Attributes.Item>
                   {workload.retiredAt ? (
-                    <Attributes.Item label="Retired">
+                    <Attributes.Item label="Retired" className="content-start">
                       <RelativeTime
                         value={workload.retiredAt}
                         label="Retired"
@@ -285,7 +308,11 @@ export function LifecycleDetails({
             </div>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onPress={onClose}>
+            <Button
+              variant="secondary"
+              className="pointer-coarse:min-h-11"
+              onPress={onClose}
+            >
               Close
             </Button>
           </Modal.Footer>
