@@ -56,6 +56,7 @@ export type DeploymentSecrets = {
 };
 
 export type DeploymentExecutionContext = {
+  previousSourceIds?: string[];
   domainHandoffs?: DomainHandoff[];
   domainHandoffServers?: Array<{
     id: string;
@@ -233,6 +234,7 @@ export type WorkspaceGcpCredential = {
 };
 
 export type ResourceOperationExecutionContext = {
+  previousSourceIds?: string[];
   cleanupExpected: import("@workspace/towbar-core").ServerCleanupPlan;
   currentRelease: {
     containerName: string;

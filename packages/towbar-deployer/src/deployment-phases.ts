@@ -271,7 +271,7 @@ async function startAndVerifyNamedCandidate(
     : null;
   const startResult = resource
     ? await input.session.run(
-        `export TOWBAR_CONTAINER_RUNTIME_FILE="$1"\nshift 1\nexport TOWBAR_APP_ID="$1" TOWBAR_CLEANUP_ID="$2" TOWBAR_DEPLOYMENT_ID="$3" TOWBAR_COMMIT_SHA="$4" TOWBAR_SOURCE_ID="$5" TOWBAR_DEPLOYABLE_ID="$6"\nshift 6\n${startResourceRemoteScript}`,
+        `export TOWBAR_CONTAINER_RUNTIME_FILE="$1"\nshift 1\nexport TOWBAR_APP_ID="$1" TOWBAR_CLEANUP_ID="$2" TOWBAR_DEPLOYMENT_ID="$3" TOWBAR_COMMIT_SHA="$4" TOWBAR_SOURCE_ID="$5" TOWBAR_DEPLOYABLE_ID="$6" TOWBAR_PREVIOUS_SOURCE_IDS_JSON="$7"\nshift 7\n${startResourceRemoteScript}`,
         [
           containerRuntimeOptionsPath(input.remoteDirectory),
           resource.id,
@@ -280,6 +280,7 @@ async function startAndVerifyNamedCandidate(
           input.context.commitSha,
           input.context.sourceId,
           input.context.deployableId,
+          JSON.stringify(input.context.previousSourceIds ?? []),
           input.remoteDirectory,
           containerName,
           input.imageTag,
@@ -309,7 +310,7 @@ async function startAndVerifyNamedCandidate(
         sensitiveValues: input.sensitiveValues,
         run: (handlers) =>
           input.session.run(
-            `export TOWBAR_CONTAINER_RUNTIME_FILE="$1"\nshift 1\nexport TOWBAR_APP_ID="$1" TOWBAR_DEPLOYMENT_ID="$2" TOWBAR_COMMIT_SHA="$3" TOWBAR_SOURCE_ID="$4" TOWBAR_DEPLOYABLE_ID="$5" TOWBAR_VOLUME_ARGS_JSON="$6" TOWBAR_HOST_LOG_COLLECTION="$7"\nshift 7\n${startRemoteScript}`,
+            `export TOWBAR_CONTAINER_RUNTIME_FILE="$1"\nshift 1\nexport TOWBAR_APP_ID="$1" TOWBAR_DEPLOYMENT_ID="$2" TOWBAR_COMMIT_SHA="$3" TOWBAR_SOURCE_ID="$4" TOWBAR_DEPLOYABLE_ID="$5" TOWBAR_VOLUME_ARGS_JSON="$6" TOWBAR_HOST_LOG_COLLECTION="$7" TOWBAR_PREVIOUS_SOURCE_IDS_JSON="$8"\nshift 8\n${startRemoteScript}`,
             [
               containerRuntimeOptionsPath(input.remoteDirectory),
               deploymentRuntimeId(input.context),
@@ -319,6 +320,7 @@ async function startAndVerifyNamedCandidate(
               input.context.deployableId,
               deploymentVolumeArguments(input.context),
               String(collectsHostDockerLogs(input.context.app)),
+              JSON.stringify(input.context.previousSourceIds ?? []),
               input.remoteDirectory,
               containerName,
               input.imageTag,

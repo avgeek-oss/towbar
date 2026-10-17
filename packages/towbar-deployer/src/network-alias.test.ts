@@ -56,6 +56,7 @@ async function harness(t: TestContext) {
         previous?: string;
         owner?: string;
         source?: string;
+        previousSourceIds?: string[];
         pause?: boolean;
         fail?: boolean;
       } = {},
@@ -103,6 +104,9 @@ async function harness(t: TestContext) {
           TOWBAR_CLEANUP_ID: owner,
           TOWBAR_DEPLOYABLE_ID: owner,
           TOWBAR_SOURCE_ID: options.source ?? "source",
+          TOWBAR_PREVIOUS_SOURCE_IDS_JSON: JSON.stringify(
+            options.previousSourceIds ?? [],
+          ),
           TOWBAR_DEPLOYMENT_ID: name,
           TOWBAR_COMMIT_SHA: "test",
         },
@@ -166,6 +170,21 @@ void test("preserves stopped alias owners from other sources and deployables", a
   );
   await assert.rejects(h.start("c", { owner: "another-app" }), /already used/);
   await access(file);
+});
+
+void test("reclaims a stopped alias after a verified repository transfer", async (t) => {
+  const h = await harness(t);
+  await h.start("a", { owner: "app", source: "old-source" });
+  await h.start("b", { owner: "app", source: "old-source", previous: "a" });
+  await h.start("c", {
+    owner: "app",
+    source: "destination",
+    previous: "b",
+    previousSourceIds: ["old-source"],
+  });
+  await assert.rejects(access(path.join(h.state, "a.json")));
+  await access(path.join(h.state, "b.json"));
+  await access(path.join(h.state, "c.json"));
 });
 
 void test("releases the alias lock when Docker startup fails", async (t) => {

@@ -186,6 +186,13 @@ export async function getCleanupExpected(
       return {
         deployableId: app.id,
         sourceId: app.sourceId,
+        previousSourceIds: [
+          ...new Set(
+            history
+              .filter((deployment) => deployment.appId === app.id)
+              .map((deployment) => deployment.sourceId),
+          ),
+        ].filter((id) => id !== app.sourceId),
         runtimeIds,
         composeProjects: [
           ...new Set([

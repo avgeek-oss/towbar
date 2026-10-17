@@ -48,7 +48,7 @@ for container_id in containers:
     owned = (
         labels.get("towbar.managed") == "true"
         and labels.get("towbar.deployable") == os.environ["TOWBAR_DEPLOYABLE_ID"]
-        and labels.get("towbar.source") == os.environ["TOWBAR_SOURCE_ID"]
+        and labels.get("towbar.source") in {os.environ["TOWBAR_SOURCE_ID"], *json.loads(os.environ.get("TOWBAR_PREVIOUS_SOURCE_IDS_JSON", "[]"))}
     )
     if owned and state.get("Status") == "exited" and not state.get("Running") and not state.get("Restarting"):
         # A previous successful promotion may have deferred cleanup. Reclaim

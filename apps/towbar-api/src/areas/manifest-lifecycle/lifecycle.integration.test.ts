@@ -23,6 +23,7 @@ import {
 } from "@workspace/towbar-database/schema";
 import { seedEnvironmentTeam } from "../sources/environment-server-tests.js";
 import { environmentSyncDependencies } from "../sources/environment-sync-fixture.js";
+import { getRuntimeSourceIds } from "./runtime-ownership.js";
 import { assertIndependentRetirements } from "./legacy-retirement.test-helper.js";
 
 const url = process.env.TOWBAR_TEST_DATABASE_URL;
@@ -287,6 +288,19 @@ void test(
           assert.equal(moved.sourceId, secondId);
           assert.equal(moved.serverId, original.serverId);
           assert.equal(moved.manifestState, "active");
+          const lineage = await getRuntimeSourceIds(db, workspaceId, [
+            moved.id,
+          ]);
+          assert.deepEqual(lineage.get(moved.id), [firstId]);
+          assert.equal(
+            (await getRuntimeSourceIds(db, randomUUID(), [moved.id])).size,
+            0,
+          );
+          assert.equal(
+            (await getRuntimeSourceIds(db, workspaceId, [randomUUID()])).size,
+            0,
+          );
+
           const [claim] = await db
             .select()
             .from(domainClaims)

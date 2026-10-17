@@ -25,6 +25,8 @@ void test(
     const owner = randomUUID(),
       preview = randomUUID(),
       source = randomUUID();
+    let currentSource = source;
+    let previousSourceIds: string[] = [];
     const containers: string[] = [],
       volumes: string[] = [];
     const image = `towbar-storage-test:${owner}`;
@@ -72,7 +74,8 @@ void test(
             ...process.env,
             TOWBAR_APP_ID: runtime,
             TOWBAR_DEPLOYABLE_ID: owner,
-            TOWBAR_SOURCE_ID: source,
+            TOWBAR_SOURCE_ID: currentSource,
+            TOWBAR_PREVIOUS_SOURCE_IDS_JSON: JSON.stringify(previousSourceIds),
             TOWBAR_DEPLOYMENT_ID: owner,
             TOWBAR_COMMIT_SHA: "test",
             TOWBAR_VOLUME_ARGS_JSON: JSON.stringify(
@@ -89,7 +92,7 @@ void test(
         [
           runtime,
           owner,
-          source,
+          currentSource,
           randomUUID(),
           image,
           previous,
@@ -99,6 +102,7 @@ void test(
               ...(initialData ? { initialData } : {}),
             },
           ]),
+          JSON.stringify(previousSourceIds),
         ],
         runtime,
       );
@@ -316,6 +320,44 @@ void test(
       docker(["volume", "create", `towbar-${foreignRuntime}-uploads`]);
       assert.throws(() => prepare("", foreignRuntime), /ownership mismatch/);
       assert(docker(["volume", "inspect", `towbar-${foreignRuntime}-uploads`]));
+
+      currentSource = randomUUID();
+      assert.throws(() => prepare(first), /does not belong/);
+      previousSourceIds = [source];
+      prepare(first);
+      const transferred = start("transferred", first);
+      assert.equal(
+        docker(["exec", transferred, "cat", "/data/upload.txt"]),
+        "original",
+      );
+      assert.equal(
+        docker([
+          "inspect",
+          "-f",
+          '{{index .Config.Labels "towbar.source"}}',
+          transferred,
+        ]),
+        currentSource,
+      );
+      assert.equal(
+        docker([
+          "volume",
+          "inspect",
+          "-f",
+          '{{index .Labels "towbar.source"}}',
+          `towbar-${owner}-uploads`,
+        ]),
+        source,
+      );
+      previousSourceIds.push(currentSource);
+      currentSource = randomUUID();
+      prepare(transferred);
+      const movedAgain = start("transferred-again", transferred);
+      assert.equal(
+        docker(["exec", movedAgain, "cat", "/data/upload.txt"]),
+        "original",
+      );
+      assert.throws(() => prepare(movedAgain, preview), /does not belong/);
     } finally {
       for (const name of containers.reverse()) {
         try {

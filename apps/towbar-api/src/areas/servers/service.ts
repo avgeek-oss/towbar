@@ -1,5 +1,6 @@
 /* eslint-disable max-lines -- Server lifecycle, credential state, preparation, and runtime summaries share one service boundary. */
 import { observeServerCheck } from "../monitoring/server-observations.js";
+import { getRuntimeSourceIds } from "../manifest-lifecycle/runtime-ownership.js";
 import {
   getLatestServerPreparations,
   toPublicServer,
@@ -418,6 +419,11 @@ export async function getServerCheckExecutionContext(checkId: string) {
           ),
         )
     : [];
+  const runtimeSources = await getRuntimeSourceIds(
+    getTowbarDatabase(),
+    context.workspaceId,
+    deployableIds,
+  );
   const currentReleaseByDeployable =
     selectCurrentProductionReleaseByDeployable(retainedReleases);
   const [started] = await getTowbarDatabase()
@@ -467,6 +473,9 @@ export async function getServerCheckExecutionContext(checkId: string) {
           : null,
         deployableId: deployable.deployableId,
         sourceId: deployable.sourceId,
+        previousSourceIds: (
+          runtimeSources.get(deployable.deployableId) ?? []
+        ).filter((id) => id !== deployable.sourceId),
         desiredState: deployable.desiredState ?? "running",
         health:
           "path" in deployable.config.health

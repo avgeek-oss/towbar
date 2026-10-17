@@ -34,7 +34,7 @@ def run(*args):
 def owned(labels):
     return (labels.get("towbar.managed") == "true" and
             labels.get("towbar.deployable") == payload["appId"] and
-            labels.get("towbar.source") == payload["sourceId"])
+            labels.get("towbar.source") in {payload["sourceId"], *payload.get("previousSourceIds", [])})
 
 def cancelled(signum, frame):
     raise SystemExit("Job execution interrupted")
@@ -192,6 +192,7 @@ export async function executeAppJob(input: {
     operationId: context.operationId,
     appId: context.deployableId,
     sourceId: context.sourceId,
+    previousSourceIds: context.previousSourceIds ?? [],
     containerName: context.currentRelease.containerName,
     imageTag: context.currentRelease.imageTag,
     mounts: appVolumeMounts(context.deployable, context.deployableId),

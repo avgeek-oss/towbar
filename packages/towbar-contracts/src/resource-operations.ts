@@ -75,6 +75,7 @@ export const orphanItemSchema = z
 export type OrphanItem = z.infer<typeof orphanItemSchema>;
 
 export type RuntimeExpectation = {
+  previousSourceIds?: string[];
   volumes?: Array<{ name: string; mountPath: string }>;
   connectivity: {
     containerPort: number;
@@ -378,6 +379,7 @@ export type ServerCleanupPlan = {
   retiring?: Array<{
     deployableId: string;
     sourceId: string;
+    previousSourceIds?: string[];
     runtimeIds: string[];
     composeProjects?: string[];
   }>;

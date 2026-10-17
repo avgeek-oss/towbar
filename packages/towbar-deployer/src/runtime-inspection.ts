@@ -302,7 +302,7 @@ for item in expected["deployables"]:
         if any(value == "unhealthy" for value in health_values): reasons.append("A Compose service health check is failing")
         for container in containers:
             labels = container.get("Config", {}).get("Labels") or {}
-            if labels.get("towbar.source") != item["sourceId"] or labels.get("towbar.deployable") != deployable_id:
+            if labels.get("towbar.source") not in {item["sourceId"], *item.get("previousSourceIds", [])} or labels.get("towbar.deployable") != deployable_id:
                 reasons.append("Compose service predates Towbar ownership labels; redeploy before cleanup")
                 break
         metrics = [runtime_metrics(container.get("Name", "").lstrip("/"), container, runtime_stats) for container in containers]
@@ -364,7 +364,7 @@ for item in expected["deployables"]:
         reasons.append("Container is running but Towbar expects it to be stopped")
     if health == "unhealthy":
         reasons.append("Container health check is failing")
-    if labels.get("towbar.source") != item["sourceId"] or labels.get("towbar.deployable") != deployable_id:
+    if labels.get("towbar.source") not in {item["sourceId"], *item.get("previousSourceIds", [])} or labels.get("towbar.deployable") != deployable_id:
         reasons.append("Container predates Source ownership labels; redeploy before cleanup")
     for volume in item.get("volumes", []):
         if not any(m.get("Type") == "volume" and m.get("Name") == volume["name"] and m.get("Destination") == volume["mountPath"] and m.get("RW") for m in container.get("Mounts", [])):

@@ -1,4 +1,5 @@
 import { lockDomainClaims } from "../deployments/domain-claims.js";
+import { getRuntimeSourceIds } from "../manifest-lifecycle/runtime-ownership.js";
 import { validateQueuedAppJob } from "../apps/jobs.js";
 import { requireActiveAutomation } from "../auth/automation-authority.js";
 import { authorizeQueuedEffect } from "../auth/actor-context.js";
@@ -118,8 +119,18 @@ export async function getOperationExecutionContext(operationId: string) {
           workspaceId: operation.workspaceId,
         })
       : null;
+  const runtimeSources = await getRuntimeSourceIds(
+    getTowbarDatabase(),
+    operation.workspaceId,
+    operation.resourceId ? [operation.resourceId] : [],
+  );
   return {
     cleanupExpected,
+    previousSourceIds: operation.resourceId
+      ? (runtimeSources.get(operation.resourceId) ?? []).filter(
+          (id) => id !== sourceId,
+        )
+      : [],
     currentRelease,
     deployable: operation.appSnapshot,
     deployableId: operation.resourceId,
