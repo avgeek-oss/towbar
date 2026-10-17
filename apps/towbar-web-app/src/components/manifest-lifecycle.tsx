@@ -10,6 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Alert } from "@avgeek-oss/design-system/feedback/alert";
+import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import { Modal } from "@avgeek-oss/design-system/overlays/modal";
 import { Input } from "@avgeek-oss/design-system/forms/input";
 import { Field, FieldLabel } from "@avgeek-oss/design-system/forms/field";
@@ -28,7 +29,7 @@ import { useApiQuery, refreshApiQueries } from "@/hooks/use-api-query";
 import { api } from "@/lib/api";
 import { DashboardPage, InlineLink } from "./page-parts";
 import { useAccess } from "./access-context";
-import { EnvironmentIcon } from "./environment-icon";
+import { EnvironmentChip } from "./environment-chip";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
 import { LifecycleDetails } from "./manifest-lifecycle-details";
 
@@ -62,7 +63,9 @@ export function ManifestLifecycle({
               className="size-4 shrink-0 text-muted"
               aria-hidden="true"
             />
-            <TypographyCode>{item.manifestId}</TypographyCode>
+            <TypographyCode className="break-all">
+              {item.manifestId}
+            </TypographyCode>
           </span>
           <span className="text-xs text-muted">
             {item.workloads[0]?.name ?? "Not materialized"}
@@ -73,12 +76,7 @@ export function ManifestLifecycle({
     {
       key: "environment",
       header: "Environment",
-      cell: (item) => (
-        <span className="inline-flex items-center gap-2">
-          <EnvironmentIcon name={item.environment} />
-          {item.environment}
-        </span>
-      ),
+      cell: (item) => <EnvironmentChip name={item.environment} />,
     },
     {
       key: "repositories",
@@ -114,24 +112,23 @@ export function ManifestLifecycle({
             status={removalInProgress(item) ? "running" : "failed"}
           />
         ) : (
-          <span
-            className={
-              item.state === "conflict" ? "text-danger" : "text-warning"
-            }
-          >
-            {item.state === "conflict"
-              ? "Manifest conflict"
-              : "Retirement pending"}
-          </span>
+          <Chip color={item.state === "conflict" ? "danger" : "warning"}>
+            <Chip.Label>
+              {item.state === "conflict"
+                ? "Manifest conflict"
+                : "Retirement pending"}
+            </Chip.Label>
+          </Chip>
         ),
     },
     {
       key: "actions",
       header: "Actions",
+      mobileFullWidth: true,
       className: "text-right",
       headerClassName: "text-right",
       cell: (item) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             variant="secondary"
             size="sm"
@@ -180,114 +177,27 @@ export function ManifestLifecycle({
           <QueryLoading />
         ) : (
           <>
-            <div className="hidden md:block">
-              <ResourceTable
-                ariaLabel={
-                  tab === "conflicts"
-                    ? "Manifest conflicts"
-                    : "Pending retirements"
-                }
-                columns={columns}
-                items={query.data.items}
-                getRowKey={(item) => item.key}
-                emptyTitle={
-                  tab === "conflicts"
-                    ? "No manifest conflicts"
-                    : "No pending retirements"
-                }
-                emptyDescription={
-                  tab === "conflicts"
-                    ? "Each manifest ID is managed by a single repository in its environment."
-                    : "All workloads have a repository declaration."
-                }
-              />
-            </div>
-            <div className="grid gap-3 md:hidden">
-              {query.data.items.map((item) => (
-                <div
-                  key={item.key}
-                  className="grid gap-3 rounded-xl border bg-surface p-4 text-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="grid gap-1">
-                      <span className="inline-flex items-center gap-2">
-                        <HugeiconsIcon
-                          icon={
-                            item.workloads[0]?.kind &&
-                            !["app", "compose"].includes(item.workloads[0].kind)
-                              ? DatabaseIcon
-                              : DashboardCircleIcon
-                          }
-                          className="size-4 shrink-0 text-muted"
-                          aria-hidden="true"
-                        />
-                        <TypographyCode>{item.manifestId}</TypographyCode>
-                      </span>
-                      <span className="text-xs text-muted">
-                        {item.environment}
-                      </span>
-                    </span>
-                    <span
-                      className={
-                        item.state === "conflict"
-                          ? "text-danger text-xs"
-                          : "text-warning text-xs"
-                      }
-                    >
-                      {item.state === "conflict"
-                        ? "Conflict"
-                        : item.state === "removing"
-                          ? removalInProgress(item)
-                            ? "Removing"
-                            : "Removal failed"
-                          : "Retirement pending"}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted break-words">
-                    {(item.declarations.length
-                      ? item.declarations
-                      : item.workloads
-                    )
-                      .map((source) => source.repository)
-                      .join(" · ")}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="secondary"
-                      onPress={() => setSelected(item)}
-                    >
-                      <HugeiconsIcon
-                        icon={ViewIcon}
-                        className="size-4"
-                        aria-hidden="true"
-                      />
-                      Details
-                    </Button>
-                    {item.state !== "conflict" && can("server.remove") ? (
-                      <Button
-                        variant="danger-soft"
-                        isDisabled={removalInProgress(item)}
-                        onPress={() => setRemoving(item)}
-                      >
-                        <HugeiconsIcon
-                          icon={Delete02Icon}
-                          className="size-4"
-                          aria-hidden="true"
-                        />
-                        Remove
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-              {!query.data.items.length ? (
-                <p className="py-6 text-center text-sm text-muted">
-                  {tab === "conflicts"
-                    ? "No manifest conflicts"
-                    : "No pending retirements"}
-                </p>
-              ) : null}
-            </div>
+            <ResourceTable
+              ariaLabel={
+                tab === "conflicts"
+                  ? "Manifest conflicts"
+                  : "Pending retirements"
+              }
+              columns={columns}
+              items={query.data.items}
+              getRowKey={(item) => item.key}
+              mobileLayout="stacked"
+              emptyTitle={
+                tab === "conflicts"
+                  ? "No manifest conflicts"
+                  : "No pending retirements"
+              }
+              emptyDescription={
+                tab === "conflicts"
+                  ? "Each manifest ID is managed by a single repository in its environment."
+                  : "All workloads have a repository declaration."
+              }
+            />
             {query.data.total > 20 ? (
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
                 <span>
@@ -408,7 +318,9 @@ function RemoveRetirement({
                     className="size-4 shrink-0 text-muted"
                     aria-hidden="true"
                   />
-                  <TypographyCode>{item.manifestId}</TypographyCode>
+                  <TypographyCode className="break-all">
+                    {item.manifestId}
+                  </TypographyCode>
                 </span>{" "}
                 manifest to a repository instead.
               </p>
