@@ -2241,6 +2241,7 @@ export function createFixtureApiServer({
     app: apps[0]!,
     resource: resources[0]!,
   });
+  const requestedSourceSyncs = new Map<string, SourceSync[]>();
   const sourceRepositoryIds = new Map(
     sources.map((source) => [
       source.id,
@@ -4558,6 +4559,67 @@ export function createFixtureApiServer({
       return writeDeploymentEvents(response, deployment, publicDemo);
     }
 
+    const syncAllEnvironments = path.match(
+      /^\/v1\/core\/sources\/([^/]+)\/environments\/syncs$/,
+    );
+    if (
+      request.method === "POST" &&
+      syncAllEnvironments &&
+      sources.some((item) => item.id === syncAllEnvironments[1])
+    ) {
+      const sourceId = syncAllEnvironments[1]!;
+      const outcomes = environmentMappings
+        .filter((item) => item.sourceId === sourceId && !item.disconnectedAt)
+        .map((environment) => {
+          const sync: SourceSync = {
+            ...sourceSync,
+            id: randomUUID(),
+            environment: {
+              id: environment.id,
+              name: environment.name,
+              branch: environment.branch,
+            },
+            mappingRevision: environment.mappingRevision,
+            createdAt: new Date().toISOString(),
+            startedAt: null,
+            finishedAt: null,
+            status: "queued",
+          };
+          const history = requestedSourceSyncs.get(sourceId) ?? [];
+          history.unshift(sync);
+          requestedSourceSyncs.set(sourceId, history);
+          setTimeout(() => {
+            sync.status = "succeeded";
+            sync.startedAt = sync.createdAt;
+            sync.finishedAt = new Date().toISOString();
+          }, 1500).unref();
+          return {
+            environmentId: environment.id,
+            syncId: sync.id,
+            error: null,
+          };
+        });
+      return writeJson(response, 202, { outcomes });
+    }
+    const requestedSyncHistory = path.match(
+      /^\/v1\/core\/sources\/([^/]+)\/syncs(?:\/([^/]+))?$/,
+    );
+    if (request.method === "GET" && requestedSyncHistory) {
+      const sourceId = requestedSyncHistory[1]!;
+      const requested = requestedSourceSyncs.get(sourceId);
+      if (requested) {
+        const syncs = [
+          ...requested,
+          ...(sourceId === source.id ? sourceSyncs : []),
+        ];
+        if (!requestedSyncHistory[2])
+          return writeJson(response, 200, { syncs });
+        const sync = syncs.find((item) => item.id === requestedSyncHistory[2]);
+        return sync
+          ? writeJson(response, 200, { sync })
+          : writeNotFound(response);
+      }
+    }
     if (
       request.method !== "GET" &&
       /^\/v1\/core\/sources\/[^/]+\/environments(?:\/|$)/.test(path)

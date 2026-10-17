@@ -1573,6 +1573,48 @@ test("deployment history paginates all apps, resources, and environments in stab
   }
 });
 
+test("seeded repositories queue environment syncs without deploying and retain their history", async () => {
+  const server = createFixtureApiServer();
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  assert(address && typeof address === "object");
+  const base = `http://127.0.0.1:${address.port}/v1/core`;
+  const get = async (path) => (await fetch(`${base}${path}`)).json();
+  try {
+    const before = await get("/deployments");
+    const { sources } = await get("/sources");
+    for (const source of sources) {
+      const endpoint = `/sources/${source.id}`;
+      const { environments } = await get(`${endpoint}/environments`);
+      const response = await fetch(`${base}${endpoint}/environments/syncs`, {
+        method: "POST",
+      });
+      assert.equal(response.status, 202);
+      const { outcomes } = await response.json();
+      assert.deepEqual(
+        outcomes.map((outcome) => outcome.environmentId).sort(),
+        environments
+          .filter((item) => !item.disconnectedAt)
+          .map((item) => item.id)
+          .sort(),
+      );
+      if (!outcomes.length) continue;
+      const { syncs } = await get(`${endpoint}/syncs`);
+      for (const outcome of outcomes) {
+        assert.equal(outcome.error, null);
+        assert(syncs.some((sync) => sync.id === outcome.syncId));
+        const { sync } = await get(`${endpoint}/syncs/${outcome.syncId}`);
+        assert.equal(sync.environment.id, outcome.environmentId);
+      }
+    }
+    assert.deepEqual(await get("/deployments"), before);
+  } finally {
+    server.close();
+    await once(server, "close");
+  }
+});
+
 test("repository sync history has scoped, selectable recent and legacy entries", async () => {
   const server = createFixtureApiServer();
   server.listen(0, "127.0.0.1");

@@ -295,6 +295,8 @@ export function ManifestLifecycle({
       {selected ? (
         <LifecycleDetails
           item={selected}
+          apps={apps.data?.apps ?? []}
+          resources={resources.data?.resources ?? []}
           onClose={() => setSelectedKey(null)}
         />
       ) : null}

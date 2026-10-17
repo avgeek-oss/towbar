@@ -16,6 +16,7 @@ import {
   DashboardCircleIcon,
   DatabaseIcon,
   GitBranchIcon,
+  ReloadIcon,
 } from "@hugeicons/core-free-icons";
 
 import {
@@ -34,8 +35,17 @@ import {
 } from "@avgeek-oss/design-system/patterns/resource-table";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 
-import { DashboardPage } from "@/components/page-parts";
-import { prefetchApiQueries, useApiQuery } from "@/hooks/use-api-query";
+import { ActionButton, DashboardPage } from "@/components/page-parts";
+import {
+  prefetchApiQueries,
+  refreshApiQueries,
+  useApiQuery,
+} from "@/hooks/use-api-query";
+import { api } from "@/lib/api";
+import {
+  queueRepositorySyncs,
+  type RepositorySyncResponse,
+} from "@/lib/repository-sync";
 import { countSourceInventory } from "@/lib/source-inventory";
 import { LastSyncedTime } from "./last-synced-time";
 
@@ -47,6 +57,12 @@ export function SourceIndex() {
   const query = useApiQuery<{ sources: Source[]; counts: InventoryCounts }>(
     useInventoryQuery("sources"),
   );
+  const allSources = useApiQuery<{ sources: Source[] }>(
+    filtered && can("repository.sync") ? "/v1/core/sources" : null,
+  );
+  const activeSources = (
+    (filtered ? allSources.data : query.data)?.sources ?? []
+  ).filter((source) => source.status === "active");
   const apps = useApiQuery<{ apps: App[] }>("/v1/core/apps");
   const resources = useApiQuery<{ resources: Resource[] }>(
     "/v1/core/resources",
@@ -169,13 +185,39 @@ export function SourceIndex() {
     <DashboardPage
       icon={GitBranchIcon}
       actions={
-        can("repository.connect") ? (
-          <AddRepositoryButton
-            isDisabled={addRepositoryDisabled}
-            noConfiguredProvider={noConfiguredProvider}
-            onPress={() => setAddingSource(true)}
-          />
-        ) : undefined
+        <div className="flex flex-wrap justify-end gap-2">
+          {can("repository.sync") && activeSources.length > 0 ? (
+            <ActionButton
+              action={async () => {
+                const { queued, failures } = await queueRepositorySyncs(
+                  activeSources,
+                  (sourceId) =>
+                    api.post<RepositorySyncResponse>(
+                      `/v1/core/sources/${sourceId}/environments/syncs`,
+                    ),
+                );
+                if (failures.length) {
+                  refreshApiQueries();
+                  throw new Error(
+                    `${queued} environment sync${queued === 1 ? "" : "s"} queued. ${failures.join("; ")}`,
+                  );
+                }
+              }}
+              pendingLabel="Queueing syncs…"
+              success="Repository syncs queued"
+            >
+              <HugeiconsIcon aria-hidden="true" icon={ReloadIcon} />
+              Sync All
+            </ActionButton>
+          ) : null}
+          {can("repository.connect") ? (
+            <AddRepositoryButton
+              isDisabled={addRepositoryDisabled}
+              noConfiguredProvider={noConfiguredProvider}
+              onPress={() => setAddingSource(true)}
+            />
+          ) : null}
+        </div>
       }
       title="Repositories"
     >

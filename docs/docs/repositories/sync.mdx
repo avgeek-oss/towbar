@@ -11,6 +11,8 @@ Open a Repository's **Environments** page and inspect the latest sync for its co
 
 Pushes to a mapped branch start reconciliation through the source-control webhook. Use **Sync now** when you need to inspect the current branch state immediately. If no update arrives, check the integration's repository access and webhook delivery before retrying.
 
+Use **Sync All** on the Repositories page to queue a sync for every active repository's connected environments, including repositories hidden by filters. It does not deploy workloads. Failed requests are reported separately; other repositories still sync.
+
 ## Remove a workload
 
 Delete its Service or Datastore YAML file and sync the mapped environment. The workload appears in **Retirements**. Its runtime, secrets, storage and history remain; automatic deployments stop.

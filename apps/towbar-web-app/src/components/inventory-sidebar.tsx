@@ -30,7 +30,7 @@ const kindLabels = {
   servers: "servers",
   sources: "repositories",
 } as const;
-const keys: Record<Kind, string[]> = {
+export const inventoryFilterKeys: Record<Kind, string[]> = {
   apps: [
     "q",
     "view",
@@ -56,7 +56,7 @@ const keys: Record<Kind, string[]> = {
 export function useInventoryQuery(kind: Kind) {
   const { search } = usePageQuery();
   const params = new URLSearchParams();
-  for (const key of keys[kind]) {
+  for (const key of inventoryFilterKeys[kind]) {
     const value = search.get(key);
     if (value) params.set(key, value);
   }
@@ -231,11 +231,15 @@ export function InventorySidebar({
               options={[{ id: "all", label: "All" }, ...control.options]}
             />
           ))}
-          {keys[kind].some((key) => search.has(key)) ? (
+          {inventoryFilterKeys[kind].some((key) => search.has(key)) ? (
             <Button
               variant="secondary"
               onPress={() =>
-                update(Object.fromEntries(keys[kind].map((key) => [key, null])))
+                update(
+                  Object.fromEntries(
+                    inventoryFilterKeys[kind].map((key) => [key, null]),
+                  ),
+                )
               }
             >
               <HugeiconsIcon icon={FilterResetIcon} className="size-4" />
