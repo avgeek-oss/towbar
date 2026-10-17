@@ -1,0 +1,17 @@
+[
+  {
+    "product": "Docker Compose",
+    "file": "compose.png",
+    "source": "https://raw.githubusercontent.com/docker/compose/289d8a037874a5197c54cfa055d28cc5d980593f/logo.png"
+  },
+  {
+    "product": "Nixpacks",
+    "file": "nixpacks.ico",
+    "source": "https://raw.githubusercontent.com/railwayapp/nixpacks/144b4f9ab1c3943af4dfe76d3c79d91263f5b465/docs/public/favicon.ico"
+  },
+  {
+    "product": "Open Container Initiative",
+    "file": "oci.svg",
+    "source": "https://raw.githubusercontent.com/opencontainers/artwork/d8ccfe94471a0236b1d4a3f0f90862c4fe5486ce/oci/icon/black/oci-icon-black.svg"
+  }
+]

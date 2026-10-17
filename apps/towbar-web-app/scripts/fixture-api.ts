@@ -199,7 +199,7 @@ const additionalServers = [
   {
     provider: "aws",
     type: "m7i.xlarge",
-    name: "Production · Mumbai",
+    name: "Production",
     cpu: 4,
     memory: 16,
     username: "ubuntu",
@@ -207,7 +207,7 @@ const additionalServers = [
   {
     provider: "gcp",
     type: "e2-standard-4",
-    name: "Analytics · Singapore",
+    name: "Analytics",
     cpu: 4,
     memory: 16,
     username: "deploy",
@@ -215,7 +215,7 @@ const additionalServers = [
   {
     provider: "azure",
     type: "Standard_D4s_v5",
-    name: "Shared services · London",
+    name: "Shared services",
     cpu: 4,
     memory: 16,
     username: "azureuser",
@@ -223,7 +223,7 @@ const additionalServers = [
   {
     provider: "digitalocean",
     type: "s-4vcpu-8gb",
-    name: "Shared services · Amsterdam",
+    name: "Shared services",
     cpu: 4,
     memory: 8,
     username: "root",
@@ -231,7 +231,7 @@ const additionalServers = [
   {
     provider: "linode",
     type: "g6-standard-4",
-    name: "Shared services · Frankfurt",
+    name: "Shared services",
     cpu: 4,
     memory: 8,
     username: "deploy",
@@ -239,14 +239,14 @@ const additionalServers = [
   {
     provider: "alibaba",
     type: "ecs.g7.xlarge",
-    name: "APAC · Hong Kong",
+    name: "APAC",
     cpu: 4,
     memory: 16,
     username: "root",
   },
 ] as const;
-servers[0]!.name = "Core services · Hyderabad";
-servers[1]!.name = "Web services · Helsinki";
+servers[0]!.name = "Core services";
+servers[1]!.name = "Web services";
 for (const [index, spec] of additionalServers.entries()) {
   const server = createServerFixture(
     `21111111-1111-4111-8111-${String(index + 3).repeat(12)}`,
@@ -1787,22 +1787,70 @@ for (const server of servers.slice(2)) {
     uptimeSeconds: 864_000,
   });
 }
-for (const capacity of runtimeCapacity) {
-  capacity.runtimes = [...apps, ...resources]
-    .filter((item) => item.serverId === capacity.id)
-    .map((item, index) => ({
-      id: item.id,
-      name: item.name,
-      kind: item.kind,
-      sourceId: item.sourceId,
-      healthStatus: item.runtimeState.healthStatus,
-      observedState: item.runtimeState.observedState,
-      cpuPercent: 1.5 + index,
-      memoryLimitBytes: 1024 ** 3,
-      memoryUsageBytes: 256 * 1024 ** 2,
-      restartCount: 0,
-      startedAt: fixtureNow,
-    }));
+const serverUsageProfiles = [
+  { cpu: 38.4, memory: 46.2 },
+  { cpu: 73.5, memory: 64.8 },
+  { cpu: 56.1, memory: 78.4 },
+  { cpu: 94.2, memory: 92.6 },
+  { cpu: 81.7, memory: 88.3 },
+  { cpu: 22.6, memory: 32.1 },
+  { cpu: 68.5, memory: 91.4 },
+  { cpu: 91.8, memory: 73.2 },
+];
+const workloadUsageProfiles = [
+  { cpu: 18.4, memory: 43.2 },
+  { cpu: 72.3, memory: 58.7 },
+  { cpu: 93.1, memory: 78.9 },
+  { cpu: 46.8, memory: 94.6 },
+  { cpu: 87.5, memory: 86.3 },
+  { cpu: 24.6, memory: 31.1 },
+  { cpu: 96.4, memory: 92.2 },
+  { cpu: 63.2, memory: 69.4 },
+];
+for (const [serverIndex, capacity] of runtimeCapacity.entries()) {
+  const usage = serverUsageProfiles[serverIndex % serverUsageProfiles.length]!;
+  if (capacity.cpu) {
+    capacity.cpu.usagePercent = usage.cpu;
+    capacity.cpu.loadAverage1m =
+      Math.round(capacity.cpu.logicalCount * usage.cpu) / 100;
+  }
+  if (capacity.memory) {
+    capacity.memory.usedPercent = usage.memory;
+    capacity.memory.availableBytes = Math.round(
+      capacity.memory.totalBytes * (1 - usage.memory / 100),
+    );
+  }
+  capacity.runtimes = [...apps, ...resources].flatMap((item, index) => {
+    if (item.serverId !== capacity.id) return [];
+    const workloadUsage =
+      workloadUsageProfiles[index % workloadUsageProfiles.length]!;
+    return [
+      {
+        id: item.id,
+        name: item.name,
+        kind: item.kind,
+        sourceId: item.sourceId,
+        healthStatus: item.runtimeState.healthStatus,
+        observedState: item.runtimeState.observedState,
+        cpuPercent: workloadUsage.cpu,
+        memoryLimitBytes: 1024 ** 3,
+        memoryUsageBytes: Math.round((1024 ** 3 * workloadUsage.memory) / 100),
+        restartCount: 0,
+        startedAt: fixtureNow,
+      },
+    ];
+  });
+  capacity.status =
+    usage.cpu >= 90 ||
+    usage.memory >= 90 ||
+    (capacity.disk?.usedPercent ?? 0) >= 95 ||
+    capacity.runtimes.some((runtime) => runtime.healthStatus === "unhealthy")
+      ? "critical"
+      : usage.cpu >= 70 ||
+          usage.memory >= 70 ||
+          (capacity.disk?.usedPercent ?? 0) >= 85
+        ? "attention"
+        : "healthy";
 }
 
 const preparationStepResults: Record<

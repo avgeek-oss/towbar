@@ -298,6 +298,9 @@ export function createApplicationSidebar(
                       badge: {
                         label: `${value} ${value === 1 ? singular : plural}`,
                         value,
+                        ...(id === "conflicts" || id === "retirements"
+                          ? { tone: "danger" as const }
+                          : {}),
                       },
                     };
               }),

@@ -24,7 +24,7 @@ Keep the manifest ID, environment name and workload type. Either Git order works
 
 Once exactly one compatible declaration remains, Towbar transfers ownership using the existing workload UUID. Secrets, volumes, domains and deployment history stay attached. Historical deployments retain their original repository provenance. The transfer itself does not restart containers; configuration changes follow the destination's existing deployment settings and storage checks.
 
-The Conflicts page has no resolution actions. Its details show repositories, Git revisions and changed configuration paths. Fix Git, then sync each affected repository. Values are omitted from the diff to avoid exposing credentials embedded in configuration.
+The Conflicts page has no resolution actions. Its details show repositories, branches, manifest paths and changed configuration paths. Fix Git, then sync each affected repository. Values are omitted from the diff to avoid exposing credentials embedded in configuration.
 
 Changing workload type, moving datastore or Compose storage to another server, or changing a datastore image during a transfer blocks adoption. Complete the relevant migration or upgrade first. Active operations also block transfer; sync again after they finish.
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@avgeek-oss/design-system/buttons/button";
-import { CodeBlock } from "@avgeek-oss/design-system/typography/code-block";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
 import { TableCellStack } from "@avgeek-oss/design-system/data-display/table-cell-text";
@@ -16,7 +15,7 @@ import {
   TypographyCode,
   TypographyText,
 } from "@avgeek-oss/design-system/typography/typography";
-import { GitBranchIcon, GitCommitIcon } from "@hugeicons/core-free-icons";
+import { GitBranchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ManifestLifecycleItem } from "@workspace/towbar-contracts";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
@@ -49,15 +48,8 @@ export function LifecycleDetails({
             <IntegrationProviderLogo provider={source.provider ?? "github"} />
             {source.repository}
           </InlineLink>
-          {item.workloads.some(
-            (workload) => workload.sourceId === source.sourceId,
-          ) ? (
-            <Chip className="w-fit">
-              <Chip.Label>Current owner</Chip.Label>
-            </Chip>
-          ) : null}
           <span className="flex flex-wrap items-center gap-2">
-            <Chip className="max-w-full">
+            <Chip className="max-w-full w-fit">
               <Chip.Label
                 className="inline-flex min-w-0 items-center gap-1.5"
                 title={source.branch}
@@ -70,16 +62,13 @@ export function LifecycleDetails({
                 <span className="truncate">{source.branch}</span>
               </Chip.Label>
             </Chip>
-            <span className="inline-flex items-center gap-1.5 text-muted">
-              <HugeiconsIcon
-                icon={GitCommitIcon}
-                className="size-3.5"
-                aria-hidden="true"
-              />
-              <TypographyCode title={source.commitSha}>
-                {source.commitSha.slice(0, 12)}
-              </TypographyCode>
-            </span>
+            {item.workloads.some(
+              (workload) => workload.sourceId === source.sourceId,
+            ) ? (
+              <Chip className="w-fit">
+                <Chip.Label>Current owner</Chip.Label>
+              </Chip>
+            ) : null}
           </span>
         </TableCellStack>
       ),
@@ -197,7 +186,9 @@ export function LifecycleDetails({
                 <Attributes
                   key={workload.id}
                   variant="card"
-                  title="Existing workload"
+                  title={null}
+                  aria-label="Workload details"
+                  className="[&>[data-slot=widget-header]]:hidden [&>[data-slot=widget-content]]:mt-1.5"
                   columns={2}
                 >
                   <Attributes.Item label="Workload" className="content-start">
@@ -237,16 +228,9 @@ export function LifecycleDetails({
                     label="Workload ID"
                     className="col-span-2 content-start"
                   >
-                    <span className="flex min-w-0 items-start gap-2">
-                      <TypographyCode className="min-w-0 break-all">
-                        {workload.id}
-                      </TypographyCode>
-                      <CodeBlock.CopyButton
-                        code={workload.id}
-                        aria-label="Copy workload ID"
-                        className="shrink-0 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
-                      />
-                    </span>
+                    <TypographyCode className="min-w-0 break-all">
+                      {workload.id}
+                    </TypographyCode>
                   </Attributes.Item>
                   {workload.retiredAt ? (
                     <Attributes.Item label="Retired" className="content-start">
@@ -259,23 +243,15 @@ export function LifecycleDetails({
                 </Attributes>
               ))}
               {item.declarations.length ? (
-                <section
-                  className="grid min-w-0 gap-2"
-                  aria-label="Repository declarations"
-                >
-                  <TypographyText textRole="supporting">
-                    Repository declarations
-                  </TypographyText>
-                  <ResourceTable
-                    ariaLabel="Repository declarations"
-                    columns={declarations}
-                    items={item.declarations}
-                    getRowKey={(source) => source.sourceEnvironmentId}
-                    tableClassName="min-w-[760px] table-fixed"
-                    emptyTitle="No declarations"
-                    emptyDescription="No repository currently declares this workload."
-                  />
-                </section>
+                <ResourceTable
+                  ariaLabel="Repository declarations"
+                  columns={declarations}
+                  items={item.declarations}
+                  getRowKey={(source) => source.sourceEnvironmentId}
+                  tableClassName="min-w-[760px] table-fixed"
+                  emptyTitle="No declarations"
+                  emptyDescription="No repository currently declares this workload."
+                />
               ) : null}
               {item.operations.length ? (
                 <section

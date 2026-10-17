@@ -65,7 +65,7 @@ import { InstanceEnvironmentLabel } from "./instance-environment-label";
 import { ServerIpLink } from "./source-inventory";
 import { DeployableInventoryTable as GroupedDeployableTable } from "./deployable-inventory-table";
 import { AppIdentity, ResourceIdentity } from "./deployable-identity";
-import { serviceTypeLabel } from "./service-type";
+import { ServiceType } from "./service-type";
 
 const inventoryLayouts = [
   "grouped",
@@ -306,14 +306,17 @@ function DeployableInventoryTable({
     {
       cell: (item) =>
         isApp(item) ? (
-          <AppIdentity app={item} />
+          <AppIdentity app={item} runtime={runtimeById.get(item.id)} />
         ) : (
-          <ResourceIdentity resource={item} />
+          <ResourceIdentity
+            resource={item}
+            runtime={runtimeById.get(item.id)}
+          />
         ),
       className:
         kind === "resource"
-          ? "resource-identity-cell w-full min-w-64 2xl:min-w-[22rem]"
-          : "w-full min-w-64",
+          ? "resource-identity-cell w-full min-w-80 2xl:min-w-[22rem]"
+          : "w-full min-w-80",
       wrapRowLink: false,
       header: kind === "app" ? "Service" : "Datastore",
       key: "name",
@@ -340,8 +343,8 @@ function DeployableInventoryTable({
       ? [
           {
             cell: (item: App | Resource) =>
-              isApp(item) ? serviceTypeLabel(item) : null,
-            className: "min-w-28 whitespace-nowrap",
+              isApp(item) ? <ServiceType app={item} /> : null,
+            className: "min-w-36 whitespace-nowrap",
             header: "Type",
             key: "type",
           },
@@ -359,6 +362,7 @@ function DeployableInventoryTable({
       cell: (item) => (
         <ServerIpLink
           ip={item.serverIp}
+          showIp
           name={serversByIp.get(item.serverIp)?.name}
           serverId={serversByIp.get(item.serverIp)?.id}
           hardware={serversByIp.get(item.serverIp)?.hardware}
@@ -376,7 +380,7 @@ function DeployableInventoryTable({
         />
       ),
       className: "min-w-44 whitespace-nowrap",
-      header: "Allocated CPU",
+      header: "CPU cap",
       key: "defined-cpu",
     },
     {
@@ -387,7 +391,7 @@ function DeployableInventoryTable({
         />
       ),
       className: "min-w-44 whitespace-nowrap",
-      header: "Allocated Memory",
+      header: "Memory cap",
       key: "defined-memory",
     },
     {
@@ -491,7 +495,6 @@ function ServerInventory({
       cell: (server) => (
         <ServerCapacityCell
           label={`${server.name ?? server.canonicalIp} CPU used`}
-          metric="cpu"
           value={
             server.hardware?.cpuCount
               ? `${server.hardware.cpuCount} vCPU`
@@ -509,7 +512,6 @@ function ServerInventory({
       cell: (server) => (
         <ServerCapacityCell
           label={`${server.name ?? server.canonicalIp} memory used`}
-          metric="memory"
           value={
             server.hardware?.memoryBytes
               ? formatBytes(server.hardware.memoryBytes)

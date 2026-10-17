@@ -7,21 +7,31 @@ import { CloudProviderLogo } from "./cloud-provider-logo";
 
 export function ServerHardwareDescription({
   hardware,
+  showProvider = true,
 }: {
   hardware?: Server["hardware"];
+  showProvider?: boolean;
 }) {
   if (hardware?.instance?.type)
-    return <ServerInstanceDescription instance={hardware.instance} />;
+    return (
+      <ServerInstanceDescription
+        instance={hardware.instance}
+        showProvider={showProvider}
+      />
+    );
   if (!hardware?.cpuCount && !hardware?.memoryBytes)
     return hardware?.instance ? (
-      <ServerInstanceDescription instance={hardware.instance} />
+      <ServerInstanceDescription
+        instance={hardware.instance}
+        showProvider={showProvider}
+      />
     ) : (
       <span>Unknown Instance Type</span>
     );
   return (
     <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-      {hardware.instance ? (
-        <ProviderLogo provider={hardware.instance.provider} />
+      {hardware.instance && showProvider ? (
+        <ServerProviderLogo provider={hardware.instance.provider} />
       ) : null}
       {hardware.cpuCount ? (
         <span className="inline-flex items-center gap-0.5 whitespace-nowrap">
@@ -63,12 +73,16 @@ const providerNames = {
 
 function ServerInstanceDescription({
   instance,
+  showProvider,
 }: {
+  showProvider: boolean;
   instance: NonNullable<NonNullable<Server["hardware"]>["instance"]>;
 }) {
   return (
     <span className="inline-flex max-w-full min-w-0 items-center gap-1.5 align-middle">
-      <ProviderLogo provider={instance.provider} />
+      {showProvider ? (
+        <ServerProviderLogo provider={instance.provider} />
+      ) : null}
       <TooltipText
         className="min-w-0 truncate"
         tooltip={instance.type ?? providerNames[instance.provider]}
@@ -79,7 +93,11 @@ function ServerInstanceDescription({
   );
 }
 
-function ProviderLogo({ provider }: { provider: keyof typeof providerNames }) {
+export function ServerProviderLogo({
+  provider,
+}: {
+  provider: keyof typeof providerNames;
+}) {
   return (
     <TooltipText
       className="inline-flex shrink-0 items-center"

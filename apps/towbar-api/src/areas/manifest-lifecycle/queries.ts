@@ -12,7 +12,7 @@ import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { changedConfigurationPaths } from "./plan.js";
 import { loadManifestRegistry } from "./reconcile.js";
 
-export async function listManifestLifecycle(
+export function listManifestLifecycle(
   workspaceId: string,
   query: {
     tab?: "conflicts" | "retirements";

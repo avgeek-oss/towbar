@@ -297,6 +297,9 @@ importers:
       date-fns:
         specifier: ^4.4.0
         version: 4.4.0
+      lottie-web:
+        specifier: 5.13.0
+        version: 5.13.0
       next:
         specifier: "catalog:"
         version: 16.3.8(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -6117,6 +6120,12 @@ packages:
       }
     hasBin: true
 
+  lottie-web@5.13.0:
+    resolution:
+      {
+        integrity: sha512-+gfBXl6sxXMPe8tKQm7qzLnUy5DUPJPKIyRHwtpCpyUEYjHYRJC/5gjUvdkuO2c3JllrPtHXH5UJJK8LRYl5yQ==,
+      }
+
   lru-cache@11.5.2:
     resolution:
       {
@@ -11428,6 +11437,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  lottie-web@5.13.0: {}
 
   lru-cache@11.5.2: {}
 

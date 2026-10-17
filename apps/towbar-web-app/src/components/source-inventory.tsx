@@ -21,8 +21,11 @@ import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { DeployableInventoryTable } from "./deployable-inventory-table";
 import { AppIdentity, ResourceIdentity } from "./deployable-identity";
 import { InstanceEnvironmentLabel } from "./instance-environment-label";
-import { ServerHardwareDescription } from "./server-hardware";
-import { serviceTypeLabel } from "./service-type";
+import {
+  ServerHardwareDescription,
+  ServerProviderLogo,
+} from "./server-hardware";
+import { ServiceType } from "./service-type";
 import { InlineLink } from "@/components/page-parts";
 import {
   getActiveDeploymentStates,
@@ -43,9 +46,11 @@ function appColumns(
 ): ResourceTableColumn<App>[] {
   return [
     {
-      cell: (app) => <AppIdentity app={app} />,
+      cell: (app) => (
+        <AppIdentity app={app} runtime={runtimeById.get(app.id)} />
+      ),
       wrapRowLink: false,
-      className: "min-w-64",
+      className: "min-w-80",
       header: "Service",
       key: "name",
     },
@@ -68,8 +73,8 @@ function appColumns(
       key: "status",
     },
     {
-      cell: (app) => serviceTypeLabel(app),
-      className: "min-w-28 whitespace-nowrap",
+      cell: (app) => <ServiceType app={app} />,
+      className: "min-w-36 whitespace-nowrap",
       header: "Type",
       key: "type",
     },
@@ -83,6 +88,7 @@ function appColumns(
       cell: (app) => (
         <ServerIpLink
           ip={app.serverIp}
+          showIp
           name={serversByIp.get(app.serverIp)?.name}
           serverId={serversByIp.get(app.serverIp)?.id}
           hardware={serversByIp.get(app.serverIp)?.hardware}
@@ -100,7 +106,7 @@ function appColumns(
         />
       ),
       className: "min-w-44",
-      header: "Allocated CPU",
+      header: "CPU cap",
       key: "cpu",
     },
     {
@@ -111,7 +117,7 @@ function appColumns(
         />
       ),
       className: "min-w-44",
-      header: "Allocated Memory",
+      header: "Memory cap",
       key: "memory",
     },
     {
@@ -131,8 +137,13 @@ function resourceColumns(
 ): ResourceTableColumn<Resource>[] {
   return [
     {
-      cell: (resource) => <ResourceIdentity resource={resource} />,
-      className: "resource-identity-cell min-w-64 2xl:min-w-[22rem]",
+      cell: (resource) => (
+        <ResourceIdentity
+          resource={resource}
+          runtime={runtimeById.get(resource.id)}
+        />
+      ),
+      className: "resource-identity-cell min-w-80 2xl:min-w-[22rem]",
       wrapRowLink: false,
       header: "Datastore",
       key: "name",
@@ -167,6 +178,7 @@ function resourceColumns(
       cell: (resource) => (
         <ServerIpLink
           ip={resource.serverIp}
+          showIp
           name={serversByIp.get(resource.serverIp)?.name}
           serverId={serversByIp.get(resource.serverIp)?.id}
           hardware={serversByIp.get(resource.serverIp)?.hardware}
@@ -184,7 +196,7 @@ function resourceColumns(
         />
       ),
       className: "min-w-44",
-      header: "Allocated CPU",
+      header: "CPU cap",
       key: "cpu",
     },
     {
@@ -195,7 +207,7 @@ function resourceColumns(
         />
       ),
       className: "min-w-44",
-      header: "Allocated Memory",
+      header: "Memory cap",
       key: "memory",
     },
     {
@@ -289,32 +301,48 @@ export function ServerIpLink({
   description,
   hardware,
   serverId,
+  showIp = false,
 }: {
   ip: string;
   name?: string | null;
   description?: string;
   hardware?: Server["hardware"];
   serverId?: string;
+  showIp?: boolean;
 }) {
-  const label = (
-    <TableCellStack>
-      <span className="inline-flex items-center gap-2 whitespace-nowrap tabular-nums">
+  const title = (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap tabular-nums">
+      {hardware?.instance ? (
+        <ServerProviderLogo provider={hardware.instance.provider} />
+      ) : (
         <HugeiconsIcon
           aria-hidden="true"
           className="size-4 shrink-0 text-muted"
           icon={ServerStack01Icon}
         />
-        <span>{name ?? ip}</span>
-      </span>
-      <TableCellDescription>
-        {description ?? <ServerHardwareDescription hardware={hardware} />}
+      )}
+      <span>{name ?? ip}</span>
+    </span>
+  );
+  return (
+    <TableCellStack>
+      {serverId ? (
+        <InlineLink href={`/servers/${serverId}`}>{title}</InlineLink>
+      ) : (
+        title
+      )}
+      <TableCellDescription className={description ? "opacity-50" : undefined}>
+        {description ??
+          (showIp ? (
+            ip
+          ) : (
+            <ServerHardwareDescription
+              hardware={hardware}
+              showProvider={false}
+            />
+          ))}
       </TableCellDescription>
     </TableCellStack>
-  );
-  return serverId ? (
-    <InlineLink href={`/servers/${serverId}`}>{label}</InlineLink>
-  ) : (
-    label
   );
 }
 

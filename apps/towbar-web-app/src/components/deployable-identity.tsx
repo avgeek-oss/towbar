@@ -7,7 +7,7 @@ import {
 } from "@avgeek-oss/design-system/data-display/table-cell-text";
 
 import Image, { type ImageLoaderProps } from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useApiQuery } from "@/hooks/use-api-query";
 import bundledFavicons from "./service-favicon-catalog.json";
 import {
@@ -18,18 +18,22 @@ import {
 import {
   DashboardCircleIcon,
   DatabaseIcon,
-  HeartPulseIcon,
   InternetIcon,
   WebhookIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { App, Resource } from "@workspace/towbar-web-client";
+import type {
+  App,
+  Resource,
+  RuntimeCapacity,
+} from "@workspace/towbar-web-client";
 import {
   Tooltip,
   TooltipText,
 } from "@avgeek-oss/design-system/overlays/tooltip";
 import { InlineLink } from "./page-parts";
 import { DomainLink } from "./domain-link";
+import { CapacityPressureIndicator } from "./capacity-pressure-indicator";
 
 function externalImageLoader({ src }: ImageLoaderProps) {
   return src;
@@ -37,10 +41,12 @@ function externalImageLoader({ src }: ImageLoaderProps) {
 
 export function AppIdentity({
   app,
-  healthStatus = app.runtimeState.healthStatus,
+  showIndicators = true,
+  runtime,
 }: {
   app: App;
-  healthStatus?: App["runtimeState"]["healthStatus"];
+  showIndicators?: boolean;
+  runtime?: RuntimeCapacity["runtimes"][number];
 }) {
   const domains = [
     ...new Set(
@@ -61,7 +67,13 @@ export function AppIdentity({
           name={app.name}
           href={`/services/${app.id}`}
           exposed={domains.length > 0}
-          health={healthStatus}
+          showIndicators={showIndicators}
+          pressureIndicator={
+            <CapacityPressureIndicator
+              limits={app.config.container.resources}
+              runtime={runtime}
+            />
+          }
         />
         {primaryDomain && domains.length === 1 ? (
           <TooltipText
@@ -117,7 +129,9 @@ export function AppIdentity({
             </Tooltip.Content>
           </Tooltip>
         ) : (
-          <TableCellDescription>Not publicly exposed</TableCellDescription>
+          <TableCellDescription className="opacity-50">
+            Not publicly exposed
+          </TableCellDescription>
         )}
       </TableCellStack>
     </span>
@@ -149,7 +163,8 @@ export function AppLogo({
   );
   return (
     <AppLogoImage
-      key={`${deploymentId ?? appId ?? domain}:${query.data?.expiresAt ?? "pending"}`}
+      key={`${deploymentId ?? appId ?? "domain"}:${domain ?? ""}`}
+      retryAt={query.data?.expiresAt}
       sources={[query.data?.icon, bundled].filter((src): src is string =>
         Boolean(src),
       )}
@@ -161,20 +176,46 @@ export function AppLogo({
 function AppLogoImage({
   sources,
   size,
+  retryAt,
 }: {
   sources: string[];
   size: "default" | "small" | "compact";
+  retryAt?: number;
 }) {
-  const [failed, setFailed] = useState<string[]>([]);
+  const [failure, setFailure] = useState<{
+    retryAt?: number;
+    sources: string[];
+  }>({ retryAt, sources: [] });
   const [loadedSource, setLoadedSource] = useState<string>();
+  const failed = failure.retryAt === retryAt ? failure.sources : [];
   const src = sources.find((source) => !failed.includes(source));
-  const loaded = Boolean(src && loadedSource === src);
+  function markFailed(source: string) {
+    setLoadedSource((previous) => (previous === source ? undefined : previous));
+    setFailure((previous) => ({
+      retryAt,
+      sources: [
+        ...(previous.retryAt === retryAt ? previous.sources : []),
+        source,
+      ],
+    }));
+  }
+  const visibleSource =
+    loadedSource && (src || sources.includes(loadedSource))
+      ? loadedSource
+      : undefined;
+  const imageSources = [
+    ...new Set(
+      [visibleSource, src].filter((source): source is string =>
+        Boolean(source),
+      ),
+    ),
+  ];
   const pixels = size === "compact" ? 16 : size === "small" ? 24 : 32;
   return (
     <span
       className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-sm ${size === "compact" ? "size-4" : size === "small" ? "size-6" : "size-8"}`}
     >
-      {!loaded ? (
+      {!visibleSource ? (
         <HugeiconsIcon
           aria-hidden="true"
           className={
@@ -187,32 +228,30 @@ function AppLogoImage({
           icon={DashboardCircleIcon}
         />
       ) : null}
-      {src ? (
+      {imageSources.map((source) => (
         <Image
-          key={src}
+          key={source}
           alt=""
-          className={`object-contain ${size === "compact" ? "size-4" : size === "small" ? "size-6" : "size-8"} ${loaded ? "" : "absolute opacity-0"}`}
+          className={`object-contain ${size === "compact" ? "size-4" : size === "small" ? "size-6" : "size-8"} ${visibleSource === source ? "" : "absolute opacity-0"}`}
           height={pixels}
           loader={externalImageLoader}
           loading="eager"
           decoding="sync"
           unoptimized
           width={pixels}
-          src={src}
-          onError={() => {
-            setFailed((previous) => [...previous, src]);
-          }}
+          src={source}
+          onError={() => markFailed(source)}
           onLoad={(event) => {
             const image = event.currentTarget;
             if (image.naturalWidth > 0 && image.naturalHeight > 0) {
-              setLoadedSource(src);
+              setLoadedSource(source);
             } else {
-              setFailed((previous) => [...previous, src]);
+              markFailed(source);
             }
           }}
           referrerPolicy="no-referrer"
         />
-      ) : null}
+      ))}
     </span>
   );
 }
@@ -241,13 +280,15 @@ function DeployableName({
   name,
   href,
   exposed,
-  health,
+  showIndicators,
+  pressureIndicator,
 }: {
   autoDeploy: boolean;
   name: string;
   href: string;
   exposed: boolean;
-  health: App["runtimeState"]["healthStatus"];
+  showIndicators: boolean;
+  pressureIndicator: ReactNode;
 }) {
   const indicators = [
     {
@@ -262,17 +303,6 @@ function DeployableName({
         ? "Publicly exposed to the internet"
         : "Not publicly exposed",
     },
-    {
-      icon: HeartPulseIcon,
-      positive: health === "healthy",
-      label: {
-        healthy: "Healthy",
-        unhealthy: "Unhealthy",
-        starting: "Health check starting",
-        unknown: "Health unknown",
-        none: "No health status reported",
-      }[health],
-    },
   ];
   return (
     <span className="flex max-w-full min-w-0 items-center gap-2">
@@ -281,29 +311,38 @@ function DeployableName({
           {name}
         </TooltipText>
       </InlineLink>
-      <span className="inline-flex shrink-0 items-center gap-0.5">
-        {indicators.map(({ icon, positive, label }) => (
-          <TooltipText
-            key={label}
-            aria-label={label}
-            tooltip={label}
-            className={`inline-flex size-5 shrink-0 items-center justify-center leading-none ${positive ? "text-success-soft-foreground" : "text-danger-soft-foreground"}`}
-            role="img"
-          >
-            <HugeiconsIcon aria-hidden="true" className="size-4" icon={icon} />
-          </TooltipText>
-        ))}
-      </span>
+      {showIndicators ? (
+        <span className="inline-flex shrink-0 items-center gap-0.5">
+          {indicators.map(({ icon, positive, label }) => (
+            <TooltipText
+              key={label}
+              aria-label={label}
+              tooltip={label}
+              className={`inline-flex size-5 shrink-0 items-center justify-center leading-none ${positive ? "text-success-soft-foreground" : "text-danger-soft-foreground"}`}
+              role="img"
+            >
+              <HugeiconsIcon
+                aria-hidden="true"
+                className="size-4"
+                icon={icon}
+              />
+            </TooltipText>
+          ))}
+          {pressureIndicator}
+        </span>
+      ) : null}
     </span>
   );
 }
 
 export function ResourceIdentity({
   resource,
-  healthStatus = resource.runtimeState.healthStatus,
+  showIndicators = true,
+  runtime,
 }: {
   resource: Resource;
-  healthStatus?: Resource["runtimeState"]["healthStatus"];
+  showIndicators?: boolean;
+  runtime?: RuntimeCapacity["runtimes"][number];
 }) {
   const type = resourceImageBrand(resource.kind, resource.config.image);
   return (
@@ -315,7 +354,13 @@ export function ResourceIdentity({
           name={resource.name}
           href={`/datastores/${resource.id}`}
           exposed={Boolean(resource.config.domains?.primary)}
-          health={healthStatus}
+          showIndicators={showIndicators}
+          pressureIndicator={
+            <CapacityPressureIndicator
+              limits={resource.config.container.resources}
+              runtime={runtime}
+            />
+          }
         />
         <TableCellDescription>
           {resourceImageDescription(resource.kind, resource.config.image)}

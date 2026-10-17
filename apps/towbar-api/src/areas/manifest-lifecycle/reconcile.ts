@@ -14,7 +14,6 @@ import {
   type NormalizedDeploymentManifest,
   type NormalizedResource,
   type RepositoryTree,
-  deploymentPublicHostnames,
   isNormalizedResource,
   reconcileManifest,
 } from "@workspace/towbar-core";
@@ -22,7 +21,6 @@ import { terminalDeploymentStates } from "@workspace/towbar-core/temporal";
 import type { SecretDatabase } from "../secrets/store.js";
 import { materializeEnvironment } from "../sources/environment-materialization.js";
 import { synchronizeDomainClaims } from "../deployments/domain-claims.js";
-import { conflict } from "../../http/errors.js";
 import { type ManifestDeclaration, planManifestIdentities } from "./plan.js";
 
 type MaterializationInput = Parameters<typeof materializeEnvironment>[1];
@@ -131,6 +129,7 @@ export async function reconcileRepositoryManifests(
     desired: { ...input.manifest, apps: [], compose: [], resources: [] },
   });
   const issues: { message: string; path: string[] }[] = [];
+  const environmentIds = new Set([input.environment.id]);
   for (const plan of registry.plans) {
     if (!touched.has(plan.key)) continue;
     await reconcileIdentity(database, {
@@ -140,7 +139,14 @@ export async function reconcileRepositoryManifests(
       issues,
       plan,
     });
+    for (const declaration of plan.declarations)
+      environmentIds.add(declaration.sourceEnvironmentId);
   }
+  // Domain moves must see the complete sync, including assignments released by other manifests.
+  for (const sourceEnvironmentId of environmentIds)
+    await synchronizeDomainClaims(database, input.workspaceId, {
+      sourceEnvironmentId,
+    });
   return { reconciliation: result, issues };
 }
 
@@ -219,24 +225,6 @@ async function reconcileIdentity(
       .set({ autoDeployPaused: true, updatedAt: new Date() })
       .where(eq(sourceEnvironments.id, target.environment.id));
   const config = declaration.config;
-  const other = registry.instances.filter(
-    ({ app }) =>
-      app.id !== existing?.id &&
-      !app.archivedAt &&
-      app.manifestState !== "removed",
-  );
-  const hostnames = deploymentPublicHostnames(config);
-  if (
-    other.some(({ app }) =>
-      deploymentPublicHostnames(app.config).some((host) =>
-        hostnames.includes(host),
-      ),
-    )
-  )
-    throw conflict(
-      `A domain for '${config.id}' is already assigned to another workload`,
-      "DOMAIN_CONFLICT",
-    );
   const current = existing
     ? [{ ...existing, identity: existing.manifestId }]
     : [];
@@ -302,9 +290,6 @@ async function reconcileIdentity(
     result.summary,
   ) as (keyof typeof result.summary)[])
     result.summary[key] += reconciliation.summary[key];
-  await synchronizeDomainClaims(database, input.workspaceId, {
-    sourceEnvironmentId: target.environment.id,
-  });
 }
 
 async function deferOwnershipDeployment(

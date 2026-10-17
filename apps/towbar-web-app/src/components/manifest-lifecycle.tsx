@@ -21,6 +21,7 @@ import {
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
+import type { App, Resource } from "@workspace/towbar-web-client";
 import type {
   ManifestLifecycleItem,
   ManifestLifecycleResponse,
@@ -30,6 +31,7 @@ import { api } from "@/lib/api";
 import { DashboardPage, InlineLink } from "./page-parts";
 import { useAccess } from "./access-context";
 import { EnvironmentChip } from "./environment-chip";
+import { AppIdentity, ResourceIdentity } from "./deployable-identity";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
 import { LifecycleDetails } from "./manifest-lifecycle-details";
 
@@ -39,6 +41,11 @@ export function ManifestLifecycle({
   view: "conflicts" | "retirements";
 }) {
   const [offset, setOffset] = useState(0);
+  const apps = useApiQuery<{ apps: App[] }>("/v1/core/apps", 60_000);
+  const resources = useApiQuery<{ resources: Resource[] }>(
+    "/v1/core/resources",
+    60_000,
+  );
   const query = useApiQuery<ManifestLifecycleResponse>(
     `/v1/core/manifest-lifecycle?tab=${tab}&offset=${offset}&limit=20`,
     30_000,
@@ -52,25 +59,59 @@ export function ManifestLifecycle({
       header: "Manifest ID",
       className: "min-w-56",
       cell: (item) => (
-        <span className="grid gap-1">
-          <span className="inline-flex items-center gap-2">
-            <HugeiconsIcon
-              icon={
-                item.workloads[0]?.kind &&
-                !["app", "compose"].includes(item.workloads[0].kind)
-                  ? DatabaseIcon
-                  : DashboardCircleIcon
-              }
-              className="size-4 shrink-0 text-muted"
-              aria-hidden="true"
-            />
-            <TypographyCode className="break-all">
-              {item.manifestId}
-            </TypographyCode>
-          </span>
-          <span className="text-xs text-muted">
-            {item.workloads[0]?.name ?? "Not materialized"}
-          </span>
+        <TypographyCode className="break-all">{item.manifestId}</TypographyCode>
+      ),
+    },
+    {
+      key: "workload",
+      header: "Service / Datastore",
+      className: "min-w-64",
+      cell: (item) => (
+        <span className="grid gap-3">
+          {item.workloads.length ? (
+            item.workloads.map((workload) => {
+              const app = apps.data?.apps.find((app) => app.id === workload.id);
+              if (app)
+                return (
+                  <AppIdentity
+                    key={workload.id}
+                    app={app}
+                    showIndicators={false}
+                  />
+                );
+              const resource = resources.data?.resources.find(
+                (resource) => resource.id === workload.id,
+              );
+              if (resource)
+                return (
+                  <ResourceIdentity
+                    key={workload.id}
+                    resource={resource}
+                    showIndicators={false}
+                  />
+                );
+              return (
+                <InlineLink
+                  key={workload.id}
+                  href={workload.href}
+                  className="inline-flex min-w-0 items-center gap-3"
+                >
+                  <HugeiconsIcon
+                    icon={
+                      ["app", "compose"].includes(workload.kind)
+                        ? DashboardCircleIcon
+                        : DatabaseIcon
+                    }
+                    className="size-8 shrink-0 text-muted"
+                    aria-hidden="true"
+                  />
+                  {workload.name}
+                </InlineLink>
+              );
+            })
+          ) : (
+            <span className="text-sm text-muted">Not materialized</span>
+          )}
         </span>
       ),
     },
@@ -127,10 +168,10 @@ export function ManifestLifecycle({
     {
       key: "actions",
       header: "Actions",
-      className: "min-w-56 text-right",
+      className: "w-px whitespace-nowrap text-right",
       headerClassName: "text-right",
       cell: (item) => (
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-nowrap justify-end gap-2">
           <Button
             variant="secondary"
             size="sm"

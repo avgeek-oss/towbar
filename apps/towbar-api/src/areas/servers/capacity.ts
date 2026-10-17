@@ -236,15 +236,16 @@ export function classifyCapacityHealth(input: {
   if (input.runtimes.some((runtime) => runtime.healthStatus === "unhealthy"))
     return "critical";
   if (
+    (input.cpuUsagePercent ?? 0) >= 90 ||
     (input.diskUsedPercent ?? 0) >= 95 ||
-    (input.memoryUsedPercent ?? 0) >= 95
+    (input.memoryUsedPercent ?? 0) >= 90
   )
     return "critical";
   if (
     Date.now() - new Date(input.checkedAt).getTime() > 15 * 60_000 ||
-    (input.cpuUsagePercent ?? 0) >= 90 ||
+    (input.cpuUsagePercent ?? 0) >= 70 ||
     (input.diskUsedPercent ?? 0) >= 85 ||
-    (input.memoryUsedPercent ?? 0) >= 85 ||
+    (input.memoryUsedPercent ?? 0) >= 70 ||
     input.runtimes.some((runtime) => (runtime.restartCount ?? 0) >= 3)
   )
     return "attention";
