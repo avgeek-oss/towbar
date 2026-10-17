@@ -1,13 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { and, count, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { resourceOperationWorkflowId } from "@workspace/towbar-core/temporal";
-import {
-  apps,
-  deployments,
-  resourceOperations,
-  serverDeployableOwnership,
-  servers,
-} from "@workspace/towbar-database/schema";
+import { resourceOperations, servers } from "@workspace/towbar-database/schema";
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { enqueueResourceOperation } from "../../infrastructure/temporal.js";
@@ -35,100 +29,6 @@ export async function assertNoRunningCleanup(
       "Server cleanup is running. Retry after it finishes.",
       "SERVER_CLEANUP_RUNNING",
     );
-}
-
-export async function recordSyncCleanups(
-  database: SecretDatabase,
-  input: {
-    workspaceId: string;
-    syncId: string;
-    removedIds: string[];
-  },
-) {
-  if (!input.removedIds.length) return;
-  const associated = await database
-    .select({
-      id: servers.id,
-      config: servers.config,
-      archivedAt: servers.archivedAt,
-    })
-    .from(servers)
-    .where(
-      and(
-        eq(servers.workspaceId, input.workspaceId),
-        or(
-          inArray(
-            servers.id,
-            database
-              .select({ id: apps.serverId })
-              .from(apps)
-              .where(inArray(apps.id, input.removedIds)),
-          ),
-          inArray(
-            servers.id,
-            database
-              .select({ id: deployments.serverId })
-              .from(deployments)
-              .where(inArray(deployments.appId, input.removedIds)),
-          ),
-          inArray(
-            servers.id,
-            database
-              .select({ id: deployments.buildServerId })
-              .from(deployments)
-              .where(inArray(deployments.appId, input.removedIds)),
-          ),
-          inArray(
-            servers.id,
-            database
-              .select({ id: serverDeployableOwnership.serverId })
-              .from(serverDeployableOwnership)
-              .where(
-                inArray(
-                  serverDeployableOwnership.deployableId,
-                  input.removedIds,
-                ),
-              ),
-          ),
-        ),
-      ),
-    );
-  for (const server of associated) {
-    const id = randomUUID();
-    await database
-      .insert(resourceOperations)
-      .values({
-        id,
-        workspaceId: input.workspaceId,
-        serverId: server.id,
-        serverSnapshot: server.config,
-        type: "cleanup_orphans",
-        ...(server.archivedAt
-          ? {
-              state: "failed" as const,
-              finishedAt: new Date(),
-              errorCode: "SERVER_UNAVAILABLE",
-              errorMessage:
-                "The server was removed from Towbar. Register it again and request cleanup to retire its remaining objects.",
-            }
-          : {}),
-        request: {
-          type: "cleanup_orphans",
-          items: [],
-          trigger: "sync",
-          syncId: input.syncId,
-        },
-        idempotencyKey: `cleanup_orphans:${server.id}:sync:${input.syncId}`,
-        temporalWorkflowId: resourceOperationWorkflowId(id),
-        requestedByActor: {
-          kind: "system",
-          source: "worker",
-          workspaceId: input.workspaceId,
-          grants: ["server.remove"],
-        },
-      })
-      .onConflictDoNothing();
-  }
 }
 
 export async function requestServerCleanup(input: {

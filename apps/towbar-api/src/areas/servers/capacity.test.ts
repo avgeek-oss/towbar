@@ -62,3 +62,19 @@ void test("capacity health tolerates an isolated restart but surfaces repeated r
 void test("capacity health stays unknown until a server reports metrics", () => {
   assert.equal(classifyCapacityHealth({ ...base, checkedAt: null }), "unknown");
 });
+
+void test("CPU and memory capacity share 70% warning and 90% critical thresholds", () => {
+  for (const metric of ["cpuUsagePercent", "memoryUsedPercent"]) {
+    for (const [value, expected] of [
+      [69.9, "healthy"],
+      [70, "attention"],
+      [89.9, "attention"],
+      [90, "critical"],
+    ] as const) {
+      assert.equal(
+        classifyCapacityHealth({ ...base, [metric]: value }),
+        expected,
+      );
+    }
+  }
+});

@@ -21,7 +21,7 @@ import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 
 import { AppIdentity, ResourceIdentity } from "./deployable-identity";
 import { InstanceEnvironmentLabel } from "./instance-environment-label";
-import { serviceTypeLabel } from "./service-type";
+import { ServiceType } from "./service-type";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { useApiQuery } from "@/hooks/use-api-query";
 import {
@@ -65,13 +65,13 @@ export function ServerHostCapacity({
             <CapacityMeter
               detail={`${capacity.cpu.logicalCount} vCPU · load ${capacity.cpu.loadAverage1m.toFixed(2)}`}
               label="CPU"
-              status={meterStatus(capacity.cpu.usagePercent, 75, 90)}
+              status={meterStatus(capacity.cpu.usagePercent, 70, 90)}
               value={capacity.cpu.usagePercent}
             />
             <CapacityMeter
               detail={`${formatBytes(capacity.memory.availableBytes)} available`}
               label="Memory"
-              status={meterStatus(capacity.memory.usedPercent, 85, 95)}
+              status={meterStatus(capacity.memory.usedPercent, 70, 90)}
               value={capacity.memory.usedPercent}
             />
             <CapacityMeter
@@ -157,8 +157,8 @@ export function ServerDeployableTable({
             <Table.Column>Health</Table.Column>
             <Table.Column>Deployment type</Table.Column>
             <Table.Column>Environment</Table.Column>
-            <Table.Column>Allocated CPU</Table.Column>
-            <Table.Column>Allocated Memory</Table.Column>
+            <Table.Column>CPU cap</Table.Column>
+            <Table.Column>Memory cap</Table.Column>
             <Table.Column className="text-right">Restarts</Table.Column>
             <Table.Column>Started</Table.Column>
           </Table.Header>
@@ -171,19 +171,16 @@ export function ServerDeployableTable({
                 <Table.Row id={item.id} key={item.id}>
                   <Table.Cell className="lg:min-w-80">
                     {isApp(item) ? (
-                      <AppIdentity app={item} healthStatus={healthStatus} />
+                      <AppIdentity app={item} runtime={runtime} />
                     ) : (
-                      <ResourceIdentity
-                        resource={item}
-                        healthStatus={healthStatus}
-                      />
+                      <ResourceIdentity resource={item} runtime={runtime} />
                     )}
                   </Table.Cell>
                   <Table.Cell>
                     <StatusBadge status={healthStatus} />
                   </Table.Cell>
                   <Table.Cell className="min-w-36 whitespace-nowrap">
-                    {isApp(item) ? serviceTypeLabel(item) : "OCI image"}
+                    {isApp(item) ? <ServiceType app={item} /> : "OCI image"}
                   </Table.Cell>
                   <Table.Cell className="min-w-32">
                     <InstanceEnvironmentLabel environment={item.environment} />
@@ -274,24 +271,18 @@ function AllocatedCapacityMeter({
           unavailable={unavailable}
         />
       }
-      status={
-        metric === "cpu"
-          ? meterStatus(percent ?? 0, 75, 90)
-          : meterStatus(percent ?? 0, 85, 95)
-      }
+      status={meterStatus(percent ?? 0, 70, 90)}
     />
   );
 }
 
 export function ServerCapacityCell({
   label,
-  metric,
   value,
   usedPercent,
   checkedAt,
 }: {
   label: string;
-  metric: "cpu" | "memory";
   value: string | null;
   usedPercent: number | null | undefined;
   checkedAt: string | null | undefined;
@@ -311,11 +302,7 @@ export function ServerCapacityCell({
         )
       }
       endLabel={<span>{value ?? "Unknown"}</span>}
-      status={
-        metric === "cpu"
-          ? meterStatus(percent ?? 0, 75, 90)
-          : meterStatus(percent ?? 0, 85, 95)
-      }
+      status={meterStatus(percent ?? 0, 70, 90)}
     />
   );
 }
@@ -400,12 +387,12 @@ function MeterBar({
   status: MeterStatus;
   value: number | null;
 }) {
-  const color =
+  const colors =
     status === "critical"
-      ? "bg-danger"
+      ? { fill: "bg-danger", track: "bg-danger-soft" }
       : status === "attention"
-        ? "bg-warning"
-        : "bg-success";
+        ? { fill: "bg-warning", track: "bg-warning-soft" }
+        : { fill: "bg-success", track: "bg-success-soft" };
   const clamped = Math.max(0, Math.min(100, value ?? 0));
   return (
     <div
@@ -416,14 +403,21 @@ function MeterBar({
       aria-valuetext={
         value === null ? "Usage unavailable" : `${value.toFixed(1)}%`
       }
+      data-capacity-status={value === null ? undefined : status}
+      title={
+        value === null
+          ? `${label}: usage unavailable`
+          : `${label}: ${value.toFixed(1)}% · ${status === "critical" ? "Critical" : status === "attention" ? "Warning" : "Healthy"}`
+      }
       className={cn(
-        "overflow-hidden rounded-full bg-separator",
+        "overflow-hidden rounded-full",
+        value === null ? "bg-separator" : colors.track,
         size === "compact" ? "h-1.5" : "h-2",
       )}
       role="progressbar"
     >
       <div
-        className={cn("h-full rounded-full", color)}
+        className={cn("h-full rounded-full", colors.fill)}
         style={{ width: `${clamped}%` }}
       />
     </div>

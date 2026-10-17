@@ -22,6 +22,16 @@ export type AuditEventIcon = (typeof auditEventIcons)[number];
 
 /** Stable audit slugs are part of the event history contract. Never reuse a slug. */
 export const auditEventCatalog = {
+  "workload.retirement.removal_requested": {
+    icon: "cleanup",
+    label: "Retired workload removal requested",
+    metadata: ["reason", "manifestId", "operationCount"],
+  },
+  "workload.ownership.transferred": {
+    icon: "repository",
+    label: "Workload repository changed",
+    metadata: ["previousSourceId", "sourceId", "manifestId"],
+  },
   "integration.created": {
     icon: "api-key",
     label: "Integration created",

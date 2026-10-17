@@ -29,6 +29,12 @@ test("primary navigation groups settings and preserves role visibility", () => {
     admin.groups.some((group) => group.id === "manage"),
     false,
   );
+  assert.deepEqual(
+    admin.groups
+      .find((group) => group.id === "overview")
+      ?.items.map((item) => item.id),
+    ["overview", "conflicts", "retirements", "deployments"],
+  );
   const adminWorkspace = admin.groups.find((group) => group.id === "workspace");
   assert.equal(adminWorkspace?.label, "Manage");
   assert.deepEqual(

@@ -1,3 +1,4 @@
+import { assertManifestManaged } from "../manifest-lifecycle/guards.js";
 import { lockDomainClaims } from "../deployments/domain-claims.js";
 import { assertNoRunningCleanup } from "../resource-operations/server-cleanup.js";
 import { captureQueuedActor } from "../auth/actor-context.js";
@@ -498,6 +499,7 @@ async function lockPreviewTarget(
   transaction: Transaction,
   input: Parameters<typeof admitPreviewDeployment>[0],
 ) {
+  await assertManifestManaged(transaction, input.appId);
   const environment = await getInstanceEnvironment(
     { appId: input.appId, workspaceId: input.workspaceId },
     transaction,

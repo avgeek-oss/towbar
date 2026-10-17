@@ -133,8 +133,6 @@ const columns: ResourceTableColumn<DeploymentHistoryItem>[] = [
     key: "duration",
     header: "Duration",
     cell: (item) => <DeploymentDuration deployment={item} />,
-    className: "hidden 2xl:table-cell",
-    headerClassName: "hidden 2xl:table-cell",
   },
   {
     key: "environment",
@@ -146,8 +144,7 @@ const columns: ResourceTableColumn<DeploymentHistoryItem>[] = [
     key: "trigger",
     header: "Trigger",
     cell: (item) => <DeploymentTriggerChip trigger={item.trigger} />,
-    className: "hidden whitespace-nowrap 2xl:table-cell",
-    headerClassName: "hidden 2xl:table-cell",
+    className: "whitespace-nowrap",
   },
   {
     key: "commit",

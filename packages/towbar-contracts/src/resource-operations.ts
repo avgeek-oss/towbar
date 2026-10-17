@@ -166,6 +166,8 @@ export type ResourceOperationRequest =
       scope?: "selected";
       syncId?: string;
       retiringDeployableIds?: string[];
+      retirementId?: string;
+      retirementAttemptId?: string;
     }
   | {
       backupId: string;

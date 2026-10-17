@@ -1,16 +1,12 @@
 ---
 title: "Delete a repository"
-description: "Review what Towbar removes, what keeps running, and how to clean up a server."
+description: "Disconnect syncing without losing workloads or history."
 ---
 
-Delete a Repository only after reviewing its services, datastores, environments, and active operations. Removing the connection deletes its imported inventory and operational history from Towbar. It does not stop containers or erase Docker data on a server.
+A repository with workloads or retained deployment history cannot be deleted. Disconnect its environments to stop syncing while preserving runtime, credentials and history.
 
-## Before deletion
+To remove a workload, delete its manifest in Git and sync. Review it under **Retirements**, then explicitly confirm permanent removal if you no longer need its runtime or storage.
 
-1. Record any environment branch mappings or manifest IDs you may need later.
-2. Allow active deployments and datastore operations to finish.
-3. Arrange separate protection for persistent data. Repository deletion is not a database restore or volume-backup operation.
+To move workloads to another repository, keep their IDs and environment names. Follow [conflicts and retirements](/docs/repositories/conflicts-and-retirements). Deleting a repository is not an ownership transfer.
 
-After deletion, open each affected server and run **Check server**. Under **Settings → Docker cleanup**, review leftover containers, images, and volumes. Use **Request Cleanup** to queue a server sweep. Towbar checks ownership and current references again before removing unused objects, including owned volumes and their data. Deleting the repository itself does not queue this cleanup.
-
-If you intend to keep operating the workloads, leave the repository connected or plan a migration before deletion. [Server cleanup](/docs/servers/operations#clean-up-leftover-workloads) explains the host-side boundary in more detail.
+An empty repository with no retained workloads or deployment history can be deleted after its active operations finish.

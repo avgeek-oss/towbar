@@ -88,11 +88,12 @@ export async function listDeployments(workspaceId: string, sourceId?: string) {
   const items = await getTowbarDatabase()
     .select(publicDeploymentSelection)
     .from(deployments)
+    .innerJoin(apps, eq(apps.id, deployments.appId))
     .where(
       sourceId
         ? and(
             eq(deployments.workspaceId, workspaceId),
-            eq(deployments.sourceId, sourceId),
+            eq(apps.sourceId, sourceId),
             eq(deployments.environment, "production"),
           )
         : and(

@@ -75,8 +75,7 @@ export function DeploymentTable({
       cell: (deployment) => (
         <DeploymentTriggerChip trigger={deployment.trigger} />
       ),
-      className: "hidden whitespace-nowrap sm:table-cell",
-      headerClassName: "hidden sm:table-cell",
+      className: "whitespace-nowrap",
     },
     {
       key: "requested",
@@ -84,15 +83,12 @@ export function DeploymentTable({
       cell: (deployment) => (
         <RelativeTime label="Requested" value={deployment.createdAt} />
       ),
-      className: "hidden whitespace-nowrap md:table-cell",
-      headerClassName: "hidden md:table-cell",
+      className: "whitespace-nowrap",
     },
     {
       key: "duration",
       header: "Duration",
       cell: (deployment) => <DeploymentDuration deployment={deployment} />,
-      className: "hidden md:table-cell",
-      headerClassName: "hidden md:table-cell",
     },
     {
       key: "commit",

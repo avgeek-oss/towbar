@@ -228,6 +228,7 @@ export function resolveRepositoryEnvironment(input: {
   const apps: z.input<typeof appSchema>[] = [];
   const compose: z.input<typeof composeWorkloadSchema>[] = [];
   const resources: z.input<typeof resourceSchema>[] = [];
+  const manifestPaths: Record<string, string[]> = Object.create(null);
   const declarations: Record<string, RequiredSecrets> = Object.create(null);
   const paths = new Set<string>();
   const identities = new Set<string>();
@@ -295,6 +296,7 @@ export function resolveRepositoryEnvironment(input: {
     );
     const selected = overrides[input.environment];
     if (!selected) continue;
+    (manifestPaths[id] ??= []).push(file.path);
     const resolved = mergeEnvironmentConfiguration(defaults, selected);
     if (kind === "app") {
       if (!Object.hasOwn(resolved, "buildServer")) {
@@ -333,5 +335,5 @@ export function resolveRepositoryEnvironment(input: {
     previewsEnabled: environment.previews?.enabled ?? false,
     requiredSecrets: declarations,
   };
-  return { manifest, digest: digestValue(manifest) };
+  return { manifest, digest: digestValue(manifest), manifestPaths };
 }

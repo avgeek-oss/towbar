@@ -22,3 +22,8 @@ export * from "./deployables.js";
 export * from "./repository-tree.js";
 
 export * from "./logs.js";
+export type {
+  ManifestRepositoryClaim,
+  ManifestLifecycleItem,
+  ManifestLifecycleResponse,
+} from "./manifest-lifecycle.js";

@@ -22,6 +22,7 @@ import type { SecretDatabase } from "../secrets/store.js";
 export async function getCleanupExpected(
   serverId: string,
   database: SecretDatabase = getTowbarDatabase(),
+  retirementId?: string,
 ): Promise<ServerCleanupPlan & { ownedDeployableIds: string[] }> {
   const [server] = await database
     .select()
@@ -91,6 +92,9 @@ export async function getCleanupExpected(
     )
       protectedIds.add(ownerId);
   }
+  for (const app of instances)
+    if (app.manifestState !== "removed" && app.id !== retirementId)
+      protectedIds.add(app.id);
   const activeIds = instances
     .filter((app) => !app.archivedAt)
     .map((app) => app.id);
@@ -107,7 +111,12 @@ export async function getCleanupExpected(
         )
     : [];
   const retiringApps = instances.filter(
-    (app) => owned.has(app.id) && app.archivedAt && !protectedIds.has(app.id),
+    (app) =>
+      app.id === retirementId &&
+      app.manifestState === "removing" &&
+      owned.has(app.id) &&
+      app.archivedAt &&
+      !protectedIds.has(app.id),
   );
   const previews = retiringApps.length
     ? await database

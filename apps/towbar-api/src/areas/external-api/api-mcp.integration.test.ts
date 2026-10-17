@@ -212,6 +212,63 @@ void test(
         },
       );
       await t.test(
+        "manifest lifecycle reads are shared, removals require admin, and conflicts have no mutation",
+        async () => {
+          assert.equal(
+            (await request("/manifest-lifecycle", read.token)).status,
+            200,
+          );
+          const target = `/retirements/${ownedServerId}/actions/remove`;
+          const body = {
+            expectedRevision: new Date().toISOString(),
+            confirmManifestId: "site",
+            reason: "Test authorization",
+          };
+          assert.equal(
+            (
+              await request(target, read.token, "POST", body, {
+                "idempotency-key": randomUUID(),
+              })
+            ).status,
+            403,
+          );
+          assert.equal(
+            (
+              await request(target, write.token, "POST", body, {
+                "idempotency-key": randomUUID(),
+              })
+            ).status,
+            404,
+          );
+          assert(
+            operations
+              .filter((op) => op.path === "/manifest-lifecycle")
+              .every((op) => op.method === "GET"),
+          );
+          const client = await connect(mcpRead.token);
+          try {
+            const tools = await client.listTools();
+            assert(
+              tools.tools.some(
+                (tool) => tool.name === "towbar_manifest_lifecycle_list",
+              ),
+            );
+            assert(
+              !tools.tools.some(
+                (tool) => tool.name === "towbar_retirement_remove",
+              ),
+            );
+            const result = await client.callTool({
+              name: "towbar_manifest_lifecycle_list",
+              arguments: { tab: "conflicts" },
+            });
+            assert.equal(result.isError, false);
+          } finally {
+            await client.close();
+          }
+        },
+      );
+      await t.test(
         "public operations have REST schemas and unique operation IDs; browser-only routes are excluded",
         () => {
           const routes = new Set(

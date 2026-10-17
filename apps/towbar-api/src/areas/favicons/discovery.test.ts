@@ -125,6 +125,29 @@ void test("canonical ICO works without a homepage", async () => {
   );
 });
 
+void test("favicon size limit accepts 512 KiB and rejects larger bodies with or without Content-Length", async () => {
+  for (const size of [512 * 1024, 512 * 1024 + 1]) {
+    const body = svg.padEnd(size, " ");
+    for (const contentLength of [false, true]) {
+      const { fetcher } = fixture({
+        "https://web.example.com/favicon.ico": () =>
+          new Response(body, {
+            headers: {
+              "content-type": "image/svg+xml",
+              ...(contentLength ? { "content-length": String(size) } : {}),
+            },
+          }),
+      });
+      assert.equal(
+        await discoverIcon("web.example.com", fetcher),
+        size === 512 * 1024
+          ? `data:image/svg+xml;base64,${Buffer.from(body).toString("base64")}`
+          : null,
+      );
+    }
+  }
+});
+
 void test("discovery rejects private URLs, credentials, non-HTTPS and oversized responses", async () => {
   assert.deepEqual(
     declaredIcons(
@@ -145,7 +168,7 @@ void test("discovery rejects private URLs, credentials, non-HTTPS and oversized 
         : new Response(
             new ReadableStream({
               start(controller) {
-                controller.enqueue(new Uint8Array(128 * 1024 + 1));
+                controller.enqueue(new Uint8Array(512 * 1024 + 1));
               },
               cancel() {
                 cancelled = true;

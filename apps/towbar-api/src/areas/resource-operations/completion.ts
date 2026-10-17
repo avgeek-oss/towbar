@@ -1,3 +1,4 @@
+import { finalizeRetirement } from "../manifest-lifecycle/removal.js";
 import { recordRetiredWorkloads } from "./cleanup-plan.js";
 import { lockDomainClaims } from "../deployments/domain-claims.js";
 import { serverCleanupResultSchema } from "@workspace/towbar-core";
@@ -113,6 +114,7 @@ async function persistTerminalOperation(
       .where(eq(resourceOperations.id, current.id))
       .returning();
     if (!updated) throw new Error("Unable to finish Resource operation");
+    await finalizeRetirement(transaction, updated);
     if (current.type === "restore") {
       await insertTerminalRestoreEvent(transaction, current.id, input);
     }

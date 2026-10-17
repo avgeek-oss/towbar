@@ -57,9 +57,11 @@ The two cards share equal width on desktop and stack on mobile.
 
 A successful deployment can become unhealthy later. Read the current runtime state and observation time, then inspect [health checks](/docs/operate/health) and logs.
 
-## Allocated CPU and memory
+## CPU and memory caps
 
 Workload charts compare usage with declared limits. On **Servers → All servers**, CPU and memory columns show host capacity. A **% used** line appears when Scout has a measurement; hover or focus to see its age. Missing readings show **Not measured**.
+
+CPU and memory bars turn yellow at **70%** and red at **90%**. Affected table cells receive a matching tint. A fire indicator beside a Service or Datastore marks usage at or above 90% of its cap; hover or focus to see the higher CPU or memory percentage.
 
 <Screenshot
   light="/assets/release-v2/server-workloads-light.jpg"

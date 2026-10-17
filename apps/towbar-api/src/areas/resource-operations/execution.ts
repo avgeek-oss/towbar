@@ -453,7 +453,11 @@ async function getCleanupExecutionContext(
         "Server address changed after cleanup was queued. Request cleanup again.",
         "CLEANUP_SERVER_CHANGED",
       );
-    const cleanupExpected = await getCleanupExpected(server.id, database);
+    const cleanupExpected = await getCleanupExpected(
+      server.id,
+      database,
+      current.request.retirementId,
+    );
     if (!current.request.trigger || current.request.scope === "selected")
       cleanupExpected.retiring = [];
     const request = {

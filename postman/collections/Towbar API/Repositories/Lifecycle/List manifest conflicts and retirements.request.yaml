@@ -1,0 +1,19 @@
+$kind: http-request
+id: 77df820f-fea2-5484-9154-7e79166c6017
+description:
+  "Required permissions: workload.read. Personal keys are capped by the current member
+  role; team keys use explicit grants."
+url: "{{baseUrl}}/manifest-lifecycle?tab=conflicts&search=&offset=0&limit=50"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  - key: tab
+    value: conflicts
+  - key: search
+    value: ""
+  - key: offset
+    value: "0"
+  - key: limit
+    value: "50"
+order: 1000

@@ -445,12 +445,11 @@ function SourceSettings({
                   <FormCard help={false} title="Danger zone">
                     <div className="content-grid">
                       <p className="max-w-3xl text-sm text-muted">
-                        Deleting a Repository removes its imported inventory and
-                        operational history. Workspace integrations, servers,
-                        and backup objects already in S3 remain available.
-                        Running services and Docker data stay on the servers.
-                        Run a server check after deletion to find leftovers in
-                        Settings → Cleanup.
+                        Only empty repositories with no retained workload or
+                        deployment history can be deleted. Disconnect
+                        environments to stop syncing. Review missing workloads
+                        on the Retirements page before explicitly removing their
+                        runtime or storage.
                       </p>
                       <ActionButton
                         action={() =>

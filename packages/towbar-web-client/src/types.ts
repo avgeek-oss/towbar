@@ -59,6 +59,7 @@ export type InstanceEnvironment = {
 };
 
 export type App = {
+  manifestState?: "active" | "conflict" | "retired" | "removing" | "removed";
   entityId: string | null;
   environment: InstanceEnvironment | null;
   archivedAt: string | null;
@@ -159,6 +160,7 @@ export type NotificationEvent = {
 };
 
 export type Resource = {
+  manifestState?: "active" | "conflict" | "retired" | "removing" | "removed";
   entityId: string | null;
   environment: InstanceEnvironment | null;
   archivedAt: string | null;

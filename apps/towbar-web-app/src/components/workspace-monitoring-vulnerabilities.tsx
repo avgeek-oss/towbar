@@ -155,8 +155,7 @@ export function WorkspaceVulnerabilities() {
       cell: (finding) => (
         <TooltipText tooltip={finding.target}>{finding.target}</TooltipText>
       ),
-      className: "hidden whitespace-nowrap 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "whitespace-nowrap",
     },
     {
       key: "scanned",
@@ -167,8 +166,7 @@ export function WorkspaceVulnerabilities() {
         ) : (
           "—"
         ),
-      className: "hidden whitespace-nowrap 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "whitespace-nowrap",
     },
   ];
   return (

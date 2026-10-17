@@ -61,4 +61,4 @@ overrides to avoid silently dropping runtime configuration during recovery.
 
 ## Removal and persistent data
 
-Removing a Datastore from Git and successfully syncing queues cleanup on its associated servers. Cleanup permanently deletes the Datastore's exclusively owned persistent volumes when they are no longer referenced. Take a backup before removal. Re-adding after cleanup creates fresh storage; it does not recover deleted data. Follow the attempt in [Docker cleanup history](/docs/servers/operations).
+Removing a Datastore manifest and syncing marks it for retirement. Its runtime and persistent data remain until an administrator explicitly confirms removal under [Conflicts and retirements](/docs/repositories/conflicts-and-retirements). Restoring a compatible declaration with the same ID and environment rescues the existing datastore, including when the declaration moves to another repository. Permanent removal deletes owned volumes; take a backup before confirming it.

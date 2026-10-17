@@ -1,0 +1,24 @@
+$kind: http-request
+id: 295228cd-7232-5a7d-b44a-0ec88a31bd67
+description:
+  "Required permissions: server.remove. Personal keys are capped by the current member
+  role; team keys use explicit grants."
+url: "{{baseUrl}}/retirements/:workloadId/actions/remove"
+method: POST
+headers:
+  Accept: application/json
+  Idempotency-Key: string
+  Content-Type: application/json
+pathVariables:
+  - key: workloadId
+    value: "{{workloadId}}"
+    description: Required.
+body:
+  type: json
+  content: |-
+    {
+      "expectedRevision": "2026-01-01T00:00:00.000Z",
+      "confirmManifestId": "00000000-0000-4000-8000-000000000000",
+      "reason": "Requested through the Towbar API"
+    }
+order: 2000

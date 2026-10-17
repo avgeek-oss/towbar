@@ -40,3 +40,4 @@ export * from "./domain-ownership.js";
 export * from "./logs.js";
 
 export * from "./log-collector.js";
+export * from "./manifest-lifecycle.js";

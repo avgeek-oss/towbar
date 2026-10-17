@@ -47,7 +47,7 @@ Towbar also discovers icons declared in the homepage HTML, including relative PN
 Link: </brand/icon.png>; rel="icon"; type="image/png"
 ```
 
-Discovery uses public HTTPS addresses without session cookies or credentials. It follows bounded redirects, limits image size to 128 KiB, and falls back to `/favicon.ico`. A preview uses its own deployment hostname; Towbar does not infer a sibling web origin for an API. Missing icons show the default service symbol and are retried, so a temporary failure does not persist for the whole browser session.
+Discovery uses public HTTPS addresses without session cookies or credentials. It follows bounded redirects, limits image size to 512 KiB, and falls back to `/favicon.ico`. A preview uses its own deployment hostname; Towbar does not infer a sibling web origin for an API. Missing icons show the default service symbol and are retried, so a temporary failure does not persist for the whole browser session.
 
 ## Define a Service
 

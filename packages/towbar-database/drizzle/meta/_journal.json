@@ -211,6 +211,13 @@
       "when": 1792051830867,
       "tag": "0030_log_storage_samples",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792200000000,
+      "tag": "0031_manifest_lifecycle",
+      "breakpoints": true
     }
   ]
 }

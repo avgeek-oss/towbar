@@ -46,11 +46,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0028_centralized_logs.sql",
     "0029_log_table_preferences.sql",
     "0030_log_storage_samples.sql",
+    "0031_manifest_lifecycle.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 30);
+  assert.equal(journal.entries.length, 31);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");

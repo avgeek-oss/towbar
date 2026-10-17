@@ -1,4 +1,5 @@
 "use client";
+import { ManifestStateNotice } from "./manifest-state-notice";
 import { resolveInventoryStatus } from "@/lib/inventory-status";
 import { SourceEnvironmentManifest } from "./source-environment-manifest";
 import { ContainerRuntimeDetails } from "./container-runtime-details";
@@ -161,6 +162,7 @@ export function AppDetail() {
         detailNavigation.section === "overview" &&
         Boolean(latestDeployment) &&
         !item.archivedAt &&
+        (!item.manifestState || item.manifestState === "active") &&
         can("deployment.create") ? (
           <div className="flex flex-wrap justify-end gap-2">
             {Object.keys(item.config.externalSecrets ?? {}).length > 0 ? (
@@ -244,6 +246,7 @@ export function AppDetail() {
       title={item.name}
       titleIcon={appLogo}
     >
+      <ManifestStateNotice state={item.manifestState} />
       <InstanceEnvironmentChoice item={item} kind="apps" />
       {detailNavigation.section === "overview" ? (
         <DeployableReadiness
@@ -392,7 +395,11 @@ export function AppDetail() {
             icon: <HugeiconsIcon icon={FileViewIcon} />,
             content: (
               <RuntimeLogs
-                active={!item.archivedAt && item.serverReady}
+                active={
+                  !item.archivedAt &&
+                  (!item.manifestState || item.manifestState === "active") &&
+                  item.serverReady
+                }
                 deployableId={appId}
                 hasIngress={usesCloudflareTunnel}
                 services={

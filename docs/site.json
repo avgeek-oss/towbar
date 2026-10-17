@@ -85,6 +85,7 @@
               "docs/repositories/connect",
               "docs/repositories/environments",
               "docs/repositories/sync",
+              "docs/repositories/conflicts-and-retirements",
               "docs/repositories/delete",
               "docs/deployment-manifest"
             ]
@@ -583,6 +584,13 @@
                   "api-reference/get_sources_by_id_deployments",
                   "api-reference/get_sources_by_id_backups",
                   "api-reference/get_sources_by_id_previews"
+                ]
+              },
+              {
+                "group": "Lifecycle",
+                "pages": [
+                  "api-reference/get_manifest_lifecycle",
+                  "api-reference/post_retirements_by_id_actions_remove"
                 ]
               }
             ]

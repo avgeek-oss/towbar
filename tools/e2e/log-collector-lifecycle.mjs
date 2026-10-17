@@ -134,6 +134,14 @@ sudo systemd-run --unit=towbar-log-test-api /usr/bin/python3 /var/lib/towbar-log
     target.ssh(
       "sudo cat /var/lib/towbar-log-test/packets.jsonl 2>/dev/null || true",
     );
+  // A running container may not have discovered its start-at-end log file yet.
+  async function waitForReceiver(marker) {
+    await until(() => {
+      emit(marker);
+      return packets().includes(marker);
+    }, "collector receiver is reading the managed log file");
+  }
+  await waitForReceiver("collector-readiness-probe");
   emit("first-managed-record");
   await until(
     () => packets().includes("first-managed-record"),
@@ -151,6 +159,7 @@ sudo systemd-run --unit=towbar-log-test-api /usr/bin/python3 /var/lib/towbar-log
       ) === "towbar-log-collector",
     "update replaces owned collector",
   );
+  await waitForReceiver("collector-update-readiness-probe");
   emit("record-after-managed-update");
   await until(
     () => packets().includes("record-after-managed-update"),
@@ -190,6 +199,9 @@ sudo systemd-run --unit=towbar-log-test-api /usr/bin/python3 /var/lib/towbar-log
     target.ssh(
       "sudo journalctl -u towbar-log-discovery -u towbar-log-test-api --no-pager -n 30",
     ),
+  );
+  console.error(
+    target.ssh("docker logs --tail 30 towbar-log-collector 2>&1 || true"),
   );
   throw error;
 } finally {

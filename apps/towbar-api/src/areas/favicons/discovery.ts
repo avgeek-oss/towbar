@@ -9,7 +9,7 @@ export type IconFetcher = (
   signal: AbortSignal,
 ) => Promise<IconResponse>;
 const htmlLimit = 256 * 1024;
-const iconLimit = 128 * 1024;
+const iconLimit = 512 * 1024;
 const imageTypes = new Set([
   "image/png",
   "image/x-icon",

@@ -2,6 +2,26 @@
 
 @source "../../packages/towbar-web-ui/src";
 
+@layer components {
+  .modal__dialog,
+  .alert-dialog__dialog {
+    @apply bg-surface-secondary;
+  }
+
+  .table__cell:has([data-capacity-status="attention"]) {
+    background-color: color-mix(in oklab, var(--warning) 10%, var(--surface));
+  }
+
+  .table__cell:has([data-capacity-status="critical"]) {
+    background-color: color-mix(in oklab, var(--danger) 10%, var(--surface));
+  }
+
+  .capacity-fire {
+    filter: drop-shadow(0 0 2px oklch(0.7 0.19 45 / 0.6))
+      drop-shadow(0 0 5px oklch(0.75 0.16 65 / 0.28));
+  }
+}
+
 :root {
   --log-debug: oklch(0.527 0.145 149.214);
   --log-info: oklch(0.68 0.16 262.881);

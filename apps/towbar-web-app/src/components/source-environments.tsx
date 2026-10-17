@@ -119,8 +119,6 @@ export function SourceEnvironments({
           {
             key: "previews",
             header: "PR previews",
-            headerClassName: "hidden 2xl:table-cell",
-            className: "hidden 2xl:table-cell",
             cell: (item) =>
               item.previewsEnabled && !item.disconnectedAt ? (
                 <TooltipText
