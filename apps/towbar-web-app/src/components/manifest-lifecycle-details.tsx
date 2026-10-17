@@ -38,7 +38,7 @@ export function LifecycleDetails({
     {
       key: "repository",
       header: "Repository",
-      headerClassName: "md:w-1/3",
+      headerClassName: "w-1/3",
       className: "whitespace-normal",
       cell: (source) => (
         <TableCellStack className="gap-2">
@@ -87,9 +87,8 @@ export function LifecycleDetails({
     {
       key: "manifest",
       header: "Manifest file",
-      headerClassName: "md:w-1/3",
+      headerClassName: "w-1/3",
       className: "whitespace-normal",
-      mobileFullWidth: true,
       cell: (source) => (
         <TableCellStack>
           {source.manifestFiles?.length ? (
@@ -116,9 +115,8 @@ export function LifecycleDetails({
     {
       key: "changes",
       header: "Changes from current workload",
-      headerClassName: "md:w-1/3",
+      headerClassName: "w-1/3",
       className: "whitespace-normal",
-      mobileFullWidth: true,
       cell: (source) => (
         <span className="flex flex-wrap gap-1.5">
           {source.changedPaths.length ? (
@@ -158,7 +156,6 @@ export function LifecycleDetails({
     {
       key: "result",
       header: "Result",
-      mobileFullWidth: true,
       cell: (operation) =>
         operation.errorMessage ? (
           <TypographyText textRole="supporting" color="danger">
@@ -274,8 +271,7 @@ export function LifecycleDetails({
                     columns={declarations}
                     items={item.declarations}
                     getRowKey={(source) => source.sourceEnvironmentId}
-                    mobileLayout="stacked"
-                    tableClassName="w-full md:table-fixed"
+                    tableClassName="min-w-[760px] table-fixed"
                     emptyTitle="No declarations"
                     emptyDescription="No repository currently declares this workload."
                   />
@@ -294,7 +290,7 @@ export function LifecycleDetails({
                     columns={operations}
                     items={item.operations}
                     getRowKey={(operation) => operation.id}
-                    mobileLayout="stacked"
+                    tableClassName="min-w-[720px]"
                     emptyTitle="No removal operations"
                     emptyDescription="Removal has not been requested."
                   />

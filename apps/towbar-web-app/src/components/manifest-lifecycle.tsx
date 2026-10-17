@@ -50,6 +50,7 @@ export function ManifestLifecycle({
     {
       key: "manifest",
       header: "Manifest ID",
+      className: "min-w-56",
       cell: (item) => (
         <span className="grid gap-1">
           <span className="inline-flex items-center gap-2">
@@ -80,6 +81,7 @@ export function ManifestLifecycle({
     },
     {
       key: "repositories",
+      className: "min-w-64",
       header: tab === "conflicts" ? "Repositories" : "Last repository",
       cell: (item) => (
         <span className="grid gap-1">
@@ -125,8 +127,7 @@ export function ManifestLifecycle({
     {
       key: "actions",
       header: "Actions",
-      mobileFullWidth: true,
-      className: "text-right",
+      className: "min-w-56 text-right",
       headerClassName: "text-right",
       cell: (item) => (
         <div className="flex flex-wrap justify-end gap-2">
@@ -191,7 +192,7 @@ export function ManifestLifecycle({
               columns={columns}
               items={query.data.items}
               getRowKey={(item) => item.key}
-              mobileLayout="stacked"
+              tableClassName="min-w-[760px]"
               emptyTitle={
                 tab === "conflicts"
                   ? "No manifest conflicts"

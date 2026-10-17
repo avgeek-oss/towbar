@@ -88,8 +88,7 @@ function appColumns(
           hardware={serversByIp.get(app.serverIp)?.hardware}
         />
       ),
-      className: "hidden min-w-52 tabular-nums 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-52 tabular-nums",
       header: "Server",
       key: "server",
     },
@@ -100,8 +99,7 @@ function appColumns(
           runtime={runtimeById.get(app.id)}
         />
       ),
-      className: "hidden min-w-44 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44",
       header: "Allocated CPU",
       key: "cpu",
     },
@@ -112,8 +110,7 @@ function appColumns(
           runtime={runtimeById.get(app.id)}
         />
       ),
-      className: "hidden min-w-44 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44",
       header: "Allocated Memory",
       key: "memory",
     },
@@ -175,8 +172,7 @@ function resourceColumns(
           hardware={serversByIp.get(resource.serverIp)?.hardware}
         />
       ),
-      className: "hidden min-w-52 tabular-nums 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-52 tabular-nums",
       header: "Server",
       key: "server",
     },
@@ -187,8 +183,7 @@ function resourceColumns(
           runtime={runtimeById.get(resource.id)}
         />
       ),
-      className: "hidden min-w-44 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44",
       header: "Allocated CPU",
       key: "cpu",
     },
@@ -199,8 +194,7 @@ function resourceColumns(
           runtime={runtimeById.get(resource.id)}
         />
       ),
-      className: "hidden min-w-44 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44",
       header: "Allocated Memory",
       key: "memory",
     },

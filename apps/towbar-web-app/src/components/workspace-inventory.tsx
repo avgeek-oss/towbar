@@ -364,8 +364,7 @@ function DeployableInventoryTable({
           hardware={serversByIp.get(item.serverIp)?.hardware}
         />
       ),
-      className: "hidden min-w-52 tabular-nums 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-52 tabular-nums",
       header: "Server",
       key: "server",
     },
@@ -376,8 +375,7 @@ function DeployableInventoryTable({
           runtime={runtimeById.get(item.id)}
         />
       ),
-      className: "hidden min-w-44 whitespace-nowrap 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44 whitespace-nowrap",
       header: "Allocated CPU",
       key: "defined-cpu",
     },
@@ -388,8 +386,7 @@ function DeployableInventoryTable({
           runtime={runtimeById.get(item.id)}
         />
       ),
-      className: "hidden min-w-44 whitespace-nowrap 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-44 whitespace-nowrap",
       header: "Allocated Memory",
       key: "defined-memory",
     },
@@ -567,8 +564,7 @@ function ServerInventory({
       cell: (server) => (
         <RelativeTime label="Updated" value={server.updatedAt} />
       ),
-      className: "hidden min-w-48 whitespace-nowrap 2xl:table-cell",
-      headerClassName: "hidden 2xl:table-cell",
+      className: "min-w-48 whitespace-nowrap",
       header: "Updated",
       key: "updated",
     },
