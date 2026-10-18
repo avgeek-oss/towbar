@@ -105,15 +105,9 @@ async function readBounded(
   }
 }
 
-export async function discoverIcon(
-  domain: string,
-  fetcher: IconFetcher = fetchIconUrl,
-  signal = AbortSignal.timeout(5000),
-): Promise<string | null> {
-  const origin = iconUrl(`https://${domain}/`);
-  if (origin.host !== domain.toLowerCase()) return null;
+function iconLoader(fetcher: IconFetcher, signal: AbortSignal) {
   let requests = 0;
-  async function load(raw: string) {
+  return async (raw: string) => {
     let url = iconUrl(raw);
     for (let redirects = 0; redirects <= 3; redirects++) {
       signal.throwIfAborted();
@@ -127,7 +121,50 @@ export async function discoverIcon(
       url = iconUrl(location, url);
     }
     throw new Error("Too many icon redirects");
+  };
+}
+
+async function imageData(response: IconResponse, signal: AbortSignal) {
+  const type =
+    response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ??
+    "";
+  if (
+    response.status < 200 ||
+    response.status >= 300 ||
+    !imageTypes.has(type)
+  ) {
+    await response.body?.cancel();
+    return null;
   }
+  const bytes = await readBounded(response, iconLimit, signal);
+  return isIconImage(bytes, type)
+    ? `data:${type};base64,${bytes.toString("base64")}`
+    : null;
+}
+
+export async function loadIcon(
+  source: string,
+  fetcher: IconFetcher = fetchIconUrl,
+  signal = AbortSignal.timeout(5000),
+): Promise<string | null> {
+  if (!/^https:\/\//iu.test(source))
+    return discoverIcon(source, fetcher, signal);
+  try {
+    const { response } = await iconLoader(fetcher, signal)(source);
+    return await imageData(response, signal);
+  } catch {
+    return null;
+  }
+}
+
+export async function discoverIcon(
+  domain: string,
+  fetcher: IconFetcher = fetchIconUrl,
+  signal = AbortSignal.timeout(5000),
+): Promise<string | null> {
+  const origin = iconUrl(`https://${domain}/`);
+  if (origin.host !== domain.toLowerCase()) return null;
+  const load = iconLoader(fetcher, signal);
   let documentUrl = origin;
   let candidates: string[] = [];
   try {
@@ -164,23 +201,8 @@ export async function discoverIcon(
   for (const candidate of candidates) {
     try {
       const { response } = await load(candidate);
-      const type =
-        response.headers
-          .get("content-type")
-          ?.split(";")[0]
-          ?.trim()
-          .toLowerCase() ?? "";
-      if (
-        response.status < 200 ||
-        response.status >= 300 ||
-        !imageTypes.has(type)
-      ) {
-        await response.body?.cancel();
-        continue;
-      }
-      const bytes = await readBounded(response, iconLimit, signal);
-      if (isIconImage(bytes, type))
-        return `data:${type};base64,${bytes.toString("base64")}`;
+      const icon = await imageData(response, signal);
+      if (icon) return icon;
     } catch {
       if (signal.aborted) break;
     }

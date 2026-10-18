@@ -96,8 +96,8 @@ appRoutes.get(
     permissions: ["workload.read"],
     browserOnly: true,
     responseSchema: 'apps.ts:get:"/:appId/favicon"',
-    summary: "Discover a service icon",
-    response: "A bounded public favicon image and its cache expiry.",
+    summary: "Get a workload icon",
+    response: "A bounded workload icon image and its cache expiry.",
     status: 200,
   }),
   async (context) => {

@@ -112,7 +112,7 @@ export async function fetchIconUrl(url: URL, signal: AbortSignal) {
     signal,
     headers: {
       accept: "text/html, application/json, image/*;q=0.9",
-      "user-agent": "Towbar favicon discovery",
+      "user-agent": "Towbar workload icons",
     },
   });
 }

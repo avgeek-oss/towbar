@@ -198,6 +198,13 @@
     },
     "name": { "type": "string", "minLength": 1, "maxLength": 120 },
     "description": { "type": "string", "maxLength": 500 },
+    "iconUrl": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "format": "uri",
+      "description": "Direct public HTTPS image URL for the workload icon (maximum 512 KiB)."
+    },
     "server": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "string"
@@ -1388,6 +1395,13 @@
           },
           "vulnerabilityScanning": { "type": "boolean" },
           "description": { "type": "string", "maxLength": 500 },
+          "iconUrl": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Direct public HTTPS image URL for the workload icon (maximum 512 KiB)."
+          },
           "server": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "string"

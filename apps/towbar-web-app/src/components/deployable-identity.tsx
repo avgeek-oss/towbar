@@ -259,7 +259,8 @@ export function ServiceLogo({
 }) {
   const deployment =
     "deployment" in app.config ? app.config.deployment : undefined;
-  if (deployment?.type === "image") {
+  const iconUrl = "iconUrl" in app.config ? app.config.iconUrl : undefined;
+  if (!iconUrl && deployment?.type === "image") {
     const brand = resourceImageBrand("image", deployment.image);
     if (brand.label !== "Image")
       return <ResourceLogo brand={brand} size={size} />;

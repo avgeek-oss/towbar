@@ -4729,7 +4729,7 @@
     },
     "apps.ts:get:\"/:appId/favicon\"": {
       "allOf": [
-        { "$ref": "#/components/schemas/FaviconResult_250" },
+        { "$ref": "#/components/schemas/WorkloadIconResult_250" },
         {
           "type": "object",
           "properties": {
@@ -6059,7 +6059,7 @@
     },
     "deployments.ts:get:\"/:deploymentId/favicon\"": {
       "allOf": [
-        { "$ref": "#/components/schemas/FaviconResult_250" },
+        { "$ref": "#/components/schemas/WorkloadIconResult_250" },
         {
           "type": "object",
           "properties": {
@@ -17268,6 +17268,7 @@
         },
         "deploymentInputs": { "type": "array", "items": { "type": "string" } },
         "description": { "type": "string" },
+        "iconUrl": { "type": "string" },
         "dockerfile": { "type": "string" },
         "domains": { "$ref": "#/components/schemas/Response_199" },
         "health": {
@@ -17982,7 +17983,7 @@
       "properties": { "app": { "$ref": "#/components/schemas/Response_247" } },
       "required": ["app"]
     },
-    "FaviconResult_250": {
+    "WorkloadIconResult_250": {
       "type": "object",
       "properties": {
         "icon": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
