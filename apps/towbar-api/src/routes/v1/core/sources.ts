@@ -278,9 +278,9 @@ sourceRoutes.delete(
   operation({
     permissions: ["repository.disconnect"],
     responseSchema: 'sources.ts:delete:"/:sourceId"',
-    summary: "Delete empty repository",
+    summary: "Remove disconnected repository",
     response:
-      "No response body. Repositories with retained workloads or deployment history cannot be deleted; disconnect their environments to stop syncing.",
+      "No response body. Removes a disconnected repository with no retained workloads or active operations from the active list. History and ownership records are preserved; reconnecting reuses the repository.",
     status: 204,
   }),
   async (context) => {

@@ -3297,6 +3297,63 @@ export function createFixtureApiServer({
       return;
     }
 
+    const repositoryRoute = path.match(
+      /^\/v1\/core\/sources\/([^/]+)(?:\/.*)?$/,
+    );
+    const repository = repositoryRoute
+      ? [...sources, ...connections.sources].find(
+          (item) => item.id === repositoryRoute[1],
+        )
+      : undefined;
+    const deletingRepository =
+      request.method === "DELETE" && /^\/v1\/core\/sources\/[^/]+$/.test(path);
+    if (repository?.status === "archived" && !deletingRepository)
+      return writeNotFound(response);
+    if (deletingRepository) {
+      if (!repository) return writeNotFound(response);
+      if (teamAccess.getUser()?.workspaceRole !== "admin")
+        return writeJson(response, 403, {
+          error: { message: "Your role does not permit this action" },
+        });
+      if (repository.status === "archived") {
+        response.writeHead(204);
+        response.end();
+        return;
+      }
+      if (
+        [
+          ...apps,
+          ...resources,
+          ...connections.apps,
+          ...connections.resources,
+        ].some(
+          (item) =>
+            item.sourceId === repository.id && item.manifestState !== "removed",
+        )
+      )
+        return writeJson(response, 409, {
+          error: {
+            message:
+              "This repository still owns workloads. Move them to another repository, or remove retired workloads on the Retirements page first.",
+          },
+        });
+      if (
+        [...environmentMappings, ...connections.mappings].some(
+          (item) => item.sourceId === repository.id && !item.disconnectedAt,
+        )
+      )
+        return writeJson(response, 409, {
+          error: {
+            message:
+              "Disconnect all repository environments before deleting this repository.",
+          },
+        });
+      repository.status = "archived";
+      response.writeHead(204);
+      response.end();
+      return;
+    }
+
     if (analyticsFixture(request, response, requestUrl)) return;
     if (await logsFixture(request, response, requestUrl)) return;
     if (scoutFixture(request, response, requestUrl)) return;
@@ -3330,17 +3387,19 @@ export function createFixtureApiServer({
           });
         } else if (path.endsWith("/sources")) {
           const result = filterSources(
-            [...sources, ...connections.sources].map((source) => ({
-              ...source,
-              lastSyncedAt: source.lastSyncedAt ?? null,
-              latestSyncStatus: [
-                ...environmentMappings,
-                ...connections.mappings,
-              ].some((item) => item.sourceId === source.id)
-                ? "succeeded"
-                : "never",
-              autoDeployPaused: false,
-            })),
+            [...sources, ...connections.sources]
+              .filter((source) => source.status === "active")
+              .map((source) => ({
+                ...source,
+                lastSyncedAt: source.lastSyncedAt ?? null,
+                latestSyncStatus: [
+                  ...environmentMappings,
+                  ...connections.mappings,
+                ].some((item) => item.sourceId === source.id)
+                  ? "succeeded"
+                  : "never",
+                autoDeployPaused: false,
+              })),
             sourceFilters.parse(query),
           );
           writeJson(response, 200, {

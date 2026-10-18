@@ -2,13 +2,20 @@ import {
   environmentSyncStatuses,
   summarizeSyncStatus,
 } from "./environment-status.js";
-import { and, desc, eq, inArray, max, notInArray } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  max,
+  ne,
+  notInArray,
+} from "drizzle-orm";
 import {
   apps,
   deployments,
   imageVulnerabilityScans,
-  integrationWebhookDeliveries,
-  releases,
   resourceOperations,
   sourceEnvironments,
   sourceSyncs,
@@ -31,7 +38,9 @@ export async function listSources(workspaceId: string) {
       autoDeployPaused: sources.autoDeployPaused,
     })
     .from(sources)
-    .where(eq(sources.workspaceId, workspaceId))
+    .where(
+      and(eq(sources.workspaceId, workspaceId), eq(sources.status, "active")),
+    )
     .orderBy(desc(sources.updatedAt));
   const ids = rows.map((source) => source.id);
   const environments = await environmentSyncStatuses(ids);
@@ -73,7 +82,13 @@ export async function getSource(sourceId: string, workspaceId: string) {
       ...publicSourceSelection,
     })
     .from(sources)
-    .where(and(eq(sources.id, sourceId), eq(sources.workspaceId, workspaceId)))
+    .where(
+      and(
+        eq(sources.id, sourceId),
+        eq(sources.workspaceId, workspaceId),
+        eq(sources.status, "active"),
+      ),
+    )
     .limit(1);
   if (!source) throw notFound("Source");
   const metadata = source;
@@ -96,7 +111,7 @@ export async function getSource(sourceId: string, workspaceId: string) {
 export async function deleteSource(sourceId: string, workspaceId: string) {
   return await getTowbarDatabase().transaction(async (transaction) => {
     const [source] = await transaction
-      .select({ id: sources.id })
+      .select({ id: sources.id, status: sources.status })
       .from(sources)
       .where(
         and(eq(sources.id, sourceId), eq(sources.workspaceId, workspaceId)),
@@ -104,20 +119,33 @@ export async function deleteSource(sourceId: string, workspaceId: string) {
       .for("update")
       .limit(1);
     if (!source) throw notFound("Source");
+    if (source.status === "archived") return { id: source.id };
     const retained = await transaction
       .select({ id: apps.id })
       .from(apps)
-      .where(eq(apps.sourceId, sourceId))
+      .where(
+        and(eq(apps.sourceId, sourceId), ne(apps.manifestState, "removed")),
+      )
       .limit(1);
-    const provenance = await transaction
-      .select({ id: deployments.id })
-      .from(deployments)
-      .where(eq(deployments.sourceId, sourceId))
-      .limit(1);
-    if (retained.length || provenance.length)
+    if (retained.length)
       throw conflict(
-        "This repository owns workloads or retained history. Disconnect its environments to stop syncing; review missing manifests on the Retirements page.",
+        "This repository still owns workloads. Move them to another repository, or remove retired workloads on the Retirements page first.",
         "SOURCE_HAS_RETAINED_WORKLOADS",
+      );
+    const connected = await transaction
+      .select({ id: sourceEnvironments.id })
+      .from(sourceEnvironments)
+      .where(
+        and(
+          eq(sourceEnvironments.sourceId, sourceId),
+          isNull(sourceEnvironments.disconnectedAt),
+        ),
+      )
+      .limit(1);
+    if (connected.length)
+      throw conflict(
+        "Disconnect all repository environments before deleting this repository.",
+        "SOURCE_HAS_CONNECTED_ENVIRONMENTS",
       );
 
     const [
@@ -185,25 +213,15 @@ export async function deleteSource(sourceId: string, workspaceId: string) {
       );
     }
 
-    const appRows = await transaction
-      .select({ id: apps.id })
-      .from(apps)
-      .where(eq(apps.sourceId, sourceId));
-    const appIds = appRows.map((app) => app.id);
-    if (appIds.length > 0) {
-      await transaction.delete(releases).where(inArray(releases.appId, appIds));
-    }
     await transaction
-      .delete(imageVulnerabilityScans)
-      .where(eq(imageVulnerabilityScans.sourceId, sourceId));
-    await transaction
-      .delete(deployments)
-      .where(eq(deployments.sourceId, sourceId));
-    await transaction.delete(apps).where(eq(apps.sourceId, sourceId));
-    await transaction
-      .delete(integrationWebhookDeliveries)
-      .where(eq(integrationWebhookDeliveries.sourceId, sourceId));
-    await transaction.delete(sources).where(eq(sources.id, sourceId));
+      .update(sources)
+      .set({
+        status: "archived",
+        archivedAt: new Date(),
+        autoDeployPaused: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(sources.id, sourceId));
 
     return { id: source.id };
   });

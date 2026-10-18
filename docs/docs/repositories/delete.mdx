@@ -1,12 +1,12 @@
 ---
 title: "Delete a repository"
-description: "Disconnect syncing without losing workloads or history."
+description: "Remove a repository connection while preserving its history."
 ---
 
-A repository with workloads or retained deployment history cannot be deleted. Disconnect its environments to stop syncing while preserving runtime, credentials and history.
+1. Move retained workloads to another repository, or explicitly remove them through [Retirements](/docs/repositories/conflicts-and-retirements#permanently-remove-a-retirement).
+2. Disconnect all environments and wait for active operations to finish.
+3. Open **Repositories → repository → Delete repository** and confirm.
 
-To remove a workload, delete its manifest in Git and sync. Review it under **Retirements**, then explicitly confirm permanent removal if you no longer need its runtime or storage.
+The repository disappears from Towbar's active list. Deployment and sync history, removed workload records, secrets, backup metadata, and runtime ownership evidence remain intact. Historical deployments do not block removal.
 
-To move workloads to another repository, keep their IDs and environment names. Follow [conflicts and retirements](/docs/repositories/conflicts-and-retirements). Deleting a repository is not an ownership transfer.
-
-An empty repository with no retained workloads or deployment history can be deleted after its active operations finish.
+Adding the same repository again restores its existing connection and reuses its environment records and secrets. Only the environments you select are reconnected. The Git repository is never deleted.
