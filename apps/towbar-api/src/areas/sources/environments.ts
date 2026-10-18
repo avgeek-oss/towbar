@@ -1,10 +1,11 @@
+import { withdrawRepository } from "./withdrawal.js";
 import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { auditAttribution } from "../auth/actor-context.js";
 import { actorAllows } from "@workspace/towbar-access";
 import { captureQueuedActor, requireActor } from "../auth/actor-context.js";
 import { environmentSyncStatuses } from "./environment-status.js";
 import { randomUUID } from "node:crypto";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import {
   resolveRepositoryEnvironment,
   sourceEnvironmentMappingSchema,
@@ -316,44 +317,20 @@ export async function disconnectSourceEnvironment(input: {
   workspaceId: string;
   expectedRevision: string;
   actorUserId: string | null;
+  expectedRemovalRevision?: string;
 }) {
-  await sourceRepository(input.sourceId, input.workspaceId);
   return getTowbarDatabase().transaction(async (transaction) => {
-    await transaction.execute(
-      sql`select pg_advisory_xact_lock(hashtextextended(${input.environmentId}, 0))`,
-    );
-    const [environment] = await transaction
-      .update(sourceEnvironments)
-      .set({
-        disconnectedAt: new Date(),
-        mappingRevision: randomUUID(),
-        autoDeployPaused: true,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(sourceEnvironments.id, input.environmentId),
-          eq(sourceEnvironments.sourceId, input.sourceId),
-          eq(sourceEnvironments.mappingRevision, input.expectedRevision),
-          isNull(sourceEnvironments.disconnectedAt),
-        ),
-      )
-      .returning();
-    if (!environment)
-      throw conflict(
-        "The environment mapping changed. Refresh before disconnecting.",
-        "ENVIRONMENT_MAPPING_CHANGED",
-      );
-    await recordAuditEvent(transaction, {
+    const result = await withdrawRepository(transaction, {
+      sourceId: input.sourceId,
       workspaceId: input.workspaceId,
+      environmentId: input.environmentId,
+      expectedMappingRevision: input.expectedRevision,
+      expectedRevision: input.expectedRemovalRevision,
       actorUserId: input.actorUserId,
-      action: "source.environment.disconnected",
-      targetType: "source",
-      targetId: input.sourceId,
-      metadata: { environment: environment.name },
-      ...auditAttribution(),
     });
-    return environment;
+    if (!("name" in result))
+      throw new Error("Environment withdrawal did not return an environment");
+    return result;
   });
 }
 

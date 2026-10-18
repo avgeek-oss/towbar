@@ -31,6 +31,7 @@ import {
   authRateLimitBuckets,
   deploymentSteps,
   deployments,
+  sessions,
   sourceEntities,
   users,
   workspaceMembers,
@@ -263,6 +264,94 @@ void test(
               arguments: { tab: "conflicts" },
             });
             assert.equal(result.isError, false);
+          } finally {
+            await client.close();
+          }
+        },
+      );
+      await t.test(
+        "repository removal preview and mutations enforce REST and MCP administrator access",
+        async () => {
+          const target = await seedConnectedEnvironment(
+            workspaceId,
+            "removal-review",
+          );
+          const route = `/sources/${target.sourceId}/removal-preview`;
+          assert.equal((await request(route, read.token)).status, 403);
+          assert.equal(
+            (await request(`/sources/${target.sourceId}`, read.token, "DELETE"))
+              .status,
+            403,
+          );
+          assert.equal(
+            (
+              await request(
+                `/sources/${randomUUID()}/removal-preview`,
+                write.token,
+              )
+            ).status,
+            404,
+          );
+          const reviewed = await request(route, write.token);
+          assert.equal(reviewed.status, 200);
+          const { preview } = (await reviewed.json()) as {
+            preview: { revision: string; workloads: unknown[] };
+          };
+          assert.equal(preview.workloads.length, 0);
+          assert.equal(
+            (
+              await request(
+                `/sources/${target.sourceId}`,
+                write.token,
+                "DELETE",
+                { expectedRevision: "0".repeat(64) },
+              )
+            ).status,
+            409,
+          );
+          const limited = await connect(mcpRead.token);
+          try {
+            assert(
+              !(await limited.listTools()).tools.some(
+                (tool) => tool.name === "towbar_source_removal_preview",
+              ),
+            );
+          } finally {
+            await limited.close();
+          }
+          const sessionId = randomUUID();
+          await db.insert(sessions).values({
+            id: sessionId,
+            userId,
+            token: randomUUID(),
+            expiresAt: new Date(Date.now() + 86400_000),
+          });
+          const admin = await issueTestMcpToken(
+            user,
+            "edit",
+            "admin",
+            sessionId,
+          );
+          const client = await connect(admin.token);
+          try {
+            const result = await client.callTool({
+              name: "towbar_source_removal_preview",
+              arguments: { sourceId: target.sourceId },
+            });
+            assert.equal(result.isError, false);
+            const removed = await client.callTool({
+              name: "towbar_source_disconnect",
+              arguments: {
+                sourceId: target.sourceId,
+                expectedRevision: preview.revision,
+              },
+            });
+            assert.equal(removed.isError, false);
+            assert.equal(
+              (await request(`/sources/${target.sourceId}`, write.token))
+                .status,
+              404,
+            );
           } finally {
             await client.close();
           }

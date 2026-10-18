@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { createManifestLifecycleFixture } from "./manifest-lifecycle-fixture.ts";
 import { createServerCleanupFixture } from "./server-cleanup-fixture.ts";
 import packageManifest from "../../../package.json" with { type: "json" };
@@ -2551,6 +2552,113 @@ export function createFixtureApiServer({
     fixtureIds.secondaryServer,
     fixtureIds.app,
   );
+  function removalPreview(sourceId: string, environmentId?: string) {
+    const lifecycle = manifestLifecycle.withdrawal(sourceId, environmentId);
+    const workloads = [
+      ...lifecycle,
+      ...[...apps, ...resources, ...connections.apps, ...connections.resources]
+        .filter(
+          (item) =>
+            item.sourceId === sourceId &&
+            item.manifestState !== "removed" &&
+            (!environmentId || item.environment?.id === environmentId),
+        )
+        .filter(
+          (item) =>
+            !lifecycle.some(
+              (row) =>
+                row.manifestId === item.manifestId &&
+                row.environment === item.environment?.name,
+            ),
+        )
+        .map((item) => ({
+          key: `${item.environment?.name ?? "production"}:${item.manifestId}:${item.id}`,
+          manifestId: item.manifestId,
+          environment: item.environment?.name ?? "production",
+          name: item.name,
+          outcome: "retire" as const,
+          destination: null,
+          reason: null,
+          changedPaths: [],
+        })),
+    ];
+    return {
+      sourceId,
+      revision: createHash("sha256")
+        .update(
+          JSON.stringify({
+            workloads,
+            mappings: [...environmentMappings, ...connections.mappings].filter(
+              (m) => m.sourceId === sourceId,
+            ),
+          }),
+        )
+        .digest("hex"),
+      workloads,
+      summary: {
+        transfers: workloads.filter((w) => w.outcome === "transfer").length,
+        retirements: workloads.filter((w) => w.outcome === "retire").length,
+        conflicts: workloads.filter((w) => w.outcome === "conflict").length,
+      },
+      blockers: [],
+    };
+  }
+  function withdrawFixture(sourceId: string, environmentId?: string) {
+    const preview = removalPreview(sourceId, environmentId);
+    manifestLifecycle.withdraw(sourceId, environmentId);
+    for (const item of [
+      ...apps,
+      ...resources,
+      ...connections.apps,
+      ...connections.resources,
+    ]) {
+      if (
+        item.sourceId === sourceId &&
+        item.manifestState !== "removed" &&
+        (!environmentId || item.environment?.id === environmentId)
+      ) {
+        const outcome = preview.workloads.find(
+          (row) =>
+            row.manifestId === item.manifestId &&
+            row.environment === item.environment?.name,
+        );
+        if (outcome?.outcome === "transfer") {
+          const target = [...sources, ...connections.sources].find(
+            (repository) =>
+              `${repository.repositoryOwner}/${repository.repositoryName}` ===
+              outcome.destination,
+          );
+          const mapping = [
+            ...environmentMappings,
+            ...connections.mappings,
+          ].find(
+            (mapping) =>
+              mapping.sourceId === target?.id &&
+              mapping.name === outcome.environment &&
+              !mapping.disconnectedAt,
+          );
+          if (!target || !mapping)
+            throw new Error(
+              "Fixture transfer requires a connected destination",
+            );
+          item.sourceId = target.id;
+          item.environment = { ...mapping };
+          item.manifestState = "active";
+        } else
+          item.manifestState =
+            outcome?.outcome === "conflict" ? "conflict" : "retired";
+      }
+    }
+    for (const mapping of [...environmentMappings, ...connections.mappings]) {
+      if (
+        mapping.sourceId === sourceId &&
+        (!environmentId || mapping.id === environmentId)
+      ) {
+        mapping.disconnectedAt = new Date().toISOString();
+        mapping.mappingRevision = randomUUID();
+      }
+    }
+  }
   const fixtureServer = createServer(async (request, response) => {
     useFixtureLocalization(response, teamAccess.getPreferences);
     if (!authorizeFixtureCorsRequest(response, request.headers.origin)) return;
@@ -3309,49 +3417,69 @@ export function createFixtureApiServer({
       request.method === "DELETE" && /^\/v1\/core\/sources\/[^/]+$/.test(path);
     if (repository?.status === "archived" && !deletingRepository)
       return writeNotFound(response);
-    if (deletingRepository) {
+    if (
+      (path.endsWith("/removal-preview") && request.method === "GET") ||
+      deletingRepository
+    ) {
       if (!repository) return writeNotFound(response);
       if (teamAccess.getUser()?.workspaceRole !== "admin")
         return writeJson(response, 403, {
           error: { message: "Your role does not permit this action" },
         });
-      if (repository.status === "archived") {
-        response.writeHead(204);
-        response.end();
-        return;
-      }
+      const environmentId =
+        requestUrl.searchParams.get("environmentId") ?? undefined;
+      const preview = removalPreview(repository.id, environmentId);
+      if (!deletingRepository) return writeJson(response, 200, { preview });
+      const input = (await readOptionalRequestJson(request)) as {
+        expectedRevision?: string;
+      };
       if (
-        [
-          ...apps,
-          ...resources,
-          ...connections.apps,
-          ...connections.resources,
-        ].some(
-          (item) =>
-            item.sourceId === repository.id && item.manifestState !== "removed",
-        )
+        repository.status !== "archived" &&
+        input.expectedRevision &&
+        input.expectedRevision !== preview.revision
       )
         return writeJson(response, 409, {
           error: {
             message:
-              "This repository still owns workloads. Move them to another repository, or remove retired workloads on the Retirements page first.",
+              "Repository removal impact changed. Refresh and review it again.",
           },
         });
-      if (
-        [...environmentMappings, ...connections.mappings].some(
-          (item) => item.sourceId === repository.id && !item.disconnectedAt,
-        )
-      )
-        return writeJson(response, 409, {
-          error: {
-            message:
-              "Disconnect all repository environments before deleting this repository.",
-          },
-        });
+      withdrawFixture(repository.id);
       repository.status = "archived";
       response.writeHead(204);
       response.end();
       return;
+    }
+    const environmentRemoval = path.match(
+      /^\/v1\/core\/sources\/([^/]+)\/environments\/([^/]+)$/,
+    );
+    if (environmentRemoval && request.method === "DELETE") {
+      if (!repository) return writeNotFound(response);
+      if (teamAccess.getUser()?.workspaceRole !== "admin")
+        return writeJson(response, 403, {
+          error: { message: "Your role does not permit this action" },
+        });
+      const mapping = [...environmentMappings, ...connections.mappings].find(
+        (m) => m.sourceId === repository.id && m.id === environmentRemoval[2],
+      );
+      if (!mapping) return writeNotFound(response);
+      const input = (await readRequestJson(request)) as {
+        expectedRevision: string;
+        expectedRemovalRevision?: string;
+      };
+      if (
+        input.expectedRevision !== mapping.mappingRevision ||
+        (input.expectedRemovalRevision &&
+          input.expectedRemovalRevision !==
+            removalPreview(repository.id, mapping.id).revision)
+      )
+        return writeJson(response, 409, {
+          error: {
+            message: "Removal review changed. Refresh and review it again.",
+          },
+        });
+      withdrawFixture(repository.id, mapping.id);
+      return writeJson(response, 200, { environment: mapping });
     }
 
     if (analyticsFixture(request, response, requestUrl)) return;

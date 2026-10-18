@@ -1,4 +1,9 @@
 import {
+  previewRepositoryRemoval,
+  repositoryRemovalSchema,
+} from "../../../areas/sources/withdrawal.js";
+import { z } from "zod";
+import {
   changeGitHubConnectionSchema,
   changeSourceGitHubConnection,
 } from "../../../areas/sources/github-connection.js";
@@ -273,19 +278,52 @@ sourceRoutes.get(
   },
 );
 
+sourceRoutes.get(
+  "/:sourceId/removal-preview",
+  operation({
+    permissions: ["repository.disconnect"],
+    query: z.object({ environmentId: z.uuid().optional() }).strict(),
+    responseSchema: 'sources.ts:get:"/:sourceId/removal-preview"',
+    summary: "Review repository removal",
+    response:
+      "Workload transfers, retirements, conflicts, active-operation blockers, configuration diff paths, and a revision for confirmation. No secret values are returned.",
+    status: 200,
+  }),
+  async (context) => {
+    const query = z
+      .object({ environmentId: z.uuid().optional() })
+      .parse(context.req.query());
+    return context.json({
+      preview: await previewRepositoryRemoval(
+        context.req.param("sourceId"),
+        context.get("user").workspaceId,
+        query.environmentId,
+      ),
+    });
+  },
+);
+
 sourceRoutes.delete(
   "/:sourceId",
   operation({
     permissions: ["repository.disconnect"],
     responseSchema: 'sources.ts:delete:"/:sourceId"',
-    summary: "Remove disconnected repository",
+    summary: "Remove repository connection",
+    body: repositoryRemovalSchema,
     response:
-      "No response body. Removes a disconnected repository with no retained workloads or active operations from the active list. History and ownership records are preserved; reconnecting reuses the repository.",
+      "No response body. Withdraws this repository's declarations, transfers compatible workloads to a sole connected owner, and retains other workloads as retirements or conflicts. Active operations block removal. History, secrets, and storage are preserved. Review removal-preview first and submit its expectedRevision to reject changed impact.",
     status: 204,
   }),
   async (context) => {
     const user = context.get("user");
-    await deleteSource(context.req.param("sourceId"), user.workspaceId);
+    const input = context.req.raw.body
+      ? await readJson(context, repositoryRemovalSchema)
+      : {};
+    await deleteSource(
+      context.req.param("sourceId"),
+      user.workspaceId,
+      input.expectedRevision,
+    );
     return context.body(null, 204);
   },
 );

@@ -5,6 +5,18 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.58] - 2026-10-19
+
+### Added
+
+- Review repository and environment removal outcomes in the UI, REST API and MCP, including ownership transfers, retirements, conflicts and configuration diff paths.
+- Define workload icons using a direct `iconUrl` in Service, Compose and Datastore manifests.
+
+### Fixed
+
+- Removing a repository connection now withdraws its declarations and transfers compatible workloads without deleting secrets, volumes or deployment history. Disconnected and archived snapshots no longer cause conflicts.
+- Reject stale removal reviews and explain missing destination Repository Secrets before adoption.
+
 ## [2.0.57] - 2026-10-18
 
 ### Changed

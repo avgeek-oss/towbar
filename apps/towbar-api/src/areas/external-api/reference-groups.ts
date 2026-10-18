@@ -83,6 +83,7 @@ const rules: Record<string, Array<[string, RegExp]>> = {
   "manifest-lifecycle": [["Lifecycle", /^\/manifest-lifecycle$/]],
   retirements: [["Lifecycle", /^\/retirements\//]],
   sources: [
+    ["Lifecycle", /\/removal-preview$/],
     ["Environments", /\/environments(?:\/|$)/],
     ["Sync & manifest", /^\/sources\/(discover|connect)$/],
     ["Secrets", /\/secrets(?:\/|$)/],

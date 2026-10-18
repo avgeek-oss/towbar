@@ -42,7 +42,7 @@ function harness(responses: Record<string, Record<string, unknown>> = {}) {
 void test("MCP catalogue is curated, namespaced, directly typed, and independent of REST IDs", () => {
   const integrations = [get("integration_list")];
   assert.equal(integrations.length, 1);
-  assert.equal(mcpTools.length, 63);
+  assert.equal(mcpTools.length, 65);
   for (const tool of integrations)
     assert.deepEqual(tool.permissions, ["integration.manage"]);
   assert(mcpTools.length < operations.length);
@@ -495,4 +495,43 @@ void test("GitHub MCP discovery returns per-repository connection IDs and scopes
       repositoryName: "towbar",
     },
   });
+});
+
+void test("repository withdrawal tools preserve review revisions and use shared REST operations", async () => {
+  const h = harness();
+  const preview = get("source_removal_preview");
+  assert(preview.readOnly);
+  assert.deepEqual(preview.permissions, ["repository.disconnect"]);
+  await preview.run({ sourceId: uuid, environmentId: otherUuid }, h.context);
+  assert.deepEqual(h.calls[0], {
+    method: "GET",
+    route: "/sources/:sourceId/removal-preview",
+    path: { sourceId: uuid },
+    query: { environmentId: otherUuid },
+  });
+  const revision = "a".repeat(64);
+  await get("source_disconnect").run(
+    { sourceId: uuid, expectedRevision: revision },
+    h.context,
+  );
+  assert.deepEqual(h.calls[1]?.body, { expectedRevision: revision });
+  await get("source_environment_disconnect").run(
+    {
+      sourceId: uuid,
+      environmentId: otherUuid,
+      expectedRevision: uuid,
+      expectedRemovalRevision: revision,
+    },
+    h.context,
+  );
+  assert.deepEqual(h.calls[2]?.body, {
+    expectedRevision: uuid,
+    expectedRemovalRevision: revision,
+  });
+  assert(
+    !get("source_disconnect").input.safeParse({
+      sourceId: uuid,
+      expectedRevision: "stale",
+    }).success,
+  );
 });

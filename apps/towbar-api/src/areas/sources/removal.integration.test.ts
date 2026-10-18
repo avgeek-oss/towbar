@@ -119,22 +119,6 @@ void test(
         })
         .returning();
       assert(app);
-      await assert.rejects(
-        deleteSource(sourceId, workspaceId),
-        /still owns workloads/,
-      );
-      await db
-        .update(apps)
-        .set({ manifestState: "removed", archivedAt: new Date() })
-        .where(eq(apps.id, appId));
-      await assert.rejects(
-        deleteSource(sourceId, workspaceId),
-        /Disconnect all repository environments/,
-      );
-      await db
-        .update(sourceEnvironments)
-        .set({ disconnectedAt: new Date() })
-        .where(eq(sourceEnvironments.id, environment.id));
       const id = randomUUID();
       await db.insert(deployments).values({
         id,
@@ -185,7 +169,20 @@ void test(
         deleteSource(sourceId, randomUUID()),
         /Source was not found/,
       );
-      await deleteSource(sourceId, workspaceId);
+      const { previewRepositoryRemoval } = await import("./withdrawal.js");
+      const review = await previewRepositoryRemoval(sourceId, workspaceId);
+      assert.equal(review.summary.retirements, 1);
+      await withActor(actor, () =>
+        deleteSource(sourceId, workspaceId, review.revision),
+      );
+      const [retained] = await db.select().from(apps).where(eq(apps.id, appId));
+      assert.equal(retained?.manifestState, "retired");
+      assert.equal(retained?.archivedAt, null);
+      const [disconnected] = await db
+        .select()
+        .from(sourceEnvironments)
+        .where(eq(sourceEnvironments.id, environment.id));
+      assert(disconnected?.disconnectedAt);
       const [archived] = await db
         .select()
         .from(sources)

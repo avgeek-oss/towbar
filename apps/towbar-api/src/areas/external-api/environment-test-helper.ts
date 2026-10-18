@@ -7,7 +7,10 @@ import {
 } from "@workspace/towbar-database/schema";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 
-export async function seedConnectedEnvironment(workspaceId: string) {
+export async function seedConnectedEnvironment(
+  workspaceId: string,
+  repositoryName = "platform",
+) {
   const database = getTowbarDatabase();
   const installationId = randomUUID();
   const sourceId = randomUUID();
@@ -24,7 +27,7 @@ export async function seedConnectedEnvironment(workspaceId: string) {
     workspaceId,
     integrationInstallationId: installationId,
     repositoryOwner: "api-test",
-    repositoryName: "platform",
+    repositoryName,
   });
   const [environment] = await database
     .insert(sourceEnvironments)

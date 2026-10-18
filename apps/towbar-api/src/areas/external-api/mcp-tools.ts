@@ -159,13 +159,42 @@ export const mcpTools: McpTool[] = [
       idempotent: false,
     },
   ),
+  tool(
+    "source_removal_preview",
+    "Review repository removal",
+    "Review which workloads will transfer, retire or remain in conflict when this repository or an environment is disconnected. Returns active-operation blockers, destination repositories, diff paths and an impact revision; never returns secret values. Confirm this impact with the user before removal.",
+    z
+      .object({
+        ...sourceId,
+        environmentId: id("Source environment").optional(),
+      })
+      .strict(),
+    async (args, context) =>
+      context.call({
+        method: "GET",
+        route: "/sources/:sourceId/removal-preview",
+        path: { sourceId: args.sourceId },
+        query: {
+          ...(args.environmentId ? { environmentId: args.environmentId } : {}),
+        },
+      }),
+    { permissions: ["repository.disconnect"] },
+  ),
   action(
     "source_disconnect",
-    "Disconnect source",
-    "Remove a disconnected repository with no retained workloads or active operations from the active list. Preserves history and ownership records. Inspect the source and confirm the target with the user first.",
+    "Remove repository connection",
+    "Withdraw this repository's declarations without deleting workloads or data. Compatible sole owners adopt existing workloads; other workloads remain as retirements or conflicts. Use source_removal_preview, confirm its impact with the user and pass expectedRevision. Active operations block removal. History, secrets, storage and ownership evidence are preserved.",
     "DELETE",
     "/sources/:sourceId",
     sourceId,
+  ),
+  action(
+    "source_environment_disconnect",
+    "Disconnect repository environment",
+    "Withdraw only this environment's declarations and reconcile affected ownership without stopping containers or deleting data. Review source_removal_preview with environmentId and confirm with the user. Send expectedRevision from the mapping and expectedRemovalRevision from the review; active operations block disconnection.",
+    "DELETE",
+    "/sources/:sourceId/environments/:environmentId",
+    { ...sourceId, environmentId: id("Source environment") },
   ),
   tool(
     "source_discover",

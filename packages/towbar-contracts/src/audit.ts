@@ -195,10 +195,15 @@ export const auditEventCatalog = {
     label: "Repository branch updated",
     metadata: ["environment", "previousBranch", "branch"],
   },
+  "source.removed": {
+    icon: "repository",
+    label: "Repository removed",
+    metadata: ["transfers", "retirements", "conflicts"],
+  },
   "source.environment.disconnected": {
     icon: "repository",
     label: "Repository environment disconnected",
-    metadata: ["environment"],
+    metadata: ["environment", "transfers", "retirements", "conflicts"],
   },
   "environment.automation-updated": {
     icon: "automation",

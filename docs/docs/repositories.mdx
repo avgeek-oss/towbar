@@ -7,7 +7,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
 A Repository connects a GitHub repository or GitLab project to Towbar. Its `towbar.yml` declares environments, and files under `.towbar/services` and `.towbar/datastores` define workloads. Each connected environment follows a branch selected in Towbar.
 
-Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), [handle conflicts and retirements](/docs/repositories/conflicts-and-retirements), and [delete a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
+Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), [handle conflicts and retirements](/docs/repositories/conflicts-and-retirements), and [remove a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
 
 ## Connect and sync
 
@@ -58,10 +58,10 @@ Manual deployment is still a separate action. See [Deployments and releases](/do
 
 ## Repository settings
 
-Use **Settings → Notifications** to choose destinations and event categories. Reusable secret values belong under **Manage → Shared secrets**, while workload values belong to each Service or Datastore. SSH keys belong to servers; the Cloudflare provider token belongs in the control-plane runtime configuration.
+Use **Settings → Notifications** to choose destinations and event categories. Reusable values belong in **Team Settings → Security → Workspace Secrets** (`globals.`) or **Repository Settings → Repository Secrets** (`repo.`). Workload values belong to each Service or Datastore. SSH keys belong to servers; the Cloudflare provider token belongs in the control-plane runtime configuration.
 
 If a repository is missing or a webhook stops arriving, review the relevant [GitHub](/docs/integrations/github#maintain-the-connection) or [GitLab](/docs/integrations/gitlab) integration and its repository access.
 
-## Delete a repository
+## Remove a repository
 
-Move or remove retained workloads, disconnect all environments, then [delete the repository connection](/docs/repositories/delete). Active operations must finish first. Deployment history and ownership records remain intact and do not block removal. Reconnecting the same repository restores its existing record and secrets.
+[Review and remove the repository connection](/docs/repositories/delete) to withdraw its declarations. Compatible workloads transfer to their remaining repository; others enter Retirements or remain in Conflicts. Runtime, secrets, storage and history are preserved. Active operations must finish first. Reconnecting restores the same connection and secrets.

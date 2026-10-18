@@ -1,12 +1,14 @@
+import { repositoryTransferSecrets } from "./transfer-secrets.js";
 import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { auditAttribution } from "../auth/actor-context.js";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import {
   apps,
   deployments,
   repositoryManifests,
   resourceOperations,
   sourceEnvironments,
+  sources,
 } from "@workspace/towbar-database/schema";
 import {
   type NormalizedApp,
@@ -38,6 +40,7 @@ export function manifestEntities(manifest: NormalizedDeploymentManifest) {
 export async function loadManifestRegistry(
   database: SecretDatabase,
   workspaceId: string,
+  excludedEnvironmentIds: ReadonlySet<string> = new Set(),
 ) {
   const environments = await database
     .select({ environment: sourceEnvironments, snapshot: repositoryManifests })
@@ -46,16 +49,27 @@ export async function loadManifestRegistry(
       repositoryManifests,
       eq(repositoryManifests.sourceEnvironmentId, sourceEnvironments.id),
     )
-    .where(eq(repositoryManifests.workspaceId, workspaceId));
+    .innerJoin(sources, eq(sources.id, sourceEnvironments.sourceId))
+    .where(
+      and(
+        eq(repositoryManifests.workspaceId, workspaceId),
+        eq(sources.workspaceId, workspaceId),
+        eq(sources.status, "active"),
+        isNull(sourceEnvironments.disconnectedAt),
+      ),
+    )
+    .orderBy(sourceEnvironments.id);
   const declarations: ManifestDeclaration[] = environments.flatMap(
     ({ environment, snapshot }) =>
-      manifestEntities(snapshot.manifest).map((config) => ({
-        environment: environment.name,
-        sourceEnvironmentId: environment.id,
-        sourceId: environment.sourceId,
-        commitSha: snapshot.commitSha,
-        config,
-      })),
+      excludedEnvironmentIds.has(environment.id)
+        ? []
+        : manifestEntities(snapshot.manifest).map((config) => ({
+            environment: environment.name,
+            sourceEnvironmentId: environment.id,
+            sourceId: environment.sourceId,
+            commitSha: snapshot.commitSha,
+            config,
+          })),
   );
   const instances = await database
     .select({ app: apps, environment: sourceEnvironments.name })
@@ -66,7 +80,8 @@ export async function loadManifestRegistry(
     )
     .where(
       and(eq(apps.workspaceId, workspaceId), ne(apps.manifestState, "removed")),
-    );
+    )
+    .orderBy(apps.id);
   return {
     environments,
     declarations,
@@ -128,14 +143,37 @@ export async function reconcileRepositoryManifests(
   for (const { app, environment } of registry.instances)
     if (app.sourceEnvironmentId === input.environment.id)
       touched.add(`${environment}:${app.manifestId}`);
+  return reconcileManifestIdentities(database, {
+    ...input,
+    registry,
+    plans: registry.plans.filter((plan) =>
+      touched.has(identityKey(plan.environment, plan.manifestId)),
+    ),
+  });
+}
+
+type IdentityInput = Pick<
+  Parameters<typeof reconcileRepositoryManifests>[1],
+  | "workspaceId"
+  | "allowAutomaticDeployment"
+  | "scheduleAutomaticDeployment"
+  | "serverByIp"
+> & { tree?: RepositoryTree };
+
+export async function reconcileManifestIdentities(
+  database: Parameters<typeof materializeEnvironment>[0],
+  input: IdentityInput & {
+    registry: Awaited<ReturnType<typeof loadManifestRegistry>>;
+    plans: ReturnType<typeof planManifestIdentities>;
+  },
+) {
+  const { registry, plans } = input;
   const result = reconcileManifest({
     currentApps: [],
-    desired: { ...input.manifest, apps: [], compose: [], resources: [] },
+    desired: { version: 2, source: { branch: "main" }, apps: [] },
   });
   const issues: { message: string; path: string[] }[] = [];
-  const environmentIds = new Set([input.environment.id]);
-  for (const plan of registry.plans) {
-    if (!touched.has(identityKey(plan.environment, plan.manifestId))) continue;
+  for (const plan of plans)
     await reconcileIdentity(database, {
       input,
       registry,
@@ -143,22 +181,27 @@ export async function reconcileRepositoryManifests(
       issues,
       plan,
     });
-    for (const declaration of plan.declarations)
-      environmentIds.add(declaration.sourceEnvironmentId);
-  }
-  // Domain moves must see the complete sync, including assignments released by other manifests.
-  for (const sourceEnvironmentId of environmentIds)
+  const environments = new Set(
+    plans.flatMap((plan) => [
+      ...plan.declarations.map(
+        (declaration) => declaration.sourceEnvironmentId,
+      ),
+      ...plan.workloads.flatMap((workload) =>
+        workload.sourceEnvironmentId ? [workload.sourceEnvironmentId] : [],
+      ),
+    ]),
+  );
+  for (const sourceEnvironmentId of environments)
     await synchronizeDomainClaims(database, input.workspaceId, {
       sourceEnvironmentId,
     });
   return { reconciliation: result, issues };
 }
 
-type ReconcileInput = Parameters<typeof reconcileRepositoryManifests>[1];
 async function reconcileIdentity(
   database: Parameters<typeof materializeEnvironment>[0],
   context: {
-    input: ReconcileInput;
+    input: IdentityInput;
     registry: Awaited<ReturnType<typeof loadManifestRegistry>>;
     result: ReturnType<typeof reconcileManifest>;
     issues: { message: string; path: string[] }[];
@@ -210,17 +253,36 @@ async function reconcileIdentity(
     existing &&
     existing.sourceEnvironmentId !== declaration.sourceEnvironmentId;
   if (transferring) {
-    if (await ownershipTransferIsBlocked(database, existing.id, target)) {
+    const reason = await transferBlockReason(
+      database,
+      existing,
+      target,
+      declaration,
+    );
+    if (reason) {
       await database
         .update(apps)
         .set({ manifestState: "conflict", updatedAt: new Date() })
         .where(eq(apps.id, existing.id));
       issues.push({
-        message: `${plan.manifestId}: Finish active operations and sync the connected destination repository again before ownership can move.`,
+        message: `${plan.manifestId}: ${reason}`,
         path: [plan.manifestId],
       });
       return;
     }
+  }
+  const tree = target.snapshot.tree ?? input.tree;
+  if (!tree) {
+    if (existing)
+      await database
+        .update(apps)
+        .set({ manifestState: "conflict", updatedAt: new Date() })
+        .where(eq(apps.id, existing.id));
+    issues.push({
+      message: `${plan.manifestId}: Sync the destination repository before ownership can move.`,
+      path: [plan.manifestId],
+    });
+    return;
   }
   if (!input.allowAutomaticDeployment)
     await database
@@ -255,7 +317,8 @@ async function reconcileIdentity(
     sourceId: target.environment.sourceId,
     environment: target.environment,
     commitSha: target.snapshot.commitSha,
-    tree: target.snapshot.tree ?? input.tree,
+    tree,
+    preserveSecrets: Boolean(transferring),
     serverByIp: input.serverByIp,
     requiredSecrets: target.snapshot.manifest.requiredSecrets,
   });
@@ -295,6 +358,33 @@ async function reconcileIdentity(
     result.summary[key] += reconciliation.summary[key];
 }
 
+async function transferBlockReason(
+  database: SecretDatabase,
+  existing: typeof apps.$inferSelect,
+  target: Awaited<
+    ReturnType<typeof loadManifestRegistry>
+  >["environments"][number],
+  declaration: ManifestDeclaration,
+) {
+  if (await ownershipTransferIsBlocked(database, existing.id, target))
+    return "Finish active operations and sync the connected destination repository again before ownership can move.";
+  const secrets = await repositoryTransferSecrets(database, {
+    workspaceId: existing.workspaceId,
+    appId: existing.id,
+    sourceId: target.environment.sourceId,
+    environment: target.environment.name,
+    includePreview:
+      declaration.config.kind === "app" && declaration.config.preview?.enabled,
+    required:
+      target.snapshot.manifest.requiredSecrets[
+        `${declaration.config.kind === "app" ? "app" : declaration.config.kind === "compose" ? "compose" : "resource"}:${declaration.config.id}`
+      ]!,
+  });
+  return secrets.missing.length
+    ? `Add destination Repository Secrets: ${secrets.missing.join(", ")}, then sync the destination.`
+    : null;
+}
+
 async function deferOwnershipDeployment(
   database: SecretDatabase,
   appId: string,
@@ -320,7 +410,7 @@ async function deferOwnershipDeployment(
     .where(eq(apps.id, appId));
 }
 
-async function ownershipTransferIsBlocked(
+export async function ownershipTransferIsBlocked(
   database: SecretDatabase,
   appId: string,
   target: Awaited<

@@ -79,7 +79,7 @@ void test("reused widget titles resolve to the correct feature documentation", (
     [
       "/repositories/repo/settings/danger",
       "Danger zone",
-      "/repositories#delete-a-repository",
+      "/repositories/delete",
     ],
   ];
   for (const [path, title, expected] of cases) {

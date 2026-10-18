@@ -39,3 +39,9 @@ environments:
 ```
 
 Objects merge recursively; arrays replace the common array. Identity and secret declarations stay at entity level. Preview PRs target the branch mapped to an environment with previews enabled. Continue with [repository syncs](/docs/repositories/sync) and [preview environments](/docs/previews).
+
+## Disconnect an environment
+
+Choose **Disconnect**, review workload outcomes, then confirm. Towbar stops syncing that environment and immediately withdraws its declarations. A sole compatible declaration elsewhere adopts the existing workload; otherwise it remains a retirement or conflict. Containers, secrets, volumes and history are preserved. Other environments remain connected.
+
+Reconnecting validates the selected branch and queues a fresh sync. See [repository removal](/docs/repositories/delete) for review revisions and REST/MCP operations.

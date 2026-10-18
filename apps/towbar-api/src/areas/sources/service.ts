@@ -1,22 +1,10 @@
+import { withdrawRepository } from "./withdrawal.js";
 import {
   environmentSyncStatuses,
   summarizeSyncStatus,
 } from "./environment-status.js";
+import { and, desc, eq, inArray, max } from "drizzle-orm";
 import {
-  and,
-  desc,
-  eq,
-  inArray,
-  isNull,
-  max,
-  ne,
-  notInArray,
-} from "drizzle-orm";
-import {
-  apps,
-  deployments,
-  imageVulnerabilityScans,
-  resourceOperations,
   sourceEnvironments,
   sourceSyncs,
   sources,
@@ -108,123 +96,18 @@ export async function getSource(sourceId: string, workspaceId: string) {
   };
 }
 
-export async function deleteSource(sourceId: string, workspaceId: string) {
-  return await getTowbarDatabase().transaction(async (transaction) => {
-    const [source] = await transaction
-      .select({ id: sources.id, status: sources.status })
-      .from(sources)
-      .where(
-        and(eq(sources.id, sourceId), eq(sources.workspaceId, workspaceId)),
-      )
-      .for("update")
-      .limit(1);
-    if (!source) throw notFound("Source");
-    if (source.status === "archived") return { id: source.id };
-    const retained = await transaction
-      .select({ id: apps.id })
-      .from(apps)
-      .where(
-        and(eq(apps.sourceId, sourceId), ne(apps.manifestState, "removed")),
-      )
-      .limit(1);
-    if (retained.length)
-      throw conflict(
-        "This repository still owns workloads. Move them to another repository, or remove retired workloads on the Retirements page first.",
-        "SOURCE_HAS_RETAINED_WORKLOADS",
-      );
-    const connected = await transaction
-      .select({ id: sourceEnvironments.id })
-      .from(sourceEnvironments)
-      .where(
-        and(
-          eq(sourceEnvironments.sourceId, sourceId),
-          isNull(sourceEnvironments.disconnectedAt),
-        ),
-      )
-      .limit(1);
-    if (connected.length)
-      throw conflict(
-        "Disconnect all repository environments before deleting this repository.",
-        "SOURCE_HAS_CONNECTED_ENVIRONMENTS",
-      );
-
-    const [
-      activeDeployment,
-      activeSync,
-      activeOperation,
-      activeVulnerabilityScan,
-    ] = await Promise.all([
-      transaction
-        .select({ id: deployments.id })
-        .from(deployments)
-        .where(
-          and(
-            eq(deployments.sourceId, sourceId),
-            notInArray(deployments.state, [
-              "cancelled",
-              "failed",
-              "skipped",
-              "succeeded",
-              "succeeded_with_warnings",
-            ]),
-          ),
-        )
-        .limit(1),
-      transaction
-        .select({ id: sourceSyncs.id })
-        .from(sourceSyncs)
-        .where(
-          and(
-            eq(sourceSyncs.sourceId, sourceId),
-            inArray(sourceSyncs.status, ["queued", "running"]),
-          ),
-        )
-        .limit(1),
-      transaction
-        .select({ id: resourceOperations.id })
-        .from(resourceOperations)
-        .where(
-          and(
-            eq(resourceOperations.sourceId, sourceId),
-            inArray(resourceOperations.state, ["queued", "running"]),
-          ),
-        )
-        .limit(1),
-      transaction
-        .select({ id: imageVulnerabilityScans.id })
-        .from(imageVulnerabilityScans)
-        .where(
-          and(
-            eq(imageVulnerabilityScans.sourceId, sourceId),
-            inArray(imageVulnerabilityScans.state, ["pending", "running"]),
-          ),
-        )
-        .limit(1),
-    ]);
-    if (
-      activeDeployment.length ||
-      activeSync.length ||
-      activeOperation.length ||
-      activeVulnerabilityScan.length
-    ) {
-      throw conflict(
-        "Cancel or wait for active Source operations before deletion",
-        "SOURCE_BUSY",
-      );
-    }
-
-    await transaction
-      .update(sources)
-      .set({
-        status: "archived",
-        archivedAt: new Date(),
-        autoDeployPaused: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(sources.id, sourceId));
-
-    return { id: source.id };
-  });
+export async function deleteSource(
+  sourceId: string,
+  workspaceId: string,
+  expectedRevision?: string,
+) {
+  return getTowbarDatabase().transaction((transaction) =>
+    withdrawRepository(transaction, {
+      sourceId,
+      workspaceId,
+      expectedRevision,
+    }),
+  );
 }
 
 export async function executeSourceSync(syncId: string) {
