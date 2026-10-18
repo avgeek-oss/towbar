@@ -635,6 +635,13 @@
                 ]
               },
               {
+                "group": "Secrets",
+                "pages": [
+                  "api-reference/get_sources_by_id_secrets",
+                  "api-reference/patch_sources_by_id_secrets_by_environment_by_stage"
+                ]
+              },
+              {
                 "group": "Lifecycle",
                 "pages": [
                   "api-reference/get_manifest_lifecycle",

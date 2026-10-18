@@ -81,17 +81,19 @@ export type App = {
 export type AppSecretStage =
   "build" | "deployment" | "pre_deploy" | "post_deploy";
 export type AppSecretBinding = {
+  repositoryId?: string | null;
   declared?: boolean;
   missingKeys?: string[];
   environment: string;
   stage: AppSecretStage;
   keys: string[];
   inheritedKeys: string[];
-  availableReferences?: { globals: string[] };
+  availableReferences?: { globals: string[]; repo?: string[] };
   inheritedOrigins: Record<string, "global">;
   revision: string | null;
   inheritedRevisions: {
     global: string | null;
+    repository?: string | null;
   };
   updatedAt: string | null;
   pendingChanges: boolean;

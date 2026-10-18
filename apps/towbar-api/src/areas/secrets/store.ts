@@ -16,6 +16,7 @@ import {
   serverCredentialVerifications,
   servers,
   sourceEnvironments,
+  sources,
   sshHostKeys,
   workspaces,
 } from "@workspace/towbar-database/schema";
@@ -30,6 +31,7 @@ export type SecretDatabase = Pick<
 >;
 export type SecretOwner = { workspaceId: string } & (
   | { type: "workspace" }
+  | { type: "repository"; id: string }
   | { type: "app"; id: string }
   | { type: "server"; id: string }
 );
@@ -57,7 +59,12 @@ export async function requireSecretOwner(
     if (!workspace) throw notFound("Workspace");
     return { sourceId: null, appId: null, serverId: null };
   }
-  const table = owner.type === "app" ? apps : servers;
+  const table =
+    owner.type === "app"
+      ? apps
+      : owner.type === "repository"
+        ? sources
+        : servers;
   const [row] = await database
     .select()
     .from(table)
@@ -72,7 +79,11 @@ export async function requireSecretOwner(
   if (!row) throw notFound(owner.type);
   return {
     sourceId:
-      owner.type === "app" ? (row as typeof apps.$inferSelect).sourceId : null,
+      owner.type === "app"
+        ? (row as typeof apps.$inferSelect).sourceId
+        : owner.type === "repository"
+          ? owner.id
+          : null,
     appId: owner.type === "app" ? owner.id : null,
     serverId: owner.type === "server" ? owner.id : null,
   };
@@ -88,7 +99,7 @@ export function secretSlotFilter(slot: SecretSlot) {
 }
 
 async function declaredKeysForSlot(slot: SecretSlot, database: SecretDatabase) {
-  if (slot.type === "workspace" || slot.type === "server") return null;
+  if (slot.type !== "app") return null;
   const [instance] = await database
     .select({
       declarations: apps.requiredSecrets,

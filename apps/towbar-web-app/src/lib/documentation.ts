@@ -309,7 +309,11 @@ export function documentationTopic(pathname: string): Topic | undefined {
   }
   if (/\/syncs\/[^/]+/.test(path)) return "sync";
   if (path === "/team-settings/ssh-keys") return "keys";
-  if (path === "/team-settings/shared-secrets") return "secrets";
+  if (
+    path === "/team-settings/workspace-secrets" ||
+    path === "/team-settings/shared-secrets"
+  )
+    return "secrets";
   if (path.startsWith("/team-settings/integrations"))
     return integrationDocumentationTopic(path);
   if (path.startsWith("/team-settings"))
@@ -363,6 +367,7 @@ export function documentationTopic(pathname: string): Topic | undefined {
     logs: "logs",
     secrets: "secrets",
     "shared-secrets": "secrets",
+    "workspace-secrets": "secrets",
     "auto-deploy": "automation",
     manifest: "manifest",
     "sync-history": "sync",

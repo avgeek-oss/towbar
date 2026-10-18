@@ -225,6 +225,13 @@
       "when": 1792245600000,
       "tag": "0032_legacy_manifest_archives",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792328254810,
+      "tag": "0033_repository_secrets",
+      "breakpoints": true
     }
   ]
 }

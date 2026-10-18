@@ -108,10 +108,20 @@ export async function listEnvironmentSecrets(
     stages.map(async (stage) => {
       const local = await readSecretMetadata({ ...owner, environment, stage });
       const global =
-        owner.type !== "workspace"
+        owner.type === "app"
           ? await readSecretMetadata({
               workspaceId: owner.workspaceId,
               type: "workspace",
+              environment: "production",
+              stage,
+            })
+          : { keys: [], revision: null, updatedAt: null };
+      const repository =
+        owner.type === "app" && ownership.sourceId
+          ? await readSecretMetadata({
+              workspaceId: owner.workspaceId,
+              type: "repository",
+              id: ownership.sourceId,
               environment: "production",
               stage,
             })
@@ -128,16 +138,24 @@ export async function listEnvironmentSecrets(
         local.revision !== (deploymentRevisions?.[`${stage}:local`] ?? null) ||
         (dependencies.global &&
           global.revision !==
-            (deploymentRevisions?.[`${stage}:global`] ?? null));
+            (deploymentRevisions?.[`${stage}:global`] ?? null)) ||
+        (dependencies.repository &&
+          repository.revision !==
+            (deploymentRevisions?.[`${stage}:repository`] ?? null));
       return {
         stage,
         environment,
         ...local,
         inheritedKeys: [] as string[],
         inheritedOrigins: {} as Record<string, "global">,
-        availableReferences: { globals: global.keys },
+        availableReferences: {
+          globals: owner.type === "app" ? global.keys : [],
+          repo: repository.keys,
+        },
+        repositoryId: owner.type === "app" ? ownership.sourceId : null,
         inheritedRevisions: {
           global: global.revision,
+          repository: repository.revision,
         },
         pendingChanges:
           owner.type === "app" &&
@@ -226,11 +244,32 @@ export async function resolveEnvironmentStage(
         database,
       )
     : empty;
+  // Resolve against the current owner so repository moves cannot retain access to the old store.
+  const ownership = dependencies.repository
+    ? await requireSecretOwner(
+        { ...slot, type: "app", id: input.appId },
+        database,
+      )
+    : null;
+  const repository = ownership?.sourceId
+    ? await readSecretValues(
+        {
+          ...slot,
+          type: "repository",
+          id: ownership.sourceId,
+          environment: "production",
+        },
+        database,
+      )
+    : empty;
   return {
-    values: resolveValues(local.values, global.values),
+    values: resolveValues(local.values, global.values, repository.values),
     revisions: {
       [`${input.stage}:local`]: local.revision,
       [`${input.stage}:global`]: dependencies.global ? global.revision : null,
+      [`${input.stage}:repository`]: dependencies.repository
+        ? repository.revision
+        : null,
     },
   };
 }
@@ -238,10 +277,11 @@ export async function resolveEnvironmentStage(
 function resolveValues(
   local: Record<string, string>,
   global: Record<string, string>,
+  repository: Record<string, string>,
 ) {
   try {
     validateSecretReferences(local, "app");
-    return resolveSecretReferences(local, global);
+    return resolveSecretReferences(local, global, repository);
   } catch (error) {
     throw unprocessable(
       error instanceof Error
@@ -392,7 +432,8 @@ function externallyResolved(
 
 export async function listSecretEnvironments(owner: SecretOwner) {
   const ownership = await getEnvironmentSecretOwner(owner);
-  if (owner.type === "workspace") return ["production"];
+  if (owner.type === "workspace" || owner.type === "repository")
+    return ["production"];
   if (owner.type === "app") {
     const environment = await getInstanceEnvironment({
       appId: owner.id,

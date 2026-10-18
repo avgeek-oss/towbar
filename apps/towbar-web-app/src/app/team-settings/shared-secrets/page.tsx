@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function Page() {
-  redirect("/manage/shared-secrets");
+  redirect("/team-settings/workspace-secrets");
 }

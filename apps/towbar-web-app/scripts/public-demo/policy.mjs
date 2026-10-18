@@ -3,7 +3,7 @@ const id = "[a-f0-9-]{36}";
 const environment = "[a-z][a-z0-9-]{0,62}";
 const stage = "(build|deployment|pre_deploy|post_deploy)";
 const secrets = new RegExp(
-  `^/v1/core/(?:(apps|resources)/${id}|settings)/secrets/${environment}/${stage}$`,
+  `^/v1/core/(?:(apps|resources|sources)/${id}|settings)/secrets/${environment}/${stage}$`,
 );
 const readRoutes = [
   new RegExp(`^/v1/core/apps/${id}/analytics$`),
@@ -35,7 +35,7 @@ const readRoutes = [
     `^/v1/core/servers/${id}/(apps|resources|deployments|capacity|checks|preparations|host-keys|orphans|credentials|monitoring(?:/(history|agent))?)$`,
   ),
   new RegExp(
-    `^/v1/core/sources/${id}/(apps|resources|capacity|deployments|previews|backups|syncs(?:/${id})?|auto-deploy-control|environments(?:/${id}/manifest)?|notifications/destinations)$`,
+    `^/v1/core/sources/${id}/(apps|resources|capacity|deployments|previews|backups|syncs(?:/${id})?|auto-deploy-control|secrets|environments(?:/${id}/manifest)?|notifications/destinations)$`,
   ),
   new RegExp(
     `^/v1/core/servers/${id}/scout-alerts(?:/(rules|incidents|settings|rules/${id}|incidents/${id}(?:/notifications)?))?$`,
@@ -49,7 +49,7 @@ const writes = [
   [
     "POST",
     new RegExp(
-      `^/v1/core/(?:(apps|resources)/${id}|settings)/secrets/${environment}/${stage}/reveal(?:-all)?$`,
+      `^/v1/core/(?:(apps|resources|sources)/${id}|settings)/secrets/${environment}/${stage}/reveal(?:-all)?$`,
     ),
   ],
   ["POST", /^\/v1\/core\/sources\/(connect|discover)$/],

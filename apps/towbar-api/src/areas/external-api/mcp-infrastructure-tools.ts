@@ -22,7 +22,7 @@ import {
 
 const secretTarget = z
   .object({
-    scope: z.enum(["workspace", "app", "resource"]),
+    scope: z.enum(["workspace", "repository", "app", "resource"]),
     targetId: id("Secret owner; omit for workspace scope").optional(),
   })
   .refine(
@@ -30,12 +30,12 @@ const secretTarget = z
       args.scope === "workspace"
         ? args.targetId === undefined
         : args.targetId !== undefined,
-    "targetId is required for app/resource and must be omitted for workspace scope.",
+    "targetId is required for repository/app/resource and must be omitted for workspace scope.",
   );
-function secretRoute(scope: "workspace" | "app" | "resource") {
+function secretRoute(scope: "workspace" | "repository" | "app" | "resource") {
   return scope === "workspace"
     ? "/settings/secrets"
-    : `/${targets[scope]}/:ownerId/secrets`;
+    : `/${scope === "repository" ? "sources" : targets[scope]}/:ownerId/secrets`;
 }
 
 export const infrastructureTools: McpTool[] = [
@@ -278,7 +278,7 @@ export const infrastructureTools: McpTool[] = [
   tool(
     "secrets_inspect",
     "Inspect secret names and revisions",
-    "Read secret bindings, available global references, and revision metadata for a workspace, app, or resource. Never returns plaintext values. Read before towbar_secrets_update; use the correct environment and slot revision.",
+    "Read secret bindings, available workspace and repository references, and revision metadata for a workspace, repository, app, or resource. Never returns plaintext values. Read before towbar_secrets_update; use the correct environment and slot revision.",
     secretTarget
       .safeExtend({ environment: secretEnvironmentSchema.optional() })
       .strict(),

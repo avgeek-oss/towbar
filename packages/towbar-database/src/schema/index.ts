@@ -2509,6 +2509,7 @@ export const managedSecrets = pgTable(
       "towbar_managed_secret_owner",
       sql`(
     (${table.owner} = 'workspace:' || ${table.workspaceId}::text AND ${table.sourceId} IS NULL AND ${table.appId} IS NULL AND ${table.serverId} IS NULL)
+    OR (${table.owner} = 'repository:' || ${table.sourceId}::text AND ${table.sourceId} IS NOT NULL AND ${table.appId} IS NULL AND ${table.serverId} IS NULL AND ${table.environment} = 'production')
     OR (${table.owner} = 'app:' || ${table.appId}::text AND ${table.appId} IS NOT NULL AND ${table.sourceId} IS NOT NULL AND ${table.serverId} IS NULL)
     OR (${table.owner} = 'server:' || ${table.serverId}::text AND ${table.serverId} IS NOT NULL AND ${table.sourceId} IS NULL AND ${table.appId} IS NULL)
   ) IS TRUE`,
@@ -2516,7 +2517,7 @@ export const managedSecrets = pgTable(
     check(
       "towbar_managed_secret_stage",
       sql`(
-    (${table.stage} IN ('build', 'deployment', 'pre_deploy', 'post_deploy') AND (${table.owner} = 'workspace:' || ${table.workspaceId}::text OR ${table.appId} IS NOT NULL))
+    (${table.stage} IN ('build', 'deployment', 'pre_deploy', 'post_deploy') AND (${table.owner} = 'workspace:' || ${table.workspaceId}::text OR ${table.owner} = 'repository:' || ${table.sourceId}::text OR ${table.appId} IS NOT NULL))
     OR (${table.stage} = 'credentials' AND ${table.serverId} IS NOT NULL AND ${table.environment} = 'production')
   )`,
     ),

@@ -4,8 +4,6 @@ import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { useAccess } from "./access-context";
 import { useDetailNavigation } from "@/hooks/use-detail-navigation";
 import { usePageQuery, useQueryChoice } from "@/hooks/use-page-query";
-import { PageSelectionTitle } from "./page-selection-title";
-import { SecondaryItems } from "./secondary-sidebar";
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
@@ -127,8 +125,17 @@ export function ResourceSecrets({
 
 type Query = { data?: AppSecretsResponse; error?: string; refresh: () => void };
 
-export function GlobalSecrets() {
-  const endpoint = "/v1/core/settings/secrets";
+export function WorkspaceSecrets() {
+  return <SharedStoreSecrets endpoint="/v1/core/settings/secrets" />;
+}
+
+export function RepositorySecrets({ sourceId }: { sourceId: string }) {
+  return (
+    <SharedStoreSecrets endpoint={`/v1/core/sources/${sourceId}/secrets`} />
+  );
+}
+
+function SharedStoreSecrets({ endpoint }: { endpoint: string }) {
   const query = useApiQuery<AppSecretsResponse>(endpoint);
   const [stage, setStage] = useQueryChoice(
     "stage",
@@ -138,20 +145,19 @@ export function GlobalSecrets() {
   const binding = query.data?.bindings.find((item) => item.stage === stage);
   return (
     <div className="w-full">
-      <PageSelectionTitle
-        icon={<HugeiconsIcon icon={stageIcons[stage]} />}
-        label={`${stageLabels[stage]} shared secrets`}
-      />
-      <SecondaryItems
-        title="Secret stage"
-        selected={stage}
-        onSelect={(value) => setStage(value as AppSecretStage)}
-        items={Object.entries(stageLabels).map(([id, label]) => ({
-          id,
-          label,
-          icon: <HugeiconsIcon icon={stageIcons[id as AppSecretStage]} />,
-        }))}
-      />
+      <div className="mb-4 grid min-w-0 gap-2 md:w-fit">
+        <p className="text-xs font-medium text-muted">Secret stage</p>
+        <ResponsiveChoice
+          label="Secret stage"
+          value={stage}
+          onChange={(value) => setStage(value as AppSecretStage)}
+          options={Object.entries(stageLabels).map(([value, label]) => ({
+            value,
+            label,
+            icon: stageIcons[value as AppSecretStage],
+          }))}
+        />
+      </div>
       {query.error ? (
         <QueryError message={query.error} />
       ) : !query.data ? (
@@ -308,7 +314,7 @@ function EnvironmentEditors({
           !binding.keys.length
         ) ? (
         <SecretVariablesEditor
-          key={`${endpoint}:${binding.environment}:${binding.stage}:${binding.revision}:${binding.inheritedRevisions.global}`}
+          key={`${endpoint}:${binding.environment}:${binding.stage}:${binding.revision}:${binding.inheritedRevisions.global}:${binding.inheritedRevisions.repository}`}
           endpoint={endpoint}
           binding={binding}
           canManage={data.canManageSecrets}
@@ -780,11 +786,11 @@ function SecretVariablesEditor({
                               reveal={reveal}
                               revealReference={
                                 can("sharedSecret.reveal")
-                                  ? async (referenceKey) => {
+                                  ? async (scope, referenceKey) => {
                                       const result = await api.post<{
                                         value: string;
                                       }>(
-                                        `/v1/core/settings/secrets/production/${binding.stage}/reveal`,
+                                        `${scope === "globals" ? "/v1/core/settings/secrets" : `/v1/core/sources/${binding.repositoryId}/secrets`}/production/${binding.stage}/reveal`,
                                         { key: referenceKey },
                                       );
                                       return result.value;
@@ -966,7 +972,7 @@ function SecretValueInput({
   configured?: boolean;
   disabled: boolean;
   reveal?: () => Promise<string>;
-  revealReference?: (key: string) => Promise<string>;
+  revealReference?: (scope: "globals" | "repo", key: string) => Promise<string>;
   onChange: (value: string) => void;
 }) {
   const [visible, setVisible] = useState(!configured);
@@ -1019,14 +1025,16 @@ function SecretValueInput({
   const displayedValue = visible ? (configured ? (stored ?? "") : value) : "";
   const hasReference =
     visible &&
-    /\{\{\s*globals\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}/u.test(displayedValue);
+    /\{\{\s*(?:globals|repo)\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}/u.test(
+      displayedValue,
+    );
   const references = [
     ...displayedValue.matchAll(
-      /\{\{\s*globals\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/gu,
+      /\{\{\s*(globals|repo)\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/gu,
     ),
   ];
   const referenceKey =
-    visible && references.length === 1 ? references[0]?.[1] : undefined;
+    visible && references.length === 1 ? references[0]?.[2] : undefined;
   const input = (
     <InputGroup fullWidth variant="secondary">
       <InputGroup.Prefix>
@@ -1082,9 +1090,17 @@ function SecretValueInput({
   );
   return referenceKey ? (
     <SecretReferenceTooltip
-      key={referenceKey}
+      key={references[0]?.[0]}
       reference={references[0]?.[0] ?? ""}
-      reveal={revealReference ? () => revealReference(referenceKey) : undefined}
+      reveal={
+        revealReference
+          ? () =>
+              revealReference(
+                references[0]![1] as "globals" | "repo",
+                referenceKey,
+              )
+          : undefined
+      }
     >
       {input}
     </SecretReferenceTooltip>

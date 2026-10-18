@@ -16045,21 +16045,23 @@
     "Response_141": {
       "type": "object",
       "properties": {
-        "globals": {
+        "globals": { "type": "array", "items": { "type": "string" } },
+        "repo": {
           "anyOf": [
             { "type": "array", "items": { "type": "string" } },
             { "type": "array", "items": {} }
           ]
         }
       },
-      "required": ["globals"]
+      "required": ["globals", "repo"]
     },
     "Response_142": {
       "type": "object",
       "properties": {
-        "global": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
+        "global": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
+        "repository": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
       },
-      "required": ["global"]
+      "required": ["global", "repository"]
     },
     "Response_143": {
       "type": "object",
@@ -16076,6 +16078,7 @@
         "inheritedKeys": { "type": "array", "items": { "type": "string" } },
         "inheritedOrigins": { "$ref": "#/components/schemas/Record_140" },
         "availableReferences": { "$ref": "#/components/schemas/Response_141" },
+        "repositoryId": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "inheritedRevisions": { "$ref": "#/components/schemas/Response_142" },
         "pendingChanges": { "type": "boolean" },
         "affectedDeployables": {
@@ -16106,6 +16109,7 @@
         "inheritedKeys",
         "inheritedOrigins",
         "availableReferences",
+        "repositoryId",
         "inheritedRevisions",
         "pendingChanges",
         "affectedDeployables",

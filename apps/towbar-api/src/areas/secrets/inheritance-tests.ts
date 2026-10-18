@@ -79,6 +79,7 @@ export async function testManagedSecretInheritance({
       assert.deepEqual(appBinding.inheritedKeys, []);
       assert.deepEqual(appBinding.availableReferences, {
         globals: ["AD_HOC", "GLOBAL_ONLY", "GLOBAL_PREVIEW", "TOKEN"],
+        repo: [],
       });
       const global = await readSecretMetadata(globalSlot);
       await mutateSecret(

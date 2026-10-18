@@ -63,6 +63,10 @@ controlPlaneRoutes.route(
   environmentSecretRoutes("workspace"),
 );
 controlPlaneRoutes.route(
+  "/sources/:ownerId/secrets",
+  environmentSecretRoutes("repository"),
+);
+controlPlaneRoutes.route(
   "/apps/:ownerId/secrets",
   environmentSecretRoutes("app"),
 );

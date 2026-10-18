@@ -58,6 +58,7 @@ import { SourceEnvironments } from "./source-environments";
 import { SourceEnvironmentConnect } from "./source-environment-connect";
 import { SourceApps, SourceResources } from "./source-inventory";
 import { ResponsiveSubtabs } from "./responsive-subtabs";
+import { RepositorySecrets } from "./app-secrets";
 import { AutoDeployControlEditor } from "./auto-deploy-control";
 
 const SOURCE_SYNC_PAGE_SIZE = 10;
@@ -415,6 +416,7 @@ function SourceSettings({
   onDelete: () => void;
   sourceId: string;
 }) {
+  const { can } = useAccess();
   return (
     <SourceSubtabs
       ariaLabel="Repository settings"
@@ -435,6 +437,15 @@ function SourceSettings({
           label: "Auto-deploy",
           content: <AutoDeployControlEditor id={sourceId} type="source" />,
         },
+        ...(can("sharedSecret.list")
+          ? [
+              {
+                value: "secrets",
+                label: "Repository Secrets",
+                content: <RepositorySecrets sourceId={sourceId} />,
+              },
+            ]
+          : []),
         ...(canManage
           ? [
               {

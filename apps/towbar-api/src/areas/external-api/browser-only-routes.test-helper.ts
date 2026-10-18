@@ -77,6 +77,8 @@ export const expectedBrowserOnlyRoutes = new Set([
   "POST /settings/private-keys",
   "POST /settings/secrets/:environment/:stage/reveal",
   "POST /settings/secrets/:environment/:stage/reveal-all",
+  "POST /sources/:ownerId/secrets/:environment/:stage/reveal",
+  "POST /sources/:ownerId/secrets/:environment/:stage/reveal-all",
   "POST /sources/:sourceId/notifications/discord/destinations/test",
   "POST /sources/:sourceId/notifications/email/destinations/test",
   "POST /sources/:sourceId/notifications/slack/destinations/test",
@@ -107,7 +109,7 @@ export function assertPublicOperationNames(
     new Set(operations.map((op) => op.name)).size,
     operations.length,
   );
-  assert.equal(operations.length, 154);
+  assert.equal(operations.length, 156);
   assert(
     operations.some(
       (op) => op.name === "post_sources_by_id_actions_change_github_connection",

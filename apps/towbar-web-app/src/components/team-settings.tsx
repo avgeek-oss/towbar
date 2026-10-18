@@ -2,6 +2,7 @@
 import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { useUrlTablePagination } from "@/hooks/use-url-pagination";
 
+import { WorkspaceSecrets } from "./app-secrets";
 import { TeamAuditLogs } from "./team-audit-logs";
 import { canShowApiMcpSettings } from "@/lib/config";
 import {
@@ -113,7 +114,7 @@ function teamChanged() {
   window.dispatchEvent(new Event("towbar:identity-changed"));
 }
 export type TeamSettingsPage =
-  "members" | "general" | "api-keys" | "audit-logs";
+  "members" | "general" | "api-keys" | "audit-logs" | "workspace-secrets";
 
 const teamSettingsPages: Record<
   TeamSettingsPage,
@@ -133,6 +134,11 @@ const teamSettingsPages: Record<
     label: "Members",
     permission: "team.read",
   },
+  "workspace-secrets": {
+    icon: Key01Icon,
+    label: "Workspace Secrets",
+    permission: "sharedSecret.list",
+  },
   "api-keys": {
     icon: Key01Icon,
     label: "API Keys",
@@ -147,7 +153,7 @@ const teamSettingsPages: Record<
 
 const teamSettingsGroups = [
   { title: "Account", pages: ["general", "members"] },
-  { title: "Security", pages: ["api-keys", "audit-logs"] },
+  { title: "Security", pages: ["workspace-secrets", "api-keys", "audit-logs"] },
 ] as const satisfies Array<{
   title: string;
   pages: readonly TeamSettingsPage[];
@@ -172,7 +178,12 @@ export function TeamSettingsShell({
       title={active.label}
       icon={active.icon}
       breadcrumbAncestors={[
-        { label: "Team Settings", href: "/team-settings/general" },
+        {
+          label: "Team Settings",
+          href: can("team.read")
+            ? "/team-settings/general"
+            : "/team-settings/workspace-secrets",
+        },
       ]}
     >
       {teamSettingsGroups.map((group) => {
@@ -202,11 +213,13 @@ export function TeamSettingsShell({
 export function TeamSettings({
   page,
 }: {
-  page: "members" | "general" | "api-keys" | "audit-logs";
+  page: "members" | "general" | "api-keys" | "audit-logs" | "workspace-secrets";
 }) {
   return (
     <TeamSettingsShell page={page}>
-      {page === "audit-logs" ? (
+      {page === "workspace-secrets" ? (
+        <WorkspaceSecrets />
+      ) : page === "audit-logs" ? (
         <TeamAuditLogs />
       ) : page === "members" ? (
         <TeamMembers />

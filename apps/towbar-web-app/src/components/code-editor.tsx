@@ -19,7 +19,7 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 
 const tokens = new MatchDecorator({
   regexp:
-    /(?:^\s*(?:export\s+)?[A-Za-z_][A-Za-z0-9_]*(?=\s*=))|(?:\{\{\s*globals\.[A-Za-z_][A-Za-z0-9_]*\s*\}\})/g,
+    /(?:^\s*(?:export\s+)?[A-Za-z_][A-Za-z0-9_]*(?=\s*=))|(?:\{\{\s*(?:globals|repo)\.[A-Za-z_][A-Za-z0-9_]*\s*\}\})/g,
   decoration: (match) =>
     Decoration.mark({
       class: match[0].includes("{{")

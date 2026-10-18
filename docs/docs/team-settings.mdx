@@ -17,11 +17,11 @@ Use **General → Team details** to update the team name and description. The na
 
 The Members table shows each person's name and email, role, account status, and a separate 2FA status. Use the row actions to edit a name, change a role, or remove a member. Email changes belong to the user's [Email & Password settings](/docs/personal-settings#change-your-email), where the new address must be confirmed.
 
-| Role   | What the person can do                                                                                                   |
-| ------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Admin  | Manage all dashboard features, including infrastructure, integrations, credentials, members, and team keys.              |
-| Member | View repositories and operational activity. Manage declared secret values, shared secrets, Scout Agent, and alert rules. |
-| Viewer | View inventory, deployments, monitoring, and redacted logs. Manage their own account and read-only personal API keys.    |
+| Role   | What the person can do                                                                                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin  | Manage all dashboard features, including infrastructure, integrations, credentials, members, and team keys.                                |
+| Member | View repositories and operational activity. Manage declared secret values, workspace and repository secrets, Scout Agent, and alert rules. |
+| Viewer | View inventory, deployments, monitoring, and redacted logs. Manage their own account and read-only personal API keys.                      |
 
 Members cannot connect repositories, change branch mappings, sync inventory, deploy workloads, prepare servers, run backups or restores, manage provider authorizations, or reveal existing secret values. Hidden menu items reflect these permissions; API and MCP requests follow the same limits.
 
@@ -67,3 +67,7 @@ Open **Security → Audit Logs** to browse captured activity across the team. Ea
 Filter by event type or user, or search by event label, slug, user name, email, target ID, event ID, or request ID. Filters work together and reset the table to the first page. Use Previous and Next to browse older records. The first page refreshes automatically.
 
 Only Admins can read team-wide audit history. API keys and MCP cannot access this browser-only view. Audit records retain events for former team members, while credentials, tokens, and raw provider responses are excluded from the returned metadata. This page displays events captured by Towbar; it does not retroactively reconstruct actions that were not recorded.
+
+## Workspace Secrets
+
+Open **Team Settings → Security → Workspace Secrets** to manage values shared across workloads. Choose a stage above the widget, save a value, and reference it as `{{globals.KEY}}` in workload secrets. For values shared only within a repository, use **Repository → Settings → Repository Secrets** and `{{repo.KEY}}`. See [secret stores](/docs/secrets/towbar#shared-secret-stores).
