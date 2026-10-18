@@ -8,6 +8,7 @@ import {
   digestValue,
 } from "@workspace/towbar-core";
 import {
+  apps,
   deployments,
   imageVulnerabilityScans,
   repositoryManifests,
@@ -429,6 +430,24 @@ export async function withdrawRepository(
     ),
     scheduleAutomaticDeployment: false,
   });
+  const transferredIds = review.plans.flatMap((plan) =>
+    plan.state === "active" &&
+    plan.workloads[0] &&
+    plan.workloads[0].sourceEnvironmentId !==
+      plan.declarations[0]?.sourceEnvironmentId
+      ? plan.workloads.map((workload) => workload.id)
+      : [],
+  );
+  if (transferredIds.length)
+    await database
+      .update(apps)
+      .set({ deferredAutomaticDeployment: null })
+      .where(
+        and(
+          eq(apps.workspaceId, input.workspaceId),
+          inArray(apps.id, transferredIds),
+        ),
+      );
   await recordAuditEvent(database, {
     workspaceId: input.workspaceId,
     actorUserId: input.actorUserId,

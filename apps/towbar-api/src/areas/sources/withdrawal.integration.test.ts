@@ -324,6 +324,20 @@ void test(
             .returning();
           assert(connectedSecond);
           await sync(connectedSecond);
+          const pending = await workload();
+          await db
+            .update(apps)
+            .set({
+              deferredAutomaticDeployment: {
+                commitSha: "a".repeat(40),
+                deploymentDigest: pending.deploymentDigest!,
+                manifestId: pending.id,
+                deferredAt: new Date().toISOString(),
+                reason: "paused",
+                scope: "environment",
+              },
+            })
+            .where(eq(apps.id, pending.id));
           const review = await previewRepositoryRemoval(
             firstId,
             workspaceId,
@@ -340,6 +354,7 @@ void test(
               expectedRemovalRevision: review.revision,
             }),
           );
+          assert.equal((await workload()).deferredAutomaticDeployment, null);
           assert.equal((await workload()).sourceId, secondId);
           assert.equal((await workload()).id, original.id);
           assert.equal((await workload()).manifestState, "active");
