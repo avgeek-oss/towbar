@@ -410,6 +410,7 @@ function TowbarUpdates({
   const active = upgradeIsActive(job?.state);
   const recovery = upgradeNeedsRecovery(job?.state);
   const status = error ? "unavailable" : updates?.status;
+  const current = status === "current" && !active && !recovery;
   const description =
     active && job
       ? `Towbar is upgrading from ${job.currentVersion} to ${job.targetVersion}.`
@@ -431,11 +432,11 @@ function TowbarUpdates({
             "mt-0.5 size-5 shrink-0",
             recovery
               ? "text-danger-soft-foreground"
-              : status === "current"
+              : current
                 ? "text-success-soft-foreground"
                 : "text-muted",
           )}
-          icon={ReloadIcon}
+          icon={current ? CheckmarkCircle02Icon : ReloadIcon}
         />
         <div className="grid min-w-0 gap-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -458,6 +459,10 @@ function TowbarUpdates({
                 <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
                   Update available
                 </Chip.Label>
+              </Chip>
+            ) : current ? (
+              <Chip color="success">
+                <Chip.Label className="whitespace-nowrap">Latest</Chip.Label>
               </Chip>
             ) : null}
           </div>
@@ -500,8 +505,7 @@ function HealthStatusChip({
       }
     >
       <Chip color={presentation.variant}>
-        <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-          <HugeiconsIcon aria-hidden icon={presentation.icon} />
+        <Chip.Label className="whitespace-nowrap">
           {stale ? "Checks stale" : presentation.label}
         </Chip.Label>
       </Chip>

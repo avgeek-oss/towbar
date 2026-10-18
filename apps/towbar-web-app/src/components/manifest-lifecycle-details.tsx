@@ -79,7 +79,7 @@ export function LifecycleDetails({
             {item.workloads.some(
               (workload) => workload.sourceId === source.sourceId,
             ) ? (
-              <Chip className="w-fit">
+              <Chip color="accent" className="w-fit">
                 <Chip.Label>Current owner</Chip.Label>
               </Chip>
             ) : null}
@@ -98,10 +98,11 @@ export function LifecycleDetails({
             source.manifestFiles.map((file) => (
               <TypographyCode
                 key={file.path}
-                className="break-words [overflow-wrap:anywhere]"
+                className="block min-w-0 max-w-full truncate"
+                title={file.url ? undefined : file.path}
               >
                 {file.url ? (
-                  <InlineExternalLink href={file.url}>
+                  <InlineExternalLink href={file.url} tooltip={file.path}>
                     {file.path}
                   </InlineExternalLink>
                 ) : (
@@ -302,11 +303,12 @@ export function LifecycleDetails({
                   />
                 </section>
               ) : null}
-              <TypographyText textRole="caption">
-                {item.state === "removing"
-                  ? "Permanent removal was requested. Inspect cleanup results before reusing this ID."
-                  : "The running workload and its data stay in place. Correct Git and sync to resume management."}
-              </TypographyText>
+              {item.state === "removing" ? (
+                <TypographyText textRole="caption">
+                  Permanent removal was requested. Inspect cleanup results
+                  before reusing this ID.
+                </TypographyText>
+              ) : null}
             </div>
           </Modal.Body>
           <Modal.Footer>
