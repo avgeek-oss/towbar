@@ -14,7 +14,14 @@ import {
   lineNumbers,
   drawSelection,
   highlightActiveLine,
+  hoverTooltip,
+  activateHover,
+  closeHoverTooltips,
 } from "@codemirror/view";
+import {
+  secretReferenceAt,
+  type RevealSecretReference,
+} from "@/lib/secret-reference";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 
 const tokens = new MatchDecorator({
@@ -59,6 +66,7 @@ export default function CodeEditor({
   language = "env",
   ariaLabel = "Secrets .env file",
   readOnlyLinePrefixes,
+  revealReference,
   onChange,
 }: {
   value: string;
@@ -67,6 +75,7 @@ export default function CodeEditor({
   language?: "env" | "yaml";
   ariaLabel?: string;
   readOnlyLinePrefixes?: string[];
+  revealReference?: RevealSecretReference;
   onChange?: (value: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -74,7 +83,51 @@ export default function CodeEditor({
   const editable = useRef(new Compartment());
   const change = useRef(onChange);
   change.current = onChange;
+  const reveal = useRef(revealReference);
+  reveal.current = revealReference;
   useEffect(() => {
+    const previews = hoverTooltip(
+      (view, pos, side) => {
+        const revealValue = reveal.current;
+        if (!revealValue) return null;
+        const line = view.state.doc.lineAt(pos);
+        const reference = secretReferenceAt(line.text, pos - line.from, side);
+        if (!reference) return null;
+        return {
+          pos,
+          end: line.from + reference.to,
+          above: true,
+          create() {
+            const dom = document.createElement("div");
+            dom.className =
+              "px-3 py-2 text-xs whitespace-pre-wrap [overflow-wrap:anywhere]";
+            dom.style.maxWidth = "min(24rem, calc(100vw - 2rem))";
+            dom.setAttribute("role", "tooltip");
+            dom.textContent = "Loading value…";
+            let active = true;
+            return {
+              dom,
+              mount() {
+                void revealValue(reference.scope, reference.key).then(
+                  (value) => {
+                    if (active) dom.textContent = value || "Empty value";
+                  },
+                  () => {
+                    if (active)
+                      dom.textContent = "Unable to show shared secret value";
+                  },
+                );
+              },
+              destroy() {
+                active = false;
+                dom.textContent = "";
+              },
+            };
+          },
+        };
+      },
+      { hideOnChange: true, hoverTime: 250 },
+    );
     const view = new EditorView({
       parent: host.current!,
       state: EditorState.create({
@@ -82,6 +135,29 @@ export default function CodeEditor({
         extensions: [
           lineNumbers(),
           language === "yaml" ? [yaml(), yamlHighlighting] : highlighting,
+          language === "env"
+            ? [
+                previews,
+                keymap.of([
+                  {
+                    key: "Ctrl-Space",
+                    run(view) {
+                      activateHover(view, view.state.selection.main.head, 1, {
+                        tooltip: previews,
+                      });
+                      return true;
+                    },
+                  },
+                  {
+                    key: "Escape",
+                    run(view) {
+                      view.dispatch({ effects: closeHoverTooltips });
+                      return false;
+                    },
+                  },
+                ]),
+              ]
+            : [],
           drawSelection(),
           disabled ? [] : highlightActiveLine(),
           history(),
@@ -148,13 +224,25 @@ export default function CodeEditor({
             ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
               backgroundColor: "var(--accent-soft)",
             },
+            ".cm-tooltip": {
+              backgroundColor: "var(--overlay)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              boxShadow: "var(--shadow-overlay)",
+            },
             ".cm-cursor": { borderLeftColor: "var(--foreground)" },
           }),
         ],
       }),
     });
     editor.current = view;
+    const clearPreviews = () => view.dispatch({ effects: closeHoverTooltips });
+    window.addEventListener("blur", clearPreviews);
+    document.addEventListener("visibilitychange", clearPreviews);
     return () => {
+      window.removeEventListener("blur", clearPreviews);
+      document.removeEventListener("visibilitychange", clearPreviews);
       view.destroy();
       editor.current = null;
     };
