@@ -228,12 +228,20 @@ void test(
         },
       );
       await t.test(
-        "source deletion cannot discard retained workloads or their cleanup ownership",
+        "repository withdrawal preserves retained workloads and their cleanup ownership",
         async () => {
-          await assert.rejects(
-            deleteSource(sourceId, workspaceId),
-            /retained history|owns workloads/,
-          );
+          await deleteSource(sourceId, workspaceId);
+          const [connection] = await db
+            .select()
+            .from(sources)
+            .where(eq(sources.id, sourceId));
+          assert.equal(connection?.status, "archived");
+          const [retained] = await db
+            .select()
+            .from(apps)
+            .where(eq(apps.id, resourceId));
+          assert.equal(retained?.manifestState, "retired");
+          assert.equal(retained?.archivedAt, null);
           assert.equal(
             (await db.select().from(apps).where(eq(apps.id, resourceId)))
               .length,
