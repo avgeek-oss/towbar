@@ -61,6 +61,51 @@ function resolve(
   });
 }
 
+void test("favicon domains normalize and survive environment overrides without adding public routing", () => {
+  const privateApp = {
+    ...app,
+    tls: undefined,
+    preview: undefined,
+    faviconDomain: "Posted.Example.com",
+  };
+  const { manifest } = resolve(privateApp, "production");
+  assert.equal(manifest.apps[0]?.faviconDomain, "posted.example.com");
+  assert.equal(
+    resolve(
+      {
+        ...privateApp,
+        environments: {
+          production: {
+            server: "192.0.2.10",
+            faviconDomain: "Brand.Example.com",
+          },
+        },
+      },
+      "production",
+    ).manifest.apps[0]?.faviconDomain,
+    "brand.example.com",
+  );
+  assert.equal(
+    resolve(
+      {
+        ...privateApp,
+        environments: { production: { server: "192.0.2.10" } },
+      },
+      "production",
+    ).manifest.apps[0]?.domains,
+    undefined,
+  );
+  for (const faviconDomain of [
+    "https://example.com/icon.png",
+    "example.com/path",
+    "",
+  ]) {
+    assert.throws(() =>
+      resolve({ ...privateApp, faviconDomain }, "production"),
+    );
+  }
+});
+
 void test("resolves PostgreSQL 18 as a managed datastore with initialization files", () => {
   const image = `postgres:18-alpine@sha256:${"a".repeat(64)}`;
   const { manifest } = resolve(app, "production", {

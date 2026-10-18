@@ -5,31 +5,37 @@ import { notFound } from "../../http/errors.js";
 import { getApp } from "../apps/queries.js";
 import { cachedIcon } from "./cache.js";
 
+type IconConfiguration = {
+  faviconDomain?: string;
+  domains?: { primary?: string; redirects?: Array<{ host: string }> };
+};
+
+export function appIconDomain(config: IconConfiguration) {
+  return (
+    config.faviconDomain ??
+    config.domains?.primary ??
+    config.domains?.redirects?.[0]?.host ??
+    null
+  );
+}
+
 export function deploymentIconDomain(deployment: {
   environment: string;
   hostname: string | null;
-  appSnapshot: {
-    domains?: { primary?: string; redirects?: Array<{ host: string }> };
-  };
+  appSnapshot: IconConfiguration;
 }) {
   return (
+    deployment.appSnapshot.faviconDomain ??
     deployment.hostname ??
     (deployment.environment === "production"
-      ? (deployment.appSnapshot.domains?.primary ??
-        deployment.appSnapshot.domains?.redirects?.[0]?.host ??
-        null)
+      ? appIconDomain(deployment.appSnapshot)
       : null)
   );
 }
 
 export async function getAppIcon(appId: string, workspaceId: string) {
   const app = await getApp(appId, workspaceId);
-  return cachedIcon(
-    workspaceId,
-    app.config.domains?.primary ??
-      app.config.domains?.redirects[0]?.host ??
-      null,
-  );
+  return cachedIcon(workspaceId, appIconDomain(app.config));
 }
 
 export async function getDeploymentIcon(

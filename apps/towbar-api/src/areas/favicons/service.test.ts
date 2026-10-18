@@ -1,6 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { deploymentIconDomain } from "./service.js";
+import { appIconDomain, deploymentIconDomain } from "./service.js";
+
+void test("services can share a public branding domain without public routing", () => {
+  const config = { faviconDomain: "posted.example.com" };
+  assert.equal(appIconDomain(config), "posted.example.com");
+  assert.equal(appIconDomain({}), null);
+  assert.equal(
+    appIconDomain({
+      ...config,
+      domains: { primary: "api.example.com" },
+    }),
+    "posted.example.com",
+  );
+  assert.equal(
+    deploymentIconDomain({
+      environment: "preview",
+      hostname: "pr-42.example.com",
+      appSnapshot: config,
+    }),
+    "posted.example.com",
+  );
+});
 
 void test("deployment icons stay on their recorded or preview hostname", () => {
   const appSnapshot = {

@@ -172,6 +172,7 @@ void test("deployment metadata and scheduling controls do not change the runtime
         ...app,
         autoDeploy: false,
         description: "Display-only description",
+        faviconDomain: "branding.example.com",
         deploymentInputs: ["packages/shared/**"],
         name: "Renamed Web",
         notifications: {

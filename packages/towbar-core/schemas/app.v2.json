@@ -198,6 +198,7 @@
     },
     "name": { "type": "string", "minLength": 1, "maxLength": 120 },
     "description": { "type": "string", "maxLength": 500 },
+    "faviconDomain": { "type": "string", "minLength": 1, "maxLength": 253 },
     "server": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "string"
@@ -1388,6 +1389,11 @@
           },
           "vulnerabilityScanning": { "type": "boolean" },
           "description": { "type": "string", "maxLength": 500 },
+          "faviconDomain": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253
+          },
           "server": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "string"

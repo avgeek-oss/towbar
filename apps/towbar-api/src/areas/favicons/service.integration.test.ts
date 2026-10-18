@@ -67,6 +67,7 @@ void test(
         {
           id: "site",
           name: "Site",
+          faviconDomain: "branding.example.internal",
           server: "192.0.2.10",
           dockerfile: "Dockerfile",
           container: { port: 3000 },

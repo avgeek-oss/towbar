@@ -58,6 +58,7 @@ export type NormalizedApp = {
   deployment?: AppDeployment;
   deploymentInputs: string[];
   description?: string;
+  faviconDomain?: string;
   dockerfile?: string;
   domains?: {
     primary: string;

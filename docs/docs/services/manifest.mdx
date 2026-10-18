@@ -43,3 +43,13 @@ Put build settings under `deployment`. The exact accepted shapes and constraints
 ## Common and environment values
 
 Put shared settings at the top level and override allowed fields under an environment. Objects merge recursively, while an environment array replaces the common array. Identity, secret declarations, and preview configuration stay at entity level. A failed sync does not partially replace the last valid Service configuration or its stored secret values.
+
+## Service icons
+
+Towbar discovers a service's icon from its public domain. Set `faviconDomain` to reuse another site's icon, including for a private worker. Use a hostname without a scheme or path:
+
+```yaml
+faviconDomain: posted.example.com
+```
+
+This changes the icon in Towbar without adding a public route. Discovery uses HTTPS and the same public-address, response-size, and timeout checks as automatic favicon discovery. Deployment history retains the icon domain recorded in each deployment.

@@ -429,6 +429,7 @@ export const appSchema = z
     id: z.string().trim().regex(appIdPattern),
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(500).optional(),
+    faviconDomain: domainSchema.optional(),
     server: serverReferenceSchema,
     deployment: appDeploymentSchema.optional(),
     dockerfile: repositoryPathSchema.optional(),
@@ -1212,6 +1213,9 @@ export function normalizeDeploymentManifest(
           id: app.id,
           name: app.name,
           ...(app.description ? { description: app.description } : {}),
+          ...(app.faviconDomain
+            ? { faviconDomain: normalizeDomain(app.faviconDomain) }
+            : {}),
           server: canonicalIp(app.server),
           sourceBranch,
           deployment,
