@@ -160,7 +160,17 @@ export function TeamAuditLogs() {
             value={history.filters.userId}
             options={(filters.data?.users ?? []).map((user) => ({
               id: user.id,
-              label: `${user.name} (${user.email})`,
+              label: user.name,
+              searchText: `${user.name} ${user.email}`,
+              icon: (
+                <Avatar
+                  email={user.email}
+                  name={user.name}
+                  size="sm"
+                  className="shrink-0"
+                  aria-hidden="true"
+                />
+              ),
             }))}
             onChange={(value) => history.setFilter("userId", value)}
           />
