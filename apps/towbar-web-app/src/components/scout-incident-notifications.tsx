@@ -54,14 +54,14 @@ export function ScoutIncidentNotifications({
         const characters = Array.from(d.destination);
         return (
           <TableCellStack as="div" className="min-w-40">
-            <span
+            <TooltipText
               className="max-w-64 truncate sm:max-w-[64ch]"
-              title={d.destination}
+              tooltip={d.destination}
             >
               {characters.length > 64
                 ? `${characters.slice(0, 63).join("")}…`
                 : d.destination}
-            </span>
+            </TooltipText>
             <TableCellDescription>
               {providerLabel(d.provider)}
             </TableCellDescription>

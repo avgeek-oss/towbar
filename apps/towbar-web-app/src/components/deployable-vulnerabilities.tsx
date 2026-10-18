@@ -110,9 +110,7 @@ export function DeployableVulnerabilities({
     {
       key: "target",
       header: "Target",
-      cell: (finding) => (
-        <TooltipText tooltip={finding.target}>{finding.target}</TooltipText>
-      ),
+      cell: (finding) => finding.target,
       className: "whitespace-nowrap",
     },
     {

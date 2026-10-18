@@ -233,9 +233,7 @@ const changeColumns: ResourceTableColumn<ReconciliationChange>[] = [
     key: "item",
     header: "Item",
     cell: (change) => (
-      <TypographyCode className="whitespace-nowrap" title={change.id}>
-        {change.id}
-      </TypographyCode>
+      <TypographyCode className="whitespace-nowrap">{change.id}</TypographyCode>
     ),
     className: "w-full min-w-64",
   },

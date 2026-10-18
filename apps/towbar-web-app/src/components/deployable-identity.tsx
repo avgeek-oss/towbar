@@ -76,18 +76,12 @@ export function AppIdentity({
           }
         />
         {primaryDomain && domains.length === 1 ? (
-          <TooltipText
-            className={`${tableCellDescriptionClassName} flex max-w-64 min-w-0 items-center gap-0.5 truncate`}
-            tooltip={primaryDomain}
+          <DomainLink
+            className={`${tableCellDescriptionClassName} max-w-64 truncate`}
+            domain={primaryDomain}
           >
-            <DomainLink
-              className="truncate"
-              domain={primaryDomain}
-              showTooltip={false}
-            >
-              {primaryDomain}
-            </DomainLink>
-          </TooltipText>
+            {primaryDomain}
+          </DomainLink>
         ) : primaryDomain ? (
           <Tooltip>
             <Tooltip.Trigger

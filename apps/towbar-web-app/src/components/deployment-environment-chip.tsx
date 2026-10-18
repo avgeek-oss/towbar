@@ -19,7 +19,7 @@ export function DeploymentEnvironmentChip({
       tooltip={
         preview
           ? `Pull-request preview targeting ${deployment.targetEnvironment.name}`
-          : `Deployment environment: ${deployment.targetEnvironment.name}`
+          : undefined
       }
     />
   );

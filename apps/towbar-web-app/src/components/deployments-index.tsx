@@ -20,7 +20,7 @@ import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import { useUrlTablePagination as useTablePagination } from "@/hooks/use-url-pagination";
 import { Pagination } from "@avgeek-oss/design-system/navigation/pagination";
 import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
-import { Tooltip } from "@avgeek-oss/design-system/overlays/tooltip";
+import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 
 import { DashboardPage, InlineLink } from "@/components/page-parts";
 import { useApiQuery } from "@/hooks/use-api-query";
@@ -73,52 +73,36 @@ const columns: ResourceTableColumn<DeploymentHistoryItem>[] = [
         deploymentSubtitle(item, item.deployableDomain ?? undefined) ??
         "Service";
       return (
-        <Tooltip>
-          <Tooltip.Trigger<"a">
-            role="link"
-            className="inline-flex min-w-0 items-center gap-2"
-            render={(props) => (
-              <InlineLink
-                {...props}
-                href={`/${item.deployableKind === "app" || item.deployableKind === "compose" ? "services" : "datastores"}/${item.appId}`}
-              >
-                {props.children}
-              </InlineLink>
-            )}
-          >
-            {item.deployableKind === "app" ||
-            item.deployableKind === "compose" ? (
-              <AppLogo
-                deploymentId={item.id}
-                domain={deploymentLogoDomain(
-                  item,
-                  item.deployableDomain ?? undefined,
-                )}
-              />
-            ) : (
-              <ResourceLogo
-                brand={resourceImageBrand(
-                  item.deployableKind,
-                  item.deployableImage ?? "",
-                )}
-              />
-            )}
-            <TableCellStack className="min-w-0">
-              <span className="truncate">{item.deployableName}</span>
-              <TableCellDescription className="truncate" title="">
+        <InlineLink
+          className="inline-flex min-w-0 items-center gap-2"
+          href={`/${item.deployableKind === "app" || item.deployableKind === "compose" ? "services" : "datastores"}/${item.appId}`}
+        >
+          {item.deployableKind === "app" ||
+          item.deployableKind === "compose" ? (
+            <AppLogo
+              deploymentId={item.id}
+              domain={deploymentLogoDomain(
+                item,
+                item.deployableDomain ?? undefined,
+              )}
+            />
+          ) : (
+            <ResourceLogo
+              brand={resourceImageBrand(
+                item.deployableKind,
+                item.deployableImage ?? "",
+              )}
+            />
+          )}
+          <TableCellStack className="min-w-0">
+            <span className="truncate">{item.deployableName}</span>
+            <TableCellDescription>
+              <TooltipText className="block truncate" tooltip={subtitle}>
                 {subtitle}
-              </TableCellDescription>
-            </TableCellStack>
-          </Tooltip.Trigger>
-          <Tooltip.Content
-            className="max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-xs [overflow-wrap:anywhere]"
-            placement="top"
-            showArrow
-          >
-            <Tooltip.Arrow />
-            {subtitle}
-          </Tooltip.Content>
-        </Tooltip>
+              </TooltipText>
+            </TableCellDescription>
+          </TableCellStack>
+        </InlineLink>
       );
     },
     className: "min-w-56",
