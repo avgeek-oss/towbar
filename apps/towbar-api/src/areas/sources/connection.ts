@@ -95,12 +95,17 @@ export async function connectRepositorySource(
     workspaceId: string;
     actorUserId: string | null;
   },
+  dependencies = {
+    repository: getGitHubRepository,
+    snapshot: fetchRepositoryEnvironmentSnapshot,
+    requestSync: requestEnvironmentSync,
+  },
 ) {
   const actor = requireActor(input.workspaceId, ["repository.connect"]);
   const connection = await repositoryConnection(input);
   const githubRepository =
     connection.provider === "github"
-      ? await getGitHubRepository(connection)
+      ? await dependencies.repository(connection)
       : null;
   const resolved: {
     environment: string;
@@ -108,7 +113,7 @@ export async function connectRepositorySource(
     previewsEnabled: boolean;
   }[] = [];
   for (const mapping of input.environments) {
-    const snapshot = await fetchRepositoryEnvironmentSnapshot({
+    const snapshot = await dependencies.snapshot({
       ...connection,
       branch: mapping.branch,
     });
@@ -133,7 +138,7 @@ export async function connectRepositorySource(
       sql`select pg_advisory_xact_lock(hashtextextended(${repositoryKey}, 0))`,
     );
     const [existing] = await transaction
-      .select({ id: sources.id })
+      .select({ id: sources.id, status: sources.status })
       .from(sources)
       .where(
         and(
@@ -149,28 +154,42 @@ export async function connectRepositorySource(
             ),
           ),
         ),
-      );
-    if (existing)
+      )
+      .for("update");
+    if (existing?.status === "active")
       throw conflict(
         "This repository is already connected. Add an environment to the existing Repository.",
         "SOURCE_ALREADY_CONNECTED",
       );
-    const [source] = await transaction
-      .insert(sources)
-      .values({
-        workspaceId: input.workspaceId,
-        provider: connection.provider,
-        integrationInstallationId: sourceInstallationRecordId(input),
-        integrationAuthorizationId:
-          connection.provider === "gitlab" ? connection.connectionId : null,
-        providerRepositoryId:
-          connection.provider === "gitlab"
-            ? connection.projectId
-            : githubRepository!.id,
-        repositoryName: githubRepository?.name ?? input.repositoryName,
-        repositoryOwner: githubRepository?.owner ?? input.repositoryOwner,
-      })
-      .returning(publicSourceSelection);
+    const values = {
+      workspaceId: input.workspaceId,
+      provider: connection.provider,
+      integrationInstallationId: sourceInstallationRecordId(input),
+      integrationAuthorizationId:
+        connection.provider === "gitlab" ? connection.connectionId : null,
+      providerRepositoryId:
+        connection.provider === "gitlab"
+          ? connection.projectId
+          : githubRepository!.id,
+      repositoryName: githubRepository?.name ?? input.repositoryName,
+      repositoryOwner: githubRepository?.owner ?? input.repositoryOwner,
+    };
+    const [source] = existing
+      ? await transaction
+          .update(sources)
+          .set({
+            ...values,
+            status: "active",
+            archivedAt: null,
+            autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+            updatedAt: new Date(),
+          })
+          .where(eq(sources.id, existing.id))
+          .returning(publicSourceSelection)
+      : await transaction
+          .insert(sources)
+          .values(values)
+          .returning(publicSourceSelection);
     if (!source) throw new Error("Unable to connect Source");
     const environments = await transaction
       .insert(sourceEnvironments)
@@ -183,6 +202,17 @@ export async function connectRepositorySource(
           autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
         })),
       )
+      .onConflictDoUpdate({
+        target: [sourceEnvironments.sourceId, sourceEnvironments.name],
+        set: {
+          branch: sql`excluded.branch`,
+          previewsEnabled: sql`excluded.previews_enabled`,
+          autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+          mappingRevision: sql`gen_random_uuid()`,
+          disconnectedAt: null,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
     await recordAuditEvent(transaction, {
       workspaceId: input.workspaceId,
@@ -202,7 +232,7 @@ export async function connectRepositorySource(
   const syncs = [];
   for (const environment of result.environments) {
     try {
-      const sync = await requestEnvironmentSync({
+      const sync = await dependencies.requestSync({
         sourceId: result.source.id,
         environmentId: environment.id,
         workspaceId: input.workspaceId,

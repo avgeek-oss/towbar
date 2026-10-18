@@ -457,21 +457,21 @@ function SourceSettings({
                   <FormCard help={false} title="Danger zone">
                     <div className="content-grid">
                       <p className="max-w-3xl text-sm text-muted">
-                        Only empty repositories with no retained workload or
-                        deployment history can be deleted. Disconnect
-                        environments to stop syncing. Review missing workloads
-                        on the Retirements page before explicitly removing their
-                        runtime or storage.
+                        Disconnect all environments, then move or remove any
+                        remaining workloads before deleting this repository.
+                        Deployment history and ownership records are preserved.
+                        Reconnecting the same repository restores its
+                        connection.
                       </p>
                       <ActionButton
                         action={() =>
                           api.delete(`/v1/core/sources/${sourceId}`)
                         }
                         confirm={{
-                          actionLabel: "Delete Repository permanently",
+                          actionLabel: "Delete Repository",
                           description:
-                            "This permanently deletes the Repository, sync history, Services, Datastores, Deployments, Releases, backup metadata, and runtime operations. Workspace integrations, servers, their credentials, checks, and trust records remain available. Running services and Docker data are not deleted. Check each server afterward to find leftovers in Cleanup. This cannot be undone.",
-                          title: "Delete this Repository and its inventory?",
+                            "Remove this disconnected repository from Towbar. Deployment and sync history, removed workload records, secrets, and backup metadata are preserved. You can reconnect the same repository later. This does not delete the Git repository.",
+                          title: "Delete this Repository from Towbar?",
                         }}
                         onSuccess={onDelete}
                         pendingLabel="Deleting…"

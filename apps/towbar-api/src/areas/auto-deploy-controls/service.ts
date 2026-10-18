@@ -25,7 +25,13 @@ export async function getSourceAutoDeployControl(
   const [source] = await getTowbarDatabase()
     .select({ paused: sources.autoDeployPaused })
     .from(sources)
-    .where(and(eq(sources.id, sourceId), eq(sources.workspaceId, workspaceId)))
+    .where(
+      and(
+        eq(sources.id, sourceId),
+        eq(sources.workspaceId, workspaceId),
+        eq(sources.status, "active"),
+      ),
+    )
     .limit(1);
   if (!source) throw notFound("Source");
   return {
@@ -71,6 +77,7 @@ export async function updateSourceAutoDeployControl(input: {
           and(
             eq(sources.id, input.sourceId),
             eq(sources.workspaceId, input.workspaceId),
+            eq(sources.status, "active"),
           ),
         )
         .for("update")

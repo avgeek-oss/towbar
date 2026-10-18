@@ -9041,45 +9041,14 @@
         },
         "required": ["sync"]
       },
-      "Response_453": {
-        "type": "object",
-        "properties": {
-          "createdAt": { "type": "string", "format": "date-time" },
-          "id": { "type": "string" },
-          "provider": {
-            "anyOf": [
-              { "type": "string", "const": "github" },
-              { "type": "string", "const": "gitlab" }
-            ]
-          },
-          "repositoryName": { "type": "string" },
-          "repositoryOwner": { "type": "string" },
-          "status": {
-            "anyOf": [
-              { "type": "string", "const": "active" },
-              { "type": "string", "const": "archived" }
-            ]
-          },
-          "updatedAt": { "type": "string", "format": "date-time" }
-        },
-        "required": [
-          "createdAt",
-          "id",
-          "provider",
-          "repositoryName",
-          "repositoryOwner",
-          "status",
-          "updatedAt"
-        ]
-      },
       "Response_452": {
         "type": "object",
         "properties": {
-          "source": { "$ref": "#/components/schemas/Response_453" }
+          "source": { "$ref": "#/components/schemas/Response_404" }
         },
         "required": ["source"]
       },
-      "TowbarUpgradeJob_455": {
+      "TowbarUpgradeJob_454": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9117,7 +9086,7 @@
           "updatedAt"
         ]
       },
-      "TowbarUpgradeStatus_454": {
+      "TowbarUpgradeStatus_453": {
         "type": "object",
         "properties": {
           "supported": { "type": "boolean" },
@@ -9125,13 +9094,13 @@
           "job": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/TowbarUpgradeJob_455" }
+              { "$ref": "#/components/schemas/TowbarUpgradeJob_454" }
             ]
           }
         },
         "required": ["supported", "job"]
       },
-      "TowbarUpgradePlan_456": {
+      "TowbarUpgradePlan_455": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9154,7 +9123,7 @@
           "expiresAt"
         ]
       },
-      "SystemHealthCheck_458": {
+      "SystemHealthCheck_457": {
         "type": "object",
         "properties": {
           "checkedAt": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
@@ -9192,7 +9161,7 @@
           "title"
         ]
       },
-      "Response_459": {
+      "Response_458": {
         "type": "object",
         "properties": {
           "sampledAt": { "type": "string" },
@@ -9213,17 +9182,17 @@
           "logsError"
         ]
       },
-      "SystemHealth_457": {
+      "SystemHealth_456": {
         "type": "object",
         "properties": {
           "checkedAt": { "type": "string" },
           "checks": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/SystemHealthCheck_458" }
+            "items": { "$ref": "#/components/schemas/SystemHealthCheck_457" }
           },
           "databaseStorage": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_459" }
+            "items": { "$ref": "#/components/schemas/Response_458" }
           },
           "status": {
             "anyOf": [
@@ -9243,7 +9212,7 @@
           "version"
         ]
       },
-      "TowbarUpdateInfo_460": {
+      "TowbarUpdateInfo_459": {
         "type": "object",
         "properties": {
           "checkedAt": { "type": "string" },
@@ -9269,7 +9238,7 @@
           "status"
         ]
       },
-      "Response_462": {
+      "Response_461": {
         "type": "object",
         "properties": {
           "chatId": { "type": "string" },
@@ -9292,32 +9261,32 @@
           "id"
         ]
       },
-      "Response_461": {
+      "Response_460": {
         "type": "object",
         "properties": {
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_462" }
+            "items": { "$ref": "#/components/schemas/Response_461" }
+          }
+        },
+        "required": ["destinations"]
+      },
+      "Response_462": {
+        "type": "object",
+        "properties": {
+          "destinations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Response_461" }
           }
         },
         "required": ["destinations"]
       },
       "Response_463": {
         "type": "object",
-        "properties": {
-          "destinations": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_462" }
-          }
-        },
-        "required": ["destinations"]
-      },
-      "Response_464": {
-        "type": "object",
         "properties": { "status": { "type": "string", "const": "accepted" } },
         "required": ["status"]
       },
-      "Response_466": {
+      "Response_465": {
         "type": "object",
         "properties": {
           "routeId": { "type": "string" },
@@ -9336,32 +9305,32 @@
           "alertsAndIncidents"
         ]
       },
-      "Response_465": {
+      "Response_464": {
         "type": "object",
         "properties": {
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_466" }
+            "items": { "$ref": "#/components/schemas/Response_465" }
+          }
+        },
+        "required": ["destinations"]
+      },
+      "Response_466": {
+        "type": "object",
+        "properties": {
+          "destinations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Response_465" }
           }
         },
         "required": ["destinations"]
       },
       "Response_467": {
         "type": "object",
-        "properties": {
-          "destinations": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_466" }
-          }
-        },
-        "required": ["destinations"]
-      },
-      "Response_468": {
-        "type": "object",
         "properties": { "status": { "type": "string", "const": "accepted" } },
         "required": ["status"]
       },
-      "Response_470": {
+      "Response_469": {
         "type": "object",
         "properties": {
           "routeId": { "type": "string" },
@@ -9382,32 +9351,32 @@
           "alertsAndIncidents"
         ]
       },
-      "Response_469": {
+      "Response_468": {
         "type": "object",
         "properties": {
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_470" }
+            "items": { "$ref": "#/components/schemas/Response_469" }
+          }
+        },
+        "required": ["destinations"]
+      },
+      "Response_470": {
+        "type": "object",
+        "properties": {
+          "destinations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Response_469" }
           }
         },
         "required": ["destinations"]
       },
       "Response_471": {
         "type": "object",
-        "properties": {
-          "destinations": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_470" }
-          }
-        },
-        "required": ["destinations"]
-      },
-      "Response_472": {
-        "type": "object",
         "properties": { "status": { "type": "string", "const": "accepted" } },
         "required": ["status"]
       },
-      "Response_474": {
+      "Response_473": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9426,32 +9395,32 @@
           "scout"
         ]
       },
-      "Response_473": {
+      "Response_472": {
         "type": "object",
         "properties": {
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_474" }
+            "items": { "$ref": "#/components/schemas/Response_473" }
+          }
+        },
+        "required": ["destinations"]
+      },
+      "Response_474": {
+        "type": "object",
+        "properties": {
+          "destinations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Response_473" }
           }
         },
         "required": ["destinations"]
       },
       "Response_475": {
         "type": "object",
-        "properties": {
-          "destinations": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_474" }
-          }
-        },
-        "required": ["destinations"]
-      },
-      "Response_476": {
-        "type": "object",
         "properties": { "status": { "type": "string", "const": "accepted" } },
         "required": ["status"]
       },
-      "Response_478": {
+      "Response_477": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9470,32 +9439,32 @@
           "scout"
         ]
       },
-      "Response_477": {
+      "Response_476": {
         "type": "object",
         "properties": {
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_478" }
+            "items": { "$ref": "#/components/schemas/Response_477" }
+          }
+        },
+        "required": ["destinations"]
+      },
+      "Response_478": {
+        "type": "object",
+        "properties": {
+          "destinations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Response_477" }
           }
         },
         "required": ["destinations"]
       },
       "Response_479": {
         "type": "object",
-        "properties": {
-          "destinations": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_478" }
-          }
-        },
-        "required": ["destinations"]
-      },
-      "Response_480": {
-        "type": "object",
         "properties": { "status": { "type": "string", "const": "accepted" } },
         "required": ["status"]
       },
-      "Response_482": {
+      "Response_481": {
         "type": "object",
         "properties": {
           "categories": {
@@ -9531,19 +9500,19 @@
         },
         "required": ["categories", "enabled", "id", "provider", "source"]
       },
-      "Response_481": {
+      "Response_480": {
         "type": "object",
         "properties": {
           "canManageNotifications": { "type": "boolean" },
           "destinations": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_482" }
+            "items": { "$ref": "#/components/schemas/Response_481" }
           },
           "providers": { "$ref": "#/components/schemas/Response_113" }
         },
         "required": ["canManageNotifications", "destinations", "providers"]
       },
-      "Response_484": {
+      "Response_483": {
         "type": "object",
         "properties": {
           "destination": { "type": "string" },
@@ -9661,7 +9630,7 @@
           "entityName"
         ]
       },
-      "Response_485": {
+      "Response_484": {
         "type": "object",
         "properties": {
           "before": { "type": "string" },
@@ -9669,21 +9638,28 @@
         },
         "required": ["before", "beforeId"]
       },
-      "Response_483": {
+      "Response_482": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Response_484" }
+            "items": { "$ref": "#/components/schemas/Response_483" }
           },
           "nextCursor": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_485" }
+              { "$ref": "#/components/schemas/Response_484" }
             ]
           }
         },
         "required": ["items", "nextCursor"]
+      },
+      "Response_487": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "string", "const": "environment" }
+        },
+        "required": ["source"]
       },
       "Response_488": {
         "type": "object",
@@ -9699,46 +9675,39 @@
         },
         "required": ["source"]
       },
-      "Response_490": {
-        "type": "object",
-        "properties": {
-          "source": { "type": "string", "const": "environment" }
-        },
-        "required": ["source"]
-      },
-      "Response_487": {
+      "Response_486": {
         "type": "object",
         "properties": {
           "slack": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_488" }
+              { "$ref": "#/components/schemas/Response_487" }
             ]
           },
           "smtp": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_489" }
+              { "$ref": "#/components/schemas/Response_488" }
             ]
           },
           "telegram": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_490" }
+              { "$ref": "#/components/schemas/Response_489" }
             ]
           }
         },
         "required": ["slack", "smtp", "telegram"]
       },
-      "Response_486": {
+      "Response_485": {
         "type": "object",
         "properties": {
-          "configurations": { "$ref": "#/components/schemas/Response_487" },
+          "configurations": { "$ref": "#/components/schemas/Response_486" },
           "providers": { "$ref": "#/components/schemas/Response_113" }
         },
         "required": ["configurations", "providers"]
       },
-      "Response_494": {
+      "Response_493": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9759,7 +9728,7 @@
         },
         "required": ["id", "kind", "name"]
       },
-      "Response_495": {
+      "Response_494": {
         "type": "object",
         "properties": {
           "id": { "type": "string" },
@@ -9767,17 +9736,17 @@
         },
         "required": ["id", "name"]
       },
-      "Response_493": {
+      "Response_492": {
         "type": "object",
         "properties": {
           "details": { "$ref": "#/components/schemas/Record_295" },
-          "entity": { "$ref": "#/components/schemas/Response_494" },
+          "entity": { "$ref": "#/components/schemas/Response_493" },
           "message": { "type": "string" },
           "occurredAt": { "type": "string" },
           "source": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_495" }
+              { "$ref": "#/components/schemas/Response_494" }
             ]
           },
           "title": { "type": "string" }
@@ -9791,7 +9760,7 @@
           "title"
         ]
       },
-      "Omit_492": {
+      "Omit_491": {
         "type": "object",
         "properties": {
           "type": {
@@ -9836,7 +9805,7 @@
               { "type": "string", "const": "restores" }
             ]
           },
-          "payload": { "$ref": "#/components/schemas/Response_493" },
+          "payload": { "$ref": "#/components/schemas/Response_492" },
           "occurredAt": { "type": "string", "format": "date-time" },
           "readAt": {
             "anyOf": [
@@ -9855,7 +9824,7 @@
           "readAt"
         ]
       },
-      "Response_496": {
+      "Response_495": {
         "type": "object",
         "properties": {
           "before": { "type": "string" },
@@ -9863,24 +9832,24 @@
         },
         "required": ["before", "beforeId"]
       },
-      "Response_491": {
+      "Response_490": {
         "type": "object",
         "properties": {
           "notifications": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Omit_492" }
+            "items": { "$ref": "#/components/schemas/Omit_491" }
           },
           "nextCursor": {
             "anyOf": [
               { "type": "null" },
-              { "$ref": "#/components/schemas/Response_496" }
+              { "$ref": "#/components/schemas/Response_495" }
             ]
           },
           "unreadCount": { "type": "number" }
         },
         "required": ["notifications", "nextCursor", "unreadCount"]
       },
-      "Response_497": {
+      "Response_496": {
         "type": "object",
         "properties": { "ok": { "type": "boolean" } },
         "required": ["ok"]
@@ -19846,7 +19815,7 @@
       },
       "delete": {
         "operationId": "delete_sources_by_id",
-        "summary": "Delete empty repository",
+        "summary": "Remove disconnected repository",
         "tags": ["Repositories / Overview"],
         "description": "Required permissions: repository.disconnect. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
@@ -19865,7 +19834,7 @@
         ],
         "responses": {
           "204": {
-            "description": "No response body. Repositories with retained workloads or deployment history cannot be deleted; disconnect their environments to stop syncing."
+            "description": "No response body. Removes a disconnected repository with no retained workloads or active operations from the active list. History and ownership records are preserved; reconnecting reuses the repository."
           },
           "400": { "$ref": "#/components/responses/ApiError" },
           "401": { "$ref": "#/components/responses/ApiError" },
@@ -31772,7 +31741,7 @@
               "application/json": {
                 "schema": {
                   "allOf": [
-                    { "$ref": "#/components/schemas/SystemHealth_457" },
+                    { "$ref": "#/components/schemas/SystemHealth_456" },
                     {
                       "type": "object",
                       "properties": {
@@ -31872,7 +31841,7 @@
               "application/json": {
                 "schema": {
                   "allOf": [
-                    { "$ref": "#/components/schemas/SystemHealth_457" },
+                    { "$ref": "#/components/schemas/SystemHealth_456" },
                     {
                       "type": "object",
                       "properties": {
@@ -31972,7 +31941,7 @@
               "application/json": {
                 "schema": {
                   "allOf": [
-                    { "$ref": "#/components/schemas/TowbarUpdateInfo_460" },
+                    { "$ref": "#/components/schemas/TowbarUpdateInfo_459" },
                     {
                       "type": "object",
                       "properties": {

@@ -36,7 +36,13 @@ export async function sourceRepository(sourceId: string, workspaceId: string) {
       integrationInstallations,
       eq(integrationInstallations.id, sources.integrationInstallationId),
     )
-    .where(and(eq(sources.id, sourceId), eq(sources.workspaceId, workspaceId)))
+    .where(
+      and(
+        eq(sources.id, sourceId),
+        eq(sources.workspaceId, workspaceId),
+        eq(sources.status, "active"),
+      ),
+    )
     .limit(1);
   if (!source) throw notFound("Source");
   if (source.provider === "github" && source.installationId)
@@ -94,6 +100,7 @@ export async function connectSourceEnvironment(input: {
       .for("update");
     if (
       !currentSource ||
+      currentSource.status !== "active" ||
       currentSource.repositoryOwner !== source.repositoryOwner ||
       currentSource.repositoryName !== source.repositoryName
     )
