@@ -320,7 +320,7 @@ async function loadWithdrawal(
   return { source, environments, registry, plans, preview, serverByIp };
 }
 
-export async function previewRepositoryRemoval(
+export function previewRepositoryRemoval(
   sourceId: string,
   workspaceId: string,
   environmentId?: string,

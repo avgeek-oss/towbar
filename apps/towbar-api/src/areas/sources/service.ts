@@ -96,7 +96,7 @@ export async function getSource(sourceId: string, workspaceId: string) {
   };
 }
 
-export async function deleteSource(
+export function deleteSource(
   sourceId: string,
   workspaceId: string,
   expectedRevision?: string,

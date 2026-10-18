@@ -311,7 +311,7 @@ export async function requestEnvironmentSync(
   return sync;
 }
 
-export async function disconnectSourceEnvironment(input: {
+export function disconnectSourceEnvironment(input: {
   sourceId: string;
   environmentId: string;
   workspaceId: string;
