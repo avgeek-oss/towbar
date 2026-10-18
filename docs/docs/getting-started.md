@@ -89,7 +89,7 @@ Choose **Prepare Server** and wait for **Ready**. Resolve any failed preparation
 
 ## 4. Save service secrets
 
-Declare required keys in the service file's top-level `secrets` field and sync. Save their values under **Settings → Secrets**. Missing values block deployment, not sync. Use `{{globals.KEY}}` to reference a workspace value; shared values are not injected automatically.
+Declare required keys in the service file's top-level `secrets` field and sync. Save their values under **Settings → Secrets**. Missing values block deployment, not sync. Use `{{globals.KEY}}` for a workspace value or `{{repo.KEY}}` for a repository value; shared values are not injected automatically.
 
 Skip this step for Hello Towbar, which needs no secrets.
 

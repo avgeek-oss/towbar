@@ -27,7 +27,8 @@ export function routePermission(pathname: string): Action | null {
     return "privateKey.manage";
   if (
     pathname.startsWith("/manage/shared-secrets") ||
-    pathname.startsWith("/team-settings/shared-secrets")
+    pathname.startsWith("/team-settings/shared-secrets") ||
+    pathname.startsWith("/team-settings/workspace-secrets")
   )
     return "sharedSecret.list";
   if (pathname.startsWith("/team-settings")) return "team.read";

@@ -87,20 +87,24 @@ export function applySecretMutation(
 export function resolveSecretReferences(
   values: Record<string, string>,
   globals: Record<string, string>,
+  repository: Record<string, string> = {},
 ) {
   const result: Record<string, string> = Object.create(null);
   for (const [key, value] of Object.entries(values)) {
     result[key] = value.replace(
-      /\{\{\s*globals\.([^{}]*?)\s*\}\}/gu,
-      (_match, name: string) => {
+      /\{\{\s*(globals|repo)\.([^{}]*?)\s*\}\}/gu,
+      (_match, scope: string, name: string) => {
+        const store = scope === "globals" ? globals : repository;
         const reference = name.trim();
         if (
           !/^[A-Za-z_][A-Za-z0-9_]*$/u.test(reference) ||
-          !Object.hasOwn(globals, reference)
+          !Object.hasOwn(store, reference)
         ) {
-          throw new Error(`Secret ${key} has an unavailable globals reference`);
+          throw new Error(
+            `Secret ${key} has an unavailable ${scope} reference`,
+          );
         }
-        return globals[reference]!;
+        return store[reference]!;
       },
     );
     if (result[key]!.length > 65_536)
@@ -111,30 +115,32 @@ export function resolveSecretReferences(
 
 export function secretReferenceDependencies(local: Record<string, string>) {
   let global = false;
+  let repository = false;
   for (const value of Object.values(local)) {
     if (/\{\{\s*globals\./u.test(value)) global = true;
+    if (/\{\{\s*repo\./u.test(value)) repository = true;
   }
-  return { global };
+  return { global, repository };
 }
 
 export function validateSecretReferences(
   values: Record<string, string>,
-  scope: "workspace" | "app",
+  scope: "workspace" | "repository" | "app",
 ) {
   for (const [key, value] of Object.entries(values)) {
     const remainder = value.replace(
-      /\{\{\s*globals\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/gu,
-      () => {
-        if (scope === "workspace")
+      /\{\{\s*(globals|repo)\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/gu,
+      (_match, referenceScope: string) => {
+        if (scope !== "app")
           throw new Error(
-            `Secret ${key} cannot reference globals at this scope`,
+            `Secret ${key} cannot reference ${referenceScope} at this scope`,
           );
         return "";
       },
     );
     if (/\{\{\s*[A-Za-z_][A-Za-z0-9_]*\b/u.test(remainder))
       throw new Error(
-        `Secret ${key} has an invalid reference. Use {{globals.KEY}}`,
+        `Secret ${key} has an invalid reference. Use {{globals.KEY}} or {{repo.KEY}}`,
       );
   }
 }

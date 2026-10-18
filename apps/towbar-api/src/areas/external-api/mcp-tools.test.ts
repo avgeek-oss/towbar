@@ -209,7 +209,7 @@ void test("workload inspection combines configuration, releases and runtime oper
   }
 });
 void test("secret scopes are explicit and revision/conflicting-key checks are preserved", async () => {
-  for (const scope of ["workspace", "app", "resource"] as const) {
+  for (const scope of ["workspace", "repository", "app", "resource"] as const) {
     const h = harness();
     const target = scope === "workspace" ? {} : { targetId: uuid };
     await get("secrets_inspect").run({ scope, ...target }, h.context);
@@ -225,6 +225,11 @@ void test("secret scopes are explicit and revision/conflicting-key checks are pr
       h.context,
     );
     assert.equal(h.calls.at(-1)!.method, "PATCH");
+    if (scope === "repository")
+      assert.equal(
+        h.calls.at(-1)!.route,
+        "/sources/:ownerId/secrets/:environment/:stage",
+      );
     await assert.rejects(
       () =>
         get("secrets_update").run(
@@ -245,6 +250,7 @@ void test("secret scopes are explicit and revision/conflicting-key checks are pr
   for (const args of [
     { scope: "workspace", targetId: uuid },
     { scope: "app" },
+    { scope: "repository" },
     { scope: "source", targetId: uuid },
   ])
     await assert.rejects(

@@ -829,7 +829,7 @@
     },
     {
       "name": "shared-secrets",
-      "route": "/manage/shared-secrets",
+      "route": "/team-settings/workspace-secrets?stage=build",
       "guides": ["docs/docs/secrets/towbar.mdx", "docs/index.mdx"],
       "themes": [
         {
@@ -845,7 +845,7 @@
           "height": 1800
         }
       ],
-      "capturedAt": "2026-10-17T17:49:27.354Z"
+      "capturedAt": "2026-10-18T13:03:44.786Z"
     },
     {
       "name": "slack-notifications",

@@ -3150,7 +3150,7 @@ Administrative access required. Required permissions: `server.remove`.
 
 `towbar_secrets_inspect`
 
-Read secret bindings, available global references, and revision metadata for a workspace, app, or resource. Never returns plaintext values. Read before towbar_secrets_update; use the correct environment and slot revision.
+Read secret bindings, available workspace and repository references, and revision metadata for a workspace, repository, app, or resource. Never returns plaintext values. Read before towbar_secrets_update; use the correct environment and slot revision.
 
 Read-only operation. Required permissions: `secret.list`, `sharedSecret.list`.
 
@@ -3163,7 +3163,7 @@ Read-only operation. Required permissions: `secret.list`, `sharedSecret.list`.
   "properties": {
     "scope": {
       "type": "string",
-      "enum": ["workspace", "app", "resource"]
+      "enum": ["workspace", "repository", "app", "resource"]
     },
     "targetId": {
       "type": "string",
@@ -3201,7 +3201,7 @@ Edit access required. Required permissions: `secret.update`, `sharedSecret.updat
   "properties": {
     "scope": {
       "type": "string",
-      "enum": ["workspace", "app", "resource"]
+      "enum": ["workspace", "repository", "app", "resource"]
     },
     "targetId": {
       "type": "string",

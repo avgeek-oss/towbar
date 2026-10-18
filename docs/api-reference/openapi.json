@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Towbar API",
-    "version": "2.0.54",
+    "version": "2.0.55",
     "description": "Manage your Towbar control plane with a bearer API key. Keys inherit current workspace permissions."
   },
   "servers": [{ "url": "https://towbar-api.example.com/v1/api" }],
@@ -2713,21 +2713,23 @@
       "Response_141": {
         "type": "object",
         "properties": {
-          "globals": {
+          "globals": { "type": "array", "items": { "type": "string" } },
+          "repo": {
             "anyOf": [
               { "type": "array", "items": { "type": "string" } },
               { "type": "array", "items": {} }
             ]
           }
         },
-        "required": ["globals"]
+        "required": ["globals", "repo"]
       },
       "Response_142": {
         "type": "object",
         "properties": {
-          "global": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
+          "global": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
+          "repository": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
         },
-        "required": ["global"]
+        "required": ["global", "repository"]
       },
       "Response_143": {
         "type": "object",
@@ -2745,6 +2747,9 @@
           "inheritedOrigins": { "$ref": "#/components/schemas/Record_140" },
           "availableReferences": {
             "$ref": "#/components/schemas/Response_141"
+          },
+          "repositoryId": {
+            "anyOf": [{ "type": "null" }, { "type": "string" }]
           },
           "inheritedRevisions": { "$ref": "#/components/schemas/Response_142" },
           "pendingChanges": { "type": "boolean" },
@@ -2776,6 +2781,7 @@
           "inheritedKeys",
           "inheritedOrigins",
           "availableReferences",
+          "repositoryId",
           "inheritedRevisions",
           "pendingChanges",
           "affectedDeployables",
@@ -13566,6 +13572,298 @@
         "description": "Required permissions: sharedSecret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
+          {
+            "name": "environment",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "string",
+              "maxLength": 80,
+              "pattern": "^(?:preview:)?[a-z][a-z0-9-]{0,62}$"
+            }
+          },
+          {
+            "name": "stage",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "string",
+              "enum": ["build", "deployment", "pre_deploy", "post_deploy"]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "expectedRevision": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      { "type": "null" }
+                    ]
+                  },
+                  "set": { "default": {} },
+                  "delete": {
+                    "default": [],
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1024,
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                    }
+                  }
+                },
+                "required": ["expectedRevision"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON object containing secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Response_145" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "localization": {
+                          "$schema": "https://json-schema.org/draft/2020-12/schema",
+                          "type": "object",
+                          "properties": {
+                            "dateFormat": {
+                              "type": "string",
+                              "enum": [
+                                "day-short-month-year",
+                                "short-month-day-year",
+                                "year-month-day",
+                                "day-month-year",
+                                "month-day-year"
+                              ]
+                            },
+                            "timeFormat": {
+                              "type": "string",
+                              "enum": [
+                                "24-hour",
+                                "12-hour",
+                                "24-hour-seconds",
+                                "12-hour-seconds"
+                              ]
+                            },
+                            "timeZone": { "type": "string" },
+                            "timestamps": {
+                              "type": "object",
+                              "propertyNames": { "type": "string" },
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "date": { "type": "string" },
+                                  "time": { "type": ["string", "null"] },
+                                  "dateTime": { "type": ["string", "null"] },
+                                  "timeZone": { "type": "string" },
+                                  "zoneLabel": { "type": "string" },
+                                  "epochMilliseconds": { "type": "number" },
+                                  "inputDateTime": {
+                                    "type": ["string", "null"]
+                                  }
+                                },
+                                "required": [
+                                  "date",
+                                  "time",
+                                  "dateTime",
+                                  "timeZone",
+                                  "zoneLabel",
+                                  "epochMilliseconds",
+                                  "inputDateTime"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "dateFormat",
+                            "timeFormat",
+                            "timeZone",
+                            "timestamps"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["localization"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ApiError" },
+          "401": { "$ref": "#/components/responses/ApiError" },
+          "403": { "$ref": "#/components/responses/ApiError" },
+          "404": { "$ref": "#/components/responses/ApiError" },
+          "409": { "$ref": "#/components/responses/ApiError" },
+          "413": { "$ref": "#/components/responses/ApiError" },
+          "422": { "$ref": "#/components/responses/ApiError" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/ApiError" }
+        }
+      }
+    },
+    "/sources/{ownerId}/secrets": {
+      "get": {
+        "operationId": "get_sources_by_id_secrets",
+        "summary": "List environment secrets",
+        "tags": ["Repositories / Secrets"],
+        "description": "Required permissions: sharedSecret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "ownerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "pattern": "^(?:preview:)?[a-z][a-z0-9-]{0,62}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON object containing bindings, canManageSecrets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Response_138" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "localization": {
+                          "$schema": "https://json-schema.org/draft/2020-12/schema",
+                          "type": "object",
+                          "properties": {
+                            "dateFormat": {
+                              "type": "string",
+                              "enum": [
+                                "day-short-month-year",
+                                "short-month-day-year",
+                                "year-month-day",
+                                "day-month-year",
+                                "month-day-year"
+                              ]
+                            },
+                            "timeFormat": {
+                              "type": "string",
+                              "enum": [
+                                "24-hour",
+                                "12-hour",
+                                "24-hour-seconds",
+                                "12-hour-seconds"
+                              ]
+                            },
+                            "timeZone": { "type": "string" },
+                            "timestamps": {
+                              "type": "object",
+                              "propertyNames": { "type": "string" },
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "date": { "type": "string" },
+                                  "time": { "type": ["string", "null"] },
+                                  "dateTime": { "type": ["string", "null"] },
+                                  "timeZone": { "type": "string" },
+                                  "zoneLabel": { "type": "string" },
+                                  "epochMilliseconds": { "type": "number" },
+                                  "inputDateTime": {
+                                    "type": ["string", "null"]
+                                  }
+                                },
+                                "required": [
+                                  "date",
+                                  "time",
+                                  "dateTime",
+                                  "timeZone",
+                                  "zoneLabel",
+                                  "epochMilliseconds",
+                                  "inputDateTime"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "dateFormat",
+                            "timeFormat",
+                            "timeZone",
+                            "timestamps"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["localization"]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ApiError" },
+          "401": { "$ref": "#/components/responses/ApiError" },
+          "403": { "$ref": "#/components/responses/ApiError" },
+          "404": { "$ref": "#/components/responses/ApiError" },
+          "409": { "$ref": "#/components/responses/ApiError" },
+          "413": { "$ref": "#/components/responses/ApiError" },
+          "422": { "$ref": "#/components/responses/ApiError" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "500": { "$ref": "#/components/responses/ApiError" }
+        }
+      }
+    },
+    "/sources/{ownerId}/secrets/{environment}/{stage}": {
+      "patch": {
+        "operationId": "patch_sources_by_id_secrets_by_environment_by_stage",
+        "summary": "Update environment secrets",
+        "tags": ["Repositories / Secrets"],
+        "description": "Required permissions: sharedSecret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "ownerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
           {
             "name": "environment",
             "in": "path",

@@ -91,9 +91,11 @@ void test("only explicit global references add shared values", () => {
   );
   assert.deepEqual(secretReferenceDependencies({ AUTH: "{{globals.TOKEN}}" }), {
     global: true,
+    repository: false,
   });
   assert.deepEqual(secretReferenceDependencies({ TOKEN: "literal" }), {
     global: false,
+    repository: false,
   });
 });
 void test("reference syntax respects scope and errors do not contain values", () => {
@@ -102,6 +104,10 @@ void test("reference syntax respects scope and errors do not contain values", ()
   );
   for (const [scope, value] of [
     ["workspace", "{{globals.KEY}}"],
+    ["workspace", "{{repo.KEY}}"],
+    ["repository", "{{repo.KEY}}"],
+    ["repository", "{{globals.KEY}}"],
+    ["app", "{{repo.bad-name}}"],
     ["app", "{{globals.bad-name}}"],
     ["app", "{{source.KEY}}"],
     ["app", "{{source.SECRET"],
@@ -129,4 +135,53 @@ void test("masked placeholders cannot replace stored secrets", () => {
       }).success,
       false,
     );
+});
+
+void test("repository references are explicit, scoped, and replaced once", () => {
+  const globals = { TOKEN: "workspace", UNUSED: "not injected" };
+  const repository = {
+    TOKEN: "$&repo",
+    EMPTY: "",
+    LITERAL: "{{globals.TOKEN}}",
+  };
+  assert.doesNotThrow(() =>
+    validateSecretReferences({ TOKEN: "{{repo.TOKEN}}" }, "app"),
+  );
+  assert.deepEqual(
+    resolveSecretReferences(
+      {
+        AUTH: "{{globals.TOKEN}} / {{ repo.TOKEN }}",
+        EMPTY: "{{repo.EMPTY}}",
+        LITERAL: "{{repo.LITERAL}}",
+      },
+      globals,
+      repository,
+    ),
+    { AUTH: "workspace / $&repo", EMPTY: "", LITERAL: "{{globals.TOKEN}}" },
+  );
+  assert.deepEqual(
+    secretReferenceDependencies({ AUTH: "{{globals.TOKEN}} {{repo.TOKEN}}" }),
+    { global: true, repository: true },
+  );
+  assert.deepEqual(resolveSecretReferences({}, globals, repository), {});
+  for (const key of ["MISSING", "toString", "bad-name"]) {
+    assert.throws(
+      () =>
+        resolveSecretReferences(
+          { TOKEN: `{{repo.${key}}}` },
+          globals,
+          repository,
+        ),
+      /unavailable repo reference/,
+    );
+  }
+  assert.throws(
+    () =>
+      resolveSecretReferences(
+        { TOKEN: "{{repo.TOKEN}}{{repo.TOKEN}}" },
+        {},
+        { TOKEN: "x".repeat(40_000) },
+      ),
+    /size limit/,
+  );
 });

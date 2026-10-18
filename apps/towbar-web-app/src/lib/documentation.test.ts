@@ -34,6 +34,8 @@ void test("detail routes keep help scoped to the feature being viewed", () => {
     ["/team-settings/ssh-keys", "keys"],
     ["/manage/ssh-keys", "keys"],
     ["/manage/shared-secrets", "secrets"],
+    ["/team-settings/workspace-secrets", "secrets"],
+    ["/repositories/repo/settings/secrets", "secrets"],
     ["/monitoring/incidents", "incidents"],
   ] as const;
   for (const [path, expected] of cases)

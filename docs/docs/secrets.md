@@ -10,4 +10,4 @@ There are two ways to give a workload secrets:
 
 Choose one owner for each variable. If the same name is present in Towbar and an external source, Towbar stops the deployment rather than choosing a value silently. You can use Towbar for some variables and an external service for others in the same workload.
 
-**Shared secrets** are part of the Towbar option. They let several workloads reference one workspace value with `{{globals.KEY}}`; they are not another source that is injected automatically. The [Towbar secrets guide](/docs/secrets/towbar#reuse-a-shared-value) shows how to set one up.
+**Workspace Secrets** and **Repository Secrets** let workloads reuse values with `{{globals.KEY}}` and `{{repo.KEY}}`. Values are supplied only through explicit references. See [shared secret stores](/docs/secrets/towbar#shared-secret-stores).

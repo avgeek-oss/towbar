@@ -892,6 +892,24 @@ resources.push({
 const fixtureSecretKeys = new Map<string, string[]>();
 const fixtureSecretVersions = new Map<string, string>();
 const fixtureSecretValues = new Map<string, Record<string, string>>();
+for (const [id, stage, values] of [
+  [
+    `repository:${source.id}`,
+    "deployment",
+    { DATABASE_URL: "postgres://fixture:example@database:5432/app" },
+  ],
+  [
+    `repository:${source.id}`,
+    "build",
+    { PACKAGE_REGISTRY_TOKEN: "fixture-repository-token" },
+  ],
+  [user.workspaceId, "deployment", { API_TOKEN: "fixture-workspace-token" }],
+] as const) {
+  const slot = `${id}:production:${stage}`;
+  fixtureSecretKeys.set(slot, Object.keys(values));
+  fixtureSecretVersions.set(slot, randomUUID());
+  fixtureSecretValues.set(slot, values);
+}
 for (const app of apps) {
   if (app.id === apps[2]!.id) continue;
   fixtureSecretKeys.set(`${app.id}:production:deployment`, [
@@ -3812,14 +3830,14 @@ export function createFixtureApiServer({
       return;
     }
     const revealMatch = path.match(
-      /^\/v1\/core\/(apps|resources)\/([^/]+)\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)\/reveal(?:-all)?$/,
+      /^\/v1\/core\/(apps|resources|sources)\/([^/]+)\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)\/reveal(?:-all)?$/,
     );
     const globalRevealMatch = path.match(
       /^\/v1\/core\/settings\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)\/reveal(?:-all)?$/,
     );
     if (request.method === "POST" && (revealMatch || globalRevealMatch)) {
       const slot = revealMatch
-        ? `${revealMatch[2]}:${revealMatch[3]}:${revealMatch[4]}`
+        ? `${revealMatch[1] === "sources" ? "repository:" : ""}${revealMatch[2]}:${revealMatch[1] === "sources" ? "production" : revealMatch[3]}:${revealMatch[4]}`
         : `${user.workspaceId}:production:${globalRevealMatch![2]}`;
       response.setHeader("Cache-Control", "no-store");
       void readRequestJson(request)
@@ -3854,7 +3872,7 @@ export function createFixtureApiServer({
       return;
     }
     const mutationMatch = path.match(
-      /^\/v1\/core\/(apps|resources)\/([^/]+)\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)$/,
+      /^\/v1\/core\/(apps|resources|sources)\/([^/]+)\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)$/,
     );
     const globalSecretMutationMatch = path.match(
       /^\/v1\/core\/settings\/secrets\/([a-z][a-z0-9-]{0,62})\/(build|deployment|pre_deploy|post_deploy)$/,
@@ -3945,7 +3963,7 @@ export function createFixtureApiServer({
       (mutationMatch || globalSecretMutationMatch || credentialMatch)
     ) {
       const key = mutationMatch
-        ? `${mutationMatch[2]}:${mutationMatch[3]}:${mutationMatch[4]}`
+        ? `${mutationMatch[1] === "sources" ? "repository:" : ""}${mutationMatch[2]}:${mutationMatch[1] === "sources" ? "production" : mutationMatch[3]}:${mutationMatch[4]}`
         : globalSecretMutationMatch
           ? `${user.workspaceId}:production:${globalSecretMutationMatch[2]}`
           : `credentials:${credentialMatch![1]}`;
@@ -5129,6 +5147,20 @@ function getFixturePayload(
     return getFixtureGlobalSecrets("production");
   }
 
+  const repositorySecretsMatch = path.match(
+    /^\/v1\/core\/sources\/([^/]+)\/secrets$/,
+  );
+  if (repositorySecretsMatch) {
+    return sources.some((item) => item.id === repositorySecretsMatch[1])
+      ? getFixtureSecretsResponse(
+          `repository:${repositorySecretsMatch[1]}`,
+          "production",
+          false,
+          "global",
+        )
+      : undefined;
+  }
+
   const deployableSecretReadinessMatch = path.match(
     /^\/v1\/core\/(apps|resources)\/([^/]+)\/secrets\/readiness$/,
   );
@@ -5504,7 +5536,19 @@ function getFixtureSecretsResponse(
         stage,
         inheritedKeys: [],
         inheritedOrigins: {},
-        availableReferences: { globals: global.keys },
+        repositoryId:
+          scope === "deployable"
+            ? [...apps, ...resources].find((item) => item.id === id)?.sourceId
+            : null,
+        availableReferences: {
+          globals: global.keys,
+          repo:
+            scope === "deployable"
+              ? fixtureMetadata(
+                  `repository:${[...apps, ...resources].find((item) => item.id === id)?.sourceId}:production:${stage}`,
+                ).keys
+              : [],
+        },
         inheritedRevisions: {
           global: global.revision,
         },

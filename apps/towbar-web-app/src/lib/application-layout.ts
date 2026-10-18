@@ -11,7 +11,6 @@ import {
   DatabaseIcon,
   GitBranchIcon,
   HealthIcon,
-  Key01Icon,
   Notification01Icon,
   PlugSocketIcon,
   Rocket01Icon,
@@ -196,13 +195,6 @@ const sidebar = {
         },
         {
           kind: "link",
-          id: "shared-secrets",
-          label: "Shared Secrets",
-          href: "/manage/shared-secrets",
-          icon: Key01Icon,
-        },
-        {
-          kind: "link",
           id: "notifications",
           label: "Notifications",
           href: "/manage/notifications",
@@ -264,24 +256,35 @@ export function createApplicationSidebar(
     groups: sidebar.groups
       .map((group) => ({
         ...group,
-        items: group.items.filter((item) => {
-          if (item.id === "conflicts" || item.id === "retirements")
-            return (counts[item.id] ?? 0) > 0;
-          const permissions: Record<string, Action> = {
-            health: "system.read",
-            integrations: "integration.manage",
-            notifications: "notification.manage",
-            "ssh-keys": "privateKey.manage",
-            "shared-secrets": "sharedSecret.list",
-          };
-          if (item.id === "team-settings")
-            return !user || user.capabilities?.includes("team.read");
-          return (
-            !user ||
-            !permissions[item.id] ||
-            user.capabilities?.includes(permissions[item.id]!)
-          );
-        }),
+        items: group.items
+          .map((item) =>
+            item.id === "team-settings" &&
+            user &&
+            !user.capabilities?.includes("team.read")
+              ? { ...item, href: "/team-settings/workspace-secrets" }
+              : item,
+          )
+          .filter((item) => {
+            if (item.id === "conflicts" || item.id === "retirements")
+              return (counts[item.id] ?? 0) > 0;
+            const permissions: Record<string, Action> = {
+              health: "system.read",
+              integrations: "integration.manage",
+              notifications: "notification.manage",
+              "ssh-keys": "privateKey.manage",
+            };
+            if (item.id === "team-settings")
+              return (
+                !user ||
+                user.capabilities?.includes("team.read") ||
+                user.capabilities?.includes("sharedSecret.list")
+              );
+            return (
+              !user ||
+              !permissions[item.id] ||
+              user.capabilities?.includes(permissions[item.id]!)
+            );
+          }),
       }))
       .filter((group) => group.items.length > 0)
       .map((group) =>

@@ -25,10 +25,12 @@ import { readJson, readUuidPathParameter } from "../../../http/requests.js";
 import type { TowbarHonoEnvironment } from "../../../http/types.js";
 
 export function environmentSecretRoutes(
-  kind: "workspace" | "app" | "resource",
+  kind: "workspace" | "repository" | "app" | "resource",
 ) {
   const environment = (value: string | undefined) =>
-    kind === "workspace" ? "production" : secretEnvironmentSchema.parse(value);
+    kind === "workspace" || kind === "repository"
+      ? "production"
+      : secretEnvironmentSchema.parse(value);
   const routes = new Hono<TowbarHonoEnvironment>();
   routes.use("*", async (context, next) => {
     const id =
@@ -38,13 +40,23 @@ export function environmentSecretRoutes(
     const workspaceId = context.get("user").workspaceId;
     if (kind === "app") await getApp(id!, workspaceId);
     if (kind === "resource") await getResource(id!, workspaceId);
+    if (kind === "repository")
+      await getEnvironmentSecretOwner({
+        type: "repository",
+        id: id!,
+        workspaceId,
+      });
     context.header("Cache-Control", "no-store");
     await next();
   });
   routes.get(
     "/",
     operation({
-      permissions: [kind === "workspace" ? "sharedSecret.list" : "secret.list"],
+      permissions: [
+        kind === "workspace" || kind === "repository"
+          ? "sharedSecret.list"
+          : "secret.list",
+      ],
       responseSchema: 'environment-secrets.ts:get:"/"',
       summary: "List environment secrets",
       query: z
@@ -59,7 +71,10 @@ export function environmentSecretRoutes(
         kind === "workspace"
           ? ({ type: "workspace", workspaceId: user.workspaceId } as const)
           : ({
-              type: "app" as const,
+              type:
+                kind === "repository"
+                  ? ("repository" as const)
+                  : ("app" as const),
               id: readUuidPathParameter(
                 context.req.param("ownerId")!,
                 "ownerId",
@@ -112,7 +127,9 @@ export function environmentSecretRoutes(
     "/:environment/:stage",
     operation({
       permissions: [
-        kind === "workspace" ? "sharedSecret.update" : "secret.update",
+        kind === "workspace" || kind === "repository"
+          ? "sharedSecret.update"
+          : "secret.update",
       ],
       responseSchema: 'environment-secrets.ts:patch:"/:environment/:stage"',
       summary: "Update environment secrets",
@@ -128,7 +145,7 @@ export function environmentSecretRoutes(
             kind === "workspace"
               ? { type: "workspace", workspaceId: user.workspaceId }
               : {
-                  type: "app",
+                  type: kind === "repository" ? "repository" : "app",
                   id: readUuidPathParameter(
                     context.req.param("ownerId")!,
                     "ownerId",
@@ -146,7 +163,11 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal",
     operation({
-      permissions: ["secret.reveal"],
+      permissions: [
+        kind === "workspace" || kind === "repository"
+          ? "sharedSecret.reveal"
+          : "secret.reveal",
+      ],
       freshSession: true,
       browserOnly: true,
       responseSchema:
@@ -169,7 +190,11 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal-all",
     operation({
-      permissions: ["secret.reveal"],
+      permissions: [
+        kind === "workspace" || kind === "repository"
+          ? "sharedSecret.reveal"
+          : "secret.reveal",
+      ],
       freshSession: true,
       browserOnly: true,
       responseSchema:
@@ -191,7 +216,10 @@ export function environmentSecretRoutes(
       kind === "workspace"
         ? { type: "workspace" as const, workspaceId: user.workspaceId }
         : {
-            type: "app" as const,
+            type:
+              kind === "repository"
+                ? ("repository" as const)
+                : ("app" as const),
             id: readUuidPathParameter(context.req.param("ownerId")!, "ownerId"),
             workspaceId: user.workspaceId,
           };

@@ -39,7 +39,7 @@ test("primary navigation groups settings and preserves role visibility", () => {
   assert.equal(adminWorkspace?.label, "Manage");
   assert.deepEqual(
     adminWorkspace?.items.map((item) => item.id),
-    ["ssh-keys", "shared-secrets", "notifications", "integrations"],
+    ["ssh-keys", "notifications", "integrations"],
   );
   assert.deepEqual(
     admin.groups
@@ -55,33 +55,20 @@ test("primary navigation groups settings and preserves role visibility", () => {
   );
 
   const member = createApplicationSidebar({}, undefined, fixtureUser("member"));
-  const memberWorkspace = member.groups.find(
-    (group) => group.id === "workspace",
-  );
-  assert.deepEqual(
-    memberWorkspace?.items.map((item) => item.id),
-    ["shared-secrets"],
-  );
-  assert.deepEqual(
-    member.groups
-      .find((group) => group.id === "settings")
-      ?.items.map((item) => item.id),
-    ["account-settings"],
-  );
   assert.equal(
-    member.groups
-      .find((group) => group.id === "monitoring")
-      ?.items.some((item) => item.id === "health"),
-    false,
+    member.groups.find((group) => group.id === "workspace"),
+    undefined,
   );
-  const memberSharedSecrets = memberWorkspace?.items.find(
-    (item) => item.id === "shared-secrets",
+  const memberSettings = member.groups.find((group) => group.id === "settings");
+  assert.deepEqual(
+    memberSettings?.items.map((item) => item.id),
+    ["account-settings", "team-settings"],
   );
-  assert(
-    memberSharedSecrets && "href" in memberSharedSecrets,
-    "member Shared Secrets must remain navigable",
+  const memberTeam = memberSettings?.items.find(
+    (item) => item.id === "team-settings",
   );
-  assert.equal(memberSharedSecrets.href, "/manage/shared-secrets");
+  assert(memberTeam && "href" in memberTeam);
+  assert.equal(memberTeam.href, "/team-settings/workspace-secrets");
 
   const viewer = createApplicationSidebar({}, undefined, fixtureUser("viewer"));
   assert(
@@ -140,6 +127,14 @@ test("management routes preserve their specific permission boundaries", () => {
     "integration.manage",
   );
   assert.equal(routePermission("/manage/shared-secrets"), "sharedSecret.list");
+  assert.equal(
+    routePermission("/team-settings/workspace-secrets"),
+    "sharedSecret.list",
+  );
+  assert.equal(
+    routePermission("/repositories/repo/settings/secrets"),
+    "sharedSecret.list",
+  );
   assert.equal(
     routePermission("/team-settings/integrations/github"),
     "integration.manage",

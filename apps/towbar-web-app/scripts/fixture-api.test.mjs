@@ -26,6 +26,7 @@ const readRoutes = [
   "/v1/core/integrations",
   "/v1/core/settings/secrets",
   `/v1/core/sources/${fixtureIds.source}`,
+  `/v1/core/sources/${fixtureIds.source}/secrets`,
   `/v1/core/sources/${fixtureIds.source}/environments`,
   `/v1/core/sources/${fixtureIds.source}/syncs`,
   `/v1/core/sources/${fixtureIds.source}/auto-deploy-control`,
@@ -878,6 +879,7 @@ test("the local fixture supports write-only stage edits and rejects stale revisi
     assert.deepEqual(previewBuild.inheritedKeys, []);
     assert.deepEqual(previewBuild.availableReferences, {
       globals: ["GLOBAL_PACKAGE_TOKEN"],
+      repo: ["PACKAGE_REGISTRY_TOKEN"],
     });
     const revealed = await fetch(`${endpoint}/production/deployment/reveal`, {
       method: "POST",
@@ -2515,4 +2517,48 @@ test("notifications paginate unread history and mark read without clearing rows"
     server.close();
     await once(server, "close");
   }
+});
+
+test("repository secret fixtures isolate repositories and reject stale saves", async (t) => {
+  const server = createFixtureApiServer();
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => server.close());
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const endpoint = `${origin}/v1/core/sources/${fixtureIds.source}/secrets`;
+  const initial = await (await fetch(endpoint)).json();
+  assert.deepEqual(initial.environments, ["production"]);
+  const runtime = initial.bindings.find(
+    (binding) => binding.stage === "deployment",
+  );
+  const mutation = {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      expectedRevision: runtime.revision,
+      set: { REPOSITORY_ONLY: "fixture-private" },
+    }),
+  };
+  const saved = await fetch(`${endpoint}/production/deployment`, mutation);
+  assert.equal(saved.status, 200);
+  assert(!(await saved.text()).includes("fixture-private"));
+  assert.equal(
+    (await fetch(`${endpoint}/production/deployment`, mutation)).status,
+    409,
+  );
+  const global = await (
+    await fetch(`${origin}/v1/core/settings/secrets`)
+  ).json();
+  assert(
+    !global.bindings.some((binding) =>
+      binding.keys.includes("REPOSITORY_ONLY"),
+    ),
+  );
+  const reveal = await fetch(`${endpoint}/production/deployment/reveal`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ key: "REPOSITORY_ONLY" }),
+  });
+  assert.equal(reveal.headers.get("cache-control"), "no-store");
+  assert.equal((await reveal.json()).value, "fixture-private");
 });

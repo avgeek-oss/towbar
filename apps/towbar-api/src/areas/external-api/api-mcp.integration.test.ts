@@ -798,6 +798,52 @@ void test(
             ).text();
             assert(readback.includes("TEST_VALUE"));
             assert(!readback.includes("do-not-expose"));
+            assert(connectedEnvironment);
+            const repositoryId = connectedEnvironment.sourceId;
+            const repositorySecret = await client.callTool({
+              name: "towbar_secrets_update",
+              arguments: {
+                scope: "repository",
+                targetId: repositoryId,
+                environment: "production",
+                stage: "build",
+                expectedRevision: null,
+                set: { PACKAGE_TOKEN: "repository-private-value" },
+              },
+            });
+            assert.equal(repositorySecret.isError, false);
+            assert(
+              !JSON.stringify(repositorySecret).includes(
+                "repository-private-value",
+              ),
+            );
+            const repositoryReadback = await request(
+              `/sources/${repositoryId}/secrets`,
+              write.token,
+            );
+            assert.equal(repositoryReadback.status, 200);
+            const repositoryText = await repositoryReadback.text();
+            assert(repositoryText.includes("PACKAGE_TOKEN"));
+            assert(!repositoryText.includes("repository-private-value"));
+            assert.equal(
+              (
+                await request(
+                  `/sources/${repositoryId}/secrets/production/build/reveal`,
+                  write.token,
+                  "POST",
+                  { key: "PACKAGE_TOKEN" },
+                )
+              ).status,
+              404,
+            );
+            const inspect = await client.callTool({
+              name: "towbar_secrets_inspect",
+              arguments: { scope: "repository", targetId: repositoryId },
+            });
+            assert.equal(inspect.isError, false);
+            assert(
+              !JSON.stringify(inspect).includes("repository-private-value"),
+            );
           } finally {
             await client.close();
           }

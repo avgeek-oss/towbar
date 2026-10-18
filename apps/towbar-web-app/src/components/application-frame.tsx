@@ -106,7 +106,7 @@ const navigationPrefetchPaths: Record<string, string[]> = {
     "/v1/core/monitoring/vulnerabilities?severity=all&page=1&limit=20",
   ],
   "/manage/ssh-keys": ["/v1/core/settings/private-keys"],
-  "/manage/shared-secrets": ["/v1/core/settings/secrets"],
+  "/team-settings/workspace-secrets": ["/v1/core/settings/secrets"],
   "/manage/notifications": ["/v1/core/notifications/providers"],
   "/manage/integrations": ["/v1/core/integrations"],
   "/team-settings": ["/v1/core/team"],

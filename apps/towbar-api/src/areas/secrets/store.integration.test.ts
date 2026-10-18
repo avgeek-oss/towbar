@@ -142,6 +142,10 @@ void test(
       environmentSecretRoutes("resource"),
     );
     api.route("/settings/secrets", environmentSecretRoutes("workspace"));
+    api.route(
+      "/sources/:ownerId/secrets",
+      environmentSecretRoutes("repository"),
+    );
     api.route("/servers/:serverId/credentials", serverCredentialRoutes);
     const patch = async (path: string, body: unknown) =>
       await api.request(path, {
@@ -321,6 +325,23 @@ void test(
         appOwner,
         globalSlot,
         slot,
+      });
+      const { testRepositorySecrets } = await import("./repository-tests.js");
+      await testRepositorySecrets({
+        t,
+        db,
+        api,
+        workspaceId,
+        otherWorkspaceId,
+        actorUserId,
+        sourceId,
+        appId,
+        setRole: (role) => {
+          workspaceRole = role;
+        },
+        setWorkspace: (id) => {
+          requestWorkspace = id;
+        },
       });
       await t.test(
         "simultaneous first writes cannot overwrite each other",
