@@ -33,6 +33,7 @@ import {
 } from "@/lib/secret-env";
 import {
   useEffect,
+  useCallback,
   useLayoutEffect,
   useRef,
   useState,
@@ -418,6 +419,21 @@ function SecretVariablesEditor({
     setInitialFile("");
     originalValues.current.clear();
   }, [canReveal]);
+  const revealReference = useCallback(
+    async (scope: "globals" | "repo", key: string) => {
+      if (
+        !can("sharedSecret.reveal") ||
+        (scope === "repo" && !binding.repositoryId)
+      )
+        throw new Error("You don't have permission to view this value");
+      const result = await api.post<{ value: string }>(
+        `${scope === "globals" ? "/v1/core/settings/secrets" : `/v1/core/sources/${binding.repositoryId}/secrets`}/production/${binding.stage}/reveal`,
+        { key },
+      );
+      return result.value;
+    },
+    [can, binding.repositoryId, binding.stage],
+  );
   const keys = [...binding.keys].sort();
   const visibleKeys = keys.filter((key) => !deletedKeys.includes(key));
   const emptyStage = !fileMode && !keys.length && !newEntries.length;
@@ -666,6 +682,9 @@ function SecretVariablesEditor({
                     value={fileText}
                     onChange={setFileText}
                     disabled={busy}
+                    revealReference={
+                      can("sharedSecret.reveal") ? revealReference : undefined
+                    }
                     readOnlyLinePrefixes={
                       canManageKeys ? undefined : keys.map((key) => `${key}=`)
                     }
@@ -786,15 +805,7 @@ function SecretVariablesEditor({
                               reveal={reveal}
                               revealReference={
                                 can("sharedSecret.reveal")
-                                  ? async (scope, referenceKey) => {
-                                      const result = await api.post<{
-                                        value: string;
-                                      }>(
-                                        `${scope === "globals" ? "/v1/core/settings/secrets" : `/v1/core/sources/${binding.repositoryId}/secrets`}/production/${binding.stage}/reveal`,
-                                        { key: referenceKey },
-                                      );
-                                      return result.value;
-                                    }
+                                  ? revealReference
                                   : undefined
                               }
                               onChange={(value) =>
