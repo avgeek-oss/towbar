@@ -256,7 +256,13 @@ export function SourceIndex() {
           }
           getRowHref={(source) => `/repositories/${source.id}`}
           getRowKey={(source) => source.id}
-          items={query.data.sources}
+          items={[...query.data.sources].sort((a, b) =>
+            `${a.repositoryOwner}/${a.repositoryName}`.localeCompare(
+              `${b.repositoryOwner}/${b.repositoryName}`,
+              undefined,
+              { sensitivity: "base" },
+            ),
+          )}
           onRowLinkIntent={(source) => {
             void prepareSource(source).catch(() => undefined);
           }}
