@@ -88,9 +88,9 @@ deploymentRoutes.get(
     permissions: ["deployment.read"],
     browserOnly: true,
     responseSchema: 'deployments.ts:get:"/:deploymentId/favicon"',
-    summary: "Discover a deployment icon",
+    summary: "Get a deployment workload icon",
     response:
-      "A public icon from this deployment's own hostname and its cache expiry.",
+      "A workload icon from this deployment's saved image URL or hostname and its cache expiry.",
     status: 200,
   }),
   async (context) => {

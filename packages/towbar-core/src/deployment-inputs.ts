@@ -122,7 +122,7 @@ function getDeploymentRuntimeConfig(deployable: NormalizedDeployable) {
   // dependency support was removed from the manifest contract.
   delete value.dependsOn;
   delete value.description;
-  delete value.faviconDomain;
+  delete value.iconUrl;
   delete value.deploymentInputs;
   delete value.deploymentInputScope;
   delete value.name;

@@ -61,15 +61,20 @@ function resolve(
   });
 }
 
-void test("favicon domains normalize and survive environment overrides without adding public routing", () => {
+void test("workload icon URLs preserve paths and queries and support environment overrides without public routing", () => {
   const privateApp = {
     ...app,
     tls: undefined,
     preview: undefined,
-    faviconDomain: "Posted.Example.com",
+    iconUrl: "https://CDN.Example.com/Posted/worker.png?v=2#preview",
+    environments: { production: { server: "192.0.2.10" } },
   };
   const { manifest } = resolve(privateApp, "production");
-  assert.equal(manifest.apps[0]?.faviconDomain, "posted.example.com");
+  assert.equal(
+    manifest.apps[0]?.iconUrl,
+    "https://cdn.example.com/Posted/worker.png?v=2",
+  );
+  assert.equal(manifest.apps[0]?.domains, undefined);
   assert.equal(
     resolve(
       {
@@ -77,33 +82,37 @@ void test("favicon domains normalize and survive environment overrides without a
         environments: {
           production: {
             server: "192.0.2.10",
-            faviconDomain: "Brand.Example.com",
+            iconUrl: "https://Brand.Example.com/staging.svg?theme=dark",
           },
         },
       },
       "production",
-    ).manifest.apps[0]?.faviconDomain,
-    "brand.example.com",
+    ).manifest.apps[0]?.iconUrl,
+    "https://brand.example.com/staging.svg?theme=dark",
   );
-  assert.equal(
-    resolve(
-      {
-        ...privateApp,
-        environments: { production: { server: "192.0.2.10" } },
-      },
-      "production",
-    ).manifest.apps[0]?.domains,
-    undefined,
-  );
-  for (const faviconDomain of [
-    "https://example.com/icon.png",
-    "example.com/path",
+});
+
+void test("workload icons reject invalid or non-public HTTPS URLs and the superseded domain setting", () => {
+  for (const iconUrl of [
+    "example.com/icon.png",
+    "/icon.png",
+    "http://example.com/icon.png",
     "",
-  ]) {
-    assert.throws(() =>
-      resolve({ ...privateApp, faviconDomain }, "production"),
-    );
-  }
+    "https://user:password@example.com/icon.png",
+    "https://example.com:8443/icon.png",
+    "https://127.0.0.1/icon.png",
+    "https://[::1]/icon.png",
+    "https://localhost/icon.png",
+    "https://host.internal/icon.png",
+    "https://host.local/icon.png",
+    "data:image/png;base64,AAAA",
+    "file:///tmp/icon.png",
+    "https://example.com/" + "x".repeat(2048),
+  ])
+    assert.throws(() => resolve({ ...app, iconUrl }, "production"), iconUrl);
+  assert.throws(() =>
+    resolve({ ...app, faviconDomain: "example.com" }, "production"),
+  );
 });
 
 void test("resolves PostgreSQL 18 as a managed datastore with initialization files", () => {

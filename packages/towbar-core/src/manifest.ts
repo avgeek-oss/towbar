@@ -418,6 +418,35 @@ const resourceBackupSchema = z
     }
   });
 
+const workloadIconUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .url()
+  .refine((value) => {
+    if (!URL.canParse(value)) return false;
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      !isIP(url.hostname.replace(/^\[|\]$/gu, "")) &&
+      url.hostname.includes(".") &&
+      !/(?:^|\.)(?:localhost|local|internal)\.?$/iu.test(url.hostname)
+    );
+  }, "Workload icons must use a public HTTPS URL on port 443 without credentials")
+  .describe(
+    "Direct public HTTPS image URL for the workload icon (maximum 512 KiB).",
+  );
+
+function normalizeWorkloadIconUrl(value: string) {
+  const url = new URL(value);
+  url.hash = "";
+  return url.href;
+}
+
 export const appSchema = z
   .object({
     analytics: analyticsConfigSchema.optional(),
@@ -429,7 +458,7 @@ export const appSchema = z
     id: z.string().trim().regex(appIdPattern),
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(500).optional(),
-    faviconDomain: domainSchema.optional(),
+    iconUrl: workloadIconUrlSchema.optional(),
     server: serverReferenceSchema,
     deployment: appDeploymentSchema.optional(),
     dockerfile: repositoryPathSchema.optional(),
@@ -1213,8 +1242,8 @@ export function normalizeDeploymentManifest(
           id: app.id,
           name: app.name,
           ...(app.description ? { description: app.description } : {}),
-          ...(app.faviconDomain
-            ? { faviconDomain: normalizeDomain(app.faviconDomain) }
+          ...(app.iconUrl
+            ? { iconUrl: normalizeWorkloadIconUrl(app.iconUrl) }
             : {}),
           server: canonicalIp(app.server),
           sourceBranch,

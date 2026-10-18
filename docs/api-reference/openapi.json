@@ -3953,7 +3953,7 @@
             "items": { "type": "string" }
           },
           "description": { "type": "string" },
-          "faviconDomain": { "type": "string" },
+          "iconUrl": { "type": "string" },
           "dockerfile": { "type": "string" },
           "domains": { "$ref": "#/components/schemas/Response_199" },
           "health": {
@@ -4677,7 +4677,7 @@
         },
         "required": ["app"]
       },
-      "FaviconResult_250": {
+      "WorkloadIconResult_250": {
         "type": "object",
         "properties": {
           "icon": { "anyOf": [{ "type": "null" }, { "type": "string" }] },

@@ -82,3 +82,21 @@ void test("pending discovery and retained cache size are bounded", async () => {
   await bounded("one", "0.example.com");
   assert.equal(calls, 130);
 });
+
+void test("direct URLs with different paths or query strings have independent workspace caches", async () => {
+  const requests: string[] = [];
+  const cache = createIconCache((source) => {
+    requests.push(source);
+    return Promise.resolve("image");
+  });
+  for (const source of [
+    "https://cdn.example.com/api.png?v=1",
+    "https://cdn.example.com/worker.png?v=1",
+    "https://cdn.example.com/api.png?v=2",
+  ])
+    await cache("one", source);
+  await cache("one", "https://cdn.example.com/api.png?v=1");
+  assert.equal(requests.length, 3);
+  await cache("two", "https://cdn.example.com/api.png?v=1");
+  assert.equal(requests.length, 4);
+});

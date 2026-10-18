@@ -6,41 +6,46 @@ import { getApp } from "../apps/queries.js";
 import { cachedIcon } from "./cache.js";
 
 type IconConfiguration = {
-  faviconDomain?: string;
+  iconUrl?: string;
   domains?: { primary?: string; redirects?: Array<{ host: string }> };
 };
 
-export function appIconDomain(config: IconConfiguration) {
+export function appIconSource(config: IconConfiguration) {
   return (
-    config.faviconDomain ??
+    config.iconUrl ??
     config.domains?.primary ??
     config.domains?.redirects?.[0]?.host ??
     null
   );
 }
 
-export function deploymentIconDomain(deployment: {
+export function deploymentIconSource(deployment: {
   environment: string;
   hostname: string | null;
   appSnapshot: IconConfiguration;
 }) {
   return (
-    deployment.appSnapshot.faviconDomain ??
+    deployment.appSnapshot.iconUrl ??
     deployment.hostname ??
     (deployment.environment === "production"
-      ? appIconDomain(deployment.appSnapshot)
+      ? appIconSource(deployment.appSnapshot)
       : null)
   );
 }
 
-export async function getAppIcon(appId: string, workspaceId: string) {
+export async function getAppIcon(
+  appId: string,
+  workspaceId: string,
+  iconCache = cachedIcon,
+) {
   const app = await getApp(appId, workspaceId);
-  return cachedIcon(workspaceId, appIconDomain(app.config));
+  return iconCache(workspaceId, appIconSource(app.config));
 }
 
 export async function getDeploymentIcon(
   deploymentId: string,
   workspaceId: string,
+  iconCache = cachedIcon,
 ) {
   const [deployment] = await getTowbarDatabase()
     .select({
@@ -57,5 +62,5 @@ export async function getDeploymentIcon(
     )
     .limit(1);
   if (!deployment) throw notFound("Deployment");
-  return cachedIcon(workspaceId, deploymentIconDomain(deployment));
+  return iconCache(workspaceId, deploymentIconSource(deployment));
 }

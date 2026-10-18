@@ -1,10 +1,10 @@
-import { discoverIcon } from "./discovery.js";
+import { loadIcon } from "./discovery.js";
 
-export type FaviconResult = { icon: string | null; expiresAt: number };
+export type WorkloadIconResult = { icon: string | null; expiresAt: number };
 
-export function createIconCache(discover = discoverIcon, now = Date.now) {
-  const cached = new Map<string, FaviconResult>();
-  const pending = new Map<string, Promise<FaviconResult>>();
+export function createIconCache(load = loadIcon, now = Date.now) {
+  const cached = new Map<string, WorkloadIconResult>();
+  const pending = new Map<string, Promise<WorkloadIconResult>>();
   const waiting: Array<() => void> = [];
   let running = 0;
   function acquire() {
@@ -16,11 +16,11 @@ export function createIconCache(discover = discoverIcon, now = Date.now) {
   }
   return async (
     workspaceId: string,
-    domain: string | null,
-  ): Promise<FaviconResult> => {
+    source: string | null,
+  ): Promise<WorkloadIconResult> => {
     const missing = () => ({ icon: null, expiresAt: now() + 30_000 });
-    if (!domain) return missing();
-    const key = `${workspaceId}:${domain}`;
+    if (!source) return missing();
+    const key = `${workspaceId}:${source}`;
     const previous = cached.get(key);
     if (previous && previous.expiresAt > now()) return previous;
     const active = pending.get(key);
@@ -30,7 +30,7 @@ export function createIconCache(discover = discoverIcon, now = Date.now) {
       await acquire();
       let icon: string | null;
       try {
-        icon = await discover(domain);
+        icon = await load(source);
       } catch {
         icon = null;
       } finally {

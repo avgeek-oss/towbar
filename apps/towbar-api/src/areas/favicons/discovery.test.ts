@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { type IconFetcher, declaredIcons, discoverIcon } from "./discovery.js";
+import {
+  type IconFetcher,
+  declaredIcons,
+  discoverIcon,
+  loadIcon,
+} from "./discovery.js";
 
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWNkAAAAASUVORK5CYII=",
@@ -249,3 +254,110 @@ void test(
     assert.equal(await discoverIcon("web.example.com", invalid.fetcher), null);
   },
 );
+
+void test("direct workload icons fetch the exact image URL without homepage or favicon discovery", async () => {
+  const url = "https://cdn.example.com/Posted/worker.png?v=2&theme=dark";
+  const { fetcher, requests } = fixture({ [url]: () => image() });
+  assert.equal(
+    await loadIcon(url, fetcher),
+    `data:image/png;base64,${png.toString("base64")}`,
+  );
+  assert.deepEqual(requests, [url]);
+  const automatic = fixture({
+    "https://web.example.com/favicon.ico": () => image(),
+  });
+  assert.ok(await loadIcon("web.example.com", automatic.fetcher));
+});
+
+void test("direct workload icons follow bounded HTTPS redirects and reject private redirects", async () => {
+  const direct = fixture({
+    "https://cdn.example.com/icon": () =>
+      new Response(null, {
+        status: 302,
+        headers: { location: "/assets/brand.svg" },
+      }),
+    "https://cdn.example.com/assets/brand.svg": () =>
+      image(Buffer.from(svg), "image/svg+xml"),
+  });
+  assert.ok(await loadIcon("https://cdn.example.com/icon", direct.fetcher));
+  assert.deepEqual(direct.requests, [
+    "https://cdn.example.com/icon",
+    "https://cdn.example.com/assets/brand.svg",
+  ]);
+  for (const location of [
+    "https://169.254.169.254/latest/meta-data",
+    "https://private.internal/icon",
+    "https://[::1]/icon",
+    "http://example.com/icon",
+    "https://user:pass@example.com/icon",
+    "https://example.com:8443/icon",
+  ]) {
+    const unsafe = fixture({
+      "https://cdn.example.com/icon": () =>
+        new Response(null, { status: 302, headers: { location } }),
+    });
+    assert.equal(
+      await loadIcon("https://cdn.example.com/icon", unsafe.fetcher),
+      null,
+    );
+    assert.equal(unsafe.requests.length, 1);
+  }
+  const loop = fixture({
+    "https://cdn.example.com/icon": () =>
+      new Response(null, { status: 302, headers: { location: "/icon" } }),
+  });
+  assert.equal(
+    await loadIcon("https://cdn.example.com/icon", loop.fetcher),
+    null,
+  );
+  assert.equal(loop.requests.length, 4);
+});
+
+void test("direct workload icons reject invalid images and enforce the size and cancellation limits", async () => {
+  const url = "https://cdn.example.com/icon.svg";
+  for (const size of [512 * 1024, 512 * 1024 + 1]) {
+    for (const declared of [true, false]) {
+      const direct = fixture({
+        [url]: () =>
+          new Response(svg.padEnd(size, " "), {
+            headers: {
+              "content-type": "image/svg+xml",
+              ...(declared ? { "content-length": String(size) } : {}),
+            },
+          }),
+      });
+      const result = await loadIcon(url, direct.fetcher);
+      assert.equal(Boolean(result), size === 512 * 1024);
+    }
+  }
+  for (const type of ["text/html", "image/png", "image/svg+xml"]) {
+    const direct = fixture({
+      [url]: () => image(Buffer.from("<html>Not an image</html>"), type),
+    });
+    assert.equal(await loadIcon(url, direct.fetcher), null);
+    assert.deepEqual(direct.requests, [url]);
+  }
+  const cancelled = fixture({});
+  assert.equal(
+    await loadIcon(url, cancelled.fetcher, AbortSignal.abort()),
+    null,
+  );
+  assert.equal(cancelled.requests.length, 0);
+  let bodyCancelled = false;
+  const streamed = fixture({
+    [url]: () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(new Uint8Array(512 * 1024 + 1));
+          },
+          cancel() {
+            bodyCancelled = true;
+          },
+        }),
+        { headers: { "content-type": "image/png" } },
+      ),
+  });
+  assert.equal(await loadIcon(url, streamed.fetcher), null);
+  assert.equal(bodyCancelled, true);
+});

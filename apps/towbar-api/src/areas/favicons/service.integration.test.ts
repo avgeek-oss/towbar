@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
+import { createIconCache } from "./cache.js";
+import { loadIcon } from "./discovery.js";
 import { eq } from "drizzle-orm";
 import {
   apps,
@@ -21,7 +23,7 @@ import {
 
 const url = process.env.TOWBAR_TEST_DATABASE_URL;
 void test(
-  "favicon lookup enforces workspace ownership before discovery and for cached results",
+  "workload icons use direct image URLs while enforcing workspace ownership and deployment snapshots",
   { skip: !url },
   async (t) => {
     assert(url && new URL(url).pathname.endsWith("_test"));
@@ -41,6 +43,21 @@ void test(
     const { deploymentRoutes } =
       await import("../../routes/v1/core/deployments.js");
     const { operationDescription } = await import("../../http/operation.js");
+    const requests: string[] = [];
+    const image = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jWNkAAAAASUVORK5CYII=",
+      "base64",
+    );
+    const cache = createIconCache((source) =>
+      loadIcon(source, (url) => {
+        requests.push(url.href);
+        return Promise.resolve(
+          new Response(image, {
+            headers: { "content-type": "image/png" },
+          }),
+        );
+      }),
+    );
     const db = getTowbarDatabase();
     const workspaceId = randomUUID(),
       otherWorkspace = randomUUID(),
@@ -67,7 +84,7 @@ void test(
         {
           id: "site",
           name: "Site",
-          faviconDomain: "branding.example.internal",
+          iconUrl: "https://branding.example.com/worker.png?v=2",
           server: "192.0.2.10",
           dockerfile: "Dockerfile",
           container: { port: 3000 },
@@ -144,25 +161,58 @@ void test(
     });
 
     await t.test(
-      "domainless services and private previews do not discover a production icon",
+      "private services and previews fetch the direct image and share its cached result",
       async () => {
-        assert.equal((await getAppIcon(appId, workspaceId)).icon, null);
+        const expected = `data:image/png;base64,${image.toString("base64")}`;
         assert.equal(
-          (await getDeploymentIcon(deploymentId, workspaceId)).icon,
-          null,
+          (await getAppIcon(appId, workspaceId, cache)).icon,
+          expected,
         );
+        assert.equal(
+          (await getDeploymentIcon(deploymentId, workspaceId, cache)).icon,
+          expected,
+        );
+        assert.deepEqual(requests, [
+          "https://branding.example.com/worker.png?v=2",
+        ]);
+        await db
+          .update(apps)
+          .set({
+            config: {
+              ...config,
+              iconUrl: "https://branding.example.com/worker-v3.png",
+            },
+          })
+          .where(eq(apps.id, appId));
+        assert.equal(
+          (await getAppIcon(appId, workspaceId, cache)).icon,
+          expected,
+        );
+        assert.equal(
+          (await getDeploymentIcon(deploymentId, workspaceId, cache)).icon,
+          expected,
+        );
+        assert.deepEqual(requests, [
+          "https://branding.example.com/worker.png?v=2",
+          "https://branding.example.com/worker-v3.png",
+        ]);
       },
     );
     await t.test(
       "another workspace cannot resolve existing or previously requested entity IDs",
       async () => {
+        const requestCount = requests.length;
         for (const id of [appId, randomUUID()])
-          await assert.rejects(getAppIcon(id, otherWorkspace), /not found/u);
-        for (const id of [deploymentId, randomUUID()])
           await assert.rejects(
-            getDeploymentIcon(id, otherWorkspace),
+            getAppIcon(id, otherWorkspace, cache),
             /not found/u,
           );
+        for (const id of [deploymentId, randomUUID()])
+          await assert.rejects(
+            getDeploymentIcon(id, otherWorkspace, cache),
+            /not found/u,
+          );
+        assert.equal(requests.length, requestCount);
       },
     );
     await t.test(

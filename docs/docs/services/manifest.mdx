@@ -33,6 +33,7 @@ Register the example IP under [Servers](/docs/servers) and map `production` to a
 | `container`, `health`                                             | Process port, resources, networking, storage, and readiness.                       | [Container and health](/docs/services/configuration)                                          |
 | `logs`                                                            | Restrict retained log access to Admins.                                            | [Centralized logs](/docs/operate/centralized-logs#restrict-sensitive-workloads)               |
 | `domains`, `ingress`, `tls`                                       | Public routing and certificate policy.                                             | [Routing and TLS](/docs/services/routing)                                                     |
+| `iconUrl`                                                         | Direct HTTPS image URL for the workload icon.                                      | [Workload icon](#workload-icon)                                                               |
 | `secrets`, `externalSecrets`                                      | Required keys and an external-secret source; values stay outside Git.              | [Towbar secrets](/docs/secrets/towbar), [external secrets](/docs/secrets/external)            |
 | `autoDeploy`, `preview`, `notifications`, `vulnerabilityScanning` | Automation, previews, subscriptions, and scanning.                                 | [Automation and previews](/docs/services/automation)                                          |
 | `jobs`, `hooks`                                                   | Scheduled commands and deployment-stage commands.                                  | [Scheduled jobs](/docs/services/jobs), [deployment hooks](/docs/deployments#deployment-hooks) |
@@ -44,12 +45,14 @@ Put build settings under `deployment`. The exact accepted shapes and constraints
 
 Put shared settings at the top level and override allowed fields under an environment. Objects merge recursively, while an environment array replaces the common array. Identity, secret declarations, and preview configuration stay at entity level. A failed sync does not partially replace the last valid Service configuration or its stored secret values.
 
-## Service icons
+## Workload icon
 
-Towbar discovers a service's icon from its public domain. Set `faviconDomain` to reuse another site's icon, including for a private worker. Use a hostname without a scheme or path:
+Set `iconUrl` to a direct, publicly accessible HTTPS image URL, including for private services and workers:
 
 ```yaml
-faviconDomain: posted.example.com
+iconUrl: https://cdn.example.com/posted/worker.png
 ```
 
-This changes the icon in Towbar without adding a public route. Discovery uses HTTPS and the same public-address, response-size, and timeout checks as automatic favicon discovery. Deployment history retains the icon domain recorded in each deployment.
+The image takes precedence over automatic icon discovery and bundled service logos. It does not add a public route or require a workload redeployment. Set it at the top level or override it per environment; deployment history uses the URL saved with that deployment.
+
+Use PNG, SVG, ICO, JPEG, GIF, or WebP up to **512 KiB**. Towbar fetches and caches the image with public-address validation, a five-second timeout, and at most three redirects. URLs must use port 443 without credentials. Invalid or unavailable images use the existing fallback icon. Without `iconUrl`, Towbar keeps automatic discovery from the service's public domain.

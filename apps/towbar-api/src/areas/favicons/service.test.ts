@@ -1,25 +1,28 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { appIconDomain, deploymentIconDomain } from "./service.js";
+import { appIconSource, deploymentIconSource } from "./service.js";
 
-void test("services can share a public branding domain without public routing", () => {
-  const config = { faviconDomain: "posted.example.com" };
-  assert.equal(appIconDomain(config), "posted.example.com");
-  assert.equal(appIconDomain({}), null);
+void test("services and historical deployments prefer a direct workload icon URL", () => {
+  const config = { iconUrl: "https://cdn.example.com/posted/worker.png?v=2" };
   assert.equal(
-    appIconDomain({
+    appIconSource(config),
+    "https://cdn.example.com/posted/worker.png?v=2",
+  );
+  assert.equal(appIconSource({}), null);
+  assert.equal(
+    appIconSource({
       ...config,
       domains: { primary: "api.example.com" },
     }),
-    "posted.example.com",
+    "https://cdn.example.com/posted/worker.png?v=2",
   );
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "preview",
       hostname: "pr-42.example.com",
       appSnapshot: config,
     }),
-    "posted.example.com",
+    "https://cdn.example.com/posted/worker.png?v=2",
   );
 });
 
@@ -31,7 +34,7 @@ void test("deployment icons stay on their recorded or preview hostname", () => {
     },
   };
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "preview",
       hostname: null,
       appSnapshot,
@@ -39,7 +42,7 @@ void test("deployment icons stay on their recorded or preview hostname", () => {
     null,
   );
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "preview",
       hostname: "pr-42.example.com",
       appSnapshot,
@@ -47,7 +50,7 @@ void test("deployment icons stay on their recorded or preview hostname", () => {
     "pr-42.example.com",
   );
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "production",
       hostname: "historical.example.com",
       appSnapshot,
@@ -55,7 +58,7 @@ void test("deployment icons stay on their recorded or preview hostname", () => {
     "historical.example.com",
   );
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "production",
       hostname: null,
       appSnapshot,
@@ -63,7 +66,7 @@ void test("deployment icons stay on their recorded or preview hostname", () => {
     "production.example.com",
   );
   assert.equal(
-    deploymentIconDomain({
+    deploymentIconSource({
       environment: "production",
       hostname: null,
       appSnapshot: {
