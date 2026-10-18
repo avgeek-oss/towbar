@@ -1053,7 +1053,7 @@ function SecretValueInput({
       </InputGroup.Prefix>
       <InputGroup.Input
         aria-label={label}
-        className={hasReference ? "text-warning" : undefined}
+        className={hasReference ? "secret-reference" : undefined}
         type="text"
         autoComplete="off"
         data-lpignore="true"
@@ -1102,7 +1102,10 @@ function SecretValueInput({
   return referenceKey ? (
     <SecretReferenceTooltip
       key={references[0]?.[0]}
-      reference={references[0]?.[0] ?? ""}
+      reference={{
+        scope: references[0]![1] as "globals" | "repo",
+        key: referenceKey,
+      }}
       reveal={
         revealReference
           ? () =>

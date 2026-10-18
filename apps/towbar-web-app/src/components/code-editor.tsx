@@ -15,11 +15,13 @@ import {
   drawSelection,
   highlightActiveLine,
   hoverTooltip,
+  tooltips,
   activateHover,
   closeHoverTooltips,
 } from "@codemirror/view";
 import {
   secretReferenceAt,
+  secretReferenceError,
   type RevealSecretReference,
 } from "@/lib/secret-reference";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
@@ -30,7 +32,7 @@ const tokens = new MatchDecorator({
   decoration: (match) =>
     Decoration.mark({
       class: match[0].includes("{{")
-        ? "text-warning"
+        ? "secret-reference"
         : "text-accent-soft-foreground",
     }),
 });
@@ -86,13 +88,25 @@ export default function CodeEditor({
   const reveal = useRef(revealReference);
   reveal.current = revealReference;
   useEffect(() => {
+    let previewGeneration = 0;
+    let previewsBlocked = false;
     const previews = hoverTooltip(
-      (view, pos, side) => {
+      async (view, pos, side) => {
         const revealValue = reveal.current;
-        if (!revealValue) return null;
+        if (!revealValue || previewsBlocked) return null;
         const line = view.state.doc.lineAt(pos);
         const reference = secretReferenceAt(line.text, pos - line.from, side);
         if (!reference) return null;
+        const generation = previewGeneration;
+        let preview: string;
+        try {
+          preview =
+            (await revealValue(reference.scope, reference.key)) ||
+            "Empty value";
+        } catch (error) {
+          preview = secretReferenceError(error, reference);
+        }
+        if (generation !== previewGeneration) return null;
         return {
           pos,
           end: line.from + reference.to,
@@ -103,23 +117,10 @@ export default function CodeEditor({
               "px-3 py-2 text-xs whitespace-pre-wrap [overflow-wrap:anywhere]";
             dom.style.maxWidth = "min(24rem, calc(100vw - 2rem))";
             dom.setAttribute("role", "tooltip");
-            dom.textContent = "Loading value…";
-            let active = true;
+            dom.textContent = preview;
             return {
               dom,
-              mount() {
-                void revealValue(reference.scope, reference.key).then(
-                  (value) => {
-                    if (active) dom.textContent = value || "Empty value";
-                  },
-                  () => {
-                    if (active)
-                      dom.textContent = "Unable to show shared secret value";
-                  },
-                );
-              },
               destroy() {
-                active = false;
                 dom.textContent = "";
               },
             };
@@ -137,11 +138,13 @@ export default function CodeEditor({
           language === "yaml" ? [yaml(), yamlHighlighting] : highlighting,
           language === "env"
             ? [
+                tooltips({ parent: document.body }),
                 previews,
                 keymap.of([
                   {
                     key: "Ctrl-Space",
                     run(view) {
+                      previewsBlocked = false;
                       activateHover(view, view.state.selection.main.head, 1, {
                         tooltip: previews,
                       });
@@ -151,6 +154,8 @@ export default function CodeEditor({
                   {
                     key: "Escape",
                     run(view) {
+                      previewsBlocked = true;
+                      previewGeneration++;
                       view.dispatch({ effects: closeHoverTooltips });
                       return false;
                     },
@@ -237,12 +242,27 @@ export default function CodeEditor({
       }),
     });
     editor.current = view;
-    const clearPreviews = () => view.dispatch({ effects: closeHoverTooltips });
+    const invalidatePreview = () => {
+      previewsBlocked = true;
+      previewGeneration++;
+    };
+    const allowPreviews = () => {
+      previewsBlocked = false;
+    };
+    const clearPreviews = () => {
+      invalidatePreview();
+      view.dispatch({ effects: closeHoverTooltips });
+    };
+    view.dom.addEventListener("mouseleave", invalidatePreview);
+    view.dom.addEventListener("mousemove", allowPreviews);
     window.addEventListener("blur", clearPreviews);
     document.addEventListener("visibilitychange", clearPreviews);
     return () => {
+      view.dom.removeEventListener("mouseleave", invalidatePreview);
+      view.dom.removeEventListener("mousemove", allowPreviews);
       window.removeEventListener("blur", clearPreviews);
       document.removeEventListener("visibilitychange", clearPreviews);
+      previewGeneration++;
       view.destroy();
       editor.current = null;
     };

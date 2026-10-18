@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { secretReferenceError } from "@/lib/secret-reference";
 import { Tooltip } from "@avgeek-oss/design-system/overlays/tooltip";
 
 export function SecretReferenceTooltip({
@@ -9,7 +10,7 @@ export function SecretReferenceTooltip({
   reveal,
 }: {
   children: ReactNode;
-  reference: string;
+  reference: { scope: "globals" | "repo"; key: string };
   reveal?: () => Promise<string>;
 }) {
   const generation = useRef(0);
@@ -39,7 +40,7 @@ export function SecretReferenceTooltip({
   async function changeOpen(next: boolean) {
     if (opened.current === next) return;
     opened.current = next;
-    setOpen(next);
+    if (!next) setOpen(false);
     const current = ++generation.current;
     if (!next) {
       setPreview(undefined);
@@ -47,15 +48,20 @@ export function SecretReferenceTooltip({
     }
     if (!reveal) {
       setPreview("You don't have permission to view this value");
+      setOpen(true);
       return;
     }
-    setPreview("Loading value…");
     try {
       const value = await reveal();
-      if (current === generation.current) setPreview(value || "Empty value");
-    } catch {
-      if (current === generation.current)
-        setPreview("Unable to show shared secret value");
+      if (current === generation.current) {
+        setPreview(value || "Empty value");
+        setOpen(true);
+      }
+    } catch (error) {
+      if (current === generation.current) {
+        setPreview(secretReferenceError(error, reference));
+        setOpen(true);
+      }
     }
   }
 
@@ -68,7 +74,7 @@ export function SecretReferenceTooltip({
             className={`${props.className ?? ""} relative w-full min-w-0`}
           />
         )}
-        aria-label={`Shared secret reference ${reference}`}
+        aria-label={`Shared secret reference ${reference.scope}.${reference.key}`}
         onMouseEnter={(event) => {
           const bounds = event.currentTarget.getBoundingClientRect();
           setPointer({
@@ -99,7 +105,7 @@ export function SecretReferenceTooltip({
         showArrow
       >
         <Tooltip.Arrow />
-        {preview ?? "Loading value…"}
+        {preview}
       </Tooltip.Content>
     </Tooltip>
   );

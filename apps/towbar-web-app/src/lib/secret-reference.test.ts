@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { secretReferenceAt } from "./secret-reference";
+import { TowbarApiError } from "@workspace/towbar-web-client";
+import { secretReferenceAt, secretReferenceError } from "./secret-reference";
 
 test("finds repository and workspace references at the pointer or cursor", () => {
   const line = 'URL="{{repo.DATABASE_URL}} / {{ globals.TOKEN }}"';
@@ -40,4 +41,52 @@ test("respects character boundaries and the hovered side", () => {
   assert.equal(secretReferenceAt(line, 2, 1)?.key, "KEY");
   assert.equal(secretReferenceAt(line, line.length, 1), undefined);
   assert.equal(secretReferenceAt(line, line.length, -1)?.key, "KEY");
+});
+
+test("shared preview failures identify the store without exposing server payloads", () => {
+  const repository = { scope: "repo", key: "TOKEN" } as const;
+  const workspace = { scope: "globals", key: "TOKEN" } as const;
+  assert.match(
+    secretReferenceError(
+      new TowbarApiError(404, "NOT_FOUND", "Secret was not found"),
+      repository,
+    ),
+    /Repository secret TOKEN.*current repository/,
+  );
+  assert.match(
+    secretReferenceError(
+      new TowbarApiError(404, "NOT_FOUND", "Secret was not found"),
+      workspace,
+    ),
+    /Workspace secret TOKEN.*workspace secret store/,
+  );
+  assert.match(
+    secretReferenceError(
+      new TowbarApiError(403, "REAUTHENTICATION_REQUIRED", "Confirm identity"),
+      repository,
+    ),
+    /Confirm your identity/,
+  );
+  assert.match(
+    secretReferenceError(
+      new TowbarApiError(403, "FORBIDDEN", "Hidden internal detail"),
+      repository,
+    ),
+    /permission/,
+  );
+  assert.match(
+    secretReferenceError(
+      new TowbarApiError(429, "RATE_LIMITED", "Hidden internal detail"),
+      repository,
+    ),
+    /Wait a moment/,
+  );
+  for (const error of [
+    new Error("sensitive-value"),
+    new TowbarApiError(500, "INTERNAL_ERROR", "sensitive-value"),
+  ]) {
+    const message = secretReferenceError(error, repository);
+    assert.match(message, /hover again to retry/);
+    assert(!message.includes("sensitive-value"));
+  }
 });
