@@ -15,8 +15,6 @@ export function SecretReferenceTooltip({
 }) {
   const generation = useRef(0);
   const opened = useRef(false);
-  const anchor = useRef<HTMLSpanElement>(null);
-  const [pointer, setPointer] = useState<{ x: number; y: number }>();
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<string>();
 
@@ -71,37 +69,20 @@ export function SecretReferenceTooltip({
         render={(props) => (
           <div
             {...props}
-            className={`${props.className ?? ""} relative w-full min-w-0`}
+            className={`${props.className ?? ""} w-full min-w-0`}
           />
         )}
         aria-label={`Shared secret reference ${reference.scope}.${reference.key}`}
-        onMouseEnter={(event) => {
-          const bounds = event.currentTarget.getBoundingClientRect();
-          setPointer({
-            x: event.clientX - bounds.left,
-            y: event.clientY - bounds.top,
-          });
-          void changeOpen(true);
-        }}
-        onFocusCapture={() => {
-          setPointer(undefined);
-          void changeOpen(true);
-        }}
+        onMouseEnter={() => void changeOpen(true)}
+        onFocusCapture={() => void changeOpen(true)}
         onBlurCapture={() => void changeOpen(false)}
         onMouseLeave={() => void changeOpen(false)}
       >
         {children}
-        <span
-          ref={anchor}
-          aria-hidden="true"
-          className="pointer-events-none absolute size-0"
-          style={{ left: pointer?.x ?? 0, top: pointer?.y ?? 0 }}
-        />
       </Tooltip.Trigger>
       <Tooltip.Content
         className="max-w-[min(24rem,calc(100vw-2rem))] whitespace-pre-wrap text-xs [overflow-wrap:anywhere]"
-        triggerRef={pointer ? anchor : undefined}
-        placement="top"
+        placement="top start"
         showArrow
       >
         <Tooltip.Arrow />
