@@ -491,22 +491,13 @@ export function PrivateKeyStore({
       key: "servers",
       header: "Servers",
       cell: (key) => (
-        <TooltipText
-          className="inline-flex"
-          tooltip={
-            key.usageCount === 0
-              ? "This key is not selected by any server."
-              : `Selected for SSH access on ${key.usageCount} server${key.usageCount === 1 ? "" : "s"}.`
-          }
-        >
-          <Chip size="sm" color={key.usageCount === 0 ? "default" : "success"}>
-            <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-              {key.usageCount === 0
-                ? "Not used"
-                : `Used in ${key.usageCount} server${key.usageCount === 1 ? "" : "s"}`}
-            </Chip.Label>
-          </Chip>
-        </TooltipText>
+        <Chip size="sm" color={key.usageCount === 0 ? "default" : "success"}>
+          <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
+            {key.usageCount === 0
+              ? "Not used"
+              : `Used in ${key.usageCount} server${key.usageCount === 1 ? "" : "s"}`}
+          </Chip.Label>
+        </Chip>
       ),
     },
     {

@@ -1,5 +1,7 @@
 "use client";
 
+import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
+
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
@@ -51,7 +53,7 @@ export function LifecycleDetails({
       headerClassName: "w-1/3",
       className: "whitespace-normal",
       cell: (source) => (
-        <TableCellStack className="gap-2">
+        <TableCellStack className="grid-cols-1 gap-2">
           <InlineLink
             target="_blank"
             href={`/repositories/${source.sourceId}`}
@@ -64,16 +66,15 @@ export function LifecycleDetails({
           </InlineLink>
           <span className="flex flex-wrap items-center gap-2">
             <Chip className="max-w-full w-fit">
-              <Chip.Label
-                className="inline-flex min-w-0 items-center gap-1.5"
-                title={source.branch}
-              >
+              <Chip.Label className="inline-flex min-w-0 items-center gap-1.5">
                 <HugeiconsIcon
                   icon={GitBranchIcon}
                   className="size-3.5 shrink-0"
                   aria-hidden="true"
                 />
-                <span className="truncate">{source.branch}</span>
+                <TooltipText className="truncate" tooltip={source.branch}>
+                  {source.branch}
+                </TooltipText>
               </Chip.Label>
             </Chip>
             {item.workloads.some(

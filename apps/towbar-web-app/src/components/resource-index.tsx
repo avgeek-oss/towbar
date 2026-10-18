@@ -151,10 +151,9 @@ export function SourceIndex() {
                 icon: DatabaseIcon,
               },
             ].map(({ label, count, icon }) => (
-              <TooltipText
+              <span
                 key={label}
                 aria-label={`${count} ${label}${count === 1 ? "" : "s"}`}
-                tooltip={`${count} ${label}${count === 1 ? "" : "s"}`}
                 className="inline-flex items-center gap-1.5"
               >
                 <HugeiconsIcon
@@ -162,12 +161,12 @@ export function SourceIndex() {
                   icon={icon}
                   className="size-4 text-muted-foreground"
                 />
-                <span className="tabular-nums">{count}</span>
+                <span className="tabular-nums">{count}</span>{" "}
                 <span className="text-muted">
                   {label}
                   {count === 1 ? "" : "s"}
                 </span>
-              </TooltipText>
+              </span>
             ))}
           </span>
         );

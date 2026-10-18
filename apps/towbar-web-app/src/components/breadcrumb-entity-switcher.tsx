@@ -1,5 +1,7 @@
 "use client";
 
+import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
+
 import {
   DashboardCircleIcon,
   DatabaseIcon,
@@ -352,8 +354,13 @@ export function BreadcrumbEntitySwitcher({
               ? options.map((option) => renderOption(option))
               : sortedSections.map((section) => (
                   <ListBox.Section id={section.id} key={section.id}>
-                    <Header className="truncate text-xs" title={section.label}>
-                      {section.label}
+                    <Header className="truncate text-xs">
+                      <TooltipText
+                        className="block truncate"
+                        tooltip={section.label}
+                      >
+                        {section.label}
+                      </TooltipText>
                     </Header>
                     {section.options.map((option) =>
                       renderOption(option, section.label),

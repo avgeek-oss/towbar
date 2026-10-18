@@ -6,7 +6,7 @@ export function EnvironmentChip({
   name,
   showIcon = true,
   showTooltip = true,
-  tooltip = `Environment: ${name}`,
+  tooltip,
 }: {
   name: string;
   showIcon?: boolean;

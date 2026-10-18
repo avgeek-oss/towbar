@@ -59,18 +59,9 @@ export function PreviewEnvironments({
       header: "URL",
       className: "w-56 max-w-56",
       cell: (preview) => (
-        <TooltipText
-          className="block max-w-56 truncate"
-          tooltip={preview.hostname}
-        >
-          <DomainLink
-            className="max-w-full"
-            domain={preview.hostname}
-            showTooltip={false}
-          >
-            {compactPreviewHostname(preview.hostname)}
-          </DomainLink>
-        </TooltipText>
+        <DomainLink className="max-w-56" domain={preview.hostname}>
+          {compactPreviewHostname(preview.hostname)}
+        </DomainLink>
       ),
     },
     {

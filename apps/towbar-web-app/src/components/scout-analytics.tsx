@@ -1140,18 +1140,14 @@ function AnalyticsRowLabel({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          title={label}
+          tooltip={label}
         >
           {label}
         </InlineExternalLink>
-      ) : dimension === "city" ? (
+      ) : (
         <TooltipText className="block truncate" tooltip={label} openOnPress>
           {label}
         </TooltipText>
-      ) : (
-        <span className="block truncate" title={label}>
-          {label}
-        </span>
       )}
       {onFilter && filterField ? (
         <Tooltip>
