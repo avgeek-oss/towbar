@@ -64,6 +64,4 @@ If a repository is missing or a webhook stops arriving, review the relevant [Git
 
 ## Delete a repository
 
-Towbar blocks deletion while a repository owns workloads or has retained deployment history. Disconnect its environments to stop syncing. Remove workload manifests in Git, then use **Retirements** for explicit cleanup. To transfer ownership, follow [Move between repositories](/docs/repositories/conflicts-and-retirements#move-between-repositories).
-
-Only an empty repository with no retained history or active operations can be [deleted](/docs/repositories/delete).
+Move or remove retained workloads, disconnect all environments, then [delete the repository connection](/docs/repositories/delete). Active operations must finish first. Deployment history and ownership records remain intact and do not block removal. Reconnecting the same repository restores its existing record and secrets.

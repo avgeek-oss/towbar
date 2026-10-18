@@ -5,6 +5,18 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.57] - 2026-10-18
+
+### Changed
+
+- Remove disconnected repositories without deleting completed workload, deployment, sync, or secret history. Reconnecting the same repository restores its identity and selected environment mappings.
+- Show the Latest chip in System Health, simplify status chips, and improve conflict details, audit user selection, and redundant tooltips.
+
+### Fixed
+
+- Keep shared secret previews visible above the editor and stable at the input's left edge. Distinguish shared references with orange text and report specific preview errors.
+- Preserve TLS capitalization in deployment progress and status labels.
+
 ## [2.0.49] - 2026-10-15
 
 ### Added

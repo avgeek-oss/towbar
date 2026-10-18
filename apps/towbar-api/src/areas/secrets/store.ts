@@ -73,6 +73,7 @@ export async function requireSecretOwner(
         eq(table.id, owner.id),
         eq(table.workspaceId, owner.workspaceId),
         owner.type === "server" ? isNull(servers.archivedAt) : undefined,
+        owner.type === "repository" ? eq(sources.status, "active") : undefined,
       ),
     )
     .limit(1);

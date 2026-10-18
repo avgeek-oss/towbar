@@ -313,6 +313,7 @@ function statusTooltip(status: string, context?: "runtime") {
 }
 
 export function formatStatus(status: string) {
+  if (status === "provisioning_tls") return "Provisioning TLS";
   if (status === "none") return "No health check";
   if (status === "not_checked") return "Not checked";
   if (status === "not_deployed") return "Not deployed";

@@ -162,7 +162,7 @@ export const mcpTools: McpTool[] = [
   action(
     "source_disconnect",
     "Disconnect source",
-    "Remove a source from Towbar. Inspect the source and confirm the target with the user first; this changes which repository Towbar manages.",
+    "Remove a disconnected repository with no retained workloads or active operations from the active list. Preserves history and ownership records. Inspect the source and confirm the target with the user first.",
     "DELETE",
     "/sources/:sourceId",
     sourceId,
