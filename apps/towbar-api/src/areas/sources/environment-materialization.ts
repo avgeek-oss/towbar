@@ -44,38 +44,14 @@ export async function materializeEnvironment(
     tree: RepositoryTree;
     serverByIp: Map<string, typeof servers.$inferSelect>;
     requiredSecrets: Record<string, RequiredSecrets>;
+    preserveSecrets?: boolean;
   },
 ) {
   const { reconciliation, environment, workspaceId, tree, serverByIp } = input;
-  const connections = await transaction
-    .select()
-    .from(integrationAuthorizations)
-    .where(
-      and(
-        eq(integrationAuthorizations.workspaceId, workspaceId),
-        isNull(integrationAuthorizations.disconnectedAt),
-      ),
-    );
-  const availableIntegrations: IntegrationDescriptor[] = [
-    ...connections.map(({ provider, scopes, slug }) => ({
-      provider,
-      scopes,
-      slug,
-    })),
-    ...Object.keys(getRuntimeIntegrations().providers).map((provider) => {
-      const typedProvider = provider as IntegrationProvider;
-      return {
-        provider: typedProvider,
-        scopes: [
-          {
-            kind: "workspace" as const,
-            purpose: purposeByProvider[typedProvider],
-          },
-        ],
-        slug: typedProvider,
-      };
-    }),
-  ];
+  const availableIntegrations = await integrationDescriptors(
+    transaction,
+    workspaceId,
+  );
   for (const action of [
     ...reconciliation.apps,
     ...reconciliation.compose,
@@ -224,16 +200,21 @@ export async function materializeEnvironment(
           set: { restricted: true, updatedAt: new Date() },
         });
     }
-    await reconcileInstanceSecretDeclarations(
-      {
-        appId: instance.id,
-        workspaceId,
-        environment: environment.name,
-        declarations: values.requiredSecrets,
-      },
-      transaction,
-    );
-    if (entity.kind === "app" && entity.preview?.enabled) {
+    if (!input.preserveSecrets)
+      await reconcileInstanceSecretDeclarations(
+        {
+          appId: instance.id,
+          workspaceId,
+          environment: environment.name,
+          declarations: values.requiredSecrets,
+        },
+        transaction,
+      );
+    if (
+      !input.preserveSecrets &&
+      entity.kind === "app" &&
+      entity.preview?.enabled
+    ) {
       await reconcileInstanceSecretDeclarations(
         {
           appId: instance.id,
@@ -253,6 +234,67 @@ type IntegrationReference = {
   purpose: IntegrationPurpose;
   slug: string;
 };
+
+async function integrationDescriptors(
+  transaction: Pick<Transaction, "select">,
+  workspaceId: string,
+) {
+  const connections = await transaction
+    .select()
+    .from(integrationAuthorizations)
+    .where(
+      and(
+        eq(integrationAuthorizations.workspaceId, workspaceId),
+        isNull(integrationAuthorizations.disconnectedAt),
+      ),
+    );
+  return [
+    ...connections.map(({ provider, scopes, slug }) => ({
+      provider,
+      scopes,
+      slug,
+    })),
+    ...Object.keys(getRuntimeIntegrations().providers).map((provider) => {
+      const typedProvider = provider as IntegrationProvider;
+      return {
+        provider: typedProvider,
+        scopes: [
+          {
+            kind: "workspace" as const,
+            purpose: purposeByProvider[typedProvider],
+          },
+        ],
+        slug: typedProvider,
+      };
+    }),
+  ] satisfies IntegrationDescriptor[];
+}
+
+export async function validateWithdrawalTarget(
+  transaction: Pick<Transaction, "select">,
+  input: {
+    workspaceId: string;
+    sourceId: string;
+    environment: string;
+    config: NormalizedDeployable;
+    serverByIp: Map<string, typeof servers.$inferSelect>;
+    appId?: string;
+  },
+) {
+  validateIntegrationReferences(input.config, {
+    connections: await integrationDescriptors(transaction, input.workspaceId),
+    environment: input.environment,
+    sourceId: input.sourceId,
+  });
+  const server = input.serverByIp.get(input.config.server);
+  if (!server)
+    throw conflict(
+      `Register server '${input.config.server}' before transferring`,
+      "SERVER_NOT_CONFIGURED",
+    );
+  if (input.config.kind === "app" && input.appId)
+    await assertAppStorageServer(transaction, input.appId, server.id);
+}
 
 type IntegrationDescriptor = Pick<
   typeof integrationAuthorizations.$inferSelect,

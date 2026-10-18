@@ -36,3 +36,20 @@ export type ManifestLifecycleResponse = {
   total: number;
   nextOffset: number | null;
 };
+
+export type RepositoryRemovalPreview = {
+  sourceId: string;
+  revision: string;
+  summary: { transfers: number; retirements: number; conflicts: number };
+  blockers: string[];
+  workloads: {
+    key: string;
+    manifestId: string;
+    environment: string;
+    name: string;
+    outcome: "transfer" | "retire" | "conflict" | "unchanged";
+    destination: string | null;
+    reason: string | null;
+    changedPaths: string[];
+  }[];
+};

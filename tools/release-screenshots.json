@@ -1204,6 +1204,26 @@
         }
       ],
       "capturedAt": "2026-10-17T17:48:30.940Z"
+    },
+    {
+      "name": "repository-removal-review",
+      "route": "/repositories/11111111-1111-4111-8111-111111111111/settings/danger",
+      "guides": ["docs/docs/repositories/delete.mdx"],
+      "themes": [
+        {
+          "theme": "light",
+          "file": "docs/assets/release-v2/repository-removal-review-light.jpg",
+          "width": 3200,
+          "height": 1800
+        },
+        {
+          "theme": "dark",
+          "file": "docs/assets/release-v2/repository-removal-review-dark.jpg",
+          "width": 3200,
+          "height": 1800
+        }
+      ],
+      "capturedAt": "2026-10-18T19:14:38.220Z"
     }
   ]
 }

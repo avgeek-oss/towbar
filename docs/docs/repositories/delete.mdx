@@ -1,12 +1,43 @@
 ---
-title: "Delete a repository"
-description: "Remove a repository connection while preserving its history."
+title: "Remove a repository"
+description: "Disconnect Git management while preserving workloads and history."
 ---
 
-1. Move retained workloads to another repository, or explicitly remove them through [Retirements](/docs/repositories/conflicts-and-retirements#permanently-remove-a-retirement).
-2. Disconnect all environments and wait for active operations to finish.
-3. Open **Repositories → repository → Delete repository** and confirm.
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
-The repository disappears from Towbar's active list. Deployment and sync history, removed workload records, secrets, backup metadata, and runtime ownership evidence remain intact. Historical deployments do not block removal.
+1. Open **Repositories → repository → Remove repository**.
+2. Review each workload's destination, outcome and configuration differences.
+3. Wait for active operations to finish, refresh the review, then confirm **Remove repository**.
 
-Adding the same repository again restores its existing connection and reuses its environment records and secrets. Only the environments you select are reconnected. The Git repository is never deleted.
+<Screenshot
+  light="/assets/release-v2/repository-removal-review-light.jpg"
+  dark="/assets/release-v2/repository-removal-review-dark.jpg"
+  alt="Repository removal review lists workload transfers, retirements and configuration differences before confirmation."
+  width="3200"
+  height="1800"
+  caption="Review the outcome before withdrawing this repository's declarations."
+/>
+
+This removes the connection from Towbar's active list and withdraws its declarations. It does not delete Git files, stop containers or remove data.
+
+| Remaining connected declarations | Outcome                                            |
+| -------------------------------- | -------------------------------------------------- |
+| One compatible declaration       | Transfer the existing workload to that repository. |
+| None                             | Keep the workload in **Retirements**.              |
+| Multiple or incompatible         | Keep the workload in **Conflicts**.                |
+
+Secrets, volumes, backups, deployment and sync history, and runtime ownership evidence are preserved. Configuration differences are recorded without starting a deployment. Permanent runtime and storage removal requires a separate [Retirements confirmation](/docs/repositories/conflicts-and-retirements#permanently-remove-a-retirement).
+
+You can keep the original manifest in Git when removing its connection. Only connected environments of active repositories participate in ownership reconciliation. Historical snapshots do not reserve manifest IDs.
+
+`repo.` references use the destination's Repository Secrets. Add the required keys there before transferring; Towbar does not copy repository secret stores. Missing keys leave a conflict with an explanation.
+
+Adding the same repository again restores its connection and secrets. Only the environments you select reconnect. Sync them to verify the current declarations; a duplicate declaration can create a conflict again.
+
+## REST and MCP
+
+- `GET /v1/api/sources/{sourceId}/removal-preview`: review outcomes, diff paths, blockers and `revision`. Optional `environmentId` limits the review to one environment. No secret values are returned.
+- `DELETE /v1/api/sources/{sourceId}` with `{ "expectedRevision": "<review revision>" }`: remove the connection. A changed review returns `409 SOURCE_REMOVAL_CHANGED`.
+- `DELETE /v1/api/sources/{sourceId}/environments/{environmentId}`: send the mapping's `expectedRevision` and the review's `expectedRemovalRevision` to disconnect just that environment.
+
+MCP provides `towbar_source_removal_preview`, `towbar_source_disconnect` and `towbar_source_environment_disconnect`. These actions require administrator permission. Review and confirm the impact before removal. Active syncs, deployments, resource operations and scans block the action until they finish.

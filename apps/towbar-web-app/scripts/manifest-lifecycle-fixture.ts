@@ -20,7 +20,7 @@ export function createManifestLifecycleFixture(
   };
   const claim = {
     sourceId,
-    sourceEnvironmentId: "e1111111-1111-4111-8111-111111111111",
+    sourceEnvironmentId: `c${sourceId.slice(1)}`,
     repository: owner.repository,
     branch: "main",
     commitSha: "a".repeat(40),
@@ -41,7 +41,7 @@ export function createManifestLifecycleFixture(
         claim,
         {
           ...claim,
-          sourceEnvironmentId: "e1111111-1111-4111-8111-222222222222",
+          sourceEnvironmentId: "c1111111-1111-4111-8111-222222222222",
           sourceId: "11111111-1111-4111-8111-222222222222",
           provider: "gitlab",
           repository: "example-inc/docs/documentation",
@@ -94,6 +94,81 @@ export function createManifestLifecycleFixture(
   const acceptedAt = new Map<string, number>();
   const completed = new Set<string>();
   return {
+    withdrawal(source: string, environmentId?: string) {
+      return items
+        .filter((item) => !completed.has(item.key))
+        .filter(
+          (item) =>
+            item.declarations.some(
+              (d) =>
+                d.sourceId === source &&
+                (!environmentId || d.sourceEnvironmentId === environmentId),
+            ) ||
+            item.workloads.some(
+              (w) =>
+                w.sourceId === source &&
+                (!environmentId ||
+                  item.declarations.some(
+                    (d) => d.sourceEnvironmentId === environmentId,
+                  )),
+            ),
+        )
+        .map((item) => {
+          const remaining = item.declarations.filter(
+            (d) =>
+              d.sourceId !== source ||
+              Boolean(environmentId && d.sourceEnvironmentId !== environmentId),
+          );
+          const incompatible = item.reason?.includes("different datastore");
+          const outcome =
+            remaining.length > 1 || (remaining.length === 1 && incompatible)
+              ? ("conflict" as const)
+              : remaining.length === 0
+                ? ("retire" as const)
+                : item.workloads[0]?.sourceId === remaining[0]!.sourceId
+                  ? ("unchanged" as const)
+                  : ("transfer" as const);
+          return {
+            key: item.key,
+            manifestId: item.manifestId,
+            environment: item.environment,
+            name: item.workloads[0]?.name ?? item.manifestId,
+            outcome,
+            destination: remaining[0]?.repository ?? null,
+            reason: outcome === "conflict" ? item.reason : null,
+            changedPaths: remaining[0]?.changedPaths ?? [],
+          };
+        });
+    },
+    withdraw(source: string, environmentId?: string) {
+      for (const item of items) {
+        const relevant = item.declarations.some(
+          (d) =>
+            d.sourceId === source &&
+            (!environmentId || d.sourceEnvironmentId === environmentId),
+        );
+        if (!relevant) continue;
+        item.declarations = item.declarations.filter(
+          (d) =>
+            d.sourceId !== source ||
+            Boolean(environmentId && d.sourceEnvironmentId !== environmentId),
+        );
+        if (!item.declarations.length) {
+          item.state = "retired";
+          item.reason = null;
+        } else if (
+          item.declarations.length === 1 &&
+          !item.reason?.includes("different datastore")
+        ) {
+          const target = item.declarations[0]!;
+          for (const workload of item.workloads) {
+            workload.sourceId = target.sourceId;
+            workload.repository = target.repository;
+          }
+          completed.add(item.key);
+        }
+      }
+    },
     list(query: URLSearchParams) {
       for (const item of items) {
         const accepted = acceptedAt.get(item.key);

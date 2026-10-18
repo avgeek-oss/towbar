@@ -1,3 +1,4 @@
+import { repositoryTransferSecrets } from "./transfer-secrets.js";
 import { eq } from "drizzle-orm";
 import {
   resourceOperations,
@@ -47,6 +48,36 @@ export function listManifestLifecycle(
         ? `${source.repositoryOwner}/${source.repositoryName}`
         : "Disconnected repository";
     };
+    for (const plan of registry.plans) {
+      const existing = plan.workloads[0];
+      const target = plan.declarations[0];
+      if (
+        plan.state !== "active" ||
+        existing?.manifestState !== "conflict" ||
+        !target ||
+        existing.sourceEnvironmentId === target.sourceEnvironmentId
+      )
+        continue;
+      const snapshot = registry.environments.find(
+        (entry) => entry.environment.id === target.sourceEnvironmentId,
+      )!.snapshot;
+      const secrets = await repositoryTransferSecrets(transaction, {
+        workspaceId,
+        appId: existing.id,
+        sourceId: target.sourceId,
+        environment: plan.environment,
+        includePreview:
+          target.config.kind === "app" && target.config.preview?.enabled,
+        required:
+          snapshot.manifest.requiredSecrets[
+            `${target.config.kind === "app" ? "app" : target.config.kind === "compose" ? "compose" : "resource"}:${target.config.id}`
+          ]!,
+      });
+      if (secrets.missing.length) {
+        plan.state = "conflict";
+        plan.reason = `Add destination Repository Secrets: ${secrets.missing.join(", ")}, then sync the destination.`;
+      }
+    }
     const items: ManifestLifecycleItem[] = registry.plans.flatMap((plan) => {
       const retained = registry.instances.filter(({ app }) =>
         plan.workloads.some((w) => w.id === app.id),

@@ -26,4 +26,5 @@ export type {
   ManifestRepositoryClaim,
   ManifestLifecycleItem,
   ManifestLifecycleResponse,
+  RepositoryRemovalPreview,
 } from "./manifest-lifecycle.js";

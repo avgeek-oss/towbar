@@ -245,8 +245,8 @@ export const documentationTopics = {
     "Confirm a new sign-in email address or change your password. Save each form separately.",
   ),
   repositoryRemoval: guide(
-    "repositories#delete-a-repository",
-    "Remove this repository and its imported inventory from Towbar. Running services and Docker data require separate cleanup.",
+    "repositories/delete",
+    "Review transfers, retirements and conflicts before removing this connection. Runtime, secrets, storage and history are preserved.",
   ),
   sessions: guide(
     "personal-settings#sessions",
@@ -609,8 +609,8 @@ export function headingDocumentation(
   if (name === "danger zone")
     return pathname.startsWith("/repositories")
       ? guide(
-          "repositories#delete-a-repository",
-          "Delete this repository's inventory and history from Towbar. Running containers and data need a separate cleanup.",
+          "repositories/delete",
+          "Withdraw this repository's declarations while preserving workloads, secrets, storage and history.",
         )
       : documentationTopics.removal;
   if (/^(aws s3|google cloud storage) configuration$/.test(name))

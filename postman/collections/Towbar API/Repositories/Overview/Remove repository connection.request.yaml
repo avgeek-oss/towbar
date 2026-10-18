@@ -7,8 +7,15 @@ url: "{{baseUrl}}/sources/:sourceId"
 method: DELETE
 headers:
   Accept: application/json
+  Content-Type: application/json
 pathVariables:
   - key: sourceId
     value: "{{sourceId}}"
     description: Required.
+body:
+  type: json
+  content: |-
+    {
+      "expectedRevision": "string"
+    }
 order: 3000

@@ -19,6 +19,12 @@ import type { TowbarHonoEnvironment } from "../../../http/types.js";
 const revisionSchema = z
   .object({ expectedRevision: z.string().uuid() })
   .strict();
+const disconnectSchema = revisionSchema.extend({
+  expectedRemovalRevision: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
+    .optional(),
+});
 const branchSchema = revisionSchema.extend({
   branch: sourceEnvironmentMappingSchema.shape.branch,
 });
@@ -148,13 +154,14 @@ sourceEnvironmentRoutes.delete(
     permissions: ["repository.disconnect"],
     responseSchema: 'source-environments.ts:delete:"/:environmentId"',
     summary: "Disconnect environment",
-    body: revisionSchema,
-    response: "Disconnected environment; workload data is preserved.",
+    body: disconnectSchema,
+    response:
+      "Withdraw declarations and reconcile ownership; runtime and history are preserved.",
     status: 200,
   }),
   async (context) => {
     const user = context.get("user");
-    const input = await readJson(context, revisionSchema);
+    const input = await readJson(context, disconnectSchema);
     return context.json({
       environment: await disconnectSourceEnvironment({
         ...input,

@@ -17,7 +17,7 @@ Each link appears only when its list has at least one item. The pages remain ava
 | Multiple declarations      | Conflict; the current workload stays unchanged. |
 | No declaration             | Retirement pending; runtime and data remain.    |
 
-Failed fetches, invalid YAML and incomplete repository trees preserve the last successful declaration. A disconnected repository keeps its last verified claims until it can sync again.
+Failed fetches, invalid YAML and incomplete repository trees preserve the last successful declaration. Disconnecting an environment or removing a repository withdraws its claims immediately. Historical snapshots remain available as evidence and do not compete for ownership.
 
 ## Service and datastore lifecycle
 
@@ -34,9 +34,9 @@ stateDiagram-v2
   [*] --> Active: First valid sync
   Active --> Active: Compatible configuration sync
   Active --> Conflict: Competing or incompatible declarations
-  Active --> Retired: Declaration removed and synced
-  Conflict --> Active: One compatible declaration remains
-  Conflict --> Retired: All declarations removed and synced
+  Active --> Retired: Last declaration removed or disconnected
+  Conflict --> Active: One compatible connected declaration remains
+  Conflict --> Retired: All declarations removed or disconnected
   Retired --> Active: Compatible declaration restored
   Retired --> Conflict: Competing or incompatible declarations
   Retired --> Removing: Administrator confirms removal
@@ -55,6 +55,8 @@ Keep the manifest ID, environment name and workload type. Either Git order works
 - Remove the original first: sync it to see a retirement, add the destination declaration, then sync the destination.
 
 Once exactly one compatible declaration remains, Towbar transfers ownership using the existing workload UUID. Secrets, volumes, domains and deployment history stay attached. Historical deployments retain their original repository provenance. The transfer itself does not restart containers; configuration changes follow the destination's existing deployment settings and storage checks. Existing containers and volumes keep their immutable repository labels. Towbar recognizes earlier owners from this workload’s deployment history, so redeployments, jobs, server checks and explicit retirement can safely use the retained runtime and storage. New containers use the destination repository’s labels.
+
+You can also [remove the original repository connection](/docs/repositories/delete) or disconnect its environment while keeping its manifest in Git. Review the transfer and configuration differences before confirming. Workloads with no remaining declaration enter Retirements. Repository removal never starts a deployment. Add any referenced `repo.` keys to the destination Repository Secrets first; missing keys leave a conflict.
 
 The Conflicts page has no resolution actions. Its details show repositories, branches, manifest paths and changed configuration paths. Fix Git, then sync each affected repository. Values are omitted from the diff to avoid exposing credentials embedded in configuration.
 
@@ -124,6 +126,8 @@ flowchart TD
   Git[Repository commit] --> Verify[Validate complete snapshot]
   Verify --> Claims[Last verified declarations per environment]
   Claims --> Reconcile[Serialized workspace reconciliation]
+  Disconnect[Remove connection or disconnect environment] --> Withdraw[Withdraw connected declarations]
+  Withdraw --> Reconcile
   Reconcile -->|Multiple| Conflict[Informational conflict]
   Reconcile -->|One compatible| Owner[Reuse workload UUID and transfer owner]
   Reconcile -->|None| Retirement[Retirement pending]

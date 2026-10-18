@@ -1,4 +1,5 @@
 "use client";
+import { SourceRemovalReview } from "./source-removal-review";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
@@ -57,6 +58,9 @@ export function SourceEnvironments({
     5000,
   );
   const [editing, setEditing] = useState<SourceEnvironment | null>(null);
+  const [disconnecting, setDisconnecting] = useState<SourceEnvironment | null>(
+    null,
+  );
   const [branch, setBranch] = useState("");
   const releaseDraft = useUnsavedChanges(
     Boolean(editing && branch !== editing.branch),
@@ -67,6 +71,39 @@ export function SourceEnvironments({
   if (!query.data) return <QueryLoading />;
   return (
     <div className="content-grid">
+      <Modal
+        isOpen={Boolean(disconnecting)}
+        onOpenChange={(open) => {
+          if (!open) setDisconnecting(null);
+        }}
+      >
+        <Modal.Backdrop>
+          <Modal.Container
+            size="lg"
+            className="w-[min(72rem,calc(100vw-2rem))] max-w-none"
+          >
+            <Modal.Dialog className="max-w-none">
+              <Modal.Header>
+                <Modal.Heading>Disconnect {disconnecting?.name}</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body>
+                {disconnecting ? (
+                  <SourceRemovalReview
+                    sourceId={sourceId}
+                    environment={disconnecting}
+                    onSuccess={() => {
+                      setDisconnecting(null);
+                      refreshApiQueries();
+                    }}
+                  />
+                ) : null}
+              </Modal.Body>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
+
       <ResourceTable
         ariaLabel="Repository environments"
         items={query.data.environments}
@@ -186,26 +223,14 @@ export function SourceEnvironments({
                     <HugeiconsIcon icon={Edit02Icon} aria-hidden="true" />
                     <span className="hidden 2xl:inline">Edit branch</span>
                   </Button>
-                  <ActionButton
-                    action={() =>
-                      api.delete(`${endpoint}/${item.id}`, {
-                        expectedRevision: item.mappingRevision,
-                      })
-                    }
-                    confirm={{
-                      title: `Disconnect ${item.name}?`,
-                      actionLabel: "Disconnect environment",
-                      description:
-                        "This stops synchronization and automatic deployments for this environment. Running workloads, stored secrets, deployment history and resource data are preserved.",
-                    }}
-                    pendingLabel="Disconnecting…"
-                    success={`${item.name} disconnected`}
-                    variant="danger"
+                  <Button
+                    variant="danger-soft"
                     aria-label={`Disconnect ${item.name}`}
+                    onPress={() => setDisconnecting(item)}
                   >
                     <HugeiconsIcon icon={Unlink01Icon} aria-hidden="true" />
                     <span className="hidden 2xl:inline">Disconnect</span>
-                  </ActionButton>
+                  </Button>
                 </div>
               ) : canManage && item.disconnectedAt ? (
                 <div className="flex justify-end">

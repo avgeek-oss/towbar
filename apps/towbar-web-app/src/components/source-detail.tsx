@@ -1,4 +1,5 @@
 "use client";
+import { SourceRemovalReview } from "./source-removal-review";
 import { SourceGitHubConnection } from "./source-github-connection";
 import { useAccess } from "./access-context";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
@@ -7,7 +8,6 @@ import { useDetailNavigation } from "@/hooks/use-detail-navigation";
 import {
   DashboardCircleIcon,
   DatabaseIcon,
-  Delete02Icon,
   CloudIcon,
   ReloadIcon,
   SourceCodeIcon,
@@ -44,7 +44,6 @@ import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
 import {
   ActionButton,
   DashboardPage,
-  FormCard,
   InlineLink,
   PageTabs,
   sourcesBreadcrumb,
@@ -450,43 +449,14 @@ function SourceSettings({
           ? [
               {
                 value: "danger",
-                label: "Delete repository",
+                label: "Remove repository",
                 destructive: true,
                 group: "Danger zone",
                 content: (
-                  <FormCard help={false} title="Danger zone">
-                    <div className="content-grid">
-                      <p className="max-w-3xl text-sm text-muted">
-                        Disconnect all environments, then move or remove any
-                        remaining workloads before deleting this repository.
-                        Deployment history and ownership records are preserved.
-                        Reconnecting the same repository restores its
-                        connection.
-                      </p>
-                      <ActionButton
-                        action={() =>
-                          api.delete(`/v1/core/sources/${sourceId}`)
-                        }
-                        confirm={{
-                          actionLabel: "Delete Repository",
-                          description:
-                            "Remove this disconnected repository from Towbar. Deployment and sync history, removed workload records, secrets, and backup metadata are preserved. You can reconnect the same repository later. This does not delete the Git repository.",
-                          title: "Delete this Repository from Towbar?",
-                        }}
-                        onSuccess={onDelete}
-                        pendingLabel="Deleting…"
-                        success="Repository deleted"
-                        variant="danger"
-                      >
-                        <HugeiconsIcon
-                          aria-hidden="true"
-                          icon={Delete02Icon}
-                          className="size-4 shrink-0"
-                        />
-                        Delete Repository
-                      </ActionButton>
-                    </div>
-                  </FormCard>
+                  <SourceRemovalReview
+                    sourceId={sourceId}
+                    onSuccess={onDelete}
+                  />
                 ),
               },
             ]
