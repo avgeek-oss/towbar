@@ -26,7 +26,6 @@ import {
   deployments,
   releases,
   serverChecks,
-  serverDeployableOwnership,
   serverObservations,
   servers,
   sshHostKeys,
@@ -39,12 +38,9 @@ import { publicDeploymentSelection } from "../deployment-selection.js";
 import { resolveServerCredentials } from "../secrets/store.js";
 import { emitServerCheckNotifications } from "../notifications/events.js";
 import { pruneServerCheckHistory } from "./check-retention.js";
-import {
-  selectCurrentContainerNames,
-  selectCurrentProductionReleaseByDeployable,
-} from "./release-selection.js";
+import { selectCurrentProductionReleaseByDeployable } from "./release-selection.js";
 import { parseRuntimeInspections } from "./runtime-inspection.js";
-import { getServerImageOwners } from "./image-ownership.js";
+import { getCleanupExpected } from "../resource-operations/cleanup-plan.js";
 
 export const sshLoginSecretSchema = z
   .object({
@@ -396,10 +392,6 @@ export async function getServerCheckExecutionContext(checkId: string) {
       eq(deployableRuntimeStates.appId, apps.id),
     )
     .where(and(eq(apps.serverId, context.serverId), isNull(apps.archivedAt)));
-  const ownership = await getTowbarDatabase()
-    .select({ id: serverDeployableOwnership.deployableId })
-    .from(serverDeployableOwnership)
-    .where(eq(serverDeployableOwnership.serverId, context.serverId));
   const deployableIds = deployables.map(
     (deployable) => deployable.deployableId,
   );
@@ -427,6 +419,7 @@ export async function getServerCheckExecutionContext(checkId: string) {
   );
   const currentReleaseByDeployable =
     selectCurrentProductionReleaseByDeployable(retainedReleases);
+  const cleanupExpected = await getCleanupExpected(context.serverId);
   const [started] = await getTowbarDatabase()
     .update(serverChecks)
     .set({ startedAt: new Date(), status: "running" })
@@ -440,8 +433,9 @@ export async function getServerCheckExecutionContext(checkId: string) {
   if (!started) throw conflict("Server check is already complete");
   return {
     ...context,
-    ownedDeployableIds: ownership.map((item) => item.id),
-    expectedContainerNames: selectCurrentContainerNames(retainedReleases),
+    cleanupExpected,
+    ownedDeployableIds: cleanupExpected.ownedDeployableIds,
+    expectedContainerNames: cleanupExpected.containerNames,
     expectedDeployables: deployables.map((deployable): RuntimeExpectation => {
       const release = currentReleaseByDeployable.get(deployable.deployableId);
       const resource = isNormalizedResource(deployable.config)
@@ -494,12 +488,8 @@ export async function getServerCheckExecutionContext(checkId: string) {
           : null,
       };
     }),
-    expectedImageTags: retainedReleases.map((release) => release.imageTag),
-    imageOwners: await getServerImageOwners(
-      getTowbarDatabase(),
-      context.workspaceId,
-      context.serverId,
-    ),
+    expectedImageTags: cleanupExpected.imageTags,
+    imageOwners: cleanupExpected.imageOwners,
     login,
     trustedHostKeys,
   };
