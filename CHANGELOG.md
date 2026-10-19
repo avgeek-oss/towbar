@@ -5,6 +5,12 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.61] - 2026-10-19
+
+### Fixed
+
+- Remove a BuildKit filter that silently prevented unused cache from being pruned during builds, manual cleanup, and hourly maintenance. Preserve active cache records and current and rollback images.
+
 ## [2.0.60] - 2026-10-19
 
 ### Fixed
