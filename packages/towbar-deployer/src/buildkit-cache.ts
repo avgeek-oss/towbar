@@ -7,9 +7,10 @@ def prune_buildkit_cache():
     capacity = shutil.disk_usage(root).total
     budget = min(5 * 1024**3, capacity // 10)
     headroom = min(10 * 1024**3, capacity // 5)
+    # BuildKit protects records in use; inuse is an existence filter, not a boolean.
     result = subprocess.run([
         "docker", "buildx", "prune", "--builder", "default", "--all", "--force",
-        "--filter", "inuse=false", "--max-used-space", str(budget),
+        "--max-used-space", str(budget),
         "--min-free-space", str(headroom), "--reserved-space", "0",
     ], capture_output=True, text=True, timeout=120, check=True)
     summary = next((line.strip() for line in reversed(result.stdout.splitlines())
