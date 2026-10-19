@@ -3,10 +3,12 @@ import { z } from "zod";
 import { orphanItemSchema } from "@workspace/towbar-core";
 
 import type { SshSession } from "./ssh.js";
+import { cleanupEligibilityPython } from "./cleanup-eligibility.js";
 import { imageOwnershipPython } from "./image-ownership.js";
 import type {
   RuntimeExpectation,
   RuntimeInspection,
+  ServerCleanupPlan,
 } from "@workspace/towbar-core";
 
 const inspectionSchema = z
@@ -75,6 +77,7 @@ import re
 expected = json.loads(sys.argv[1])
 owned_deployables = set(expected["ownedDeployableIds"])
 ${imageOwnershipPython}
+${cleanupEligibilityPython}
 
 def owned(labels):
     return labels.get("towbar.managed") == "true" and bool(labels.get("towbar.source")) and labels.get("towbar.deployable") in owned_deployables
@@ -403,6 +406,19 @@ for item in expected["deployables"]:
         "observedState": "running" if running else "stopped",
     })
 
+cleanup = expected.get("cleanupExpected") or {
+    "deployableIds": list(expected_deployables),
+    "containerNames": list(expected_containers),
+    "composeProjects": list(expected_compose_projects),
+    "imageTags": list(expected_images),
+}
+protected_images = {image["Id"] for tag in cleanup["imageTags"] if (image := inspect("image", tag))}
+
+def volume_references(name):
+    attached = command("docker", "ps", "-aq", "--filter", "volume=" + name)
+    return attached.returncode != 0 or bool(attached.stdout.strip())
+
+
 orphans = []
 containers = command("docker", "ps", "-aq", "--filter", "label=towbar.managed=true")
 for name in containers.stdout.splitlines():
@@ -411,8 +427,7 @@ for name in containers.stdout.splitlines():
         continue
     labels = container.get("Config", {}).get("Labels") or {}
     container_name = container.get("Name", "").lstrip("/")
-    compose_project = labels.get("com.docker.compose.project")
-    if owned(labels) and container_name not in expected_containers and compose_project not in expected_compose_projects:
+    if owned(labels) and not cleanup_skip_reason("container", container_name, container, labels.get("towbar.deployable"), cleanup, protected_images, lambda: False):
         orphans.append({
             "kind": "container",
             "name": container_name,
@@ -445,26 +460,32 @@ for name in volumes.stdout.splitlines():
                         "runtimeId": labels.get("towbar.runtime", ""),
                         "name": labels.get("towbar.volume", ""), "volumeName": name,
                         "mountPath": mount_path, "mounted": mounted})
-    unused_host_logs = False
-    if owned(labels) and labels.get("towbar.storage") == "host-logs" and name == "towbar-host-logs-" + labels.get("towbar.runtime", ""):
-        attached = command("docker", "ps", "-aq", "--filter", "volume=" + name)
-        unused_host_logs = attached.returncode == 0 and not attached.stdout.strip()
-    if owned(labels) and (unused_host_logs or labels.get("towbar.deployable") not in expected_deployables):
+    host_logs = labels.get("towbar.storage") == "host-logs"
+    if owned(labels) and not cleanup_skip_reason("volume", name, volume, labels.get("towbar.deployable"), cleanup, protected_images, lambda: volume_references(name)):
         orphans.append({
             "kind": "volume",
             "name": name,
-            "reason": "Host log volume has no container references" if unused_host_logs else "Persistent volume belongs to a removed deployable",
+            "reason": "Host log volume has no container references" if host_logs else "Persistent volume belongs to a removed deployable",
         })
 
-protected_images = {image["Id"] for tag in expected_images if (image := inspect("image", tag))}
+all_containers = command("docker", "ps", "-aq")
+referenced_images = set()
+container_inspection_failed = all_containers.returncode != 0
+for identifier in all_containers.stdout.splitlines():
+    container = inspect("container", identifier)
+    if container is None:
+        container_inspection_failed = True
+    elif container.get("Image"):
+        referenced_images.add(container["Image"])
 images = command("docker", "image", "ls", "-q", "--no-trunc")
 for identifier in dict.fromkeys(images.stdout.splitlines()):
     image = inspect("image", identifier)
     if not image: continue
     name = next((tag for tag in image.get("RepoTags") or [] if tag.startswith("towbar/")), identifier)
     labels = (image.get("Config") or {}).get("Labels") or {}
-    ledger_owned = recorded_image_owner(name, image) in owned_deployables
-    if (owned(labels) or ledger_owned) and name not in expected_images and image["Id"] not in protected_images:
+    recorded_owner = recorded_image_owner(name, image)
+    deployable = recorded_owner if recorded_owner in owned_deployables else labels.get("towbar.deployable") if owned(labels) else None
+    if deployable and not cleanup_skip_reason("image", name, image, deployable, cleanup, protected_images, lambda: container_inspection_failed or image["Id"] in referenced_images):
         orphans.append({
             "kind": "image",
             "name": name,
@@ -477,6 +498,7 @@ PYTHON
 `;
 
 export async function inspectServerRuntime(input: {
+  cleanupExpected?: ServerCleanupPlan;
   containerNames: string[];
   deployables: RuntimeExpectation[];
   imageTags: string[];
@@ -488,11 +510,13 @@ export async function inspectServerRuntime(input: {
     runtimeInspectionScript,
     [
       JSON.stringify({
+        cleanupExpected: input.cleanupExpected,
         containerNames: input.containerNames,
         deployables: input.deployables,
         imageTags: input.imageTags,
-        imageOwners: input.imageOwners,
+        imageOwners: input.cleanupExpected?.imageOwners ?? input.imageOwners,
         ownedDeployableIds:
+          input.cleanupExpected?.ownedDeployableIds ??
           input.ownedDeployableIds ??
           input.deployables.map((item) => item.deployableId),
       }),

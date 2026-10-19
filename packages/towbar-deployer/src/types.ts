@@ -131,6 +131,7 @@ export type PreviewCleanupContext = {
 };
 
 export type ServerCheckContext = {
+  cleanupExpected?: import("@workspace/towbar-core").ServerCleanupPlan;
   checkId: string;
   config: NormalizedServer;
   expectedContainerNames: string[];

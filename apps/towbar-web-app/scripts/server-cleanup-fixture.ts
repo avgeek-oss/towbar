@@ -42,20 +42,27 @@ export function createServerCleanupFixture(
               },
             }
           : {}),
-        cleaned: [
-          {
-            kind: "container",
-            name: `retired-worker-${index}`,
-            reason: "Workload removed from Git",
-          },
-        ],
-        skipped: [
-          {
-            kind: "image",
-            name: "towbar/api:previous",
-            reason: "Retained for rollback",
-          },
-        ],
+        cleaned:
+          index === 2
+            ? []
+            : [
+                {
+                  kind: "container",
+                  name: `retired-worker-${index}`,
+                  reason: "Workload removed from Git",
+                },
+              ],
+        skipped: Array.from({ length: index === 0 ? 40 : 1 }, (_, item) => ({
+          kind: "image" as const,
+          name:
+            item === 0
+              ? "towbar/api:previous"
+              : `towbar/workload-${item}:current`,
+          reason:
+            item === 0
+              ? "Retained for rollback"
+              : "Image is retained for deployment or rollback",
+        })),
         failures: failed
           ? [
               {
@@ -65,12 +72,13 @@ export function createServerCleanupFixture(
               },
             ]
           : [],
-        retiredPaths: failed
-          ? []
-          : [
-              "docker-network:towbar-retired-worker",
-              "/etc/caddy/towbar/retired-worker.caddy",
-            ],
+        retiredPaths:
+          failed || index === 2
+            ? []
+            : [
+                "docker-network:towbar-retired-worker",
+                "/etc/caddy/towbar/retired-worker.caddy",
+              ],
       },
     };
   });

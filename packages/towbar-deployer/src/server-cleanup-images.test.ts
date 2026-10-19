@@ -6,6 +6,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { promisify } from "node:util";
 import { serverCleanupResultSchema } from "@workspace/towbar-core";
+import { inspectServerRuntime } from "./runtime-inspection.js";
+import type { SshSession } from "./ssh.js";
 import { cleanupOrphansScript } from "./server-cleanup.js";
 const execute = promisify(execFile);
 
@@ -89,6 +91,28 @@ elif a[0] not in ['volume','network']: sys.exit(9)
           ]),
       ),
     };
+    const inspection = await inspectServerRuntime({
+      cleanupExpected: expected,
+      containerNames: [],
+      deployables: [],
+      imageTags: [],
+      imageOwners: expected.imageOwners,
+      ownedDeployableIds: expected.ownedDeployableIds,
+      session: {
+        run: (script: string, args: string[]) =>
+          execute("bash", ["-c", script, "test", ...args], {
+            env: {
+              ...process.env,
+              PATH: `${directory}:${process.env.PATH}`,
+              IMAGE_TEST_DIRECTORY: directory,
+            },
+          }),
+      } as unknown as SshSession,
+    });
+    assert.deepEqual(inspection.orphans.map((item) => item.name).sort(), [
+      "towbar/obsolete:release",
+      "untagged",
+    ]);
     const script = cleanupOrphansScript.replace("sudo python3", "python3");
     const result = await execute(
       "bash",

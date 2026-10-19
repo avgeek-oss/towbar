@@ -238,6 +238,27 @@ if (args[1] === 'inspect') {
       ],
     );
 
+    // The workload can move servers while its previous release remains on this host.
+    // Preview must use the cleanup plan, rather than only this server's current runtimes.
+    const moved = await inspectServerRuntime({
+      ...input,
+      deployables: [],
+      containerNames: [],
+      imageTags: [],
+      cleanupExpected: {
+        ownedDeployableIds: input.ownedDeployableIds,
+        deployableIds: input.deployables.map((item) => item.deployableId),
+        protectedDeployableIds: [input.deployables[1]!.deployableId],
+        containerNames: [...input.containerNames, "a-old"],
+        imageTags: [...input.imageTags, "towbar/a:old"],
+      },
+    });
+    assert.equal(moved.runtime.length, 0);
+    assert.deepEqual(
+      moved.orphans.map((item) => `${item.kind}:${item.name}`),
+      ["volume:a-removed", "volume:b-removed"],
+    );
+
     deployables[0]!.sourceId = "destination-source";
     const unapproved = await inspectServerRuntime(input);
     assert.equal(unapproved.runtime[0]?.driftStatus, "drifted");

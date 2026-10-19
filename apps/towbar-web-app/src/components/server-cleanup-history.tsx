@@ -111,6 +111,7 @@ const resultColumns: ResourceTableColumn<CleanupAction>[] = [
 
 function CleanupResults({ operation }: { operation: ResourceOperation }) {
   const [open, setOpen] = useState(false);
+  const [showSkipped, setShowSkipped] = useState(false);
   const result =
     operation.result && "cleaned" in operation.result ? operation.result : null;
   const actions = result
@@ -134,7 +135,7 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
           status: "succeeded",
           label: "Removed",
         })),
-        ...result.skipped.map((item) => ({
+        ...(showSkipped ? result.skipped : []).map((item) => ({
           ...item,
           status: "skipped",
           label: "Skipped",
@@ -180,14 +181,32 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
               <Modal.Heading>Cleanup result</Modal.Heading>
               <Modal.CloseTrigger />
             </Modal.Header>
-            <Modal.Body className="min-w-0">
+            <Modal.Body className="grid min-w-0 gap-4">
+              {result?.skipped.length ? (
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    variant="tertiary"
+                    aria-expanded={showSkipped}
+                    onPress={() => setShowSkipped((value) => !value)}
+                  >
+                    {showSkipped ? "Hide" : "Show"} {result.skipped.length}{" "}
+                    skipped
+                    {result.skipped.length === 1 ? " object" : " objects"}
+                  </Button>
+                </div>
+              ) : null}
               <ResourceTable
                 ariaLabel="Cleanup results"
                 columns={resultColumns}
                 getRowKey={(item) => `${item.status}:${item.kind}:${item.name}`}
                 items={actions}
                 tableClassName="min-w-[720px] table-fixed"
-                emptyTitle="No cleanup actions"
+                emptyTitle={
+                  result?.skipped.length
+                    ? "No objects removed"
+                    : "No cleanup actions"
+                }
                 emptyDescription={
                   operation.errorMessage ??
                   (operation.state === "queued"
@@ -195,7 +214,9 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
                     : operation.state === "running"
                       ? "Cleanup is running. Actions will appear when it finishes."
                       : result
-                        ? "No objects needed cleanup."
+                        ? result.skipped.length
+                          ? "Protected or in-use objects were preserved."
+                          : "No objects needed cleanup."
                         : "No cleanup actions were recorded.")
                 }
                 footer={

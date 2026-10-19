@@ -1,3 +1,4 @@
+import { cleanupEligibilityPython } from "./cleanup-eligibility.js";
 import { buildkitCachePython } from "./buildkit-cache.js";
 import { imageOwnershipPython } from "./image-ownership.js";
 import {
@@ -53,14 +54,13 @@ expected = json.loads(sys.argv[2])
 discover = sys.argv[3] == "true"
 clean_build_cache = sys.argv[4] == "true"
 owned = set(expected.get("ownedDeployableIds", []))
-active = set(expected["deployableIds"])
-protected = set(expected.get("protectedDeployableIds", []))
 retiring = {item["deployableId"]: item for item in expected.get("retiring", [])} if discover else {}
 cleaned, skipped, failures, retired, retired_paths = [], [], [], [], []
 blocked = set()
 log_drain_deadline = None
 ${buildkitCachePython}
 ${imageOwnershipPython}
+${cleanupEligibilityPython}
 
 def command(*args):
     return subprocess.run(args, check=False, capture_output=True, text=True)
@@ -137,23 +137,11 @@ for item in sorted(items, key=lambda value: {"container": 0, "volume": 1, "image
     value = inspect(kind, name)
     labels = labels_of(kind, value)
     deployable = owner(labels, kind, name, value)
-    reason = None
-    if not deployable: reason = "Ownership could not be verified"
-    elif deployable in protected: reason = "Workload has pending work or a domain handoff"
-    elif kind == "container":
-        if (name in expected["containerNames"] or labels.get("com.docker.compose.project") in expected.get("composeProjects", [])
-            or (deployable in active and value.get("State", {}).get("Running"))):
-            reason = "Container is active or retained for rollback"
-    elif kind == "volume":
-        attached = required("docker", "ps", "-aq", "--filter", "volume=" + name).strip()
-        host_logs = labels.get("towbar.storage") == "host-logs" and name == "towbar-host-logs-" + labels.get("towbar.runtime", "")
-        if attached: reason = "Volume still has container references"
-        elif deployable in active and not host_logs: reason = "Volume belongs to an active workload"
-    elif kind == "image":
-        if name in expected["imageTags"] or value["Id"] in protected_images:
-            reason = "Image is retained for deployment or rollback"
-        elif any(container.get("Image") == value["Id"] for container in containers()):
-            reason = "Image still has container references"
+    def references():
+        if kind == "volume":
+            return bool(required("docker", "ps", "-aq", "--filter", "volume=" + name).strip())
+        return any(container.get("Image") == value["Id"] for container in containers())
+    reason = cleanup_skip_reason(kind, name, value, deployable, expected, protected_images, references)
     if reason:
         skipped.append({**item, "reason": reason})
         if deployable in retiring and kind in ("container", "volume"): blocked.add(deployable)

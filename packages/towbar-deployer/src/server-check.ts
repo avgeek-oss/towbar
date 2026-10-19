@@ -96,6 +96,7 @@ export async function checkServer(
       .then(({ stdout }) => parseInstanceMetadata(stdout))
       .catch(() => null);
     const inspection = await inspectServerRuntime({
+      cleanupExpected: context.cleanupExpected,
       containerNames: context.expectedContainerNames,
       deployables: context.expectedDeployables,
       imageTags: context.expectedImageTags,
