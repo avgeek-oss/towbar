@@ -5,7 +5,7 @@ COPY apps/towbar-monitoring-agent/ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags="-s -w" -o /out/towbar-monitoring-linux-amd64 . \
   && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -buildvcs=false -trimpath -ldflags="-s -w" -o /out/towbar-monitoring-linux-arm64 .
 
-FROM node:24-trixie-slim@sha256:173f125896c3b47ddf056734c7ea789d04595a6a08769a8f78e0df642781fb66 AS base
+FROM node:24-trixie-slim@sha256:7f486cabe892bff8fef04c0f7da8dba84a560be3e4e2740b7a86afc57ebec315 AS base
 
 FROM base AS pruner
 ARG TURBO_VERSION=2.11.7
@@ -30,7 +30,7 @@ RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
     deploy --legacy --prefer-offline \
     --store-dir /pnpm/store /prod/towbar-worker
 
-FROM cgr.dev/chainguard/wolfi-base@sha256:238642d42c5613936474d00b900c4e65fb6f637d8991c913403ff09a09cf43a3 AS runner
+FROM cgr.dev/chainguard/wolfi-base@sha256:c2a4815b6ca49b9bbafd451b4bde690d567a86b2b6b54877faac8082a7bc4296 AS runner
 WORKDIR /app
 ENV NODE_ENV=production WORKER_HEALTH_PORT=4030
 RUN apk add --no-cache \

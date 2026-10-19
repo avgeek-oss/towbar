@@ -66,7 +66,7 @@
     "@types/node": "catalog:",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "catalog:",
-    "turbo": "2.11.7",
+    "turbo": "2.11.8",
     "typescript": "catalog:",
     "yaml": "catalog:"
   },
