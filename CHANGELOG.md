@@ -5,6 +5,13 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.60] - 2026-10-19
+
+### Fixed
+
+- Align Docker cleanup's pending list with removal safety checks, including retained releases on former servers, image aliases, protected workloads, and container references.
+- Show removals and failures first in cleanup results, keep skipped objects expandable, and explain attempts that remove no objects.
+
 ## [2.0.59] - 2026-10-19
 
 ### Fixed
