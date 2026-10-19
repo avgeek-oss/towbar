@@ -163,7 +163,8 @@ test(
   { timeout: 5000 },
   async (t) => {
     t.mock.timers.enable({ apis: ["setTimeout"] });
-    const { call, start } = await setup(t, { ttlMs: 1200 });
+    const clock = Date.now();
+    const { call, start } = await setup(t, { ttlMs: 1200, now: () => clock });
     const cookie = await start();
     const stream = await call(
       "/v1/core/deployments/61111111-1111-4111-8111-111111111111/events",
