@@ -44,6 +44,7 @@ import {
   selectCurrentProductionReleaseByDeployable,
 } from "./release-selection.js";
 import { parseRuntimeInspections } from "./runtime-inspection.js";
+import { getServerImageOwners } from "./image-ownership.js";
 
 export const sshLoginSecretSchema = z
   .object({
@@ -494,6 +495,11 @@ export async function getServerCheckExecutionContext(checkId: string) {
       };
     }),
     expectedImageTags: retainedReleases.map((release) => release.imageTag),
+    imageOwners: await getServerImageOwners(
+      getTowbarDatabase(),
+      context.workspaceId,
+      context.serverId,
+    ),
     login,
     trustedHostKeys,
   };

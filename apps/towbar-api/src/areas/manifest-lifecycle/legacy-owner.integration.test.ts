@@ -229,7 +229,7 @@ void test(
         cleanup.retiring?.map((entry) => entry.deployableId),
         [legacy.id],
       );
-      assert(cleanup.protectedDeployableIds?.includes(owner.id));
+      assert(cleanup.deployableIds.includes(owner.id));
       assert(!cleanup.protectedDeployableIds?.includes(legacy.id));
       const [operation] = await db
         .update(resourceOperations)

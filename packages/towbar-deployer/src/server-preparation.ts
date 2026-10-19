@@ -1,4 +1,5 @@
 import { CommandError } from "./process.js";
+import { installBuildkitCacheTimerScript } from "./buildkit-cache.js";
 import {
   ensureCloudflareCaddyScript,
   installCaddyScript,
@@ -122,6 +123,7 @@ if ! "${"$"}{SUDO[@]}" docker buildx build --help 2>&1 | grep -Fq -- '--resource
   printf '%s\n' 'Docker Buildx with per-build resource controls is required.' >&2
   exit 72
 fi
+${installBuildkitCacheTimerScript}
 printf '%s\n' "$docker_version"
 `;
 

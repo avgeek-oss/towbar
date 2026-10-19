@@ -18,6 +18,7 @@ import {
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { notFound } from "../../http/errors.js";
 import type { SecretDatabase } from "../secrets/store.js";
+import { getServerImageOwners } from "../servers/image-ownership.js";
 
 export async function getCleanupExpected(
   serverId: string,
@@ -93,7 +94,11 @@ export async function getCleanupExpected(
       protectedIds.add(ownerId);
   }
   for (const app of instances)
-    if (app.manifestState !== "removed" && app.id !== retirementId)
+    if (
+      app.manifestState !== "active" &&
+      app.manifestState !== "removed" &&
+      app.id !== retirementId
+    )
       protectedIds.add(app.id);
   const activeIds = instances
     .filter((app) => !app.archivedAt)
@@ -149,6 +154,11 @@ export async function getCleanupExpected(
         )
     : [];
   return {
+    imageOwners: await getServerImageOwners(
+      database,
+      server.workspaceId,
+      serverId,
+    ),
     ownedDeployableIds: [...owned],
     deployableIds: activeIds,
     protectedDeployableIds: [...protectedIds],

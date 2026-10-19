@@ -3,6 +3,7 @@ import { z } from "zod";
 import { orphanItemSchema } from "@workspace/towbar-core";
 
 import type { SshSession } from "./ssh.js";
+import { imageOwnershipPython } from "./image-ownership.js";
 import type {
   RuntimeExpectation,
   RuntimeInspection,
@@ -73,6 +74,7 @@ import re
 
 expected = json.loads(sys.argv[1])
 owned_deployables = set(expected["ownedDeployableIds"])
+${imageOwnershipPython}
 
 def owned(labels):
     return labels.get("towbar.managed") == "true" and bool(labels.get("towbar.source")) and labels.get("towbar.deployable") in owned_deployables
@@ -454,15 +456,15 @@ for name in volumes.stdout.splitlines():
             "reason": "Host log volume has no container references" if unused_host_logs else "Persistent volume belongs to a removed deployable",
         })
 
-images = command("docker", "image", "ls", "--format", "{{.Repository}}:{{.Tag}}")
-for name in images.stdout.splitlines():
-    if not name.startswith("towbar/") or name.endswith(":<none>"):
-        continue
-    image = inspect("image", name)
-    if not image:
-        continue
+protected_images = {image["Id"] for tag in expected_images if (image := inspect("image", tag))}
+images = command("docker", "image", "ls", "-q", "--no-trunc")
+for identifier in dict.fromkeys(images.stdout.splitlines()):
+    image = inspect("image", identifier)
+    if not image: continue
+    name = next((tag for tag in image.get("RepoTags") or [] if tag.startswith("towbar/")), identifier)
     labels = (image.get("Config") or {}).get("Labels") or {}
-    if owned(labels) and name not in expected_images:
+    ledger_owned = recorded_image_owner(name, image) in owned_deployables
+    if (owned(labels) or ledger_owned) and name not in expected_images and image["Id"] not in protected_images:
         orphans.append({
             "kind": "image",
             "name": name,
@@ -478,6 +480,7 @@ export async function inspectServerRuntime(input: {
   containerNames: string[];
   deployables: RuntimeExpectation[];
   imageTags: string[];
+  imageOwners?: Record<string, string>;
   ownedDeployableIds?: string[];
   session: SshSession;
 }) {
@@ -488,6 +491,7 @@ export async function inspectServerRuntime(input: {
         containerNames: input.containerNames,
         deployables: input.deployables,
         imageTags: input.imageTags,
+        imageOwners: input.imageOwners,
         ownedDeployableIds:
           input.ownedDeployableIds ??
           input.deployables.map((item) => item.deployableId),

@@ -320,6 +320,7 @@ export type ResourceOperation = {
         timedOut: boolean;
       }
     | {
+        buildCache?: { status: "succeeded" | "failed"; message: string };
         cleaned: OrphanItem[];
         skipped: OrphanItem[];
         failures?: OrphanItem[];

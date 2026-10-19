@@ -1,14 +1,57 @@
+import { buildkitCachePython } from "./buildkit-cache.js";
+import { imageOwnershipPython } from "./image-ownership.js";
+import {
+  type ResourceOperationRequest,
+  type ServerCleanupPlan,
+  serverCleanupResultSchema,
+} from "@workspace/towbar-core";
+import type { SshSession } from "./ssh.js";
+
+export async function executeServerCleanup(input: {
+  session: SshSession;
+  request: Extract<ResourceOperationRequest, { type: "cleanup_orphans" }>;
+  expected: ServerCleanupPlan;
+  signal?: AbortSignal;
+}) {
+  const { request } = input;
+  const fullManual =
+    request.trigger === "manual" &&
+    request.scope !== "selected" &&
+    !request.retiringDeployableIds?.length;
+  const { stdout } = await input.session.run(
+    cleanupOrphansScript,
+    [
+      JSON.stringify(request.items),
+      JSON.stringify(input.expected),
+      String(Boolean(request.trigger) && request.scope !== "selected"),
+      String(fullManual),
+    ],
+    { signal: input.signal, timeoutMs: 5 * 60_000 },
+  );
+  const result = serverCleanupResultSchema.parse(JSON.parse(stdout));
+  if (result.failures?.length || result.buildCache?.status === "failed") {
+    throw Object.assign(
+      new Error(
+        "Server cleanup could not remove every eligible object. See the attempt results and retry.",
+      ),
+      { cleanupResult: result },
+    );
+  }
+  return result;
+}
+
 export const cleanupOrphansScript = String.raw`
 set -euo pipefail
 python=(python3)
 if test "${"$"}{3:-false}" = true; then python=(sudo python3); fi
-"${"$"}{python[@]}" - "$1" "$2" "${"$"}{3:-false}" <<'PYTHON'
+"${"$"}{python[@]}" - "$1" "$2" "${"$"}{3:-false}" "${"$"}{4:-false}" <<'PYTHON'
 import json, os, re, shutil, subprocess, sys, time
 from pathlib import Path
 
 items = json.loads(sys.argv[1])
 expected = json.loads(sys.argv[2])
 discover = sys.argv[3] == "true"
+clean_build_cache = sys.argv[4] == "true"
 owned = set(expected.get("ownedDeployableIds", []))
 active = set(expected["deployableIds"])
 protected = set(expected.get("protectedDeployableIds", []))
@@ -16,6 +59,8 @@ retiring = {item["deployableId"]: item for item in expected.get("retiring", [])}
 cleaned, skipped, failures, retired, retired_paths = [], [], [], [], []
 blocked = set()
 log_drain_deadline = None
+${buildkitCachePython}
+${imageOwnershipPython}
 
 def command(*args):
     return subprocess.run(args, check=False, capture_output=True, text=True)
@@ -33,7 +78,11 @@ def inspect(kind, name):
 def labels_of(kind, value):
     return (value.get("Labels") or {}) if kind in ("volume", "network") else ((value.get("Config") or {}).get("Labels") or {})
 
-def owner(labels, kind=None, name=None):
+def owner(labels, kind=None, name=None, value=None):
+    if kind == "image" and value:
+        recorded_owner = recorded_image_owner(name, value)
+        if recorded_owner in owned:
+            return recorded_owner
     deployable = labels.get("towbar.deployable")
     if deployable:
         if labels.get("towbar.managed") != "true" or not labels.get("towbar.source") or deployable not in owned:
@@ -71,22 +120,23 @@ if discover:
     for kind, args in [
         ("container", ("ps", "-a", "--format", "{{.Names}}", "--filter", "label=towbar.managed=true")),
         ("volume", ("volume", "ls", "-q")),
-        ("image", ("image", "ls", "--format", "{{.Repository}}:{{.Tag}}", "--filter", "label=towbar.managed=true")),
+        ("image", ("image", "ls", "--format", "{{.Repository}}:{{.Tag}}")),
     ]:
         for name in dict.fromkeys(required("docker", *args).splitlines()):
             if "<none>" in name: continue
             value = inspect(kind, name)
-            if owner(labels_of(kind, value), kind, name):
+            if owner(labels_of(kind, value), kind, name, value):
                 items.append({"kind": kind, "name": name, "reason": "Unused Towbar object"})
-    for name in dict.fromkeys(required("docker", "image", "ls", "-q", "--no-trunc", "--filter", "dangling=true", "--filter", "label=towbar.managed=true").splitlines()):
-        if owner(labels_of("image", inspect("image", name)), "image", name):
+    for name in dict.fromkeys(required("docker", "image", "ls", "-q", "--no-trunc").splitlines()):
+        value = inspect("image", name)
+        if not has_image_tags(value) and owner(labels_of("image", value), "image", name, value):
             items.append({"kind": "image", "name": name, "reason": "Unused Towbar image"})
 
 for item in sorted(items, key=lambda value: {"container": 0, "volume": 1, "image": 2}[value["kind"]]):
     kind, name = item["kind"], item["name"]
     value = inspect(kind, name)
     labels = labels_of(kind, value)
-    deployable = owner(labels, kind, name)
+    deployable = owner(labels, kind, name, value)
     reason = None
     if not deployable: reason = "Ownership could not be verified"
     elif deployable in protected: reason = "Workload has pending work or a domain handoff"
@@ -120,6 +170,10 @@ for item in sorted(items, key=lambda value: {"container": 0, "volume": 1, "image
             print("Centralized logs could not confirm the final record before container cleanup.", file=sys.stderr)
     args = {"container": ("rm", "-f"), "volume": ("volume", "rm"), "image": ("image", "rm")}[kind]
     result = command("docker", *args, name)
+    if kind == "image" and result.returncode == 0 and recorded_image_owner(name, value):
+        remaining = command("docker", "image", "inspect", value["Id"])
+        if remaining.returncode == 0 and not has_image_tags(json.loads(remaining.stdout)[0]):
+            result = command("docker", "image", "rm", value["Id"])
     if result.returncode == 0: cleaned.append(item)
     else:
         failures.append({**item, "reason": "Docker refused removal; inspect usage and retry"})
@@ -260,7 +314,13 @@ for candidate in candidates:
     except Exception as error:
         failures.append({"kind": "workload", "name": deployable, "reason": str(error)[:500]})
 
-print(json.dumps({"cleaned": cleaned, "skipped": skipped, "failures": failures,
-                  "retiredDeployableIds": retired, "retiredPaths": retired_paths}, separators=(",", ":")))
+result = {"cleaned": cleaned, "skipped": skipped, "failures": failures,
+          "retiredDeployableIds": retired, "retiredPaths": retired_paths}
+if clean_build_cache:
+    try:
+        result["buildCache"] = prune_buildkit_cache()
+    except (OSError, subprocess.SubprocessError):
+        result["buildCache"] = {"status": "failed", "message": "BuildKit cache cleanup failed; inspect Docker and retry cleanup."}
+print(json.dumps(result, separators=(",", ":")))
 PYTHON
 `;
