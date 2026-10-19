@@ -17,6 +17,7 @@ const icons: Record<string, typeof BoxIcon | undefined> = {
   workload: Layers01Icon,
   path: Folder01Icon,
   network: NetworkIcon,
+  cache: Layers01Icon,
 };
 
 export function CleanupObjectType({ kind }: { kind: string }) {

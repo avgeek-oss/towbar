@@ -5,6 +5,15 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.59] - 2026-10-19
+
+### Fixed
+
+- Bound Docker BuildKit cache before and after builds, during full manual cleanup, and with an hourly timer installed by server setup. Preserve active cache records and report manual cache-cleanup failures.
+- Clean obsolete images belonging to active workloads while retaining current and rollback releases. Verify pulled OCI images and digest-only references against workspace and server deployment history.
+- Sort repositories alphabetically by the full organization and repository name.
+- Make the public-demo stream-expiry test independent of worker startup time.
+
 ## [2.0.58] - 2026-10-19
 
 ### Added

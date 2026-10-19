@@ -136,6 +136,7 @@ export type ServerCheckContext = {
   expectedContainerNames: string[];
   expectedDeployables: RuntimeExpectation[];
   expectedImageTags: string[];
+  imageOwners?: Record<string, string>;
   ownedDeployableIds?: string[];
   login: SshLoginSecret;
   purpose?: "credential-verification";

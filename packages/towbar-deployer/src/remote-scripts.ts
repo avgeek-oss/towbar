@@ -7,6 +7,7 @@ import {
   validateNetworkAliasScript,
 } from "./network-alias-scripts.js";
 import { reclaimHostLogVolumeScript } from "./host-log-collection.js";
+import { maintainBuildkitCacheScript } from "./buildkit-cache.js";
 
 export { startRemoteScript } from "./app-runtime-scripts.js";
 
@@ -112,6 +113,7 @@ target="$9"
 architecture="${"$"}{10}"
 cache_enabled="${"$"}{11}"
 cache_scope="${"$"}{12}"
+${maintainBuildkitCacheScript}
 rm -rf "$remote_dir/context"
 install -d -m 700 "$remote_dir/context"
 expanded_bytes="$(gzip -cd "$remote_dir/context.tar.gz" | wc -c)"
@@ -135,7 +137,7 @@ done
 if test -n "$target"; then build_args+=(--target "$target"); fi
 if test -n "$architecture"; then build_args+=(--platform "linux/$architecture"); fi
 ${configureDockerBuildCacheScript}
-tar -cf - -C "$remote_dir/context" . | docker buildx build --load "${"$"}{build_args[@]}" \
+tar -cf - -C "$remote_dir/context" . | docker buildx build --builder default --load "${"$"}{build_args[@]}" \
   --resource "cpu-quota=$(python3 -c 'import sys; print(round(float(sys.argv[1]) * 100000))' "$build_cpus")" \
   --resource "memory=$build_memory" \
   --label "towbar.managed=true" \
@@ -196,6 +198,7 @@ build_memory="${"$"}{16}"
 architecture="${"$"}{17}"
 cache_enabled="${"$"}{18}"
 cache_scope="${"$"}{19}"
+${maintainBuildkitCacheScript}
 rm -rf "$remote_dir/context"
 install -d -m 700 "$remote_dir/context"
 expanded_bytes="$(gzip -cd "$remote_dir/context.tar.gz" | wc -c)"
@@ -306,7 +309,7 @@ PYTHON
 build_args=()
 if test -n "$architecture"; then build_args+=(--platform "linux/$architecture"); fi
 ${configureDockerBuildCacheScript}
-tar -cf - -C "$remote_dir/context" . | docker buildx build --load "${"$"}{build_args[@]}" \
+tar -cf - -C "$remote_dir/context" . | docker buildx build --builder default --load "${"$"}{build_args[@]}" \
   --resource "cpu-quota=$(python3 -c 'import sys; print(round(float(sys.argv[1]) * 100000))' "$build_cpus")" \
   --resource "memory=$build_memory" \
   --label "towbar.managed=true" \
@@ -344,6 +347,7 @@ build_memory="$6"
 expected_version="$7"
 config_file="$8"
 cache_scope="$9"
+${maintainBuildkitCacheScript}
 rm -rf "$remote_dir/context"
 install -d -m 700 "$remote_dir/context"
 expanded_bytes="$(gzip -cd "$remote_dir/context.tar.gz" | wc -c)"
@@ -489,7 +493,7 @@ if test "$builder_type" = buildpack; then
   done
   if test "$cache_enabled" != true; then
     cleanup_builder_cache() { docker volume rm -f "${"$"}{cache_volumes[@]}" >/dev/null 2>&1 || true; }
-    trap cleanup_builder_cache EXIT
+    trap 'cleanup_builder_cache; maintain_buildkit_cache' EXIT
   fi
 fi
 docker run --rm \

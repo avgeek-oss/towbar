@@ -4349,7 +4349,15 @@ export function createFixtureApiServer({
         operation.state = "succeeded";
         operation.startedAt = operation.createdAt;
         operation.finishedAt = new Date().toISOString();
-        operation.result = { cleaned: [], skipped: [] };
+        operation.result = {
+          cleaned: [],
+          skipped: [],
+          buildCache: {
+            status: "succeeded",
+            message:
+              "Total: 2.5GB; cache limit 5120 MiB; free-space target 10240 MiB",
+          },
+        };
       }, 1500).unref();
       return writeJson(response, 202, { operation, replayed: false });
     }

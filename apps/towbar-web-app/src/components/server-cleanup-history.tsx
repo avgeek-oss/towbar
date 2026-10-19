@@ -115,6 +115,20 @@ function CleanupResults({ operation }: { operation: ResourceOperation }) {
     operation.result && "cleaned" in operation.result ? operation.result : null;
   const actions = result
     ? [
+        ...(result.buildCache
+          ? [
+              {
+                kind: "cache",
+                name: "Docker BuildKit cache",
+                reason: result.buildCache.message,
+                status: result.buildCache.status,
+                label:
+                  result.buildCache.status === "succeeded"
+                    ? "Cleaned"
+                    : "Failed",
+              },
+            ]
+          : []),
         ...result.cleaned.map((item) => ({
           ...item,
           status: "succeeded",

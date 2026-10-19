@@ -33,6 +33,15 @@ export function createServerCleanupFixture(
         ? "A volume still has container references. Inspect its usage and request cleanup again."
         : null,
       result: {
+        ...(index % 2
+          ? {
+              buildCache: {
+                status: "succeeded" as const,
+                message:
+                  "Total: 2.5GB; cache limit 5120 MiB; free-space target 10240 MiB",
+              },
+            }
+          : {}),
         cleaned: [
           {
             kind: "container",

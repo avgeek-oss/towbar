@@ -359,6 +359,13 @@ const cleanupOutcomeSchema = orphanItemSchema.extend({
 
 export const serverCleanupResultSchema = z
   .object({
+    buildCache: z
+      .object({
+        status: z.enum(["succeeded", "failed"]),
+        message: z.string(),
+      })
+      .strict()
+      .optional(),
     cleaned: z.array(orphanItemSchema),
     skipped: z.array(cleanupOutcomeSchema),
     failures: z.array(cleanupOutcomeSchema).optional(),
@@ -370,6 +377,7 @@ export const serverCleanupResultSchema = z
 export type ServerCleanupResult = z.infer<typeof serverCleanupResultSchema>;
 
 export type ServerCleanupPlan = {
+  imageOwners?: Record<string, string>;
   ownedDeployableIds?: string[];
   containerNames: string[];
   deployableIds: string[];

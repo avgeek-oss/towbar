@@ -23,6 +23,10 @@ An administrator can explicitly remove a retirement under [Conflicts and retirem
 
 Each attempt rechecks ownership and active operations. Sync and new deployment admission wait while server cleanup is running. Cleanup preserves other workloads, shared networks and external objects, and never runs an unrestricted Docker prune.
 
+Full manual cleanup also prunes unused cache from Docker's default BuildKit builder. Cache maintenance runs before and after builds, including failed builds. Server setup installs an hourly cache-maintenance timer; rerun setup to add it to an existing server. These operations target a cache limit of **5 GiB or 10% of the Docker filesystem**, whichever is smaller, and aim to leave **10 GiB or 20% free**, whichever is smaller. Active builds and image layers still referenced by releases remain protected, so these are cleanup targets rather than disk quotas. Other Buildx builders are unchanged.
+
+Obsolete images are verified against Towbar labels or the server's deployment history, including image digests for published images. Current releases, rollback images, container references, conflicts and pending retirements stay protected. Selected-object cleanup and permanent workload removal do not prune the server's shared build cache. Pruned cache is rebuilt when needed; it does not contain persistent application data.
+
 Use **View result** to inspect removed, skipped and failed objects. Failed permanent removal keeps its ID reserved. Retry from Retirements after fixing the reported issue. A missing or disconnected historical server must be registered again before removal can be queued.
 
 For removal of the server itself, read [Remove a server](/docs/servers/remove).

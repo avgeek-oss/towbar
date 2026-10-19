@@ -226,6 +226,51 @@ void test(
         .from(resourceOperations)
         .where(eq(resourceOperations.workspaceId, workspaceId));
     await t.test(
+      "active workloads retain releases without protecting obsolete images; pending work still blocks cleanup",
+      async () => {
+        const plan = await getCleanupExpected(first.id);
+        assert(plan.deployableIds.includes(one.id));
+        assert(!plan.protectedDeployableIds?.includes(one.id));
+        assert.equal(
+          plan.imageOwners?.[`towbar/${one.id}:${built.id}`],
+          one.id,
+        );
+        assert(plan.imageTags.includes(`towbar/${one.id}:${built.id}`));
+        assert.equal(
+          (await getCleanupExpected(builder.id)).imageOwners?.[
+            `towbar/${one.id}:${built.id}`
+          ],
+          one.id,
+        );
+        await db
+          .update(deployments)
+          .set({ state: "building" })
+          .where(eq(deployments.id, built.id));
+        assert(
+          (await getCleanupExpected(first.id)).protectedDeployableIds?.includes(
+            one.id,
+          ),
+        );
+        await db
+          .update(deployments)
+          .set({ state: "succeeded" })
+          .where(eq(deployments.id, built.id));
+        await db
+          .update(apps)
+          .set({ manifestState: "conflict" })
+          .where(eq(apps.id, one.id));
+        assert(
+          (await getCleanupExpected(first.id)).protectedDeployableIds?.includes(
+            one.id,
+          ),
+        );
+        await db
+          .update(apps)
+          .set({ manifestState: "active" })
+          .where(eq(apps.id, one.id));
+      },
+    );
+    await t.test(
       "active ambiguous retained owners still reject sync and never queue cleanup",
       async () => {
         await assert.rejects(sync(), /multiple deployed owners/);

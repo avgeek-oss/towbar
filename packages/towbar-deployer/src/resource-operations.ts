@@ -1,5 +1,7 @@
-import { cleanupOrphansScript } from "./server-cleanup.js";
-import { serverCleanupResultSchema } from "@workspace/towbar-core";
+import {
+  cleanupOrphansScript,
+  executeServerCleanup,
+} from "./server-cleanup.js";
 import { executeAppJob } from "./app-job.js";
 import { requireOperationSource } from "./operation-source.js";
 /* eslint-disable max-lines -- Resource backup and restore providers share one evidence and promotion protocol. */
@@ -181,28 +183,12 @@ export async function executeResourceOperation(input: {
   const remoteDirectory = `/tmp/towbar-operation-${context.operationId}`;
   try {
     if (context.request.type === "cleanup_orphans") {
-      const { stdout } = await session.run(
-        cleanupOrphansScript,
-        [
-          JSON.stringify(context.request.items),
-          JSON.stringify(context.cleanupExpected),
-          String(
-            Boolean(context.request.trigger) &&
-              context.request.scope !== "selected",
-          ),
-        ],
-        { signal, timeoutMs: 5 * 60_000 },
-      );
-      const result = serverCleanupResultSchema.parse(JSON.parse(stdout));
-      if (result.failures?.length) {
-        throw Object.assign(
-          new Error(
-            "Server cleanup could not remove every eligible object. See the attempt results and retry.",
-          ),
-          { cleanupResult: result },
-        );
-      }
-      return result;
+      return await executeServerCleanup({
+        session,
+        request: context.request,
+        expected: context.cleanupExpected,
+        signal,
+      });
     }
 
     if (context.request.type === "restore") {
