@@ -85,8 +85,6 @@ print(json.dumps(prune_buildkit_cache()))
       "default",
       "--all",
       "--force",
-      "--filter",
-      "inuse=false",
       "--max-used-space",
       String(budget! * 1024 ** 3),
       "--min-free-space",
