@@ -38,7 +38,7 @@
     "@workspace/towbar-email": "workspace:*",
     "better-auth": "1.7.7",
     "drizzle-orm": "catalog:",
-    "hono": "4.13.12",
+    "hono": "4.13.13",
     "jose": "^6.2.12",
     "nodemailer": "10.0.14",
     "parse5": "8.0.1",
