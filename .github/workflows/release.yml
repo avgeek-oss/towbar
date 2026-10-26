@@ -4,7 +4,9 @@ name: Cut release
 # "Publish release images" with that tag, which verifies, builds and
 # publishes the release as before. The version checks mirror that
 # workflow's prepare job so a bad version is caught before anything is
-# tagged.
+# tagged. The publisher requires the tag to sit on the head of main, so
+# the live head is checked again right before tagging and before the
+# dispatch; if main moved in between, the new tag is removed again.
 on:
   workflow_dispatch:
     inputs:
@@ -74,7 +76,9 @@ jobs:
           fi
       - name: Check the changelog has an entry
         run: |
-          if ! grep -Eq "^## \[${VERSION}\] - " CHANGELOG.md; then
+          set -euo pipefail
+          escaped=$(printf '%s' "$VERSION" | sed 's/[.]/\\./g')
+          if ! grep -Eq "^## \[${escaped}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
             echo "::error::CHANGELOG.md has no '## [<version>] - YYYY-MM-DD' section for $VERSION. Add it before releasing."
             exit 1
           fi
@@ -85,11 +89,14 @@ jobs:
             echo "::error::Tag $TAG already exists."
             exit 1
           fi
-          if gh release view "$TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/release-state" 2>/dev/null; then
-            if [ "$(cat "$RUNNER_TEMP/release-state")" != "true" ]; then
-              echo "::error::A published GitHub release $TAG already exists."
-              exit 1
-            fi
+          # The listing itself must succeed; an API failure is not proof of absence.
+          if ! drafts=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq '.[] | select(.tag_name == env.TAG) | .draft'); then
+            echo "::error::Could not list GitHub releases to check $TAG. Nothing was tagged."
+            exit 1
+          fi
+          if printf '%s\n' "$drafts" | grep -qx false; then
+            echo "::error::A published GitHub release $TAG already exists."
+            exit 1
           fi
       - name: Check CI passed for this commit
         run: |
@@ -98,7 +105,9 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?filter=all&per_page=100" --paginate --slurp > "$RUNNER_TEMP/release-checks.json"
             pending=0
             for name in "Required CI"; do
-              state=$(jq -r --arg name "$name" '[.[].check_runs[] | select(.name == $name and .app.slug == "github-actions")] | sort_by(.started_at // .completed_at // "") | last | if . == null then "missing" elif .status != "completed" then .status else .conclusion end' "$RUNNER_TEMP/release-checks.json")
+              # The newest check run by id wins, so a queued rerun is waited for
+              # rather than hidden behind an older success.
+              state=$(jq -r --arg name "$name" '[.[].check_runs[] | select(.name == $name and .app.slug == "github-actions")] | sort_by(.id) | last | if . == null then "missing" elif .status != "completed" then .status else .conclusion end' "$RUNNER_TEMP/release-checks.json")
               case "$state" in
                 success) ;;
                 queued|in_progress|pending|waiting|missing) pending=1 ;;
@@ -130,6 +139,11 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
+          live=$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)
+          if [ "$live" != "$GITHUB_SHA" ]; then
+            echo "::error::main moved to ${live:0:7} while this run checked ${GITHUB_SHA:0:7}. Nothing was tagged; run again on the new head."
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" "$GITHUB_SHA" -m "Towbar $TAG"
@@ -138,6 +152,12 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
+          live=$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)
+          if [ "$live" != "$GITHUB_SHA" ]; then
+            git push origin ":refs/tags/$TAG"
+            echo "::error::main moved to ${live:0:7} after $TAG was created. The publisher requires the tag on the head of main, so the tag was removed again. Run Cut release again on the new head."
+            exit 1
+          fi
           for attempt in 1 2 3 4 5; do
             if gh workflow run release-images.yml --ref main -f "release_tag=$TAG"; then break; fi
             if [ "$attempt" = 5 ]; then
