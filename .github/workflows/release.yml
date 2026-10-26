@@ -1,0 +1,154 @@
+name: Cut release
+# On-demand replacement for creating a release tag by hand. It tags the
+# current main commit as v<package.json version> and dispatches
+# "Publish release images" with that tag, which verifies, builds and
+# publishes the release as before. The version checks mirror that
+# workflow's prepare job so a bad version is caught before anything is
+# tagged.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release. Must match package.json. Defaults to package.json."
+        required: false
+        type: string
+      dry_run:
+        description: "Run every check and print the plan without tagging"
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: write
+  actions: write
+  checks: read
+concurrency:
+  group: release-cutter
+  cancel-in-progress: false
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run this workflow from main. Releases are cut from the head of main only."
+          exit 1
+      - name: Note the mode
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "**Dry run.** Checks only; nothing is tagged or published." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**Release.** If every check passes, this run tags main and dispatches Publish release images." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Resolve the version
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="$(jq -r .version package.json)"
+          if [ -n "$REQUESTED" ] && [ "$REQUESTED" != "$version" ]; then
+            echo "::error::Requested $REQUESTED but package.json is $version. Merge the version bump first."
+            exit 1
+          fi
+          if ! [[ "$version" =~ ^2\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::package.json version $version is not a stable release version for Towbar."
+            exit 1
+          fi
+          {
+            echo "VERSION=$version"
+            echo "TAG=v$version"
+          } >> "$GITHUB_ENV"
+      - name: Check versions match across the release
+        run: |
+          set -euo pipefail
+          node tools/build-towbar-cli.mjs --check
+          latest="$(gh release list --exclude-drafts --exclude-pre-releases --limit 100 --json tagName --jq '.[].tagName' | sort -V | tail -1)"
+          if [[ -n "$latest" ]]; then
+            test "$(printf '%s\n' "$latest" "$TAG" | sort -V | tail -1)" = "$TAG"
+          fi
+      - name: Check the changelog has an entry
+        run: |
+          if ! grep -Eq "^## \[${VERSION}\] - " CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [<version>] - YYYY-MM-DD' section for $VERSION. Add it before releasing."
+            exit 1
+          fi
+      - name: Check the tag and release are new
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then
+            echo "::error::Tag $TAG already exists."
+            exit 1
+          fi
+          if gh release view "$TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/release-state" 2>/dev/null; then
+            if [ "$(cat "$RUNNER_TEMP/release-state")" != "true" ]; then
+              echo "::error::A published GitHub release $TAG already exists."
+              exit 1
+            fi
+          fi
+      - name: Check CI passed for this commit
+        run: |
+          set -euo pipefail
+          for attempt in {1..12}; do
+            gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?filter=all&per_page=100" --paginate --slurp > "$RUNNER_TEMP/release-checks.json"
+            pending=0
+            for name in "Required CI"; do
+              state=$(jq -r --arg name "$name" '[.[].check_runs[] | select(.name == $name and .app.slug == "github-actions")] | sort_by(.started_at // .completed_at // "") | last | if . == null then "missing" elif .status != "completed" then .status else .conclusion end' "$RUNNER_TEMP/release-checks.json")
+              case "$state" in
+                success) ;;
+                queued|in_progress|pending|waiting|missing) pending=1 ;;
+                *) echo "::error::The latest '$name' check for $GITHUB_SHA is '$state'. Fix main before releasing."; exit 1 ;;
+              esac
+            done
+            if [ "$pending" -eq 0 ]; then exit 0; fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "::error::CI for $GITHUB_SHA has not finished. Wait for main to go green, then run this again."
+              exit 1
+            fi
+            echo "Waiting for the exact-commit CI result ($attempt/12)"
+            sleep 15
+          done
+      - name: Plan
+        run: |
+          {
+            echo "## Release $TAG"
+            echo
+            echo "- Commit: \`$GITHUB_SHA\` on \`main\`"
+            echo "- Tag: \`$TAG\`, annotated, message "Towbar $TAG""
+            echo "- Then: dispatch **Publish release images** with \`release_tag=$TAG\`"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo
+              echo "Dry run: nothing was tagged or dispatched."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Create and push the tag
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" "$GITHUB_SHA" -m "Towbar $TAG"
+          git push origin "refs/tags/$TAG"
+      - name: Dispatch Publish release images
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if gh workflow run release-images.yml --ref main -f "release_tag=$TAG"; then break; fi
+            if [ "$attempt" = 5 ]; then
+              echo "::error::Could not dispatch Publish release images. The tag $TAG exists; dispatch it by hand with release_tag=$TAG."
+              exit 1
+            fi
+            sleep 5
+          done
+          sleep 10
+          url=$(gh run list --workflow release-images.yml --event workflow_dispatch --limit 1 --json url --jq '.[0].url // ""')
+          {
+            echo
+            echo "Tagged \`$TAG\`. Publish run: ${url:-not visible yet; see the Actions tab}"
+          } >> "$GITHUB_STEP_SUMMARY"
