@@ -42,7 +42,12 @@ try {
   assert.equal(prefetch.status, 200);
   assert.match(prefetch.headers.get("content-type"), /text\/x-component/);
   assert.equal(prefetch.headers.get("cache-control"), "private, no-store");
-  assert.match(await prefetch.text(), /"children":\["services",/);
+  // Next 16.4 serializes the segment tree as [["children",{"s":"services",...}]]
+  // where 16.3 used {"children":["services",...]}; accept both shapes.
+  assert.match(
+    await prefetch.text(),
+    /"children"(?::\[|,\{"s":)"services"/,
+  );
   const dashboardHtml = await (await call("/services", a)).text();
   assert.match(dashboardHtml, /name="towbar-api-origin"/);
   assert(dashboardHtml.includes(`content="${origin}"`));
