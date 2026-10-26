@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM golang:1.27.2-bookworm@sha256:5cf287a799e6b94384bad13d16b14904c531f51ba65792237e122ce42b392f61 AS monitoring-builder
+FROM golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5 AS monitoring-builder
 WORKDIR /agent
 COPY apps/towbar-monitoring-agent/ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath -ldflags="-s -w" -o /out/towbar-monitoring-linux-amd64 . \
@@ -30,17 +30,17 @@ RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
     deploy --legacy --prefer-offline \
     --store-dir /pnpm/store /prod/towbar-worker
 
-FROM cgr.dev/chainguard/wolfi-base@sha256:238642d42c5613936474d00b900c4e65fb6f637d8991c913403ff09a09cf43a3 AS runner
+FROM cgr.dev/chainguard/wolfi-base@sha256:0feab531471d2edfcca55f18883441cb7df598e724fa2dedf9985273f532eed7 AS runner
 WORKDIR /app
 ENV NODE_ENV=production WORKER_HEALTH_PORT=4030
 RUN apk add --no-cache \
-  ca-certificates=20260611-r1 \
-  curl=8.22.0-r2 \
-  nodejs-24-minimal=24.21.0-r1 \
-  nodejs-24-minimal-compat=24.21.0-r1 \
-  openssh-client=10.5_p1-r1 \
-  openssh-keygen=10.5_p1-r1 \
-  openssh-keyscan=10.5_p1-r1 \
+  ca-certificates=20261020-r0 \
+  curl=8.23.0-r2 \
+  nodejs-24-minimal=24.22.1-r2 \
+  nodejs-24-minimal-compat=24.22.1-r2 \
+  openssh-client=10.6_p1-r0 \
+  openssh-keygen=10.6_p1-r0 \
+  openssh-keyscan=10.6_p1-r0 \
   && command -v ssh >/dev/null \
   && command -v ssh-keygen >/dev/null \
   && command -v ssh-keyscan >/dev/null
