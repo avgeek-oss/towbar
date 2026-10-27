@@ -15,7 +15,10 @@ type AuthoritativeDns = {
   resolveNs: (zone: string) => Promise<string[]>;
   lookupAll: (hostname: string) => Promise<LookupAddress[]>;
   resolveAt: (servers: string[], hostname: string) => Promise<LookupAddress[]>;
+  resolveCnameAt: (servers: string[], hostname: string) => Promise<string[]>;
 };
+
+const maxAliasDepth = 8;
 
 const systemLookup: SystemLookup = (hostname, callback) =>
   lookupCallback(hostname, { all: true, verbatim: true }, callback);
@@ -40,6 +43,11 @@ const nodeAuthoritativeDns: AuthoritativeDns = {
         family: 6,
       })),
     ];
+  },
+  resolveCnameAt(servers, hostname) {
+    const resolver = new dns.Resolver({ timeout: 3_000, tries: 2 });
+    resolver.setServers(servers);
+    return resolver.resolveCname(hostname);
   },
 };
 
@@ -83,8 +91,30 @@ export function freshPublicLookup(
 export async function resolveFromAuthoritativeNameservers(
   hostname: string,
   resolver: AuthoritativeDns = nodeAuthoritativeDns,
+  visited = new Set<string>(),
+): Promise<LookupAddress[]> {
+  const name = hostname.replace(/\.$/u, "").toLowerCase();
+  if (visited.has(name) || visited.size >= maxAliasDepth) return [];
+  visited.add(name);
+  const servers = await authoritativeServers(name, resolver);
+  if (!servers.length) return [];
+  const addresses = await resolver.resolveAt(servers, name);
+  if (addresses.length) return addresses;
+  // Authoritative servers answer an alias into another zone with the CNAME
+  // alone, so resolve its target from that zone's nameservers.
+  const [target] = await resolver
+    .resolveCnameAt(servers, name)
+    .catch((): string[] => []);
+  return target
+    ? await resolveFromAuthoritativeNameservers(target, resolver, visited)
+    : [];
+}
+
+async function authoritativeServers(
+  hostname: string,
+  resolver: AuthoritativeDns,
 ) {
-  const labels = hostname.replace(/\.$/u, "").split(".");
+  const labels = hostname.split(".");
   // Stop above the top-level domain, whose servers only return referrals.
   for (let index = 0; index < labels.length - 1; index += 1) {
     const zone = labels.slice(index).join(".");
@@ -99,7 +129,7 @@ export async function resolveFromAuthoritativeNameservers(
     )
       .flat()
       .map((entry) => entry.address);
-    return servers.length ? await resolver.resolveAt(servers, hostname) : [];
+    return servers;
   }
   return [];
 }
