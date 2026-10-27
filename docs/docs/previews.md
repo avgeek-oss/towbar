@@ -3,17 +3,11 @@ title: "Preview environments"
 description: "Deploy eligible pull requests to isolated environments with stable URLs and separate secrets."
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 Preview environments let you review a service before merging a pull request. Each eligible service and pull request receives a stable URL. Production and preview releases have separate histories and secret environments.
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/previews-light.jpg" alt="Preview environments show their URL, commit, expiry, and cleanup status." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/previews-dark.jpg" alt="Preview environments show their URL, commit, expiry, and cleanup status." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>Preview environments show their URL, commit, expiry, and cleanup status.</p>
-</div>
+<Screenshot light="/assets/release-v2/previews-light.jpg" dark="/assets/release-v2/previews-dark.jpg" alt="Preview environments show their URL, commit, expiry, and cleanup status." caption="Preview environments show their URL, commit, expiry, and cleanup status." width={3200} height={1800} />
 
 ## Enable previews
 

@@ -58,7 +58,12 @@ Changes to fixture routes must be reviewed against the public gateway allowlist.
 
 ## Documentation
 
-The Mintlify project lives in `docs/`, with dropdown categories and grouped pages.
+The Mintlify project lives in `docs/`, organized into Introduction, Using Towbar,
+and API & MCP. Introduction covers the product and self-hosting; product workflows
+belong in Using Towbar; client connection guides and individual generated references
+belong in API & MCP. Contributor source under `docs/contributors/` is retained in Git
+and excluded from public publication through `.mintignore`. The detailed
+[architecture walkthrough](docs/contributors/architecture.md) remains available there.
 [Avgeek OSS Mintlify Docs](https://github.com/avgeek-oss/oss-docs) owns the shared homepage
 layouts, header behavior, screenshots, and authoring conventions. Towbar owns
 `docs/site.json`, product content, navigation destinations, assets, and generated
@@ -84,7 +89,8 @@ pnpm docs:examples:check
 metadata, navigation, internal links, and published artifacts. Import snippets
 from `/snippets/oss/` directly in MDX pages; never edit `docs/oss-docs.css`,
 `docs/oss-docs.js`, `docs/docs.json`, or `docs/snippets/oss/` by hand. Keep
-product-only logo styles in `docs/style.css`.
+product logo and footer styles in `docs/style.css`; retain native Mintlify header,
+content, and sidebar layout.
 
 Edit recipe inputs in `tools/use-case-catalog.json`, `tools/oss-use-case-recipes.mjs`
 or `tools/oss-compose-recipes.mjs`, then run `pnpm docs:use-cases`. Do not edit

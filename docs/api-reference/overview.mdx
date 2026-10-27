@@ -1,47 +1,9 @@
 ---
-title: API & MCP
-description: Automate your Towbar control plane with a REST API or connect an AI client through MCP.
+title: "HTTP API reference"
+description: "Request conventions, operation groups, errors, and asynchronous results."
 ---
 
-<Warning>
-  The REST API, MCP, and API-key management are available only when Towbar is
-  installed with a public HTTPS API origin. For security, they are disabled on
-  localhost-only installations.
-</Warning>
-
-Towbar exposes infrastructure operations through REST and MCP. Manage repositories, services, datastores, servers, deployments, previews, secrets, and your current identity. Inspect integrations with your current workspace permissions.
-
-| Interface             | Endpoint                              | Authentication |
-| --------------------- | ------------------------------------- | -------------- |
-| REST API              | `https://YOUR_TOWBAR_API_HOST/v1/api` | API key        |
-| MCP                   | `https://YOUR_TOWBAR_API_HOST/v1/mcp` | OAuth sign-in  |
-| OpenAPI specification | `GET /v1/api/openapi.json`            | API key        |
-
-Reference examples use `YOUR_TOWBAR_API_HOST`; replace it with the API hostname from `installation.apiBaseUrl`, such as `towbar-api.example.com`. The dashboard uses the separate `installation.appUrl` hostname. Your control plane shows its MCP endpoint in **Account Settings → MCP Guide**.
-
-An MCP client that supports sign-in can connect through OAuth without copying
-an API key. Towbar asks you to approve the client and its access. Follow
-[MCP setup](/docs/api/mcp) for client configuration.
-
-<Steps>
-  <Step title="Create a key">
-    Open **Settings → Account Settings → API Keys** and create an API key. Name it for its consumer, choose its permissions and expiry, then copy it. Towbar only shows the secret once.
-  </Step>
-  <Step title="Send a request">
-    Set `TOWBAR_API_KEY` through your shell or secret manager and replace `YOUR_TOWBAR_API_HOST` below with the API hostname.
-
-    ```bash
-    curl 'https://YOUR_TOWBAR_API_HOST/v1/api/apps' \
-      -H "Authorization: Bearer $TOWBAR_API_KEY"
-    ```
-
-    A successful list request contains `"apps": [...]` and `"localization": {...}`. An empty inventory contains `"apps": []`.
-
-  </Step>
-  <Step title="Connect your automation">
-    Use the route reference in this section for REST, or follow [MCP setup](/docs/api/mcp) for an AI client.
-  </Step>
-</Steps>
+All paths are relative to `https://towbar-api.example.com/v1/api`. Use a public HTTPS installation and an API key. Follow [Connect the REST API](/docs/api/authentication) to create a key and verify a request. MCP clients use [OAuth connection setup](/docs/api/mcp) and the separate [tool reference](/mcp-reference/overview).
 
 ## Route design
 
@@ -51,7 +13,7 @@ Services and datastores are defined in your Git manifest. To create or change th
 
 All documented paths are relative to `/v1/api`. Browser-only login, logout, initial setup, provider webhooks, and signed worker endpoints are separate protocols. They are not exposed as MCP tools. API key management, profile editing, password changes, browser-session management, GitHub installation, and GitLab OAuth handoff are available only in the control plane. Provider credentials and available notification destinations come from the protected control-plane configuration. Manage workspace notification subscriptions in the dashboard and workload subscriptions in Git. `GET /identity` identifies the current actor and team.
 
-REST provides individual routes; MCP offers a separate [task-oriented tool catalogue](/docs/api/mcp-tools), including combined inspections and shared service/datastore actions.
+REST provides individual routes; MCP offers a separate [MCP tool reference](/mcp-reference/overview), including combined inspections and shared service/datastore actions.
 
 ## Find an operation
 

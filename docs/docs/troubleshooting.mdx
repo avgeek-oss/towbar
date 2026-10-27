@@ -9,13 +9,13 @@ Run `sudo towbar doctor` before changing installation state. It checks the host,
 
 ## Setup and connectivity
 
-| Symptom                                    | Check                                            | Next action                                                                                                                                          |
-| ------------------------------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Compose does not start                     | Required configuration values and migration logs | Run `sudo towbar config validate`, then inspect `sudo towbar logs migrate api`                                                                       |
-| Login works locally but fails behind HTTPS | Towbar public origin                             | Check [public origins](/docs/self-hosting/environment-variables#public-origins), validate `config.yml`, and restart Towbar after changing the origin |
-| Repository missing                         | GitHub App installation access                   | Grant access to the repository and approve required permissions                                                                                      |
-| Repository sync fails                      | Manifest error and referenced server IPs         | Fix the reported field or register the server, then sync again                                                                                       |
-| Server Setup Pending                       | SSH trust and setup result                       | Verify the host fingerprint, then complete server setup                                                                                              |
+| Symptom                                    | Check                                            | Next action                                                                                                                                  |
+| ------------------------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Compose does not start                     | Required configuration values and migration logs | Run `sudo towbar config validate`, then inspect `sudo towbar logs migrate api`                                                               |
+| Login works locally but fails behind HTTPS | Towbar public origin                             | Check [public origins](/docs/self-hosting/configuration#public-origins), validate `config.yml`, and restart Towbar after changing the origin |
+| Repository missing                         | GitHub App installation access                   | Grant access to the repository and approve required permissions                                                                              |
+| Repository sync fails                      | Manifest error and referenced server IPs         | Fix the reported field or register the server, then sync again                                                                               |
+| Server Setup Pending                       | SSH trust and setup result                       | Verify the host fingerprint, then complete server setup                                                                                      |
 
 ## Deployment problems
 

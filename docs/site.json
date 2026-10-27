@@ -14,26 +14,24 @@
         "dropdown": "Introduction",
         "icon": "book-open",
         "groups": [
+          { "group": "Get started", "pages": ["docs/index"] },
           {
-            "group": "Get started",
+            "group": "Self-hosting",
             "pages": [
-              "docs/index",
-              "docs/demo",
-              "docs/concepts",
-              "docs/architecture",
-              "docs/getting-started"
-            ]
-          },
-          {
-            "group": "Self-host Towbar",
-            "pages": [
-              "docs/self-hosting/installation",
-              "docs/self-hosting/team-access",
-              "docs/self-hosting/upgrades",
-              "docs/self-hosting/account-recovery",
-              "docs/self-hosting/uninstall",
+              {
+                "group": "Installation",
+                "icon": "network",
+                "pages": [
+                  "docs/self-hosting/installation",
+                  "docs/self-hosting/installation/public",
+                  "docs/self-hosting/installation/local"
+                ]
+              },
+              "docs/self-hosting/configuration",
               "docs/self-hosting/security",
-              "docs/self-hosting/environment-variables"
+              "docs/self-hosting/backup",
+              "docs/self-hosting/upgrades",
+              "docs/troubleshooting"
             ]
           },
           {
@@ -43,29 +41,20 @@
               "docs/self-hosting/cli/install-upgrade",
               "docs/self-hosting/cli/configuration",
               "docs/self-hosting/cli/diagnostics",
-              "docs/self-hosting/cli/advanced"
-            ]
-          },
-          {
-            "group": "Migrate to Towbar",
-            "pages": [
-              "docs/migrations",
-              "docs/migrate-from-coolify",
-              "docs/migrate-from-dokploy",
-              "docs/migrate-from-caprover",
-              "docs/migrate-from-dokku",
-              "docs/migrate-from-heroku",
-              "docs/migrate-from-railway",
-              "docs/migrate-from-render",
-              "docs/migrate-from-vercel"
+              "docs/self-hosting/cli/advanced",
+              "docs/self-hosting/uninstall"
             ]
           }
         ]
       },
       {
-        "dropdown": "Build & run",
+        "dropdown": "Using Towbar",
         "icon": "rocket",
         "groups": [
+          {
+            "group": "Start here",
+            "pages": ["docs/getting-started", "docs/concepts", "docs/demo"]
+          },
           {
             "group": "Servers",
             "pages": [
@@ -149,372 +138,368 @@
           {
             "group": "Deployments and access",
             "pages": ["docs/deployments", "docs/previews", "docs/domains-tls"]
-          }
-        ]
-      },
-      {
-        "dropdown": "Operate",
-        "icon": "activity",
-        "groups": [
-          {
-            "group": "Start here",
-            "pages": ["docs/operate/index", "docs/monitoring"]
           },
           {
-            "group": "Measure",
+            "group": "Monitoring and response",
             "pages": [
+              "docs/monitoring",
               "docs/operate/health",
               "docs/operate/performance",
-              "docs/deployment-comparisons"
-            ]
-          },
-          {
-            "group": "Logs",
-            "pages": [
+              "docs/deployment-comparisons",
               "docs/operate/centralized-logs",
-              "docs/operate/log-collection"
-            ]
-          },
-          {
-            "group": "Respond",
-            "pages": [
+              "docs/operate/log-collection",
               "docs/scout-alerts",
               "docs/operate/incidents",
-              "docs/vulnerability-scanning",
-              "docs/troubleshooting"
+              "docs/vulnerability-scanning"
             ]
           },
           {
-            "group": "Workspace",
+            "group": "Accounts and teams",
             "pages": [
+              "docs/self-hosting/team-access",
               "docs/team-settings",
               "docs/personal-settings",
-              "docs/ssh-keys"
-            ]
-          }
-        ]
-      },
-      {
-        "dropdown": "Integrations",
-        "icon": "plug",
-        "groups": [
-          { "group": "Overview", "pages": ["docs/integrations/index"] },
-          {
-            "group": "Source control",
-            "icon": "git-branch",
-            "pages": ["docs/integrations/github", "docs/integrations/gitlab"]
-          },
-          {
-            "group": "Container registries",
-            "icon": "container",
-            "pages": ["docs/integrations/oci-registry"]
-          },
-          {
-            "group": "Backup providers",
-            "icon": "cloud-upload",
-            "pages": [
-              "docs/integrations/backup-providers",
-              "docs/integrations/aws",
-              "docs/integrations/gcp",
-              "docs/integrations/s3-compatible",
-              "docs/integrations/r2"
+              "docs/ssh-keys",
+              "docs/self-hosting/account-recovery"
             ]
           },
           {
-            "group": "External secrets",
-            "icon": "key-round",
-            "pages": [
-              "docs/integrations/infisical",
-              "docs/integrations/doppler"
-            ]
-          },
-          {
-            "group": "Platform services",
-            "icon": "cloud",
-            "pages": [
-              "docs/integrations/platform-services",
-              "docs/integrations/cloudflare"
-            ]
-          },
-          {
-            "group": "Notifications",
-            "icon": "bell",
-            "pages": [
-              "docs/integrations/notifications",
-              "docs/integrations/notifications/email",
-              "docs/integrations/notifications/slack",
-              "docs/integrations/notifications/discord",
-              "docs/integrations/notifications/telegram",
-              "docs/integrations/notifications/webhook"
-            ]
-          }
-        ]
-      },
-      {
-        "dropdown": "Use cases",
-        "icon": "lightbulb",
-        "groups": [
-          { "group": "Start here", "pages": ["docs/use-cases/index"] },
-          {
-            "group": "Open-source software",
+            "group": "Integrations",
             "pages": [
               {
-                "group": "AI tools",
+                "group": "Source control",
                 "pages": [
-                  "docs/use-cases/oss/ai/localai",
-                  "docs/use-cases/oss/ai/ollama"
-                ]
+                  "docs/integrations/github",
+                  "docs/integrations/gitlab"
+                ],
+                "icon": "git-branch"
               },
               {
-                "group": "Analytics",
-                "pages": [
-                  "docs/use-cases/oss/analytics/matomo",
-                  "docs/use-cases/oss/analytics/metabase",
-                  "docs/use-cases/oss/analytics/plausible-ce",
-                  "docs/use-cases/oss/analytics/umami"
-                ]
+                "group": "Container registries",
+                "pages": ["docs/integrations/oci-registry"],
+                "icon": "container"
               },
               {
-                "group": "Automation",
+                "group": "Backup providers",
                 "pages": [
-                  "docs/use-cases/oss/automation/changedetection",
-                  "docs/use-cases/oss/automation/huginn",
-                  "docs/use-cases/oss/automation/node-red"
-                ]
+                  "docs/integrations/backup-providers",
+                  "docs/integrations/aws",
+                  "docs/integrations/gcp",
+                  "docs/integrations/s3-compatible",
+                  "docs/integrations/r2"
+                ],
+                "icon": "cloud-upload"
               },
               {
-                "group": "Collaboration",
+                "group": "External secrets",
                 "pages": [
-                  "docs/use-cases/oss/collaboration/excalidraw",
-                  "docs/use-cases/oss/collaboration/kanboard",
-                  "docs/use-cases/oss/collaboration/memos",
-                  "docs/use-cases/oss/collaboration/vikunja"
-                ]
+                  "docs/integrations/infisical",
+                  "docs/integrations/doppler"
+                ],
+                "icon": "key-round"
               },
               {
-                "group": "Content & media",
+                "group": "Platform services",
                 "pages": [
-                  "docs/use-cases/oss/content-media/audiobookshelf",
-                  "docs/use-cases/oss/content-media/bookstack",
-                  "docs/use-cases/oss/content-media/calibre-web",
-                  "docs/use-cases/oss/content-media/freshrss",
-                  "docs/use-cases/oss/content-media/ghost",
-                  "docs/use-cases/oss/content-media/hedgedoc",
-                  "docs/use-cases/oss/content-media/immich",
-                  "docs/use-cases/oss/content-media/jellyfin",
-                  "docs/use-cases/oss/content-media/linkding",
-                  "docs/use-cases/oss/content-media/miniflux",
-                  "docs/use-cases/oss/content-media/navidrome",
-                  "docs/use-cases/oss/content-media/paperless-ngx",
-                  "docs/use-cases/oss/content-media/photoprism",
-                  "docs/use-cases/oss/content-media/wiki-js",
-                  "docs/use-cases/oss/content-media/wordpress"
-                ]
-              },
-              {
-                "group": "Developer tools",
-                "pages": [
-                  "docs/use-cases/oss/developer-tools/forgejo",
-                  "docs/use-cases/oss/developer-tools/gitea",
-                  "docs/use-cases/oss/developer-tools/jenkins",
-                  "docs/use-cases/oss/developer-tools/meilisearch",
-                  "docs/use-cases/oss/developer-tools/searxng",
-                  "docs/use-cases/oss/developer-tools/typesense"
-                ]
-              },
-              {
-                "group": "Files & storage",
-                "pages": [
-                  "docs/use-cases/oss/files/copyparty",
-                  "docs/use-cases/oss/files/file-browser",
-                  "docs/use-cases/oss/files/nextcloud"
-                ]
+                  "docs/integrations/platform-services",
+                  "docs/integrations/cloudflare"
+                ],
+                "icon": "cloud"
               },
               {
                 "group": "Notifications",
                 "pages": [
-                  "docs/use-cases/oss/notifications/gotify",
-                  "docs/use-cases/oss/notifications/ntfy"
+                  "docs/integrations/notifications",
+                  "docs/integrations/notifications/email",
+                  "docs/integrations/notifications/slack",
+                  "docs/integrations/notifications/discord",
+                  "docs/integrations/notifications/telegram",
+                  "docs/integrations/notifications/webhook"
+                ],
+                "icon": "bell"
+              }
+            ]
+          },
+          {
+            "group": "Use cases",
+            "pages": [
+              { "group": "Start here", "pages": ["docs/use-cases/index"] },
+              {
+                "group": "Open-source software",
+                "pages": [
+                  {
+                    "group": "AI tools",
+                    "pages": [
+                      "docs/use-cases/oss/ai/localai",
+                      "docs/use-cases/oss/ai/ollama"
+                    ]
+                  },
+                  {
+                    "group": "Analytics",
+                    "pages": [
+                      "docs/use-cases/oss/analytics/matomo",
+                      "docs/use-cases/oss/analytics/metabase",
+                      "docs/use-cases/oss/analytics/plausible-ce",
+                      "docs/use-cases/oss/analytics/umami"
+                    ]
+                  },
+                  {
+                    "group": "Automation",
+                    "pages": [
+                      "docs/use-cases/oss/automation/changedetection",
+                      "docs/use-cases/oss/automation/huginn",
+                      "docs/use-cases/oss/automation/node-red"
+                    ]
+                  },
+                  {
+                    "group": "Collaboration",
+                    "pages": [
+                      "docs/use-cases/oss/collaboration/excalidraw",
+                      "docs/use-cases/oss/collaboration/kanboard",
+                      "docs/use-cases/oss/collaboration/memos",
+                      "docs/use-cases/oss/collaboration/vikunja"
+                    ]
+                  },
+                  {
+                    "group": "Content & media",
+                    "pages": [
+                      "docs/use-cases/oss/content-media/audiobookshelf",
+                      "docs/use-cases/oss/content-media/bookstack",
+                      "docs/use-cases/oss/content-media/calibre-web",
+                      "docs/use-cases/oss/content-media/freshrss",
+                      "docs/use-cases/oss/content-media/ghost",
+                      "docs/use-cases/oss/content-media/hedgedoc",
+                      "docs/use-cases/oss/content-media/immich",
+                      "docs/use-cases/oss/content-media/jellyfin",
+                      "docs/use-cases/oss/content-media/linkding",
+                      "docs/use-cases/oss/content-media/miniflux",
+                      "docs/use-cases/oss/content-media/navidrome",
+                      "docs/use-cases/oss/content-media/paperless-ngx",
+                      "docs/use-cases/oss/content-media/photoprism",
+                      "docs/use-cases/oss/content-media/wiki-js",
+                      "docs/use-cases/oss/content-media/wordpress"
+                    ]
+                  },
+                  {
+                    "group": "Developer tools",
+                    "pages": [
+                      "docs/use-cases/oss/developer-tools/forgejo",
+                      "docs/use-cases/oss/developer-tools/gitea",
+                      "docs/use-cases/oss/developer-tools/jenkins",
+                      "docs/use-cases/oss/developer-tools/meilisearch",
+                      "docs/use-cases/oss/developer-tools/searxng",
+                      "docs/use-cases/oss/developer-tools/typesense"
+                    ]
+                  },
+                  {
+                    "group": "Files & storage",
+                    "pages": [
+                      "docs/use-cases/oss/files/copyparty",
+                      "docs/use-cases/oss/files/file-browser",
+                      "docs/use-cases/oss/files/nextcloud"
+                    ]
+                  },
+                  {
+                    "group": "Notifications",
+                    "pages": [
+                      "docs/use-cases/oss/notifications/gotify",
+                      "docs/use-cases/oss/notifications/ntfy"
+                    ]
+                  },
+                  {
+                    "group": "Observability",
+                    "pages": [
+                      "docs/use-cases/oss/observability/gatus",
+                      "docs/use-cases/oss/observability/glitchtip",
+                      "docs/use-cases/oss/observability/grafana",
+                      "docs/use-cases/oss/observability/prometheus",
+                      "docs/use-cases/oss/observability/uptime-kuma",
+                      "docs/use-cases/oss/observability/victoriametrics"
+                    ]
+                  },
+                  {
+                    "group": "Security",
+                    "pages": [
+                      "docs/use-cases/oss/security/authentik",
+                      "docs/use-cases/oss/security/keycloak",
+                      "docs/use-cases/oss/security/vaultwarden"
+                    ]
+                  },
+                  {
+                    "group": "Utilities",
+                    "pages": [
+                      "docs/use-cases/oss/utilities/actual-budget",
+                      "docs/use-cases/oss/utilities/cyberchef",
+                      "docs/use-cases/oss/utilities/it-tools",
+                      "docs/use-cases/oss/utilities/stirling-pdf"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Observability",
+                "group": "Service recipes",
                 "pages": [
-                  "docs/use-cases/oss/observability/gatus",
-                  "docs/use-cases/oss/observability/glitchtip",
-                  "docs/use-cases/oss/observability/grafana",
-                  "docs/use-cases/oss/observability/prometheus",
-                  "docs/use-cases/oss/observability/uptime-kuma",
-                  "docs/use-cases/oss/observability/victoriametrics"
+                  {
+                    "group": "Build and images",
+                    "pages": [
+                      "docs/use-cases/services/build/011-existing-dockerfile",
+                      "docs/use-cases/services/build/012-multi-stage-dockerfile",
+                      "docs/use-cases/services/build/013-private-package-at-build-time",
+                      "docs/use-cases/services/build/014-separate-build-server",
+                      "docs/use-cases/services/build/015-static-site",
+                      "docs/use-cases/services/build/016-single-page-app",
+                      "docs/use-cases/services/build/017-railpack-detected-project",
+                      "docs/use-cases/services/build/018-existing-nixpacks-project",
+                      "docs/use-cases/services/build/019-buildpack-project",
+                      "docs/use-cases/services/build/020-prebuilt-oci-image"
+                    ]
+                  },
+                  {
+                    "group": "Runtime",
+                    "pages": [
+                      "docs/use-cases/services/runtime/021-http-api",
+                      "docs/use-cases/services/runtime/022-slow-startup",
+                      "docs/use-cases/services/runtime/023-cpu-bound-process",
+                      "docs/use-cases/services/runtime/024-private-api",
+                      "docs/use-cases/services/runtime/025-service-plus-postgresql",
+                      "docs/use-cases/services/runtime/026-service-plus-redis",
+                      "docs/use-cases/services/runtime/027-persistent-uploaded-files",
+                      "docs/use-cases/services/runtime/028-public-https",
+                      "docs/use-cases/services/runtime/029-alternate-domain",
+                      "docs/use-cases/services/runtime/030-single-writer-data"
+                    ]
+                  },
+                  {
+                    "group": "Operations",
+                    "pages": [
+                      "docs/use-cases/services/operations/031-required-runtime-credential",
+                      "docs/use-cases/services/operations/032-private-build-dependency",
+                      "docs/use-cases/services/operations/033-infisical-folder",
+                      "docs/use-cases/services/operations/034-doppler-config",
+                      "docs/use-cases/services/operations/035-monorepo-auto-deploy",
+                      "docs/use-cases/services/operations/036-pull-request-preview",
+                      "docs/use-cases/services/operations/037-daily-report",
+                      "docs/use-cases/services/operations/038-pre-deploy-migration",
+                      "docs/use-cases/services/operations/039-event-notifications",
+                      "docs/use-cases/services/operations/040-image-vulnerability-scan"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Security",
+                "group": "Datastore recipes",
                 "pages": [
-                  "docs/use-cases/oss/security/authentik",
-                  "docs/use-cases/oss/security/keycloak",
-                  "docs/use-cases/oss/security/vaultwarden"
+                  {
+                    "group": "SQL",
+                    "pages": [
+                      "docs/use-cases/datastores/sql/041-postgresql-for-one-service",
+                      "docs/use-cases/datastores/sql/042-postgresql-with-named-database",
+                      "docs/use-cases/datastores/sql/043-postgresql-for-an-operator-laptop",
+                      "docs/use-cases/datastores/sql/044-postgresql-with-daily-backups",
+                      "docs/use-cases/datastores/sql/045-mysql-for-an-api",
+                      "docs/use-cases/datastores/sql/046-mysql-application-schema",
+                      "docs/use-cases/datastores/sql/047-mysql-with-off-host-copies",
+                      "docs/use-cases/datastores/sql/048-mariadb-for-a-cms",
+                      "docs/use-cases/datastores/sql/049-mariadb-application-role",
+                      "docs/use-cases/datastores/sql/050-mariadb-with-ssh-access"
+                    ]
+                  },
+                  {
+                    "group": "Document and analytics",
+                    "pages": [
+                      "docs/use-cases/datastores/document-analytics/051-mongodb-for-a-private-api",
+                      "docs/use-cases/datastores/document-analytics/052-mongodb-root-initialization",
+                      "docs/use-cases/datastores/document-analytics/053-mongodb-app-specific-user",
+                      "docs/use-cases/datastores/document-analytics/054-mongodb-operator-access",
+                      "docs/use-cases/datastores/document-analytics/055-mongodb-recovery",
+                      "docs/use-cases/datastores/document-analytics/056-clickhouse-for-event-analytics",
+                      "docs/use-cases/datastores/document-analytics/057-clickhouse-credentials",
+                      "docs/use-cases/datastores/document-analytics/058-clickhouse-database-selection",
+                      "docs/use-cases/datastores/document-analytics/059-clickhouse-resource-sizing",
+                      "docs/use-cases/datastores/document-analytics/060-clickhouse-recovery"
+                    ]
+                  },
+                  {
+                    "group": "Caches",
+                    "pages": [
+                      "docs/use-cases/datastores/cache/061-redis-for-sessions",
+                      "docs/use-cases/datastores/cache/062-redis-for-a-queue",
+                      "docs/use-cases/datastores/cache/063-redis-with-operator-tunnel",
+                      "docs/use-cases/datastores/cache/064-redis-recovery",
+                      "docs/use-cases/datastores/cache/065-dragonfly-for-a-redis-protocol-client",
+                      "docs/use-cases/datastores/cache/066-dragonfly-private-endpoint",
+                      "docs/use-cases/datastores/cache/067-dragonfly-recovery",
+                      "docs/use-cases/datastores/cache/068-keydb-on-an-amd64-server",
+                      "docs/use-cases/datastores/cache/069-keydb-private-endpoint",
+                      "docs/use-cases/datastores/cache/070-keydb-recovery"
+                    ]
+                  },
+                  {
+                    "group": "Recovery",
+                    "pages": [
+                      "docs/use-cases/datastores/recovery/071-manual-backup-before-a-change",
+                      "docs/use-cases/datastores/recovery/072-daily-retention",
+                      "docs/use-cases/datastores/recovery/073-aws-s3-destination",
+                      "docs/use-cases/datastores/recovery/074-s3-compatible-destination",
+                      "docs/use-cases/datastores/recovery/075-google-cloud-destination",
+                      "docs/use-cases/datastores/recovery/076-two-cloud-copies",
+                      "docs/use-cases/datastores/recovery/077-restore-drill",
+                      "docs/use-cases/datastores/recovery/078-new-server-placement",
+                      "docs/use-cases/datastores/recovery/079-database-password-rotation",
+                      "docs/use-cases/datastores/recovery/080-incident-investigation"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Utilities",
+                "group": "Complete stacks",
                 "pages": [
-                  "docs/use-cases/oss/utilities/actual-budget",
-                  "docs/use-cases/oss/utilities/cyberchef",
-                  "docs/use-cases/oss/utilities/it-tools",
-                  "docs/use-cases/oss/utilities/stirling-pdf"
+                  {
+                    "group": "Web stacks",
+                    "pages": [
+                      "docs/use-cases/stacks/web/081-api-with-postgresql",
+                      "docs/use-cases/stacks/web/082-api-with-mysql",
+                      "docs/use-cases/stacks/web/083-cms-with-mariadb",
+                      "docs/use-cases/stacks/web/084-api-with-mongodb",
+                      "docs/use-cases/stacks/web/085-web-sessions-with-redis",
+                      "docs/use-cases/stacks/web/086-queue-client-with-dragonfly",
+                      "docs/use-cases/stacks/web/087-search-backed-api",
+                      "docs/use-cases/stacks/web/088-event-analytics",
+                      "docs/use-cases/stacks/web/089-internal-metabase",
+                      "docs/use-cases/stacks/web/090-umami-analytics"
+                    ]
+                  },
+                  {
+                    "group": "Worker stacks",
+                    "pages": [
+                      "docs/use-cases/stacks/workers/091-api-worker-and-redis",
+                      "docs/use-cases/stacks/workers/092-api-with-a-daily-report",
+                      "docs/use-cases/stacks/workers/093-webhook-receiver-and-worker",
+                      "docs/use-cases/stacks/workers/094-static-frontend-and-routed-api",
+                      "docs/use-cases/stacks/workers/095-multi-process-repository",
+                      "docs/use-cases/stacks/workers/096-pull-request-preview-for-web",
+                      "docs/use-cases/stacks/workers/097-staging-and-production",
+                      "docs/use-cases/stacks/workers/098-stateful-web-app",
+                      "docs/use-cases/stacks/workers/099-two-services-and-one-database",
+                      "docs/use-cases/stacks/workers/100-independent-stacks-on-separate-servers"
+                    ]
+                  }
                 ]
               }
             ]
           },
           {
-            "group": "Service recipes",
+            "group": "Migrate to Towbar",
             "pages": [
-              {
-                "group": "Build and images",
-                "pages": [
-                  "docs/use-cases/services/build/011-existing-dockerfile",
-                  "docs/use-cases/services/build/012-multi-stage-dockerfile",
-                  "docs/use-cases/services/build/013-private-package-at-build-time",
-                  "docs/use-cases/services/build/014-separate-build-server",
-                  "docs/use-cases/services/build/015-static-site",
-                  "docs/use-cases/services/build/016-single-page-app",
-                  "docs/use-cases/services/build/017-railpack-detected-project",
-                  "docs/use-cases/services/build/018-existing-nixpacks-project",
-                  "docs/use-cases/services/build/019-buildpack-project",
-                  "docs/use-cases/services/build/020-prebuilt-oci-image"
-                ]
-              },
-              {
-                "group": "Runtime",
-                "pages": [
-                  "docs/use-cases/services/runtime/021-http-api",
-                  "docs/use-cases/services/runtime/022-slow-startup",
-                  "docs/use-cases/services/runtime/023-cpu-bound-process",
-                  "docs/use-cases/services/runtime/024-private-api",
-                  "docs/use-cases/services/runtime/025-service-plus-postgresql",
-                  "docs/use-cases/services/runtime/026-service-plus-redis",
-                  "docs/use-cases/services/runtime/027-persistent-uploaded-files",
-                  "docs/use-cases/services/runtime/028-public-https",
-                  "docs/use-cases/services/runtime/029-alternate-domain",
-                  "docs/use-cases/services/runtime/030-single-writer-data"
-                ]
-              },
-              {
-                "group": "Operations",
-                "pages": [
-                  "docs/use-cases/services/operations/031-required-runtime-credential",
-                  "docs/use-cases/services/operations/032-private-build-dependency",
-                  "docs/use-cases/services/operations/033-infisical-folder",
-                  "docs/use-cases/services/operations/034-doppler-config",
-                  "docs/use-cases/services/operations/035-monorepo-auto-deploy",
-                  "docs/use-cases/services/operations/036-pull-request-preview",
-                  "docs/use-cases/services/operations/037-daily-report",
-                  "docs/use-cases/services/operations/038-pre-deploy-migration",
-                  "docs/use-cases/services/operations/039-event-notifications",
-                  "docs/use-cases/services/operations/040-image-vulnerability-scan"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Datastore recipes",
-            "pages": [
-              {
-                "group": "SQL",
-                "pages": [
-                  "docs/use-cases/datastores/sql/041-postgresql-for-one-service",
-                  "docs/use-cases/datastores/sql/042-postgresql-with-named-database",
-                  "docs/use-cases/datastores/sql/043-postgresql-for-an-operator-laptop",
-                  "docs/use-cases/datastores/sql/044-postgresql-with-daily-backups",
-                  "docs/use-cases/datastores/sql/045-mysql-for-an-api",
-                  "docs/use-cases/datastores/sql/046-mysql-application-schema",
-                  "docs/use-cases/datastores/sql/047-mysql-with-off-host-copies",
-                  "docs/use-cases/datastores/sql/048-mariadb-for-a-cms",
-                  "docs/use-cases/datastores/sql/049-mariadb-application-role",
-                  "docs/use-cases/datastores/sql/050-mariadb-with-ssh-access"
-                ]
-              },
-              {
-                "group": "Document and analytics",
-                "pages": [
-                  "docs/use-cases/datastores/document-analytics/051-mongodb-for-a-private-api",
-                  "docs/use-cases/datastores/document-analytics/052-mongodb-root-initialization",
-                  "docs/use-cases/datastores/document-analytics/053-mongodb-app-specific-user",
-                  "docs/use-cases/datastores/document-analytics/054-mongodb-operator-access",
-                  "docs/use-cases/datastores/document-analytics/055-mongodb-recovery",
-                  "docs/use-cases/datastores/document-analytics/056-clickhouse-for-event-analytics",
-                  "docs/use-cases/datastores/document-analytics/057-clickhouse-credentials",
-                  "docs/use-cases/datastores/document-analytics/058-clickhouse-database-selection",
-                  "docs/use-cases/datastores/document-analytics/059-clickhouse-resource-sizing",
-                  "docs/use-cases/datastores/document-analytics/060-clickhouse-recovery"
-                ]
-              },
-              {
-                "group": "Caches",
-                "pages": [
-                  "docs/use-cases/datastores/cache/061-redis-for-sessions",
-                  "docs/use-cases/datastores/cache/062-redis-for-a-queue",
-                  "docs/use-cases/datastores/cache/063-redis-with-operator-tunnel",
-                  "docs/use-cases/datastores/cache/064-redis-recovery",
-                  "docs/use-cases/datastores/cache/065-dragonfly-for-a-redis-protocol-client",
-                  "docs/use-cases/datastores/cache/066-dragonfly-private-endpoint",
-                  "docs/use-cases/datastores/cache/067-dragonfly-recovery",
-                  "docs/use-cases/datastores/cache/068-keydb-on-an-amd64-server",
-                  "docs/use-cases/datastores/cache/069-keydb-private-endpoint",
-                  "docs/use-cases/datastores/cache/070-keydb-recovery"
-                ]
-              },
-              {
-                "group": "Recovery",
-                "pages": [
-                  "docs/use-cases/datastores/recovery/071-manual-backup-before-a-change",
-                  "docs/use-cases/datastores/recovery/072-daily-retention",
-                  "docs/use-cases/datastores/recovery/073-aws-s3-destination",
-                  "docs/use-cases/datastores/recovery/074-s3-compatible-destination",
-                  "docs/use-cases/datastores/recovery/075-google-cloud-destination",
-                  "docs/use-cases/datastores/recovery/076-two-cloud-copies",
-                  "docs/use-cases/datastores/recovery/077-restore-drill",
-                  "docs/use-cases/datastores/recovery/078-new-server-placement",
-                  "docs/use-cases/datastores/recovery/079-database-password-rotation",
-                  "docs/use-cases/datastores/recovery/080-incident-investigation"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Complete stacks",
-            "pages": [
-              {
-                "group": "Web stacks",
-                "pages": [
-                  "docs/use-cases/stacks/web/081-api-with-postgresql",
-                  "docs/use-cases/stacks/web/082-api-with-mysql",
-                  "docs/use-cases/stacks/web/083-cms-with-mariadb",
-                  "docs/use-cases/stacks/web/084-api-with-mongodb",
-                  "docs/use-cases/stacks/web/085-web-sessions-with-redis",
-                  "docs/use-cases/stacks/web/086-queue-client-with-dragonfly",
-                  "docs/use-cases/stacks/web/087-search-backed-api",
-                  "docs/use-cases/stacks/web/088-event-analytics",
-                  "docs/use-cases/stacks/web/089-internal-metabase",
-                  "docs/use-cases/stacks/web/090-umami-analytics"
-                ]
-              },
-              {
-                "group": "Worker stacks",
-                "pages": [
-                  "docs/use-cases/stacks/workers/091-api-worker-and-redis",
-                  "docs/use-cases/stacks/workers/092-api-with-a-daily-report",
-                  "docs/use-cases/stacks/workers/093-webhook-receiver-and-worker",
-                  "docs/use-cases/stacks/workers/094-static-frontend-and-routed-api",
-                  "docs/use-cases/stacks/workers/095-multi-process-repository",
-                  "docs/use-cases/stacks/workers/096-pull-request-preview-for-web",
-                  "docs/use-cases/stacks/workers/097-staging-and-production",
-                  "docs/use-cases/stacks/workers/098-stateful-web-app",
-                  "docs/use-cases/stacks/workers/099-two-services-and-one-database",
-                  "docs/use-cases/stacks/workers/100-independent-stacks-on-separate-servers"
-                ]
-              }
+              "docs/migrations",
+              "docs/migrate-from-coolify",
+              "docs/migrate-from-dokploy",
+              "docs/migrate-from-caprover",
+              "docs/migrate-from-dokku",
+              "docs/migrate-from-heroku",
+              "docs/migrate-from-railway",
+              "docs/migrate-from-render",
+              "docs/migrate-from-vercel"
             ]
           }
         ]
@@ -524,426 +509,556 @@
         "icon": "square-terminal",
         "groups": [
           {
-            "group": "Get started",
-            "pages": [
-              "docs/api/overview",
-              "docs/api/authentication",
-              "docs/api/mcp",
-              "docs/api/mcp-tools",
-              "docs/api/workflows"
-            ]
+            "group": "Connect a client",
+            "pages": ["docs/api/authentication", "docs/api/mcp"]
           },
+          { "group": "Automation workflows", "pages": ["docs/api/workflows"] },
           {
-            "group": "Repositories",
+            "group": "MCP reference",
             "pages": [
+              "mcp-reference/overview",
               {
-                "group": "Overview",
+                "group": "Scout Alerts",
                 "pages": [
-                  "api-reference/get_sources",
-                  "api-reference/get_sources_by_id",
-                  "api-reference/delete_sources_by_id"
-                ]
-              },
-              {
-                "group": "Sync & manifest",
-                "pages": [
-                  "api-reference/post_sources_discover",
-                  "api-reference/post_sources_connect",
-                  "api-reference/get_sources_by_id_branches",
-                  "api-reference/get_sources_by_id_syncs",
-                  "api-reference/get_sources_by_id_syncs_by_id",
-                  "api-reference/post_sources_by_id_actions_change_github_connection"
-                ]
-              },
-              {
-                "group": "Environments",
-                "pages": [
-                  "api-reference/get_sources_by_id_environments",
-                  "api-reference/post_sources_by_id_environments",
-                  "api-reference/patch_sources_by_id_environments_by_id",
-                  "api-reference/post_sources_by_id_environments_by_id_syncs",
-                  "api-reference/delete_sources_by_id_environments_by_id",
-                  "api-reference/post_sources_by_id_environments_syncs",
-                  "api-reference/get_sources_by_id_environments_by_id_manifest",
-                  "api-reference/patch_sources_by_id_environments_by_id_auto_deploy_control"
-                ]
-              },
-              {
-                "group": "Auto-deploy",
-                "pages": [
-                  "api-reference/get_sources_by_id_auto_deploy_control",
-                  "api-reference/patch_sources_by_id_auto_deploy_control"
-                ]
-              },
-              {
-                "group": "Inventory",
-                "pages": [
-                  "api-reference/get_sources_by_id_apps",
-                  "api-reference/get_sources_by_id_resources",
-                  "api-reference/get_sources_by_id_capacity",
-                  "api-reference/get_sources_by_id_deployments",
-                  "api-reference/get_sources_by_id_backups",
-                  "api-reference/get_sources_by_id_previews"
-                ]
-              },
-              {
-                "group": "Secrets",
-                "pages": [
-                  "api-reference/get_sources_by_id_secrets",
-                  "api-reference/patch_sources_by_id_secrets_by_environment_by_stage"
-                ]
-              },
-              {
-                "group": "Lifecycle",
-                "pages": [
-                  "api-reference/get_manifest_lifecycle",
-                  "api-reference/post_retirements_by_id_actions_remove",
-                  "api-reference/get_sources_by_id_removal_preview"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Services",
-            "pages": [
-              {
-                "group": "Overview",
-                "pages": [
-                  "api-reference/get_apps",
-                  "api-reference/get_apps_by_id"
+                  "mcp-reference/towbar_alerts_inspect",
+                  "mcp-reference/towbar_alerts_configure",
+                  "mcp-reference/towbar_alerts_remove"
                 ]
               },
               {
                 "group": "Deployments",
                 "pages": [
-                  "api-reference/get_apps_by_id_auto_deploy_control",
-                  "api-reference/patch_apps_by_id_auto_deploy_control",
-                  "api-reference/get_apps_by_id_deployments",
-                  "api-reference/get_apps_by_id_releases",
-                  "api-reference/post_apps_by_id_actions_deploy",
-                  "api-reference/post_apps_by_id_actions_rollback"
+                  "mcp-reference/towbar_deployment_compare",
+                  "mcp-reference/towbar_deployment_list",
+                  "mcp-reference/towbar_deployment_inspect",
+                  "mcp-reference/towbar_deployment_cancel",
+                  "mcp-reference/towbar_deployment_retry",
+                  "mcp-reference/towbar_deployment_rescan"
                 ]
               },
               {
-                "group": "Runtime & logs",
+                "group": "Centralized logs",
                 "pages": [
-                  "api-reference/get_apps_by_id_operations",
-                  "api-reference/get_apps_by_id_operations_by_id_events",
-                  "api-reference/post_apps_by_id_actions_refresh_external_secrets",
-                  "api-reference/post_apps_by_id_actions_restart",
-                  "api-reference/post_apps_by_id_actions_start",
-                  "api-reference/post_apps_by_id_actions_stop",
-                  "api-reference/post_apps_by_id_actions_logs"
+                  "mcp-reference/towbar_logs_inspect",
+                  "mcp-reference/towbar_logs_query",
+                  "mcp-reference/towbar_logs_summary",
+                  "mcp-reference/towbar_logs_follow",
+                  "mcp-reference/towbar_logs_context",
+                  "mcp-reference/towbar_logs_collection_configure",
+                  "mcp-reference/towbar_logs_verify"
                 ]
               },
               {
-                "group": "Storage",
-                "pages": ["api-reference/get_apps_by_id_storage"]
+                "group": "Integrations",
+                "pages": [
+                  "mcp-reference/towbar_integration_list",
+                  "mcp-reference/towbar_github_disconnect",
+                  "mcp-reference/towbar_github_retry_reporting"
+                ]
               },
               {
-                "group": "Scheduled jobs",
+                "group": "Workspace",
                 "pages": [
-                  "api-reference/get_apps_by_id_jobs",
-                  "api-reference/post_apps_by_id_actions_run_job"
+                  "mcp-reference/towbar_workspace_inspect",
+                  "mcp-reference/towbar_workspace_check"
+                ]
+              },
+              {
+                "group": "Discovery",
+                "pages": [
+                  "mcp-reference/towbar_inventory_search",
+                  "mcp-reference/towbar_repository_search"
+                ]
+              },
+              {
+                "group": "Repositories",
+                "pages": [
+                  "mcp-reference/towbar_source_inspect",
+                  "mcp-reference/towbar_source_connect",
+                  "mcp-reference/towbar_source_removal_preview",
+                  "mcp-reference/towbar_source_disconnect",
+                  "mcp-reference/towbar_source_environment_disconnect",
+                  "mcp-reference/towbar_source_discover",
+                  "mcp-reference/towbar_source_sync",
+                  "mcp-reference/towbar_source_sync_inspect",
+                  "mcp-reference/towbar_manifest_lifecycle_list",
+                  "mcp-reference/towbar_retirement_remove",
+                  "mcp-reference/towbar_source_change_github_connection"
+                ]
+              },
+              {
+                "group": "Services and datastores",
+                "pages": [
+                  "mcp-reference/towbar_workload_inspect",
+                  "mcp-reference/towbar_workload_deploy",
+                  "mcp-reference/towbar_workload_rollback",
+                  "mcp-reference/towbar_workload_restart",
+                  "mcp-reference/towbar_workload_start",
+                  "mcp-reference/towbar_workload_stop",
+                  "mcp-reference/towbar_workload_logs",
+                  "mcp-reference/towbar_workload_external_secrets_refresh",
+                  "mcp-reference/towbar_autodeploy_configure"
+                ]
+              },
+              {
+                "group": "Scout Agent",
+                "pages": [
+                  "mcp-reference/towbar_performance_inspect",
+                  "mcp-reference/towbar_monitoring_configure"
+                ]
+              },
+              {
+                "group": "Servers",
+                "pages": [
+                  "mcp-reference/towbar_server_inspect",
+                  "mcp-reference/towbar_server_register",
+                  "mcp-reference/towbar_server_remove",
+                  "mcp-reference/towbar_server_configure",
+                  "mcp-reference/towbar_server_credentials_update",
+                  "mcp-reference/towbar_server_trust_host",
+                  "mcp-reference/towbar_server_revoke_host",
+                  "mcp-reference/towbar_server_prepare",
+                  "mcp-reference/towbar_server_check",
+                  "mcp-reference/towbar_server_cleanup"
+                ]
+              },
+              {
+                "group": "Secrets",
+                "pages": [
+                  "mcp-reference/towbar_secrets_inspect",
+                  "mcp-reference/towbar_secrets_update"
+                ]
+              },
+              {
+                "group": "Backups and restores",
+                "pages": [
+                  "mcp-reference/towbar_backup_inspect",
+                  "mcp-reference/towbar_backup_create",
+                  "mcp-reference/towbar_backup_restore",
+                  "mcp-reference/towbar_restore_cleanup",
+                  "mcp-reference/towbar_restore_cancel"
+                ]
+              },
+              {
+                "group": "Preview environments",
+                "pages": [
+                  "mcp-reference/towbar_preview_list",
+                  "mcp-reference/towbar_preview_deploy",
+                  "mcp-reference/towbar_preview_cleanup"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "HTTP reference",
+            "pages": [
+              "api-reference/overview",
+              {
+                "group": "Repositories",
+                "pages": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "api-reference/get_sources",
+                      "api-reference/get_sources_by_id",
+                      "api-reference/delete_sources_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Sync & manifest",
+                    "pages": [
+                      "api-reference/post_sources_discover",
+                      "api-reference/post_sources_connect",
+                      "api-reference/get_sources_by_id_branches",
+                      "api-reference/get_sources_by_id_syncs",
+                      "api-reference/get_sources_by_id_syncs_by_id",
+                      "api-reference/post_sources_by_id_actions_change_github_connection"
+                    ]
+                  },
+                  {
+                    "group": "Environments",
+                    "pages": [
+                      "api-reference/get_sources_by_id_environments",
+                      "api-reference/post_sources_by_id_environments",
+                      "api-reference/patch_sources_by_id_environments_by_id",
+                      "api-reference/post_sources_by_id_environments_by_id_syncs",
+                      "api-reference/delete_sources_by_id_environments_by_id",
+                      "api-reference/post_sources_by_id_environments_syncs",
+                      "api-reference/get_sources_by_id_environments_by_id_manifest",
+                      "api-reference/patch_sources_by_id_environments_by_id_auto_deploy_control"
+                    ]
+                  },
+                  {
+                    "group": "Auto-deploy",
+                    "pages": [
+                      "api-reference/get_sources_by_id_auto_deploy_control",
+                      "api-reference/patch_sources_by_id_auto_deploy_control"
+                    ]
+                  },
+                  {
+                    "group": "Inventory",
+                    "pages": [
+                      "api-reference/get_sources_by_id_apps",
+                      "api-reference/get_sources_by_id_resources",
+                      "api-reference/get_sources_by_id_capacity",
+                      "api-reference/get_sources_by_id_deployments",
+                      "api-reference/get_sources_by_id_backups",
+                      "api-reference/get_sources_by_id_previews"
+                    ]
+                  },
+                  {
+                    "group": "Secrets",
+                    "pages": [
+                      "api-reference/get_sources_by_id_secrets",
+                      "api-reference/patch_sources_by_id_secrets_by_environment_by_stage"
+                    ]
+                  },
+                  {
+                    "group": "Lifecycle",
+                    "pages": [
+                      "api-reference/get_manifest_lifecycle",
+                      "api-reference/post_retirements_by_id_actions_remove",
+                      "api-reference/get_sources_by_id_removal_preview"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Services",
+                "pages": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "api-reference/get_apps",
+                      "api-reference/get_apps_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Deployments",
+                    "pages": [
+                      "api-reference/get_apps_by_id_auto_deploy_control",
+                      "api-reference/patch_apps_by_id_auto_deploy_control",
+                      "api-reference/get_apps_by_id_deployments",
+                      "api-reference/get_apps_by_id_releases",
+                      "api-reference/post_apps_by_id_actions_deploy",
+                      "api-reference/post_apps_by_id_actions_rollback"
+                    ]
+                  },
+                  {
+                    "group": "Runtime & logs",
+                    "pages": [
+                      "api-reference/get_apps_by_id_operations",
+                      "api-reference/get_apps_by_id_operations_by_id_events",
+                      "api-reference/post_apps_by_id_actions_refresh_external_secrets",
+                      "api-reference/post_apps_by_id_actions_restart",
+                      "api-reference/post_apps_by_id_actions_start",
+                      "api-reference/post_apps_by_id_actions_stop",
+                      "api-reference/post_apps_by_id_actions_logs"
+                    ]
+                  },
+                  {
+                    "group": "Storage",
+                    "pages": ["api-reference/get_apps_by_id_storage"]
+                  },
+                  {
+                    "group": "Scheduled jobs",
+                    "pages": [
+                      "api-reference/get_apps_by_id_jobs",
+                      "api-reference/post_apps_by_id_actions_run_job"
+                    ]
+                  },
+                  {
+                    "group": "Previews",
+                    "pages": ["api-reference/get_apps_by_id_previews"]
+                  },
+                  {
+                    "group": "Scout Agent",
+                    "pages": [
+                      "api-reference/get_apps_by_id_metrics",
+                      "api-reference/get_apps_by_id_analytics_filter_options",
+                      "api-reference/get_apps_by_id_analytics"
+                    ]
+                  },
+                  {
+                    "group": "Secrets",
+                    "pages": [
+                      "api-reference/get_apps_by_id_secrets",
+                      "api-reference/get_apps_by_id_secrets_readiness",
+                      "api-reference/patch_apps_by_id_secrets_by_environment_by_stage"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Datastores",
+                "pages": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "api-reference/get_resources",
+                      "api-reference/get_resources_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Deployments",
+                    "pages": [
+                      "api-reference/get_resources_by_id_auto_deploy_control",
+                      "api-reference/patch_resources_by_id_auto_deploy_control",
+                      "api-reference/get_resources_by_id_deployments",
+                      "api-reference/get_resources_by_id_releases",
+                      "api-reference/post_resources_by_id_actions_deploy",
+                      "api-reference/post_resources_by_id_actions_rollback"
+                    ]
+                  },
+                  {
+                    "group": "Runtime & logs",
+                    "pages": [
+                      "api-reference/get_resources_by_id_operations",
+                      "api-reference/post_resources_by_id_actions_refresh_external_secrets",
+                      "api-reference/post_resources_by_id_actions_restart",
+                      "api-reference/post_resources_by_id_actions_start",
+                      "api-reference/post_resources_by_id_actions_stop",
+                      "api-reference/post_resources_by_id_actions_logs"
+                    ]
+                  },
+                  {
+                    "group": "Backups & restores",
+                    "pages": [
+                      "api-reference/get_resources_by_id_backup_assurance",
+                      "api-reference/get_resources_by_id_operations_by_id_events",
+                      "api-reference/post_resources_by_id_actions_backup",
+                      "api-reference/post_resources_by_id_actions_restore",
+                      "api-reference/post_resources_by_id_actions_restore_cleanup",
+                      "api-reference/post_resources_by_id_operations_by_id_actions_cancel"
+                    ]
+                  },
+                  {
+                    "group": "Scout Agent",
+                    "pages": ["api-reference/get_resources_by_id_metrics"]
+                  },
+                  {
+                    "group": "Secrets",
+                    "pages": [
+                      "api-reference/get_resources_by_id_secrets",
+                      "api-reference/get_resources_by_id_secrets_readiness",
+                      "api-reference/patch_resources_by_id_secrets_by_environment_by_stage"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Servers",
+                "pages": [
+                  {
+                    "group": "Cleanup",
+                    "pages": [
+                      "api-reference/get_servers_by_id_cleanup",
+                      "api-reference/get_servers_by_id_orphans",
+                      "api-reference/post_servers_by_id_actions_cleanup_orphans"
+                    ]
+                  },
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "api-reference/get_servers",
+                      "api-reference/post_servers",
+                      "api-reference/get_servers_by_id",
+                      "api-reference/patch_servers_by_id",
+                      "api-reference/patch_servers_by_id_name",
+                      "api-reference/delete_servers_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Inventory",
+                    "pages": [
+                      "api-reference/get_servers_by_id_apps",
+                      "api-reference/get_servers_by_id_resources",
+                      "api-reference/get_servers_by_id_deployments"
+                    ]
+                  },
+                  {
+                    "group": "Capacity",
+                    "pages": ["api-reference/get_servers_by_id_capacity"]
+                  },
+                  {
+                    "group": "Centralized logs",
+                    "pages": [
+                      "api-reference/get_servers_by_id_log_collection",
+                      "api-reference/put_servers_by_id_log_collection",
+                      "api-reference/post_servers_by_id_log_collection_actions_update"
+                    ]
+                  },
+                  {
+                    "group": "Scout Agent",
+                    "pages": [
+                      "api-reference/get_servers_by_id_monitoring",
+                      "api-reference/patch_servers_by_id_monitoring",
+                      "api-reference/post_servers_by_id_monitoring_actions_install",
+                      "api-reference/post_servers_by_id_monitoring_actions_uninstall",
+                      "api-reference/get_servers_by_id_metrics"
+                    ]
+                  },
+                  {
+                    "group": "Scout Alerts",
+                    "pages": [
+                      "api-reference/get_servers_by_id_scout_alerts",
+                      "api-reference/post_servers_by_id_scout_alerts_rules",
+                      "api-reference/put_servers_by_id_scout_alerts_rules_by_id",
+                      "api-reference/delete_servers_by_id_scout_alerts_rules_by_id",
+                      "api-reference/get_servers_by_id_scout_alerts_incidents",
+                      "api-reference/get_servers_by_id_scout_alerts_incidents_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Checks & preparation",
+                    "pages": [
+                      "api-reference/get_servers_by_id_checks",
+                      "api-reference/get_servers_by_id_preparations",
+                      "api-reference/post_servers_by_id_actions_check",
+                      "api-reference/post_servers_by_id_actions_prepare"
+                    ]
+                  },
+                  {
+                    "group": "Credentials & trust",
+                    "pages": [
+                      "api-reference/get_servers_by_id_credentials",
+                      "api-reference/patch_servers_by_id_credentials",
+                      "api-reference/post_servers_by_id_credentials_actions_verify_private_key",
+                      "api-reference/get_servers_by_id_credentials_verifications_by_id",
+                      "api-reference/get_servers_by_id_host_keys",
+                      "api-reference/post_servers_by_id_host_keys_actions_trust",
+                      "api-reference/delete_servers_by_id_host_keys_by_id"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Deployments",
+                "pages": [
+                  {
+                    "group": "Overview",
+                    "pages": [
+                      "api-reference/get_deployments",
+                      "api-reference/get_deployments_history",
+                      "api-reference/get_deployments_by_id"
+                    ]
+                  },
+                  {
+                    "group": "Performance comparisons",
+                    "pages": [
+                      "api-reference/get_workloads_by_id_comparison_deployments",
+                      "api-reference/get_workloads_by_id_deployment_comparison"
+                    ]
+                  },
+                  {
+                    "group": "Progress & logs",
+                    "pages": [
+                      "api-reference/get_deployments_by_id_steps",
+                      "api-reference/get_deployments_by_id_logs",
+                      "api-reference/get_deployments_by_id_events"
+                    ]
+                  },
+                  {
+                    "group": "Actions",
+                    "pages": [
+                      "api-reference/post_deployments_by_id_actions_cancel",
+                      "api-reference/post_deployments_by_id_actions_retry"
+                    ]
+                  },
+                  {
+                    "group": "Security scans",
+                    "pages": [
+                      "api-reference/get_deployments_by_id_vulnerability_scan_findings",
+                      "api-reference/post_deployments_by_id_vulnerability_scan_actions_rescan"
+                    ]
+                  }
                 ]
               },
               {
                 "group": "Previews",
-                "pages": ["api-reference/get_apps_by_id_previews"]
-              },
-              {
-                "group": "Scout Agent",
                 "pages": [
-                  "api-reference/get_apps_by_id_metrics",
-                  "api-reference/get_apps_by_id_analytics_filter_options",
-                  "api-reference/get_apps_by_id_analytics"
+                  {
+                    "group": "Lifecycle",
+                    "pages": [
+                      "api-reference/post_previews_by_id_actions_delete",
+                      "api-reference/post_previews_by_id_actions_deploy"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Secrets",
+                "group": "Workspace",
                 "pages": [
-                  "api-reference/get_apps_by_id_secrets",
-                  "api-reference/get_apps_by_id_secrets_readiness",
-                  "api-reference/patch_apps_by_id_secrets_by_environment_by_stage"
+                  {
+                    "group": "Monitoring",
+                    "pages": [
+                      "api-reference/get_monitoring_incidents",
+                      "api-reference/get_monitoring_vulnerabilities"
+                    ]
+                  },
+                  {
+                    "group": "Centralized logs",
+                    "pages": [
+                      "api-reference/get_observability_logs_status",
+                      "api-reference/post_observability_logs_actions_verify",
+                      "api-reference/post_logs_query",
+                      "api-reference/post_logs_summary",
+                      "api-reference/post_logs_context",
+                      "api-reference/post_logs_follow",
+                      "api-reference/post_logs_tail"
+                    ]
+                  },
+                  {
+                    "group": "Shared secrets",
+                    "pages": [
+                      "api-reference/get_settings_secrets",
+                      "api-reference/patch_settings_secrets_by_environment_by_stage"
+                    ]
+                  },
+                  {
+                    "group": "System health",
+                    "pages": [
+                      "api-reference/get_system_health",
+                      "api-reference/post_system_health_actions_check",
+                      "api-reference/get_version"
+                    ]
+                  },
+                  {
+                    "group": "Identity",
+                    "pages": ["api-reference/get_identity"]
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "pages": [
+                  {
+                    "group": "Connections",
+                    "pages": ["api-reference/get_integrations"]
+                  },
+                  {
+                    "group": "GitHub",
+                    "pages": [
+                      "api-reference/get_github",
+                      "api-reference/post_github_actions_retry_preview_reporting",
+                      "api-reference/get_github_repositories",
+                      "api-reference/get_github_branches",
+                      "api-reference/delete_github",
+                      "api-reference/get_github_installation"
+                    ]
+                  },
+                  {
+                    "group": "GitLab",
+                    "pages": [
+                      "api-reference/get_gitlab_connections",
+                      "api-reference/get_gitlab_repositories",
+                      "api-reference/get_gitlab_groups",
+                      "api-reference/get_gitlab_branches"
+                    ]
+                  }
                 ]
               }
             ]
-          },
-          {
-            "group": "Datastores",
-            "pages": [
-              {
-                "group": "Overview",
-                "pages": [
-                  "api-reference/get_resources",
-                  "api-reference/get_resources_by_id"
-                ]
-              },
-              {
-                "group": "Deployments",
-                "pages": [
-                  "api-reference/get_resources_by_id_auto_deploy_control",
-                  "api-reference/patch_resources_by_id_auto_deploy_control",
-                  "api-reference/get_resources_by_id_deployments",
-                  "api-reference/get_resources_by_id_releases",
-                  "api-reference/post_resources_by_id_actions_deploy",
-                  "api-reference/post_resources_by_id_actions_rollback"
-                ]
-              },
-              {
-                "group": "Runtime & logs",
-                "pages": [
-                  "api-reference/get_resources_by_id_operations",
-                  "api-reference/post_resources_by_id_actions_refresh_external_secrets",
-                  "api-reference/post_resources_by_id_actions_restart",
-                  "api-reference/post_resources_by_id_actions_start",
-                  "api-reference/post_resources_by_id_actions_stop",
-                  "api-reference/post_resources_by_id_actions_logs"
-                ]
-              },
-              {
-                "group": "Backups & restores",
-                "pages": [
-                  "api-reference/get_resources_by_id_backup_assurance",
-                  "api-reference/get_resources_by_id_operations_by_id_events",
-                  "api-reference/post_resources_by_id_actions_backup",
-                  "api-reference/post_resources_by_id_actions_restore",
-                  "api-reference/post_resources_by_id_actions_restore_cleanup",
-                  "api-reference/post_resources_by_id_operations_by_id_actions_cancel"
-                ]
-              },
-              {
-                "group": "Scout Agent",
-                "pages": ["api-reference/get_resources_by_id_metrics"]
-              },
-              {
-                "group": "Secrets",
-                "pages": [
-                  "api-reference/get_resources_by_id_secrets",
-                  "api-reference/get_resources_by_id_secrets_readiness",
-                  "api-reference/patch_resources_by_id_secrets_by_environment_by_stage"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Servers",
-            "pages": [
-              {
-                "group": "Cleanup",
-                "pages": [
-                  "api-reference/get_servers_by_id_cleanup",
-                  "api-reference/get_servers_by_id_orphans",
-                  "api-reference/post_servers_by_id_actions_cleanup_orphans"
-                ]
-              },
-              {
-                "group": "Overview",
-                "pages": [
-                  "api-reference/get_servers",
-                  "api-reference/post_servers",
-                  "api-reference/get_servers_by_id",
-                  "api-reference/patch_servers_by_id",
-                  "api-reference/patch_servers_by_id_name",
-                  "api-reference/delete_servers_by_id"
-                ]
-              },
-              {
-                "group": "Inventory",
-                "pages": [
-                  "api-reference/get_servers_by_id_apps",
-                  "api-reference/get_servers_by_id_resources",
-                  "api-reference/get_servers_by_id_deployments"
-                ]
-              },
-              {
-                "group": "Capacity",
-                "pages": ["api-reference/get_servers_by_id_capacity"]
-              },
-              {
-                "group": "Centralized logs",
-                "pages": [
-                  "api-reference/get_servers_by_id_log_collection",
-                  "api-reference/put_servers_by_id_log_collection",
-                  "api-reference/post_servers_by_id_log_collection_actions_update"
-                ]
-              },
-              {
-                "group": "Scout Agent",
-                "pages": [
-                  "api-reference/get_servers_by_id_monitoring",
-                  "api-reference/patch_servers_by_id_monitoring",
-                  "api-reference/post_servers_by_id_monitoring_actions_install",
-                  "api-reference/post_servers_by_id_monitoring_actions_uninstall",
-                  "api-reference/get_servers_by_id_metrics"
-                ]
-              },
-              {
-                "group": "Scout Alerts",
-                "pages": [
-                  "api-reference/get_servers_by_id_scout_alerts",
-                  "api-reference/post_servers_by_id_scout_alerts_rules",
-                  "api-reference/put_servers_by_id_scout_alerts_rules_by_id",
-                  "api-reference/delete_servers_by_id_scout_alerts_rules_by_id",
-                  "api-reference/get_servers_by_id_scout_alerts_incidents",
-                  "api-reference/get_servers_by_id_scout_alerts_incidents_by_id"
-                ]
-              },
-              {
-                "group": "Checks & preparation",
-                "pages": [
-                  "api-reference/get_servers_by_id_checks",
-                  "api-reference/get_servers_by_id_preparations",
-                  "api-reference/post_servers_by_id_actions_check",
-                  "api-reference/post_servers_by_id_actions_prepare"
-                ]
-              },
-              {
-                "group": "Credentials & trust",
-                "pages": [
-                  "api-reference/get_servers_by_id_credentials",
-                  "api-reference/patch_servers_by_id_credentials",
-                  "api-reference/post_servers_by_id_credentials_actions_verify_private_key",
-                  "api-reference/get_servers_by_id_credentials_verifications_by_id",
-                  "api-reference/get_servers_by_id_host_keys",
-                  "api-reference/post_servers_by_id_host_keys_actions_trust",
-                  "api-reference/delete_servers_by_id_host_keys_by_id"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Deployments",
-            "pages": [
-              {
-                "group": "Overview",
-                "pages": [
-                  "api-reference/get_deployments",
-                  "api-reference/get_deployments_history",
-                  "api-reference/get_deployments_by_id"
-                ]
-              },
-              {
-                "group": "Performance comparisons",
-                "pages": [
-                  "api-reference/get_workloads_by_id_comparison_deployments",
-                  "api-reference/get_workloads_by_id_deployment_comparison"
-                ]
-              },
-              {
-                "group": "Progress & logs",
-                "pages": [
-                  "api-reference/get_deployments_by_id_steps",
-                  "api-reference/get_deployments_by_id_logs",
-                  "api-reference/get_deployments_by_id_events"
-                ]
-              },
-              {
-                "group": "Actions",
-                "pages": [
-                  "api-reference/post_deployments_by_id_actions_cancel",
-                  "api-reference/post_deployments_by_id_actions_retry"
-                ]
-              },
-              {
-                "group": "Security scans",
-                "pages": [
-                  "api-reference/get_deployments_by_id_vulnerability_scan_findings",
-                  "api-reference/post_deployments_by_id_vulnerability_scan_actions_rescan"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Previews",
-            "pages": [
-              {
-                "group": "Lifecycle",
-                "pages": [
-                  "api-reference/post_previews_by_id_actions_delete",
-                  "api-reference/post_previews_by_id_actions_deploy"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Workspace",
-            "pages": [
-              {
-                "group": "Monitoring",
-                "pages": [
-                  "api-reference/get_monitoring_incidents",
-                  "api-reference/get_monitoring_vulnerabilities"
-                ]
-              },
-              {
-                "group": "Centralized logs",
-                "pages": [
-                  "api-reference/get_observability_logs_status",
-                  "api-reference/post_observability_logs_actions_verify",
-                  "api-reference/post_logs_query",
-                  "api-reference/post_logs_summary",
-                  "api-reference/post_logs_context",
-                  "api-reference/post_logs_follow",
-                  "api-reference/post_logs_tail"
-                ]
-              },
-              {
-                "group": "Shared secrets",
-                "pages": [
-                  "api-reference/get_settings_secrets",
-                  "api-reference/patch_settings_secrets_by_environment_by_stage"
-                ]
-              },
-              {
-                "group": "System health",
-                "pages": [
-                  "api-reference/get_system_health",
-                  "api-reference/post_system_health_actions_check",
-                  "api-reference/get_version"
-                ]
-              },
-              { "group": "Identity", "pages": ["api-reference/get_identity"] }
-            ]
-          },
-          {
-            "group": "Integrations",
-            "pages": [
-              {
-                "group": "Connections",
-                "pages": ["api-reference/get_integrations"]
-              },
-              {
-                "group": "GitHub",
-                "pages": [
-                  "api-reference/get_github",
-                  "api-reference/post_github_actions_retry_preview_reporting",
-                  "api-reference/get_github_repositories",
-                  "api-reference/get_github_branches",
-                  "api-reference/delete_github",
-                  "api-reference/get_github_installation"
-                ]
-              },
-              {
-                "group": "GitLab",
-                "pages": [
-                  "api-reference/get_gitlab_connections",
-                  "api-reference/get_gitlab_repositories",
-                  "api-reference/get_gitlab_groups",
-                  "api-reference/get_gitlab_branches"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "dropdown": "Blog",
-        "icon": "newspaper",
-        "groups": [
-          {
-            "group": "Towbar blog",
-            "pages": ["blog/index", "blog/introducing-towbar"]
           }
         ]
       }
@@ -953,7 +1068,11 @@
     "links": [
       { "type": "github", "href": "https://github.com/avgeek-oss/towbar" }
     ],
-    "primary": { "type": "button", "label": "Docs", "href": "/docs" }
+    "primary": {
+      "type": "button",
+      "label": "Get started",
+      "href": "/docs/index"
+    }
   },
   "footer": {
     "socials": { "github": "https://github.com/avgeek-oss/towbar" },
@@ -961,60 +1080,51 @@
       {
         "header": "Documentation",
         "items": [
-          { "label": "Your first deployment", "href": "/docs/getting-started" },
+          { "label": "About Towbar", "href": "/docs/index" },
           {
-            "label": "Install Towbar",
+            "label": "Self-hosting",
             "href": "/docs/self-hosting/installation"
           },
           {
-            "label": "Connect a repository",
-            "href": "/docs/repositories/connect"
+            "label": "Configuration",
+            "href": "/docs/self-hosting/configuration"
           },
-          { "label": "Manifest reference", "href": "/docs/deployment-manifest" }
+          {
+            "label": "Changelog",
+            "href": "https://github.com/avgeek-oss/towbar/releases"
+          }
         ]
       },
       {
-        "header": "Our OSS Philosophy",
+        "header": "Open Source",
         "items": [
           {
-            "label": "Why we build open source",
-            "href": "https://github.com/avgeek-oss/.github/blob/main/profile/README.md"
-          },
-          {
-            "label": "Towbar on GitHub",
+            "label": "GitHub Source",
             "href": "https://github.com/avgeek-oss/towbar"
           },
           {
-            "label": "Report an issue",
-            "href": "https://github.com/avgeek-oss/towbar/issues"
+            "label": "License Terms",
+            "href": "https://github.com/avgeek-oss/towbar/blob/main/LICENSE"
+          },
+          {
+            "label": "OSS Philosophy",
+            "href": "https://github.com/avgeek-oss/.github/blob/main/profile/README.md"
           }
         ]
       },
       {
-        "header": "Other OSS Apps",
+        "header": "Other OSS Projects",
         "items": [
-          {
-            "label": "Vitalog · Keep your health ledger",
-            "href": "https://www.vitalog.dev"
-          },
-          {
-            "label": "All OSS projects",
-            "href": "https://github.com/avgeek-oss/.github/blob/main/profile/README.md#whats-in-the-list"
-          }
+          { "label": "Mill", "href": "https://www.mill.fyi" },
+          { "label": "Posted", "href": "https://www.posted.cc" },
+          { "label": "Rootset", "href": "https://www.rootset.app" }
         ]
       },
       {
-        "header": "Project & Legal",
+        "header": "More links",
         "items": [
-          { "label": "GitHub", "href": "https://github.com/avgeek-oss/towbar" },
-          {
-            "label": "Changelog",
-            "href": "https://github.com/avgeek-oss/towbar/blob/main/CHANGELOG.md"
-          },
-          { "label": "Security", "href": "/docs/self-hosting/security" },
-          { "label": "Privacy", "href": "/privacy" },
-          { "label": "Terms", "href": "/terms" },
-          { "label": "Status", "href": "/status" }
+          { "label": "Company website", "href": "https://www.avgeek.ltd" },
+          { "label": "Write to us", "href": "mailto:support@avgeek.ltd" }
         ]
       }
     ]
@@ -1046,11 +1156,41 @@
     },
     {
       "source": "/docs/reference/environment-variables",
-      "destination": "/docs/self-hosting/environment-variables"
+      "destination": "/docs/self-hosting/configuration"
     },
     {
       "source": "/docs/self-hosting/architecture",
-      "destination": "/docs/architecture"
+      "destination": "/docs/self-hosting/installation"
+    },
+    {
+      "source": "/docs/architecture",
+      "destination": "/docs/self-hosting/installation"
+    },
+    {
+      "source": "/docs/self-hosting/environment-variables",
+      "destination": "/docs/self-hosting/configuration"
+    },
+    { "source": "/docs/operate", "destination": "/docs/operate/health" },
+    { "source": "/docs/operate/index", "destination": "/docs/operate/health" },
+    {
+      "source": "/docs/integrations",
+      "destination": "/docs/self-hosting/configuration#runtime-integrations"
+    },
+    {
+      "source": "/docs/integrations/index",
+      "destination": "/docs/self-hosting/configuration#runtime-integrations"
+    },
+    {
+      "source": "/docs/api/overview",
+      "destination": "/api-reference/overview"
+    },
+    {
+      "source": "/docs/api/mcp-tools",
+      "destination": "/mcp-reference/overview"
+    },
+    {
+      "source": "/release-notes",
+      "destination": "https://github.com/avgeek-oss/towbar/releases"
     }
   ],
   "metadata": { "timestamp": true }

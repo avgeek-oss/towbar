@@ -109,7 +109,7 @@ export const infrastructureTools: McpTool[] = [
   tool(
     "monitoring_configure",
     "Configure enhanced monitoring",
-    "Install/update Scout Agent, Towbar’s opt-in monitoring agent, change retention, or uninstall it. Installation requires explicit user acknowledgement. Uninstall revokes reporting immediately and removes services asynchronously. Shorter retention expires older data. Poll server_inspect for completion; queued does not mean online.",
+    "Install/update Scout Agent, Towbar’s opt-in monitoring agent, change retention, or uninstall it. Installation requires explicit user acknowledgement: pass acknowledge=true and retentionDays for action=install. The retention action also requires retentionDays. Uninstall revokes reporting immediately and removes services asynchronously. Shorter retention expires older data. Poll server_inspect for completion; queued does not mean online.",
     z
       .object({
         ...serverId,

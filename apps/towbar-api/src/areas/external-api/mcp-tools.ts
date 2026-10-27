@@ -544,7 +544,7 @@ export const mcpTools: McpTool[] = [
   action(
     "workspace_check",
     "Refresh control-plane health",
-    "Run system health checks, then use towbar_workspace_inspect to review the latest results.",
+    "Run system health checks and review the updated results in this tool’s response. Use the System health dashboard or GET /system-health for later observations.",
     "POST",
     "/system-health/actions/check",
     {},

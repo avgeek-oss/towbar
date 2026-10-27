@@ -3,6 +3,8 @@ title: "Your first deployment"
 description: "Take a Dockerfile service from a GitHub repository to a verified deployment on your Ubuntu server."
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 Deploy the [example HTTP service](https://github.com/avgeek-oss/towbar/tree/main/examples) from GitHub to your server.
 
 ## Before you begin
@@ -71,15 +73,7 @@ In **Repositories → Add repository**, select the repository and map production
 
 Sync imports **Hello Towbar** into Services. Correct any reported manifest or server-reference errors and sync again. The service starts only after deployment.
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/repositories-light.jpg" alt="Repositories show their imported service and datastore inventories and latest sync time." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/repositories-dark.jpg" alt="Repositories show their imported service and datastore inventories and latest sync time." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>Repositories show their imported service and datastore inventories and latest sync time.</p>
-</div>
+<Screenshot light="/assets/release-v2/repositories-light.jpg" dark="/assets/release-v2/repositories-dark.jpg" alt="Repositories show their imported service and datastore inventories and latest sync time." caption="Repositories show their imported service and datastore inventories and latest sync time." width={3200} height={1800} />
 
 ## 3. Verify the server
 
@@ -101,15 +95,7 @@ Open the service and choose **Deploy**. Towbar fetches the commit, builds a cand
 
 For failures, inspect the stage output and [troubleshooting guide](/docs/troubleshooting) before retrying.
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/deployments-light.jpg" alt="Filter deployment history by status, trigger, and workload." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/deployments-dark.jpg" alt="Filter deployment history by status, trigger, and workload." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>Filter deployment history by status, trigger, and workload.</p>
-</div>
+<Screenshot light="/assets/release-v2/deployments-light.jpg" dark="/assets/release-v2/deployments-dark.jpg" alt="Filter deployment history by status, trigger, and workload." caption="Filter deployment history by status, trigger, and workload." width={3200} height={1800} />
 
 ## 6. Verify the result
 

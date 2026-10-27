@@ -3,6 +3,8 @@ title: "Database restores"
 description: "Validate a retained database backup, restore it in isolation, and promote it with rollback protection."
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 Towbar supports manual restores with validation and rollback protection for manifest-managed PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse datastores. Retained backups may use an enabled AWS S3, Cloudflare R2, generic S3-compatible, or Google Cloud Storage (GCS) runtime integration. Restores are never started automatically.
 
 ## Choose a backup
@@ -31,11 +33,7 @@ The runtime provider identity needs read access to the declared backup storage:
 
 The target server must be prepared, have a healthy current datastore release, use one Towbar-owned database volume, and have free Docker storage of at least three times the backup size (with a 1 GiB minimum). Datastores with `container.configFiles` or an entrypoint override need engine-native recovery; managed restore rejects these configurations.
 
-<div className="towbar-doc-screenshot">
-<div className="towbar-product-light"><img src="/assets/release-v2/restore-source-light.jpg" alt="A restorable backup still needs configured provider credentials before Restore is available." width="3200" height="1800" loading="lazy" /></div>
-<div className="towbar-product-dark"><img src="/assets/release-v2/restore-source-dark.jpg" alt="A restorable backup still needs configured provider credentials before Restore is available." width="3200" height="1800" loading="lazy" /></div>
-<p>A restorable backup still needs configured provider credentials before Restore is available.</p>
-</div>
+<Screenshot light="/assets/release-v2/restore-source-light.jpg" dark="/assets/release-v2/restore-source-dark.jpg" alt="A restorable backup still needs configured provider credentials before Restore is available." caption="A restorable backup still needs configured provider credentials before Restore is available." width={3200} height={1800} />
 
 ## Restore flow
 

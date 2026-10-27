@@ -1,7 +1,9 @@
 ---
-title: Authentication and rate limits
+title: Connect the REST API
 description: Scope, rotate and revoke personal and team API keys with live role restrictions.
 ---
+
+REST clients connect to `https://towbar-api.example.com/v1/api` with a personal or team API key. Replace the example origin with `installation.apiBaseUrl`. API-key management and external REST access require a public HTTPS installation.
 
 ## Keys and permissions
 
@@ -27,6 +29,17 @@ Authorization: Bearer twb_YOUR_KEY
 Better Auth's API Key plugin generates and verifies opaque tokens. Towbar stores hashed verifiers and policy records; the token is not a JWT and contains no embedded role or credentials. Metadata and audit events never return a token or verifier. `GET /identity` identifies the current actor and team; team keys do not impersonate a human creator.
 
 API and MCP require Bearer tokens and do not accept browser cookies. Browser sessions use cookies and origin validation. An `Origin` header must match the configured dashboard origin; CLI clients normally omit it. Use HTTPS outside local development, and keep tokens out of URLs, logs and committed files. API-key session emulation is disabled.
+
+## Verify a connection
+
+Set `TOWBAR_API_KEY` through your shell or secret manager, then identify the current actor and team:
+
+```bash
+curl --fail-with-body 'https://towbar-api.example.com/v1/api/identity' \
+  -H "Authorization: Bearer $TOWBAR_API_KEY"
+```
+
+Check that the result identifies the intended workspace. Keep the token out of Git, URLs, and logs. Continue with the [HTTP operation reference](/api-reference/overview) or [automation workflows](/docs/api/workflows).
 
 ## MCP OAuth tokens
 

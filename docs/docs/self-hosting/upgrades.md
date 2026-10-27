@@ -3,12 +3,14 @@ title: "Upgrades and recovery"
 description: "Plan a release upgrade, protect control-plane state, and recover Admin access."
 ---
 
-Upgrade the API, worker, and dashboard together from a reviewed release. Before changing versions, read the [changelog](https://github.com/avgeek-oss/towbar/blob/main/CHANGELOG.md) for migration requirements.
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
+Upgrade the API, worker, and dashboard together from a reviewed release. Before changing versions, read the [changelog](https://github.com/avgeek-oss/towbar/releases) for migration requirements.
 
 ## Prepare an upgrade
 
 1. Pause automatic deployments and allow active operations to finish.
-2. [Back up the control plane](#back-up-the-control-plane), including every PostgreSQL database and the protected configuration file.
+2. [Back up the control plane](/docs/self-hosting/backup), including every PostgreSQL database and the protected configuration file.
 3. Run `sudo towbar version` and record the installed release.
 4. Review the target release and its migration notes.
 5. Run the CLI upgrade, inspect migration output, and verify System health before resuming deployments.
@@ -45,27 +47,9 @@ sudo towbar restart
 
 Do not replace `security.credentialsKey`: existing encrypted records require the matching key. Changing database values in the file does not rotate credentials inside the existing PostgreSQL volume.
 
-## Back up the control plane
+<span id="back-up-the-control-plane" />
 
-The PostgreSQL volume contains Towbar and Temporal databases. Back up the whole cluster, not just the `towbar` database. After active operations finish, stop the API and worker during the export so they cannot change control-plane state. Deployed workloads keep running. On a standard CLI installation:
-
-```bash
-set -o pipefail
-sudo towbar compose stop web-app api worker
-backup_dir="/var/backups/towbar/$(date -u +%Y%m%dT%H%M%SZ)"
-sudo install -d -m 0700 "$backup_dir"
-sudo towbar compose exec -T postgres pg_dumpall -U towbar | \
-  sudo sh -c 'umask 077; cat > "$1/control-plane.sql"' sh "$backup_dir"
-```
-
-After a successful export, resume the control plane:
-
-```bash
-sudo towbar compose up --detach --wait api worker web-app
-sudo towbar status
-```
-
-Keep a restricted backup of the file reported by `sudo towbar config path` separately from the database export. It contains the keys needed to decrypt stored credentials. Copy the backups off the host and test them against an isolated installation before relying on them. If the export command fails, discard its partial file and retry after resolving the error.
+See [Backup and recovery](/docs/self-hosting/backup) for the complete database export and protected configuration procedure.
 
 ## Upgrade legacy image workloads
 
@@ -179,63 +163,23 @@ The screenshots use a local fixture to demonstrate upgrade states.
 <Tabs>
   <Tab title="Ready">
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/upgrade-ready-light.jpg" alt="Review the new version and the readiness check before upgrading." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/upgrade-ready-dark.jpg" alt="Review the new version and the readiness check before upgrading." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>Review the new version and the readiness check before upgrading.</p>
-</div>
+<Screenshot light="/assets/release-v2/upgrade-ready-light.jpg" dark="/assets/release-v2/upgrade-ready-dark.jpg" alt="Review the new version and the readiness check before upgrading." caption="Review the new version and the readiness check before upgrading." width={3200} height={1800} />
   </Tab>
   <Tab title="Work in progress">
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/upgrade-blocked-light.jpg" alt="Wait for active deployments and operations to finish, then check again." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/upgrade-blocked-dark.jpg" alt="Wait for active deployments and operations to finish, then check again." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>Wait for active deployments and operations to finish, then check again.</p>
-</div>
+<Screenshot light="/assets/release-v2/upgrade-blocked-light.jpg" dark="/assets/release-v2/upgrade-blocked-dark.jpg" alt="Wait for active deployments and operations to finish, then check again." caption="Wait for active deployments and operations to finish, then check again." width={3200} height={1800} />
   </Tab>
   <Tab title="In progress">
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/upgrade-applying-light.jpg" alt="The same modal follows the upgrade and reconnects during a restart." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/upgrade-applying-dark.jpg" alt="The same modal follows the upgrade and reconnects during a restart." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>The same modal follows the upgrade and reconnects during a restart.</p>
-</div>
+<Screenshot light="/assets/release-v2/upgrade-applying-light.jpg" dark="/assets/release-v2/upgrade-applying-dark.jpg" alt="The same modal follows the upgrade and reconnects during a restart." caption="The same modal follows the upgrade and reconnects during a restart." width={3200} height={1800} />
   </Tab>
   <Tab title="Successful">
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/upgrade-succeeded-light.jpg" alt="The result confirms the installed version and that deployments and operations can resume." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/upgrade-succeeded-dark.jpg" alt="The result confirms the installed version and that deployments and operations can resume." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>The result confirms the installed version and that deployments and operations can resume.</p>
-</div>
+<Screenshot light="/assets/release-v2/upgrade-succeeded-light.jpg" dark="/assets/release-v2/upgrade-succeeded-dark.jpg" alt="The result confirms the installed version and that deployments and operations can resume." caption="The result confirms the installed version and that deployments and operations can resume." width={3200} height={1800} />
   </Tab>
   <Tab title="Failed">
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img src="/assets/release-v2/upgrade-failed-light.jpg" alt="A failed upgrade shows a safe reason and links to recovery help." width="3200" height="1800" loading="lazy" />
-  </div>
-  <div className="towbar-product-dark">
-    <img src="/assets/release-v2/upgrade-failed-dark.jpg" alt="A failed upgrade shows a safe reason and links to recovery help." width="3200" height="1800" loading="lazy" />
-  </div>
-  <p>A failed upgrade shows a safe reason and links to recovery help.</p>
-</div>
+<Screenshot light="/assets/release-v2/upgrade-failed-light.jpg" dark="/assets/release-v2/upgrade-failed-dark.jpg" alt="A failed upgrade shows a safe reason and links to recovery help." caption="A failed upgrade shows a safe reason and links to recovery help." width={3200} height={1800} />
   </Tab>
 </Tabs>
 
