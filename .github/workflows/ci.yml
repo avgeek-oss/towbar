@@ -67,8 +67,8 @@ jobs:
         run: npx --yes mint@4.2.851 a11y
         working-directory: docs
 
-  # verify is the status check the main ruleset requires. Its work runs in two
-  # parallel jobs; the verify job below only aggregates their results.
+  # verify aggregates package checks and tests. Required CI below is the full
+  # merge gate, including documentation and infrastructure verification.
   verify-checks:
     name: verify (checks)
     runs-on: ubuntu-latest

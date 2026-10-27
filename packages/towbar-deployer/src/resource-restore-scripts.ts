@@ -1,4 +1,7 @@
 import { drainCentralizedLogsShell } from "./log-drain.js";
+// The image's initialization server accepts sockets before the final TCP listener.
+const postgresReadyCommand = String.raw`export PGPASSWORD="$POSTGRES_PASSWORD"; exec psql -h 127.0.0.1 -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" -v ON_ERROR_STOP=1 -Atqc "SELECT 1"`;
+
 export const preflightRestoreScript = String.raw`
 set -euo pipefail
 container="$1"
@@ -112,7 +115,7 @@ else
 fi
 candidate_ready() {
   case "$kind" in
-    postgres) docker exec "$container" sh -c 'pg_isready -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}"' >/dev/null 2>&1 ;;
+    postgres) docker exec "$container" sh -c '${postgresReadyCommand}' >/dev/null 2>&1 ;;
     mysql) docker exec "$container" sh -c 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" --silent' >/dev/null 2>&1 ;;
     mariadb) docker exec "$container" sh -c 'mariadb-admin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" --silent' >/dev/null 2>&1 ;;
     mongodb) docker exec "$container" sh -c 'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "quit(db.adminCommand({ping:1}).ok ? 0 : 1)"' >/dev/null 2>&1 ;;
@@ -130,7 +133,7 @@ done
 case "$kind" in
   postgres)
     docker cp "$backup_path" "$container:/tmp/towbar-restore.dump"
-    docker exec "$container" sh -c 'exec pg_restore -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" --clean --if-exists --no-owner --no-privileges /tmp/towbar-restore.dump'
+    docker exec "$container" sh -c 'export PGPASSWORD="$POSTGRES_PASSWORD"; exec pg_restore -h 127.0.0.1 -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" --clean --if-exists --no-owner --no-privileges /tmp/towbar-restore.dump'
     docker exec "$container" rm -f /tmp/towbar-restore.dump
     ;;
   mysql)
@@ -174,7 +177,7 @@ case "$kind" in
     ;;
 esac
 case "$kind" in
-  postgres) docker exec "$container" sh -c 'psql -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" -v ON_ERROR_STOP=1 -Atqc "SELECT 1"' | grep -Fxq 1 ;;
+  postgres) docker exec "$container" sh -c '${postgresReadyCommand}' | grep -Fxq 1 ;;
   mysql) docker exec "$container" sh -c 'mysql -N -B -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1"' | grep -Fxq 1 ;;
   mariadb) docker exec "$container" sh -c 'mariadb -N -B -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1"' | grep -Fxq 1 ;;
   mongodb) docker exec "$container" sh -c 'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "quit(db.getMongo().getDBNames().length >= 0 ? 0 : 1)"' >/dev/null ;;
@@ -258,7 +261,7 @@ validate_runtime() {
   deadline=$((SECONDS + 120))
   while true; do
     case "$kind" in
-      postgres) docker exec "$current_container" sh -c 'pg_isready -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" && psql -U "${"$"}{POSTGRES_USER:-postgres}" -d "${"$"}{POSTGRES_DB:-postgres}" -v ON_ERROR_STOP=1 -c "SELECT 1" >/dev/null' && return 0 ;;
+      postgres) docker exec "$current_container" sh -c '${postgresReadyCommand}' >/dev/null && return 0 ;;
       mysql) docker exec "$current_container" sh -c 'mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" --silent && mysql -N -B -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1"' | grep -Fxq 1 && return 0 ;;
       mariadb) docker exec "$current_container" sh -c 'mariadb-admin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD" --silent && mariadb -N -B -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1"' | grep -Fxq 1 && return 0 ;;
       mongodb) docker exec "$current_container" sh -c 'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "quit(db.adminCommand({ping:1}).ok ? 0 : 1)"' >/dev/null 2>&1 && return 0 ;;
