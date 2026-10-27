@@ -98,11 +98,13 @@ function deployableOptions<T extends App | Resource>(
 
 export function BreadcrumbEntitySwitcher({
   currentId,
+  deploymentEnvironment,
   kind,
   label,
   sourceId,
 }: {
   currentId: string;
+  deploymentEnvironment?: "production" | "preview";
   kind: BreadcrumbEntityKind;
   label: string;
   sourceId?: string;
@@ -291,6 +293,7 @@ export function BreadcrumbEntitySwitcher({
           router.push(
             breadcrumbEntityHref({
               currentId,
+              deploymentEnvironment,
               kind,
               pathname,
               sourceId,

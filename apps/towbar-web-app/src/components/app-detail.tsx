@@ -68,7 +68,11 @@ import {
 import { useApiQuery } from "@/hooks/use-api-query";
 import { api } from "@/lib/api";
 import { formatDate } from "./dashboard-overview";
-import { DeploymentTable, deploymentStatusTooltip } from "./deployment-table";
+import {
+  DeploymentTypeSelect,
+  ServiceDeploymentHistory,
+} from "./service-deployment-history";
+import { deploymentStatusTooltip } from "./deployment-table";
 import { AppSecrets } from "./app-secrets";
 import { PreviewEnvironments } from "./preview-environments";
 import { ResponsiveSubtabs } from "./responsive-subtabs";
@@ -476,6 +480,7 @@ export function AppDetail() {
           {
             value: "deployments",
             label: "Deployments",
+            actions: <DeploymentTypeSelect app={item} />,
             group: "Ship",
             icon: <HugeiconsIcon icon={Rocket01Icon} />,
             indicator: {
@@ -483,10 +488,9 @@ export function AppDetail() {
               variant: "secondary",
             },
             content: (
-              <DeploymentTable
-                deployableName={item.name}
+              <ServiceDeploymentHistory
+                app={item}
                 deployments={orderedDeployments}
-                emptyDescription="Use Deploy when this service is ready."
               />
             ),
           },

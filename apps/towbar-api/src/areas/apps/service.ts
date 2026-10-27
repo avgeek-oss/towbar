@@ -1,4 +1,5 @@
 import { assertManifestManaged } from "../manifest-lifecycle/guards.js";
+import { requestPreviewDeployment } from "../previews/manual-deployment.js";
 import { assertNoRunningCleanup } from "../resource-operations/server-cleanup.js";
 import {
   lockDomainClaims,
@@ -53,7 +54,11 @@ import {
 
 export { getApp, getResource, listApps, listResources } from "./queries.js";
 
-export async function listAppDeployments(appId: string, workspaceId: string) {
+export async function listAppDeployments(
+  appId: string,
+  workspaceId: string,
+  environment: "production" | "preview" = "production",
+) {
   await getApp(appId, workspaceId);
   return await getTowbarDatabase()
     .select(publicDeploymentSelection)
@@ -61,7 +66,7 @@ export async function listAppDeployments(appId: string, workspaceId: string) {
     .where(
       and(
         eq(deployments.appId, appId),
-        eq(deployments.environment, "production"),
+        eq(deployments.environment, environment),
       ),
     )
     .orderBy(desc(deployments.createdAt));
@@ -543,6 +548,8 @@ export async function requestDeploymentRetry(input: {
     .select({
       appId: deployments.appId,
       appSnapshot: deployments.appSnapshot,
+      environment: deployments.environment,
+      previewEnvironmentId: deployments.previewEnvironmentId,
       kind: deployments.kind,
       rollbackReleaseSnapshot: deployments.rollbackReleaseSnapshot,
       state: deployments.state,
@@ -558,6 +565,23 @@ export async function requestDeploymentRetry(input: {
   if (!original) throw notFound("Deployment");
   if (original.state !== "failed" && original.state !== "cancelled") {
     throw conflict("Only failed or cancelled deployments can be retried");
+  }
+
+  if (original.environment === "preview") {
+    if (!original.previewEnvironmentId) throw notFound("Preview");
+    const result = await requestPreviewDeployment({
+      previewEnvironmentId: original.previewEnvironmentId,
+      workspaceId: input.workspaceId,
+      requestedBy: input.requestedBy,
+      idempotencyKey: `preview:retry:${digestValue(JSON.stringify({ deploymentId: input.deploymentId, key: input.idempotencyKey }))}`,
+    });
+    return {
+      deployment: await getPublicDeployment(
+        result.deploymentId,
+        input.workspaceId,
+      ),
+      replayed: result.replayed,
+    };
   }
 
   if (original.kind === "rollback") {

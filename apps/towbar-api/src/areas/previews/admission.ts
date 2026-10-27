@@ -53,6 +53,7 @@ export async function admitPreviewDeployment(input: {
   targetConfigDigest: string;
   requiredSecrets: RequiredSecrets;
   force?: boolean;
+  manualIdempotencyKey?: string;
   requestedBy?: string | null;
   appId: string;
   branch: string;
@@ -188,12 +189,14 @@ export async function admitPreviewDeployment(input: {
       deploymentDigest: input.deploymentDigest,
       environmentId: environment.id,
     });
-    const idempotencyKey = manualPreviewIdempotencyKey(
-      input.force,
-      reopeningEnvironment,
-      baseIdempotencyKey,
-      deploymentId,
-    );
+    const idempotencyKey =
+      input.manualIdempotencyKey ??
+      manualPreviewIdempotencyKey(
+        input.force,
+        reopeningEnvironment,
+        baseIdempotencyKey,
+        deploymentId,
+      );
     const [existingDeployment] = await transaction
       .select({
         errorCode: deployments.errorCode,

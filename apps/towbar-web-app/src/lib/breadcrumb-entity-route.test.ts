@@ -105,3 +105,42 @@ test("datastores, servers and syncs retain their own page context", () => {
     );
   }
 });
+
+test("switching services from any Preview detail section keeps Preview history without requiring query params", () => {
+  for (const section of ["overview", "progress", "logs"]) {
+    assert.equal(
+      breadcrumbEntityHref({
+        kind: "apps",
+        currentId: "one",
+        deploymentEnvironment: "preview",
+        targetId: "two",
+        pathname: `/services/one/deployments/old/${section}`,
+      }),
+      "/services/two/deployments?type=preview",
+    );
+  }
+  assert.equal(
+    breadcrumbEntityHref({
+      kind: "apps",
+      currentId: "one",
+      deploymentEnvironment: "production",
+      targetId: "two",
+      pathname: "/services/one/deployments/old/logs",
+      search: "?type=preview",
+    }),
+    "/services/two/deployments",
+  );
+});
+
+test("switching services retains Preview history but drops deployment and pagination IDs", () => {
+  assert.equal(
+    breadcrumbEntityHref({
+      kind: "apps",
+      currentId: "one",
+      targetId: "two",
+      pathname: "/services/one/deployments/old/logs",
+      search: "?type=preview&page=8&deploymentId=old",
+    }),
+    "/services/two/deployments?type=preview",
+  );
+});

@@ -1794,8 +1794,8 @@ test("v2 fixtures expose environment mappings and isolated sibling instances", a
       "/v1/core/deployments/history?targetEnvironment=staging&limit=1",
     );
     assert.deepEqual(history.environments, ["production", "staging"]);
-    assert.equal(history.pagination.total, 2);
-    assert.equal(history.pagination.totalPages, 2);
+    assert.equal(history.pagination.total, 3);
+    assert.equal(history.pagination.totalPages, 3);
     assert.equal(history.deployments.length, 1);
     assert.equal(history.deployments[0].targetEnvironment.name, "staging");
     const missing = await get(

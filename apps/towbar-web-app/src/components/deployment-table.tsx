@@ -1,4 +1,6 @@
 "use client";
+import { useAccess } from "./access-context";
+import { DeploymentRetryButton } from "./deployment-retry-button";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { displayDateTime } from "@/lib/date-time-display";
 
@@ -35,6 +37,7 @@ export function DeploymentTable({
   deployableName: string;
   emptyDescription: string;
 }) {
+  const { can } = useAccess();
   const orderedDeployments = [...deployments].sort(
     (left, right) =>
       new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
@@ -100,6 +103,26 @@ export function DeploymentTable({
       ),
       className: "min-w-40",
     },
+    ...(can("deployment.create") &&
+    deployments.some(
+      (item) => item.state === "failed" || item.state === "cancelled",
+    )
+      ? [
+          {
+            key: "actions",
+            header: "Actions",
+            className: "whitespace-nowrap",
+            cell: (deployment: Deployment) =>
+              deployment.state === "failed" ||
+              deployment.state === "cancelled" ? (
+                <DeploymentRetryButton
+                  deploymentId={deployment.id}
+                  preview={deployment.environment === "preview"}
+                />
+              ) : null,
+          },
+        ]
+      : []),
   ];
 
   return (

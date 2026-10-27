@@ -3,6 +3,10 @@
 @source "../../packages/towbar-web-ui/src";
 
 @layer components {
+  .table__scroll-container {
+    overflow-y: hidden;
+  }
+
   .secret-reference {
     color: var(--secret-reference);
   }

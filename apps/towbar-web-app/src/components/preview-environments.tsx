@@ -7,7 +7,6 @@ import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-external-link";
 
 import type { PreviewEnvironment } from "@workspace/towbar-web-client";
-import { TypographyCode } from "@avgeek-oss/design-system/typography/typography";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import {
   ResourceTable,
@@ -20,7 +19,8 @@ import { api } from "@/lib/api";
 import { deploymentHref } from "@/lib/deployment-route";
 import { RelativeTime } from "./last-synced-time";
 import { formatDate } from "./dashboard-overview";
-import { DomainLink } from "./domain-link";
+import { DeploymentRetryButton } from "./deployment-retry-button";
+import { useAccess } from "./access-context";
 
 export function PreviewEnvironments({
   previews,
@@ -29,6 +29,7 @@ export function PreviewEnvironments({
   previews?: PreviewEnvironment[];
   error?: string;
 }) {
+  const { can } = useAccess();
   if (error) return <QueryError message={error} />;
   if (!previews) return <QueryLoading variant="list" />;
 
@@ -38,68 +39,53 @@ export function PreviewEnvironments({
       header: "Pull request",
       className: "min-w-32",
       cell: (preview) => (
-        <InlineExternalLink href={preview.pullRequestUrl}>
-          PR #{preview.pullRequestNumber}
-        </InlineExternalLink>
+        <div className="grid min-w-0 gap-1">
+          <InlineExternalLink href={preview.pullRequestUrl}>
+            PR #{preview.pullRequestNumber}
+          </InlineExternalLink>
+          <TooltipText
+            className="block max-w-72 truncate text-xs font-normal text-muted"
+            tooltip={preview.branch}
+          >
+            {preview.branch}
+          </TooltipText>
+        </div>
       ),
     },
     {
       key: "status",
       header: "Status",
       className: "min-w-32 whitespace-nowrap",
-      cell: (preview) => (
-        <StatusBadge
-          status={preview.status}
-          tooltip={previewCleanupTooltip(preview)}
-        />
-      ),
-    },
-    {
-      key: "url",
-      header: "URL",
-      className: "w-56 max-w-56",
-      cell: (preview) => (
-        <DomainLink className="max-w-56" domain={preview.hostname}>
-          {compactPreviewHostname(preview.hostname)}
-        </DomainLink>
-      ),
-    },
-    {
-      key: "branch",
-      header: "Branch",
-      className: "w-48 max-w-48",
-      cell: (preview) => (
-        <TooltipText
-          className="block max-w-48 truncate"
-          tooltip={preview.branch}
-        >
-          <TypographyCode className="block truncate rounded-none bg-transparent p-0 text-xs/4">
-            {preview.branch}
-          </TypographyCode>
-        </TooltipText>
-      ),
-    },
-    {
-      key: "deployment",
-      header: "Deployment",
-      className: "min-w-36 whitespace-nowrap",
-      cell: (preview) =>
-        preview.latestDeploymentId ? (
+      cell: (preview) => {
+        const badge = (
+          <StatusBadge
+            status={preview.status}
+            tooltip={previewCleanupTooltip(preview)}
+          />
+        );
+        return preview.latestDeploymentId ? (
           <InlineLink
+            aria-label={`Open deployment for PR #${preview.pullRequestNumber}`}
             href={deploymentHref({
               appId: preview.appId,
               deployableKind: "app",
               id: preview.latestDeploymentId,
             })}
-            title={preview.latestDeploymentId}
           >
-            <TypographyCode>
-              {preview.latestDeploymentId.slice(0, 8)}
-            </TypographyCode>
+            {badge}
           </InlineLink>
         ) : (
-          <span className="text-muted">—</span>
-        ),
+          badge
+        );
+      },
+    },
+    {
+      key: "updated",
+      header: "Last updated",
+      className: "min-w-48 whitespace-nowrap",
+      cell: (preview) => (
+        <RelativeTime label="Last updated" value={preview.updatedAt} />
+      ),
     },
     {
       key: "expires",
@@ -110,69 +96,75 @@ export function PreviewEnvironments({
       ),
     },
     {
-      key: "commit",
-      header: "Commit",
-      className: "whitespace-nowrap",
-      cell: (preview) => (
-        <TypographyCode title={preview.latestCommitSha}>
-          {preview.latestCommitSha.slice(0, 12)}
-        </TypographyCode>
-      ),
-    },
-    {
       key: "actions",
       header: "Actions",
       className: "whitespace-nowrap",
-      cell: (preview) => (
-        <div className="flex items-center gap-2">
-          {preview.status === "cleanup_failed" ? (
-            <ActionButton
-              ariaLabel={`Retry cleanup for PR #${preview.pullRequestNumber}`}
-              confirm={{
-                title: "Retry Preview cleanup?",
-                description:
-                  "Retry removing this Preview\u2019s container, image, route, and DNS record.",
-                actionLabel: "Retry cleanup",
-              }}
-              action={() =>
-                api.post(`/v1/core/previews/${preview.id}/actions/delete`)
-              }
-              pendingLabel="Queueing…"
-              success="Preview cleanup retry queued"
-            >
-              <HugeiconsIcon
-                aria-hidden="true"
-                icon={ReloadIcon}
-                className="shrink-0"
+      cell: (preview) =>
+        can("deployment.create") || preview.status === "healthy" ? (
+          <div className="flex items-center gap-2">
+            {preview.status === "failed" && preview.latestDeploymentId ? (
+              <DeploymentRetryButton
+                deploymentId={preview.latestDeploymentId}
+                preview
               />
-              Retry
-            </ActionButton>
-          ) : (
-            <ActionButton
-              action={() =>
-                api.post(`/v1/core/previews/${preview.id}/actions/delete`)
-              }
-              confirm={{
-                actionLabel: "Delete Preview",
-                description:
-                  "Towbar will remove this pull request's container, image, route, and DNS record. A later commit can create it again while the pull request remains open and Preview is enabled.",
-                title: `Delete Preview for PR #${preview.pullRequestNumber}?`,
-              }}
-              isDisabled={preview.status === "deleting"}
-              pendingLabel="Queueing…"
-              success="Preview cleanup queued"
-              variant="danger"
-            >
-              <HugeiconsIcon
-                aria-hidden="true"
-                icon={Delete02Icon}
-                className="shrink-0"
-              />
-              Delete
-            </ActionButton>
-          )}
-        </div>
-      ),
+            ) : null}
+            {preview.status === "healthy" ? (
+              <InlineExternalLink href={`https://${preview.hostname}`}>
+                Open Preview
+              </InlineExternalLink>
+            ) : null}
+            {!can("deployment.create") ? null : preview.status ===
+              "cleanup_failed" ? (
+              <ActionButton
+                ariaLabel={`Retry cleanup for PR #${preview.pullRequestNumber}`}
+                confirm={{
+                  title: "Retry Preview cleanup?",
+                  description:
+                    "Retry removing this Preview\u2019s container, image, route, and DNS record.",
+                  actionLabel: "Retry cleanup",
+                }}
+                action={() =>
+                  api.post(`/v1/core/previews/${preview.id}/actions/delete`)
+                }
+                pendingLabel="Queueing…"
+                success="Preview cleanup retry queued"
+              >
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={ReloadIcon}
+                  className="shrink-0"
+                />
+                Retry cleanup
+              </ActionButton>
+            ) : (
+              <ActionButton
+                action={() =>
+                  api.post(`/v1/core/previews/${preview.id}/actions/delete`)
+                }
+                confirm={{
+                  actionLabel: "Remove Preview",
+                  description:
+                    "Towbar will remove this pull request's container, image, route, and DNS record. Deployment history is kept. A later commit can create it again while the pull request remains open and Preview is enabled.",
+                  title: `Remove Preview for PR #${preview.pullRequestNumber}?`,
+                  variant: "danger",
+                }}
+                isDisabled={preview.status === "deleting"}
+                pendingLabel="Queueing…"
+                success="Preview cleanup queued"
+                variant="danger-soft"
+              >
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={Delete02Icon}
+                  className="shrink-0"
+                />
+                Remove Preview
+              </ActionButton>
+            )}
+          </div>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
     },
   ];
 
@@ -184,7 +176,7 @@ export function PreviewEnvironments({
       emptyTitle="No Preview deployments"
       getRowKey={(preview) => preview.id}
       items={previews}
-      tableClassName="min-w-[1040px]"
+      tableClassName="min-w-[760px]"
     />
   );
 }
@@ -208,10 +200,4 @@ function previewCleanupTooltip(preview: PreviewEnvironment) {
       ) : null}
     </span>
   );
-}
-
-function compactPreviewHostname(hostname: string) {
-  const [label, ...suffix] = hostname.split(".");
-  if (!label || label.length <= 18 || suffix.length === 0) return hostname;
-  return `${label.slice(0, 15)}…${suffix.length ? `.${suffix.join(".")}` : ""}`;
 }

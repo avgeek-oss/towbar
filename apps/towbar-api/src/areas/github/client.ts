@@ -347,7 +347,7 @@ export async function createGitHubPreviewDeployment(
     configuration,
   );
   const repository = `${encodeURIComponent(input.repositoryOwner)}/${encodeURIComponent(input.repositoryName)}`;
-  const environment = `${input.appName.slice(0, 245)} · Preview`;
+  const environment = `${input.appName.slice(0, 245)} (preview)`;
   const description = `Towbar Preview deployment for PR #${input.pullRequestNumber}`;
   if (input.towbarDeploymentId) {
     for (let page = 1; page <= 10; page += 1) {

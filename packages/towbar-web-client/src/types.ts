@@ -53,6 +53,7 @@ export type AutoDeployControlResponse = {
 };
 
 export type InstanceEnvironment = {
+  previewsEnabled?: boolean;
   id: string;
   name: string;
   branch: string;

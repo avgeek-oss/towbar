@@ -8,6 +8,7 @@ import {
 } from "@workspace/towbar-core";
 import {
   apps,
+  deployments,
   previewEnvironments,
   servers,
   sources,
@@ -40,6 +41,7 @@ export async function requestPreviewDeployment(input: {
   previewEnvironmentId: string;
   workspaceId: string;
   requestedBy: string | null;
+  idempotencyKey?: string;
 }) {
   const database = getTowbarDatabase();
   const [row] = await database
@@ -61,7 +63,26 @@ export async function requestPreviewDeployment(input: {
       sourceId: row.sourceId,
       pullRequestNumber: row.pullRequestNumber,
     },
-    () => deployCurrentPreview(input),
+    async () => {
+      if (input.idempotencyKey) {
+        const [existing] = await database
+          .select({ id: deployments.id })
+          .from(deployments)
+          .where(
+            and(
+              eq(deployments.workspaceId, input.workspaceId),
+              eq(deployments.idempotencyKey, input.idempotencyKey),
+              eq(deployments.previewEnvironmentId, input.previewEnvironmentId),
+            ),
+          )
+          .limit(1);
+        if (existing) {
+          await enqueueQueuedPreviewDeployment(existing.id, input.workspaceId);
+          return { accepted: true, deploymentId: existing.id, replayed: true };
+        }
+      }
+      return deployCurrentPreview(input);
+    },
   );
 }
 
@@ -69,6 +90,7 @@ async function deployCurrentPreview(input: {
   previewEnvironmentId: string;
   workspaceId: string;
   requestedBy: string | null;
+  idempotencyKey?: string;
 }) {
   const database = getTowbarDatabase();
   const [row] = await database
@@ -202,6 +224,7 @@ async function deployCurrentPreview(input: {
     ttlHours: app.config.preview.ttlHours,
     workspaceId: input.workspaceId,
     force: true,
+    manualIdempotencyKey: input.idempotencyKey,
     requestedBy: input.requestedBy,
   });
   if (!admission.created || !admission.deploymentId)
@@ -213,13 +236,48 @@ async function deployCurrentPreview(input: {
   await publishPreviewDeploymentStatus(admission.deploymentId, "queued").catch(
     () => undefined,
   );
-  await enqueueDeployment({
-    appId: app.id,
-    buildConcurrency: server.config.buildConcurrency ?? 1,
+  await enqueueQueuedPreviewDeployment(
+    admission.deploymentId,
+    input.workspaceId,
+  );
+  return {
+    accepted: true,
     deploymentId: admission.deploymentId,
-    previewBuildConcurrency: server.config.previewBuildConcurrency ?? 1,
+    replayed: false,
+  };
+}
+
+async function enqueueQueuedPreviewDeployment(
+  deploymentId: string,
+  workspaceId: string,
+) {
+  const [deployment] = await getTowbarDatabase()
+    .select({
+      appId: deployments.appId,
+      state: deployments.state,
+      server: deployments.serverSnapshot,
+      buildServer: deployments.buildServerSnapshot,
+    })
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.id, deploymentId),
+        eq(deployments.workspaceId, workspaceId),
+        eq(deployments.environment, "preview"),
+      ),
+    )
+    .limit(1);
+  if (!deployment) throw notFound("Deployment");
+  if (deployment.state !== "queued") return;
+  await enqueueDeployment({
+    appId: deployment.appId,
+    deploymentId,
+    buildConcurrency:
+      deployment.buildServer?.buildConcurrency ??
+      deployment.server.buildConcurrency ??
+      1,
+    previewBuildConcurrency: deployment.server.previewBuildConcurrency ?? 1,
     priority: "preview",
-    serverIp: server.config.ip,
+    serverIp: deployment.buildServer?.ip ?? deployment.server.ip,
   });
-  return { accepted: true, deploymentId: admission.deploymentId };
 }
