@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
+import postgres from "postgres";
 import { test } from "node:test";
 import { and, eq } from "drizzle-orm";
 import {
@@ -32,14 +33,27 @@ void test(
   },
   async (t) => {
     assert(url && new URL(url).pathname.endsWith("_test"));
-    process.env.DATABASE_TOWBAR_URL = url;
+    // A private database: admitResumedAutomaticDeployments()
+    // resumes every deferred app in its database, including other suites' apps.
+    const admin = postgres(url, { max: 1, onnotice() {} });
+    const privateDatabase = `towbar_automatic_deployments_${randomUUID().replaceAll("-", "")}_test`;
+    await admin.unsafe(`CREATE DATABASE "${privateDatabase}"`);
+    t.after(async () => {
+      await admin.unsafe(
+        `DROP DATABASE IF EXISTS "${privateDatabase}" WITH (FORCE)`,
+      );
+      await admin.end();
+    });
+    const isolated = new URL(url);
+    isolated.pathname = `/${privateDatabase}`;
+    process.env.DATABASE_TOWBAR_URL = isolated.href;
     process.env.TEMPORAL_ADDRESS = process.env.TOWBAR_TEST_TEMPORAL_ADDRESS!;
     process.env.TOWBAR_CREDENTIALS_KEY = randomBytes(32).toString("base64");
     process.env.TOWBAR_INTERNAL_HMAC_SECRET = randomBytes(32).toString("hex");
     const { runTowbarMigrations } =
       await import("@workspace/towbar-database/migrate");
     await runTowbarMigrations({
-      databaseUrl: url,
+      databaseUrl: isolated.href,
       logger: { info() {}, error() {} },
     });
     const { getTowbarDatabase, closeDatabase } =

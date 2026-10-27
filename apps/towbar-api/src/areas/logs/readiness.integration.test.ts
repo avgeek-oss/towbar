@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
+import postgres from "postgres";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { eq } from "drizzle-orm";
@@ -23,7 +24,20 @@ void test(
       clickhouseUrl &&
         ["127.0.0.1", "localhost"].includes(new URL(clickhouseUrl).hostname),
     );
-    process.env.DATABASE_TOWBAR_URL = databaseUrl;
+    // A private database: maintainLogRetention() prunes every workspace
+    // with pending retention in its database and must find none left.
+    const admin = postgres(databaseUrl, { max: 1, onnotice() {} });
+    const privateDatabase = `towbar_log_readiness_${randomUUID().replaceAll("-", "")}_test`;
+    await admin.unsafe(`CREATE DATABASE "${privateDatabase}"`);
+    t.after(async () => {
+      await admin.unsafe(
+        `DROP DATABASE IF EXISTS "${privateDatabase}" WITH (FORCE)`,
+      );
+      await admin.end();
+    });
+    const isolated = new URL(databaseUrl);
+    isolated.pathname = `/${privateDatabase}`;
+    process.env.DATABASE_TOWBAR_URL = isolated.href;
     process.env.TOWBAR_CREDENTIALS_KEY = randomBytes(32).toString("base64");
     process.env.TOWBAR_INTERNAL_HMAC_SECRET = randomBytes(32).toString("hex");
     const configuration = {
@@ -39,7 +53,7 @@ void test(
     const { runTowbarMigrations } =
       await import("@workspace/towbar-database/migrate");
     await runTowbarMigrations({
-      databaseUrl,
+      databaseUrl: isolated.href,
       logger: { info() {}, error() {} },
     });
     const { getTowbarDatabase, closeDatabase } =
