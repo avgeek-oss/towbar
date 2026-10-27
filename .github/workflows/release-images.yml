@@ -64,29 +64,19 @@ jobs:
   build:
     needs: prepare
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 25
+    timeout-minutes: 40
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
       matrix:
-        service: [api, worker, web-app]
         platform: [amd64, arm64]
         include:
           - platform: amd64
             runner: ubuntu-24.04
           - platform: arm64
             runner: ubuntu-24.04-arm
-          - service: api
-            image: towbar-api
-            dockerfile: apps/towbar-api/Dockerfile
-          - service: worker
-            image: towbar-worker
-            dockerfile: apps/towbar-worker/Dockerfile
-          - service: web-app
-            image: towbar-web-app
-            dockerfile: apps/towbar-web-app/Dockerfile
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -99,57 +89,49 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-      - id: build
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+      # docker-bake.hcl holds the per-image Dockerfile, build argument, OCI
+      # labels, provenance and SBOM attestations, and push-by-digest output.
+      - name: Build and push the service images
         env:
-          DOCKER_BUILD_RECORD_UPLOAD: false
-          DOCKER_BUILD_SUMMARY: false
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          platforms: linux/${{ matrix.platform }}
-          provenance: mode=max
-          sbom: true
-          build-args: SOURCE_COMMIT=${{ needs.prepare.outputs.commit }}
-          labels: |
-            org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
-            org.opencontainers.image.revision=${{ needs.prepare.outputs.commit }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.version=${{ needs.prepare.outputs.version }}
-          outputs: type=image,name=${{ needs.prepare.outputs.registry }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
-      - name: Record immutable image
+          REGISTRY: ${{ needs.prepare.outputs.registry }}
+          PLATFORM: ${{ matrix.platform }}
+          SOURCE_COMMIT: ${{ needs.prepare.outputs.commit }}
+          CREATED: ${{ needs.prepare.outputs.created }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: docker buildx bake --file docker-bake.hcl --metadata-file bake-metadata.json --progress plain release
+      - name: Record immutable images
         env:
-          DIGEST: ${{ steps.build.outputs.digest }}
-          IMAGE: ${{ needs.prepare.outputs.registry }}/${{ matrix.image }}
-          SERVICE: ${{ matrix.service }}
+          REGISTRY: ${{ needs.prepare.outputs.registry }}
           PLATFORM: ${{ matrix.platform }}
         run: |
-          jq -cn \
-            --arg service "$SERVICE" \
-            --arg image "$IMAGE@$DIGEST" \
-            --arg platform "$PLATFORM" \
-            '{service: $service, image: $image, platform: $platform}' >"$SERVICE-$PLATFORM.json"
+          set -euo pipefail
+          for service in api worker web-app; do
+            digest="$(jq -r --arg service "$service" '.[$service]["containerimage.digest"]' bake-metadata.json)"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+            jq -cn \
+              --arg service "$service" \
+              --arg image "$REGISTRY/towbar-$service@$digest" \
+              --arg platform "$PLATFORM" \
+              '{service: $service, image: $image, platform: $platform}' >"$service-$PLATFORM.json"
+          done
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: release-platform-${{ matrix.service }}-${{ matrix.platform }}
-          path: ${{ matrix.service }}-${{ matrix.platform }}.json
+          name: release-platform-${{ matrix.platform }}
+          path: "*-${{ matrix.platform }}.json"
           retention-days: 1
 
-  merge-images:
+  manifest:
     needs: [prepare, build]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     permissions:
-      contents: read
+      contents: write
       packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        service: [api, worker, web-app]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ needs.prepare.outputs.commit }}
+          fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
@@ -161,47 +143,32 @@ jobs:
           password: ${{ github.token }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          pattern: release-platform-${{ matrix.service }}-*
+          pattern: release-platform-*
           path: release-platform-images
           merge-multiple: true
-      - name: Publish the multi-platform image
+      - name: Publish the multi-platform images
         env:
-          SERVICE: ${{ matrix.service }}
-          IMAGE: ${{ needs.prepare.outputs.registry }}/towbar-${{ matrix.service }}
+          REGISTRY: ${{ needs.prepare.outputs.registry }}
           VERSION: ${{ needs.prepare.outputs.version }}
           COMMIT: ${{ needs.prepare.outputs.commit }}
         run: |
-          node tools/distribution/platform-images.mjs inputs release-platform-images "$SERVICE" "$IMAGE" > image-refs.txt
-          mapfile -t images < image-refs.txt
-          docker buildx imagetools create --tag "$IMAGE:$VERSION" --tag "$IMAGE:$COMMIT" "${images[@]}"
-          docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{json .Manifest}}' > image-index.json
-          digest="$(node tools/distribution/platform-images.mjs digest image-index.json)"
-          jq -cn --arg service "$SERVICE" --arg image "$IMAGE@$digest" \
-            '{service: $service, image: $image}' >"$SERVICE.json"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: release-image-${{ matrix.service }}
-          path: ${{ matrix.service }}.json
-          retention-days: 1
-
-  manifest:
-    needs: [prepare, merge-images]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ needs.prepare.outputs.commit }}
-          fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          pattern: release-image-*
-          path: release-images
-          merge-multiple: true
+          set -euo pipefail
+          mkdir -p release-images
+          for service in api worker web-app; do
+            image="$REGISTRY/towbar-$service"
+            mkdir "release-platform-images/$service"
+            mv release-platform-images/"$service"-amd64.json release-platform-images/"$service"-arm64.json "release-platform-images/$service/"
+            node tools/distribution/platform-images.mjs inputs "release-platform-images/$service" "$service" "$image" > image-refs.txt
+            mapfile -t images < image-refs.txt
+            docker buildx imagetools create --tag "$image:$VERSION" --tag "$image:$COMMIT" "${images[@]}"
+            docker buildx imagetools inspect "$image:$VERSION" --format '{{json .Manifest}}' > image-index.json
+            digest="$(node tools/distribution/platform-images.mjs digest image-index.json)"
+            jq -cn --arg service "$service" --arg image "$image@$digest" \
+              '{service: $service, image: $image}' >"release-images/$service.json"
+          done
+      # The access check below must run without the push credentials.
+      - name: Drop registry credentials
+        run: docker logout ghcr.io
       - name: Create release image manifest
         env:
           RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
@@ -254,42 +221,6 @@ jobs:
           name: release-distribution-artifacts
           path: release-artifacts/
           retention-days: 14
-
-  publish:
-    needs: [prepare, manifest, local-installation-smoke]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: ${{ needs.prepare.outputs.commit }}
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version-file: .nvmrc
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: release-distribution-artifacts
-          path: release-artifacts
-      - name: Publish the verified GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-        run: |
-          set -euo pipefail
-          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = "true"
-          jq '. + {validated: true}' release-artifacts/release.json > release-artifacts/validated.json
-          mv release-artifacts/validated.json release-artifacts/release.json
-          gh release upload "$RELEASE_TAG" release-artifacts/release.json --clobber
-          gh release edit "$RELEASE_TAG" --draft=false --latest
-      - name: Verify anonymous release downloads
-        run: |
-          node --input-type=module <<'JS'
-          import { readFile } from 'node:fs/promises';
-          import { verifyPublicRelease } from './tools/distribution/release.mjs';
-          await verifyPublicRelease(JSON.parse(await readFile('release-artifacts/release.json', 'utf8')));
-          JS
 
   local-installation-smoke:
     needs: [prepare, manifest]
@@ -397,3 +328,35 @@ jobs:
           name: release-local-installation
           path: ${{ runner.temp }}/towbar-local-installation/
           retention-days: 14
+
+      # Promotion. These steps have no if:, so they run only when every step
+      # above, including the installation, succeeded.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: release-distribution-artifacts
+          path: release-artifacts
+      - name: Publish the verified GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = "true"
+          jq '. + {validated: true}' release-artifacts/release.json > release-artifacts/validated.json
+          mv release-artifacts/validated.json release-artifacts/release.json
+          gh release upload "$RELEASE_TAG" release-artifacts/release.json --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+      - name: Verify anonymous release downloads
+        run: |
+          node --input-type=module <<'JS'
+          import { readFile } from 'node:fs/promises';
+          import { verifyPublicRelease } from './tools/distribution/release.mjs';
+          await verifyPublicRelease(JSON.parse(await readFile('release-artifacts/release.json', 'utf8')));
+          JS

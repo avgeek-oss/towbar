@@ -15,6 +15,9 @@ const databases = {
   TOWBAR_RECOVERY_TEST_DATABASE_URL: "recovery",
   TOWBAR_TERMINAL_TEST_DATABASE_URL: "terminal",
   TOWBAR_HISTORY_TEST_DATABASE_URL: "history",
+  // recoverLogCollectorOperations() scans every collector in its database, so
+  // this suite cannot share one with suites that queue collectors.
+  TOWBAR_LOG_PREPARATION_TEST_DATABASE_URL: "log_preparation",
 };
 
 export function disposableInfrastructure(run) {

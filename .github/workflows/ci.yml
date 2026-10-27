@@ -67,19 +67,12 @@ jobs:
         run: npx --yes mint@4.2.851 a11y
         working-directory: docs
 
-  verify:
+  # verify is the status check the main ruleset requires. Its work runs in two
+  # parallel jobs; the verify job below only aggregates their results.
+  verify-checks:
+    name: verify (checks)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: towbar_secrets_test
-          POSTGRES_PASSWORD: isolated-ci-password
-        ports: ["5432:5432"]
-        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 12
-    env:
-      TOWBAR_TEST_DATABASE_URL: postgres://postgres:isolated-ci-password@127.0.0.1:5432/towbar_secrets_test
     steps:
       # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -127,13 +120,47 @@ jobs:
           trap 'docker logs towbar-example; docker rm --force towbar-example' EXIT
           curl --fail --silent --show-error --retry 10 --retry-all-errors --retry-delay 1 --max-time 5 http://127.0.0.1:3000/health
           curl --fail --silent http://127.0.0.1:3000/ | grep --quiet 'Your app is running.'
-      - run: pnpm test
       - run: pnpm audit --prod --audit-level=moderate
+
+  # Unit tests only. Tests that need PostgreSQL, Temporal, ClickHouse or Docker
+  # skip here and run once in the integration groups, which provision all of
+  # them (tools/verification/run.mjs).
+  verify-tests:
+    name: verify (tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # v6.1.0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+      # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Some suites import their own package's dist/ (for example
+      # towbar-database's upgrade tests), which turbo's test task does not
+      # build; the build also fills turbo's cache for the test task.
+      - run: pnpm build
+      - run: pnpm test
       - name: Verify Trivy archive permissions as a non-root Docker user
         run: pnpm --filter towbar-worker exec tsx --test src/vulnerability-scanners/trivy.docker.test.ts
         env:
           TOWBAR_DOCKER_TESTS: "1"
-      - run: pnpm build
+
+  verify:
+    if: always()
+    needs: [verify-checks, verify-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require both verify jobs to succeed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { if (job.result !== "success") { console.error(name + ": " + job.result); process.exitCode = 1; } }'
 
   compose:
     runs-on: ubuntu-latest
