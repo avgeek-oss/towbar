@@ -11,7 +11,6 @@ import {
 import { settingsPageLabels } from "@avgeek-oss/design-system/patterns/settings/page-title";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DashboardPage } from "./page-parts";
-import { useRouter } from "@/hooks/use-guarded-router";
 import { SecondaryItems } from "./secondary-sidebar";
 import { ApiMcpSettings } from "./api-mcp-settings";
 import { PasskeySettings } from "./passkey-settings";
@@ -34,7 +33,6 @@ type AccountSettingsPage =
   | "mcp";
 
 export function AccountSettings({ page }: { page: AccountSettingsPage }) {
-  const router = useRouter();
   const accountSettingsGroups: ReadonlyArray<{
     title: string;
     pages: readonly AccountSettingsPage[];
@@ -75,9 +73,9 @@ export function AccountSettings({ page }: { page: AccountSettingsPage }) {
           key={group.title}
           title={group.title}
           selected={page}
-          onSelect={(value) => router.push(`/settings/${value}`)}
           items={group.pages.map((id) => ({
             id,
+            href: `/settings/${id}`,
             label: titles[id],
             icon: <HugeiconsIcon icon={icons[id]} />,
           }))}

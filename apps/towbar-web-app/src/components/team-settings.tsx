@@ -12,7 +12,6 @@ import {
   type ComponentProps,
   type ReactNode,
 } from "react";
-import { useRouter } from "@/hooks/use-guarded-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserGroupIcon,
@@ -166,7 +165,6 @@ export function TeamSettingsShell({
   children: ReactNode;
   page: TeamSettingsPage;
 }) {
-  const router = useRouter();
   const { can } = useAccess();
   const active = teamSettingsPages[page];
   if (!can(active.permission))
@@ -196,9 +194,9 @@ export function TeamSettingsShell({
             key={group.title}
             title={group.title}
             selected={page}
-            onSelect={(value) => router.push(`/team-settings/${value}`)}
             items={items.map((item) => ({
               id: item.id,
+              href: `/team-settings/${item.id}`,
               label: item.label,
               icon: <HugeiconsIcon icon={item.icon} />,
             }))}

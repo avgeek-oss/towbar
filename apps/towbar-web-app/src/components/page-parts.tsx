@@ -163,7 +163,7 @@ export function DashboardPage({
           <span className="inline-flex min-w-0 items-center gap-2">
             <span
               aria-hidden="true"
-              className="inline-flex shrink-0 [&_img]:size-6 [&_svg]:size-6"
+              className="inline-flex shrink-0 [&_img]:size-[19px] [&_svg]:size-[19px]"
             >
               {selection?.icon ?? titleIcon ?? <HugeiconsIcon icon={icon} />}
             </span>
