@@ -105,3 +105,16 @@ test("datastores, servers and syncs retain their own page context", () => {
     );
   }
 });
+
+test("switching services retains Preview history but drops deployment and pagination IDs", () => {
+  assert.equal(
+    breadcrumbEntityHref({
+      kind: "apps",
+      currentId: "one",
+      targetId: "two",
+      pathname: "/services/one/deployments/old/logs",
+      search: "?type=preview&page=8&deploymentId=old",
+    }),
+    "/services/two/deployments?type=preview",
+  );
+});

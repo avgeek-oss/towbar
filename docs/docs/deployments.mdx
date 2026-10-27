@@ -26,6 +26,10 @@ The **Service / Datastore** column shows the workload's logo or icon with its ty
 
 On mobile, open **Page menu** to access the filters.
 
+For a Service with Preview enabled in its connected environment, use the selector beside **Deployments** to switch between that environment's deployments and **Previews**. The selection and page are preserved in the URL.
+
+Failed or cancelled attempts have a **Retry** action in history and deployment details. A retry records a new attempt; the original logs and result remain available. Preview retries revalidate the pull request and deploy its latest eligible revision using Preview configuration and secrets.
+
 ## Deploy manually
 
 Open a service or datastore and choose **Deploy**. The server must be prepared and trusted, and required credentials must be configured. Follow the queued operation through its recorded stages; a queued request is not a completed deployment.

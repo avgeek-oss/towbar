@@ -211,6 +211,7 @@ export function PageTabs({
   defaultValue: string;
   ungroupedTitle?: string;
   tabs: Array<{
+    actions?: ReactNode;
     badge?: ReactNode;
     content: ReactNode;
     contentOwnsTitle?: boolean;
@@ -302,6 +303,7 @@ export function PageTabs({
       {selectedKey !== "settings" && active && !active.contentOwnsTitle ? (
         <PageSelectionTitle
           label={active.label}
+          actions={active.actions}
           icon={active.icon}
           keepEntityName
         />
@@ -397,6 +399,7 @@ export function ActionButton<T>({
     actionLabel?: string;
     description: string;
     title: ReactNode;
+    variant?: "danger" | "primary";
   };
   isIconOnly?: boolean;
   isDisabled?: boolean;
@@ -406,7 +409,7 @@ export function ActionButton<T>({
   preserveLabelWhilePending?: boolean;
   redirectOnSuccess?: (result: T) => string;
   success: string;
-  variant?: "danger" | "primary" | "secondary";
+  variant?: "danger" | "danger-soft" | "primary" | "secondary";
 }) {
   const { can } = useAccess();
   const stale = useRefreshFailures().length > 0;
@@ -481,7 +484,12 @@ export function ActionButton<T>({
               </Button>
               <Button
                 isDisabled={busy || isDisabled || stale}
-                variant={variant === "danger" ? "danger" : "primary"}
+                variant={
+                  confirm.variant ??
+                  (variant === "danger" || variant === "danger-soft"
+                    ? "danger"
+                    : "primary")
+                }
                 onPress={() => {
                   setIsConfirming(false);
                   void runAction();

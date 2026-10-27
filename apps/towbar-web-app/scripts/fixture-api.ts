@@ -1103,6 +1103,21 @@ const previewDeployment: Deployment = {
     "example-website-feature-preview-fixture-a1b2c3d4.preview.example.com",
 };
 deployments.push(previewDeployment);
+const failedPreviewDeployment: Deployment = {
+  ...structuredClone(previewDeployment),
+  appId: fixtureIds.stagingApp,
+  targetEnvironment: deployments.find(
+    (item) => item.appId === fixtureIds.stagingApp,
+  )!.targetEnvironment,
+  id: "64111111-1111-4111-8111-666666666666",
+  state: "failed",
+  gitRef: "refs/pull/44/head",
+  hostname:
+    "d90d0070-4179-495f-b5fa-42d7cc80-pr-44-7ae9e07b.preview.example.com",
+  errorCode: "DEPLOYMENT_FAILED",
+  errorMessage: "Public HTTPS health check failed for the Preview hostname.",
+};
+deployments.push(failedPreviewDeployment);
 
 const vulnerabilityFindings: VulnerabilityFinding[] = [
   {
@@ -1347,6 +1362,27 @@ function sumSeverity(
 }
 
 const previews: PreviewEnvironment[] = [
+  {
+    appId: fixtureIds.stagingApp,
+    appName: apps[1]!.name,
+    branch:
+      "feature/improve-preview-layout-and-very-long-branch-name-to-check-truncation",
+    cleanupAttempts: 0,
+    createdAt: fixtureNow,
+    updatedAt: fixtureNow,
+    errorMessage: failedPreviewDeployment.errorMessage,
+    expiresAt: new Date(Date.now() + 72 * 60 * 60_000).toISOString(),
+    gitRef: failedPreviewDeployment.gitRef!,
+    hostname: failedPreviewDeployment.hostname!,
+    id: "b2111111-1111-4111-8111-222222222222",
+    latestCommitSha: commitSha,
+    latestDeploymentId: failedPreviewDeployment.id,
+    nextCleanupAttemptAt: null,
+    pullRequestNumber: 44,
+    pullRequestUrl: `${repositoryUrl}/pull/44`,
+    sourceId: source.id,
+    status: "failed",
+  },
   {
     appId: apps[1]!.id,
     appName: apps[1]!.name,
@@ -2659,6 +2695,7 @@ export function createFixtureApiServer({
       }
     }
   }
+  const retryRequests = new Map<string, Deployment>();
   const fixtureServer = createServer(async (request, response) => {
     useFixtureLocalization(response, teamAccess.getPreferences);
     if (!authorizeFixtureCorsRequest(response, request.headers.origin)) return;
@@ -4727,8 +4764,22 @@ export function createFixtureApiServer({
           deployment: previous,
         });
       }
+      if (!["failed", "cancelled"].includes(previous.state))
+        return writeJson(response, 409, {
+          error: {
+            message: "Only failed or cancelled deployments can be retried",
+          },
+        });
+      const key = request.headers["idempotency-key"];
+      const requestId =
+        typeof key === "string" ? `${previous.id}:${key}` : null;
+      const replay = requestId ? retryRequests.get(requestId) : undefined;
+      if (replay)
+        return writeJson(response, 200, { deployment: replay, replayed: true });
       const deployment = {
         ...structuredClone(previous),
+        trigger: "manual" as const,
+        startedAt: new Date().toISOString(),
         id: randomUUID(),
         state: "succeeded" as const,
         createdAt: new Date().toISOString(),
@@ -4738,7 +4789,16 @@ export function createFixtureApiServer({
         errorMessage: null,
       };
       deployments.unshift(deployment);
-      return writeJson(response, 202, { deployment });
+      if (requestId) retryRequests.set(requestId, deployment);
+      const preview = previews.find(
+        (item) => item.latestDeploymentId === previous.id,
+      );
+      if (preview) {
+        preview.latestDeploymentId = deployment.id;
+        preview.updatedAt = deployment.updatedAt;
+        preview.status = "healthy";
+      }
+      return writeJson(response, 202, { deployment, replayed: false });
     }
     const vulnerabilityRescanMatch = path.match(
       /^\/v1\/core\/deployments\/([^/]+)\/vulnerability-scan\/actions\/rescan$/,
@@ -5453,7 +5513,10 @@ function getFixturePayload(
     if (child === "deployments") {
       return {
         deployments: deployments.filter(
-          (item) => item.appId === id && item.environment === "production",
+          (item) =>
+            item.appId === id &&
+            item.environment ===
+              (searchParams.get("environment") ?? "production"),
         ),
       };
     }

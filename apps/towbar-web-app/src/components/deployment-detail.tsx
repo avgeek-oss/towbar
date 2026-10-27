@@ -1,6 +1,8 @@
 "use client";
 import { TooltipText } from "@avgeek-oss/design-system/overlays/tooltip";
 import { displayTime } from "@/lib/date-time-display";
+import { DeploymentRetryButton } from "./deployment-retry-button";
+import { BreadcrumbEntitySwitcher } from "./breadcrumb-entity-switcher";
 import { useAccess } from "./access-context";
 import { DeploymentEnvironmentChip } from "./deployment-environment-chip";
 import {
@@ -13,7 +15,6 @@ import {
   GitBranchIcon,
   GitMergeIcon,
   InformationSquareIcon,
-  ReloadIcon,
   Rocket01Icon,
   SecurityCheckIcon,
   ServerStack01Icon,
@@ -28,9 +29,7 @@ import { InlineExternalLink } from "@avgeek-oss/design-system/navigation/inline-
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useParams } from "next/navigation";
-import { useRouter } from "@/hooks/use-guarded-router";
 import type {
-  Deployment,
   DeploymentPullRequest,
   Source,
 } from "@workspace/towbar-web-client";
@@ -80,7 +79,6 @@ export function DeploymentDetail() {
     deploymentId: string;
     resourceId?: string;
   }>();
-  const router = useRouter();
   const detail = useDetailNavigation();
   const stream = useDeploymentStream(deploymentId);
   const source = useApiQuery<{ source: Source }>(
@@ -121,9 +119,19 @@ export function DeploymentDetail() {
           {
             href: `/${deployableSection}/${stream.deployment.appId}`,
             label: deployableName,
+            content: (
+              <BreadcrumbEntitySwitcher
+                currentId={stream.deployment.appId}
+                kind={
+                  deploymentDeployableKind === "resource" ? "resources" : "apps"
+                }
+                label={deployableName}
+              />
+            ),
+            contentKey: `${deploymentDeployableKind}:${stream.deployment.appId}`,
           },
           {
-            href: `/${deployableSection}/${stream.deployment.appId}/deployments`,
+            href: `/${deployableSection}/${stream.deployment.appId}/deployments${stream.deployment.environment === "preview" ? "?type=preview" : ""}`,
             label: "Deployments",
           },
         ]
@@ -195,34 +203,11 @@ export function DeploymentDetail() {
       />
       Cancel
     </ActionButton>
-  ) : item.environment === "production" &&
-    (item.state === "failed" || item.state === "cancelled") ? (
-    <ActionButton
-      confirm={{
-        title: "Retry this deployment?",
-        description:
-          "Queue another deployment attempt. A successful attempt may replace the running release.",
-        actionLabel: "Retry deployment",
-      }}
-      action={() =>
-        api.post<{ deployment: Deployment }>(
-          `/v1/core/deployments/${deploymentId}/actions/retry`,
-          undefined,
-          { "Idempotency-Key": crypto.randomUUID() },
-        )
-      }
-      onSuccess={(result) => router.push(deploymentHref(result.deployment))}
-      pendingLabel="Queueing…"
-      success="Retry queued"
-      variant="primary"
-    >
-      <HugeiconsIcon
-        aria-hidden="true"
-        icon={ReloadIcon}
-        className="size-4 shrink-0"
-      />
-      Retry
-    </ActionButton>
+  ) : item.state === "failed" || item.state === "cancelled" ? (
+    <DeploymentRetryButton
+      deploymentId={deploymentId}
+      preview={item.environment === "preview"}
+    />
   ) : undefined;
 
   const progressSteps = stream.steps.filter(

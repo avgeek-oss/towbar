@@ -237,6 +237,9 @@ appRoutes.get(
     permissions: ["workload.read"],
     responseSchema: 'apps.ts:get:"/:appId/deployments"',
     summary: "List app deployments",
+    query: z
+      .object({ environment: z.enum(["production", "preview"]).optional() })
+      .strict(),
     response: "JSON object containing deployments.",
     status: 200,
   }),
@@ -245,6 +248,10 @@ appRoutes.get(
       deployments: await listAppDeployments(
         context.req.param("appId"),
         context.get("user").workspaceId,
+        z
+          .enum(["production", "preview"])
+          .optional()
+          .parse(context.req.query("environment")),
       ),
     }),
 );

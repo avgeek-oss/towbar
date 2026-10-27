@@ -8,6 +8,7 @@ import {
 } from "@workspace/towbar-core";
 import {
   apps,
+  deployments,
   previewEnvironments,
   servers,
   sources,
@@ -40,6 +41,7 @@ export async function requestPreviewDeployment(input: {
   previewEnvironmentId: string;
   workspaceId: string;
   requestedBy: string | null;
+  idempotencyKey?: string;
 }) {
   const database = getTowbarDatabase();
   const [row] = await database
@@ -61,7 +63,24 @@ export async function requestPreviewDeployment(input: {
       sourceId: row.sourceId,
       pullRequestNumber: row.pullRequestNumber,
     },
-    () => deployCurrentPreview(input),
+    async () => {
+      if (input.idempotencyKey) {
+        const [existing] = await database
+          .select({ id: deployments.id })
+          .from(deployments)
+          .where(
+            and(
+              eq(deployments.workspaceId, input.workspaceId),
+              eq(deployments.idempotencyKey, input.idempotencyKey),
+              eq(deployments.previewEnvironmentId, input.previewEnvironmentId),
+            ),
+          )
+          .limit(1);
+        if (existing)
+          return { accepted: true, deploymentId: existing.id, replayed: true };
+      }
+      return deployCurrentPreview(input);
+    },
   );
 }
 
@@ -69,6 +88,7 @@ async function deployCurrentPreview(input: {
   previewEnvironmentId: string;
   workspaceId: string;
   requestedBy: string | null;
+  idempotencyKey?: string;
 }) {
   const database = getTowbarDatabase();
   const [row] = await database
@@ -202,6 +222,7 @@ async function deployCurrentPreview(input: {
     ttlHours: app.config.preview.ttlHours,
     workspaceId: input.workspaceId,
     force: true,
+    manualIdempotencyKey: input.idempotencyKey,
     requestedBy: input.requestedBy,
   });
   if (!admission.created || !admission.deploymentId)
@@ -221,5 +242,9 @@ async function deployCurrentPreview(input: {
     priority: "preview",
     serverIp: server.config.ip,
   });
-  return { accepted: true, deploymentId: admission.deploymentId };
+  return {
+    accepted: true,
+    deploymentId: admission.deploymentId,
+    replayed: false,
+  };
 }

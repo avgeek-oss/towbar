@@ -96,7 +96,7 @@ commit.
 ## GitHub status
 
 GitHub groups preview deployments under one environment per Service, named
-`Service name · Preview`. The PR number appears in the deployment description.
+`Service name (preview)`. The PR number appears in the deployment description.
 Each preview keeps its own URL and status; deploying one PR does not deactivate
 another PR's preview. Older environments with PR numbers in their names remain
 in GitHub until you remove them there.
@@ -127,6 +127,16 @@ credentials. The connected environment controls the target server and Preview
 base domain; the pull request does not move its Datastores. Save separate Preview
 values in Towbar. Shared-secret references and external providers need their own
 non-production values or scope.
+
+## Manage Previews
+
+The Previews table shows each pull request and branch, its latest status, last update, and expiry. Select the status to open its deployment. **Open Preview** visits the running Preview without displaying the generated hostname in the table.
+
+Use **Retry** on a failed Preview or deployment to try the pull request's latest revision with its current Preview configuration and secrets. The pull request must still be eligible and Preview must remain enabled. A retry creates a new deployment attempt and preserves the previous attempt's logs.
+
+**Remove Preview** cleans up its container, image, route, and DNS record, including any assets left after a failed attempt. Deployment history is retained. **Retry cleanup** is separate and only repeats an incomplete removal.
+
+In the Service's **Deployments** page, select **Previews** beside the title to browse all Preview attempts. The other option is the connected environment's name. The selector appears when Preview is enabled for that Service and environment, and its selection is saved in the URL.
 
 ## Verify a preview
 

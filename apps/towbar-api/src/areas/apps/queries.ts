@@ -36,6 +36,7 @@ async function listDeployables(
         name: sourceEnvironments.name,
         branch: sourceEnvironments.branch,
         disconnectedAt: sourceEnvironments.disconnectedAt,
+        previewsEnabled: sourceEnvironments.previewsEnabled,
       },
       id: apps.id,
       kind: apps.kind,

@@ -41,6 +41,13 @@ export function breadcrumbEntityHref({
       section = parts[0];
   }
   const params = new URLSearchParams();
+  if (
+    section === "deployments" &&
+    kind === "apps" &&
+    new URLSearchParams(search).get("type") === "preview"
+  ) {
+    params.set("type", "preview");
+  }
   if (section === "analytics" && kind === "apps") {
     const current = new URLSearchParams(search);
     const state = analyticsUrlState(current);

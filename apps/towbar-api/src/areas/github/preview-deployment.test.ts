@@ -57,7 +57,7 @@ void test("GitHub groups app previews while preserving each PR's identity and li
       githubConfiguration,
     );
   }
-  assert.equal(requests[0]?.body.environment, "Company Website · Preview");
+  assert.equal(requests[0]?.body.environment, "Company Website (preview)");
   assert.equal(requests[1]?.body.environment, requests[0]?.body.environment);
   assert.equal(
     requests[0]?.body.description,
@@ -84,7 +84,7 @@ void test("GitHub groups app previews while preserving each PR's identity and li
   );
   const name = String(requests[2]?.body.environment);
   assert.equal(name.length, 255);
-  assert.ok(name.endsWith(" · Preview"));
+  assert.ok(name.endsWith(" (preview)"));
 
   for (const [deploymentId, state] of [
     ["1", "success"],

@@ -4460,9 +4460,16 @@
               { "type": "null" },
               { "type": "string", "format": "date-time" }
             ]
-          }
+          },
+          "previewsEnabled": { "type": "boolean" }
         },
-        "required": ["id", "name", "branch", "disconnectedAt"]
+        "required": [
+          "id",
+          "name",
+          "branch",
+          "disconnectedAt",
+          "previewsEnabled"
+        ]
       },
       "Response_166": {
         "type": "object",
@@ -8128,9 +8135,10 @@
         "type": "object",
         "properties": {
           "accepted": { "type": "boolean" },
-          "deploymentId": { "type": "string" }
+          "deploymentId": { "type": "string" },
+          "replayed": { "type": "boolean" }
         },
-        "required": ["accepted", "deploymentId"]
+        "required": ["accepted", "deploymentId", "replayed"]
       },
       "Response_401": {
         "type": "object",
@@ -22497,6 +22505,12 @@
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["production", "preview"] }
           }
         ],
         "responses": {

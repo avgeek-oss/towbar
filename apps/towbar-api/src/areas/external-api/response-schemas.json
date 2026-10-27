@@ -17842,9 +17842,10 @@
             { "type": "null" },
             { "type": "string", "format": "date-time" }
           ]
-        }
+        },
+        "previewsEnabled": { "type": "boolean" }
       },
-      "required": ["id", "name", "branch", "disconnectedAt"]
+      "required": ["id", "name", "branch", "disconnectedAt", "previewsEnabled"]
     },
     "Response_166": {
       "type": "object",
@@ -21425,9 +21426,10 @@
       "type": "object",
       "properties": {
         "accepted": { "type": "boolean" },
-        "deploymentId": { "type": "string" }
+        "deploymentId": { "type": "string" },
+        "replayed": { "type": "boolean" }
       },
-      "required": ["accepted", "deploymentId"]
+      "required": ["accepted", "deploymentId", "replayed"]
     },
     "Response_401": {
       "type": "object",
