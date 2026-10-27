@@ -12,7 +12,7 @@ pnpm verify:integration scanner
 pnpm verify:production
 ```
 
-Node 24+, pnpm, Docker with Compose, Python 3, OpenSSH and a Linux-container-capable Docker daemon are required. The application HTTPS lifecycle reserves loopback port 443; stop a conflicting local test first. The runner does not stop unrelated services. E2E targets use disposable privileged Docker-in-Docker containers; run them on a trusted development machine or an isolated CI runner, never a production Docker host.
+Node 26+, pnpm, Docker with Compose, Python 3, OpenSSH and a Linux-container-capable Docker daemon are required. The application HTTPS lifecycle reserves loopback port 443; stop a conflicting local test first. The runner does not stop unrelated services. E2E targets use disposable privileged Docker-in-Docker containers; run them on a trusted development machine or an isolated CI runner, never a production Docker host.
 
 ## Required coverage
 

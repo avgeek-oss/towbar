@@ -18,7 +18,7 @@ Replace example IPs and hostnames with your own values.
 Create a GitHub repository and copy `Dockerfile`, `.dockerignore`,
 `package.json`, and the `src/` directory from the [starter application](https://github.com/avgeek-oss/towbar/tree/main/examples) into its root. Grant the connected
 GitHub App access to your repository. The service needs no dependencies or secrets.
-Run it locally with Node.js 24 or newer:
+Run it locally with Node.js 26 or newer:
 
 ```sh
 npm start

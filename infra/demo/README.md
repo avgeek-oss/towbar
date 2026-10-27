@@ -123,7 +123,7 @@ The four-session cap leaves memory for the UI, Caddy, Docker, and the host on a
 
 ## Local validation
 
-Requires Node 24+, the repository's pinned pnpm, and Docker Engine 28+ with
+Requires Node 26+, the repository's pinned pnpm, and Docker Engine 28+ with
 Compose v2 and isolated bridge gateway support. Docker Desktop can run the
 local architecture build; the publishing workflow builds and tests Linux arm64
 on a native ARM runner.
@@ -181,7 +181,7 @@ TOWBAR_DEMO_IMAGE=towbar-demo:test docker compose --project-name towbar-demo-rev
    a read-only registry login on the host). No SSH/cloud secrets are required
    by this publishing workflow.
 3. Provision a **dedicated arm64 Ubuntu 24.04+ host**, initially 2 vCPU, 2 GiB
-   RAM, and 20 GiB disk. Install Docker Engine 28+ / Compose v2, Node 24+, Git,
+   RAM, and 20 GiB disk. Install Docker Engine 28+ / Compose v2, Node 26+, Git,
    curl, and util-linux (`flock`). Reserve `172.30.44.0/29` for this stack; if it
    collides, change the subnet, both static addresses, and smoke
    host probe together in a reviewed change. Do not attach a cloud instance
