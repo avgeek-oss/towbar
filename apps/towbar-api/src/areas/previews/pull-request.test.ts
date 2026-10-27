@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { conflict, unprocessable } from "../../http/errors.js";
 import {
+  missingPreviewSecretsReason,
   previewPullRequestDisposition,
   previewPullRequestsToReconcile,
   samePreviewPullRequestRevision,
@@ -170,4 +172,25 @@ void test("detects PR changes during configuration loading", () => {
       false,
     );
   }
+});
+
+void test("reports missing Preview secrets as a skip reason and rethrows other errors", () => {
+  const message =
+    "Required secrets missing in preview:production (build): NPM_TOKEN";
+  assert.equal(
+    missingPreviewSecretsReason(
+      unprocessable(message, "REQUIRED_SECRETS_MISSING"),
+    ),
+    message,
+  );
+  const busy = conflict("Busy", "PREVIEW_RECONCILIATION_BUSY");
+  assert.throws(
+    () => missingPreviewSecretsReason(busy),
+    (error) => error === busy,
+  );
+  const failure = new Error("GitHub is unavailable");
+  assert.throws(
+    () => missingPreviewSecretsReason(failure),
+    (error) => error === failure,
+  );
 });

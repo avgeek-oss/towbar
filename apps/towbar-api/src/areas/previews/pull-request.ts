@@ -1,3 +1,5 @@
+import { HttpError } from "../../http/errors.js";
+
 import type { GitHubPullRequest as RepositoryPullRequest } from "../github/client.js";
 
 export type PreviewPullRequestDisposition =
@@ -73,4 +75,11 @@ export function samePreviewPullRequestRevision(
     left.headRepository === right.headRepository &&
     left.baseRepository === right.baseRepository
   );
+}
+
+/** Returns the skip reason for missing Preview secrets and rethrows other errors. */
+export function missingPreviewSecretsReason(error: unknown) {
+  if (error instanceof HttpError && error.code === "REQUIRED_SECRETS_MISSING")
+    return error.publicMessage;
+  throw error;
 }

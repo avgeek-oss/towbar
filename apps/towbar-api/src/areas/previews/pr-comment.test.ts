@@ -126,3 +126,44 @@ void test("shows cleanup before replacing a deleted environment with skipped", (
   assert.equal(deleted.length, 1);
   assert.equal(deleted[0]?.skippedReason, "no matching changes");
 });
+
+void test("explains a blocked update on a retained Preview without losing its link", () => {
+  const reason =
+    "Required secrets missing in preview:production (build): NPM_TOKEN";
+  const environment = {
+    appId: "app-1",
+    appName: "Website",
+    deploymentId: "41111111-1111-4111-8111-111111111111",
+    deploymentState: "succeeded" as const,
+    environmentStatus: "healthy" as const,
+    hostname: "website-pr-42.preview.example.com",
+  };
+  const entries = combinePreviewPullRequestCommentEntries(
+    [environment],
+    [{ appId: "app-1", appName: "Website", reason, blocked: true }],
+  );
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0]?.environmentStatus, "healthy");
+  assert.equal(entries[0]?.skippedReason, reason);
+
+  const body = renderPreviewPullRequestComment({
+    appBaseUrl: "https://app.towbar.dev",
+    entries,
+    marker,
+    sourceId,
+  });
+  assert.match(
+    body,
+    /Website \| 🟢 Ready · update skipped — Required secrets missing/u,
+  );
+  assert.match(
+    body,
+    /\[Open preview\]\(https:\/\/website-pr-42\.preview\.example\.com\)/u,
+  );
+
+  const unchanged = combinePreviewPullRequestCommentEntries(
+    [environment],
+    [{ appId: "app-1", appName: "Website", reason: "no matching changes" }],
+  );
+  assert.equal(unchanged[0]?.skippedReason, undefined);
+});

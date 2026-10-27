@@ -5,6 +5,11 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Reconcile Previews for open pull requests after **Sync now** and other syncs that don't deploy, as documented.
+- Report missing Preview secrets in the pull request comment instead of retrying silently until reconciliation gives up. An existing Preview stays online and shows why the latest revision was not deployed.
+
 ## [2.0.61] - 2026-10-19
 
 ### Fixed

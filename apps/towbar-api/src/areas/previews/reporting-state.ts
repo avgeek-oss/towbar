@@ -13,6 +13,8 @@ export type PreviewSkippedApp = {
   appId: string;
   appName: string;
   reason: string;
+  /** Blocked updates keep the existing Preview, so the reason is shown on it. */
+  blocked?: boolean;
 };
 
 export async function recordPreviewPullRequestPlan(input: {

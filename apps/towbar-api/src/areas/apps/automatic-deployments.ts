@@ -85,26 +85,28 @@ export async function scheduleSourceAutomaticDeployments(
   if (
     !sync ||
     !sync.sourceEnvironmentId ||
-    !sync.deployAfterSync ||
     !isSourceSyncEligibleForAutomaticDeployments(sync)
   ) {
     return { deploymentIds: [] };
   }
-  const actor = await authorizeQueuedEffect(
-    sync.requestedByActor,
-    sync.workspaceId,
-    ["deployment.create"],
-  );
-  const result = await withActor(actor, () =>
-    scheduleEligibleAutomaticDeployments({
-      commitSha: sync.commitSha!,
-      sourceId: sync.sourceId,
-      sourceEnvironmentId: sync.sourceEnvironmentId!,
-      syncId,
-      workspaceId: sync.workspaceId,
-      requestDeployment: dependencies.requestDeployment,
-    }),
-  );
+  // Syncs that only import configuration, such as Sync now, deploy nothing but
+  // still apply Preview changes to open pull requests.
+  const result = sync.deployAfterSync
+    ? await withActor(
+        await authorizeQueuedEffect(sync.requestedByActor, sync.workspaceId, [
+          "deployment.create",
+        ]),
+        () =>
+          scheduleEligibleAutomaticDeployments({
+            commitSha: sync.commitSha!,
+            sourceId: sync.sourceId,
+            sourceEnvironmentId: sync.sourceEnvironmentId!,
+            syncId,
+            workspaceId: sync.workspaceId,
+            requestDeployment: dependencies.requestDeployment,
+          }),
+      )
+    : { deploymentIds: [] };
   await dependencies.cleanupPreviews(sync.sourceId, sync.sourceEnvironmentId);
   await dependencies.reconcilePreviews(sync.sourceId);
   return result;
