@@ -652,7 +652,7 @@ docsApp.config.deployment = appDeploymentSchema.parse({
   output: "dist",
   buildCommand: ["npm", "run", "build"],
   nodeImage:
-    "node:24-alpine@sha256:50c8e8ca1d27439048670df5883f32d57cf81cff6233222c893fd0d9884cbd81",
+    "node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797",
   spaFallback: true,
 });
 delete docsApp.config.dockerfile;
@@ -1127,7 +1127,7 @@ const vulnerabilityFindings: VulnerabilityFinding[] = [
     installedVersion: "3.2.3-r0",
     packageName: "libxml2",
     severity: "high",
-    target: "node:24-alpine (alpine 3.23.1)",
+    target: "node:26-alpine (alpine 3.24.3)",
   },
   {
     advisoryId: "CVE-2026-12002",
@@ -1136,7 +1136,7 @@ const vulnerabilityFindings: VulnerabilityFinding[] = [
     installedVersion: "1.2.13-r0",
     packageName: "zlib",
     severity: "medium",
-    target: "node:24-alpine (alpine 3.23.1)",
+    target: "node:26-alpine (alpine 3.24.3)",
   },
 ];
 
@@ -1158,7 +1158,7 @@ const securityScanProfiles = [
         installedVersion: "3.5.0-r0",
         packageName: "openssl",
         severity: "critical",
-        target: "node:24-alpine (alpine 3.23.1)",
+        target: "node:26-alpine (alpine 3.24.3)",
       },
       {
         advisoryId: "CVE-2026-21002",
@@ -1167,7 +1167,7 @@ const securityScanProfiles = [
         installedVersion: "1.4.2-r1",
         packageName: "busybox",
         severity: "critical",
-        target: "node:24-alpine (alpine 3.23.1)",
+        target: "node:26-alpine (alpine 3.24.3)",
       },
       ...vulnerabilityFindings,
       {
@@ -1177,7 +1177,7 @@ const securityScanProfiles = [
         installedVersion: "2.31.0",
         packageName: "esbuild",
         severity: "low",
-        target: "node:24-alpine (alpine 3.23.1)",
+        target: "node:26-alpine (alpine 3.24.3)",
       },
     ],
     severityTotals: {
