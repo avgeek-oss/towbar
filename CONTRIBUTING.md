@@ -122,8 +122,10 @@ Update only the release version in the root `package.json`, then run
 `pnpm cli:build` and commit the generated installer and CLI files. The dashboard,
 API, installer, and CLI all use that version. `pnpm cli:check`, CI, and the release
 workflow reject stale generated scripts. Update the release notes in
-`CHANGELOG.md`; version numbers in historical notes and test scenarios do not
-need to change.
+`CHANGELOG.md` under a `## X.Y.Z (YYYY-MM-DD)` heading, newest first; collect
+changes for the next release under `## Unreleased` and rename it when
+releasing. Version numbers in historical notes and test scenarios do not need
+to change.
 
 Edit the installer in `infra/install.sh.in` and CLI modules in `infra/towbar-cli/`.
 `install.sh`, `infra/towbar`, and `infra/towbar-cli/00-version.sh` are generated;
