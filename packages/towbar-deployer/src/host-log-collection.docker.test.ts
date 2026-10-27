@@ -31,14 +31,22 @@ void test(
     const directory = await mkdtemp(
       path.join(tmpdir(), "towbar-host-logs-docker-"),
     );
-    const docker = async (...args: string[]) =>
-      (
+    const docker = async (...args: string[]) => {
+      const probeStart = Date.now();
+      const output = (
         await execute("docker", args, {
           encoding: "utf8",
           timeout: 120_000,
           maxBuffer: 4 * 1024 * 1024,
         })
       ).stdout.trim();
+      const probeMs = Date.now() - probeStart;
+      if (probeMs >= 500)
+        console.log(
+          `PROBE docker ${probeMs}ms ${args.slice(0, 6).join(" ").slice(0, 120)}`,
+        );
+      return output;
+    };
     const remote = (...args: string[]) => docker("exec", target, ...args);
     const remoteAsDeploy = (...args: string[]) =>
       docker("exec", "--user", "deploy", target, ...args);

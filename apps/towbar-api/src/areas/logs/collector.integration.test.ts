@@ -33,17 +33,27 @@ import { HttpError } from "../../http/errors.js";
 const execFile = promisify(execFileCallback);
 const databaseUrl = process.env.TOWBAR_TEST_DATABASE_URL;
 const clickhouseUrl = process.env.TOWBAR_TEST_CLICKHOUSE_URL;
-const docker = async (...args: string[]) =>
-  (
+const docker = async (...args: string[]) => {
+  const probeStart = Date.now();
+  const output = (
     await execFile("docker", args, {
       timeout: 60000,
       maxBuffer: 4 * 1024 * 1024,
     })
   ).stdout.trim();
+  const probeMs = Date.now() - probeStart;
+  if (probeMs >= 500)
+    console.log(`PROBE docker ${probeMs}ms ${args.slice(0, 3).join(" ")}`);
+  return output;
+};
 async function until(check: () => Promise<boolean>, description: string) {
   const deadline = Date.now() + 45000;
+  const probeStart = Date.now();
   while (Date.now() < deadline) {
-    if (await check()) return;
+    if (await check()) {
+      console.log(`PROBE until ${Date.now() - probeStart}ms ${description}`);
+      return;
+    }
     await delay(100);
   }
   throw new Error(`Timed out: ${description}`);
