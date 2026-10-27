@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile, execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   parseTrivyScanResult,
@@ -34,6 +34,11 @@ try {
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
   host("exec", target.container, "mkdir", "-p", databaseDirectory);
+  const metadata = (directory) =>
+    existsSync(path.join(directory, "db", "metadata.json"))
+      ? readFileSync(path.join(directory, "db", "metadata.json"), "utf8")
+      : "";
+  const restored = cacheDirectory ? metadata(cacheDirectory) : "";
   if (cacheDirectory && existsSync(path.join(cacheDirectory, "db", "trivy.db")))
     host(
       "cp",
@@ -116,7 +121,16 @@ try {
   console.log(
     "Linux permission negative control and temporary archive cleanup verified.",
   );
-  if (cacheDirectory)
+  // Hand the database back for the CI cache only when it changed.
+  if (
+    cacheDirectory &&
+    host(
+      "exec",
+      target.container,
+      "cat",
+      `${databaseDirectory}/db/metadata.json`,
+    ) !== restored.trim()
+  )
     host("cp", `${target.container}:${databaseDirectory}/db`, cacheDirectory);
 } finally {
   target.close();
