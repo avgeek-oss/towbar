@@ -66,13 +66,7 @@ export async function requestPreviewDeployment(input: {
     async () => {
       if (input.idempotencyKey) {
         const [existing] = await database
-          .select({
-            id: deployments.id,
-            appId: deployments.appId,
-            state: deployments.state,
-            server: deployments.serverSnapshot,
-            buildServer: deployments.buildServerSnapshot,
-          })
+          .select({ id: deployments.id })
           .from(deployments)
           .where(
             and(
@@ -83,20 +77,7 @@ export async function requestPreviewDeployment(input: {
           )
           .limit(1);
         if (existing) {
-          if (existing.state === "queued") {
-            await enqueueDeployment({
-              appId: existing.appId,
-              deploymentId: existing.id,
-              buildConcurrency:
-                existing.buildServer?.buildConcurrency ??
-                existing.server.buildConcurrency ??
-                1,
-              previewBuildConcurrency:
-                existing.server.previewBuildConcurrency ?? 1,
-              priority: "preview",
-              serverIp: existing.buildServer?.ip ?? existing.server.ip,
-            });
-          }
+          await enqueueQueuedPreviewDeployment(existing.id, input.workspaceId);
           return { accepted: true, deploymentId: existing.id, replayed: true };
         }
       }
@@ -255,17 +236,48 @@ async function deployCurrentPreview(input: {
   await publishPreviewDeploymentStatus(admission.deploymentId, "queued").catch(
     () => undefined,
   );
-  await enqueueDeployment({
-    appId: app.id,
-    buildConcurrency: server.config.buildConcurrency ?? 1,
-    deploymentId: admission.deploymentId,
-    previewBuildConcurrency: server.config.previewBuildConcurrency ?? 1,
-    priority: "preview",
-    serverIp: server.config.ip,
-  });
+  await enqueueQueuedPreviewDeployment(
+    admission.deploymentId,
+    input.workspaceId,
+  );
   return {
     accepted: true,
     deploymentId: admission.deploymentId,
     replayed: false,
   };
+}
+
+async function enqueueQueuedPreviewDeployment(
+  deploymentId: string,
+  workspaceId: string,
+) {
+  const [deployment] = await getTowbarDatabase()
+    .select({
+      appId: deployments.appId,
+      state: deployments.state,
+      server: deployments.serverSnapshot,
+      buildServer: deployments.buildServerSnapshot,
+    })
+    .from(deployments)
+    .where(
+      and(
+        eq(deployments.id, deploymentId),
+        eq(deployments.workspaceId, workspaceId),
+        eq(deployments.environment, "preview"),
+      ),
+    )
+    .limit(1);
+  if (!deployment) throw notFound("Deployment");
+  if (deployment.state !== "queued") return;
+  await enqueueDeployment({
+    appId: deployment.appId,
+    deploymentId,
+    buildConcurrency:
+      deployment.buildServer?.buildConcurrency ??
+      deployment.server.buildConcurrency ??
+      1,
+    previewBuildConcurrency: deployment.server.previewBuildConcurrency ?? 1,
+    priority: "preview",
+    serverIp: deployment.buildServer?.ip ?? deployment.server.ip,
+  });
 }
