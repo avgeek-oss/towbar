@@ -378,6 +378,7 @@ async function createTemporalClient() {
   const env = getEnv();
   const connection = await Connection.connect({
     address: env.TEMPORAL_ADDRESS,
+    connectTimeout: env.TEMPORAL_CONNECT_TIMEOUT_MS,
     ...(env.TEMPORAL_API_KEY
       ? { apiKey: env.TEMPORAL_API_KEY, tls: true }
       : {}),

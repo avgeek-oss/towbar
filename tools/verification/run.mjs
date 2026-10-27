@@ -97,6 +97,11 @@ try {
     ]);
   if (["api", "app", "resources"].includes(group))
     await infrastructure.provision({ logs: group === "api" });
+  // Most API suites run without a Temporal server, and the API tolerates a
+  // failed enqueue after its client gives up connecting (10 s by default).
+  // Suites that use the provisioned server connect over loopback well
+  // within this limit.
+  if (group === "api") run.env.TEMPORAL_CONNECT_TIMEOUT_MS = "1000";
   if (group === "api") {
     // Independent: the database suite creates and drops its own randomly
     // named databases, the Temporal suite uses random task queues, and the
