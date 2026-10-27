@@ -17,6 +17,17 @@ export function testEnvironment(source = process.env) {
   return { ...env, CI: "1", NODE_ENV: "test" };
 }
 
+// Runs independent steps together, waits for all of them so every log is
+// complete, then reports every failure.
+export async function concurrently(...steps) {
+  const failures = (await Promise.allSettled(steps))
+    .filter((result) => result.status === "rejected")
+    .map((result) => result.reason);
+  if (failures.length === 1) throw failures[0];
+  if (failures.length)
+    throw new AggregateError(failures, "Concurrent verification steps failed");
+}
+
 export async function verificationRun(group) {
   const id = randomUUID();
   const directory = path.join(
@@ -31,6 +42,7 @@ export async function verificationRun(group) {
   process.once("SIGINT", onSignal);
   process.once("SIGTERM", onSignal);
   const results = [];
+  let persisted = Promise.resolve();
   const env = testEnvironment();
   env.TOWBAR_VERIFICATION_RUN_ID = id;
   const capture = async (command, args, extra = {}) => {
@@ -121,11 +133,15 @@ export async function verificationRun(group) {
         log: path.basename(log),
         error: failure?.message,
       });
-      await writeFile(
-        path.join(directory, "results.json"),
-        JSON.stringify({ group, id, results }, null, 2),
-        { mode: 0o600 },
+      // Steps may run concurrently; queue the writes so a slower write of an
+      // older snapshot can never land after, or interleave with, a newer one.
+      const snapshot = JSON.stringify({ group, id, results }, null, 2);
+      persisted = persisted.then(() =>
+        writeFile(path.join(directory, "results.json"), snapshot, {
+          mode: 0o600,
+        }),
       );
+      await persisted;
     }
     if (failure) throw failure;
   };

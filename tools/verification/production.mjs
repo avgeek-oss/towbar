@@ -3,7 +3,7 @@ import { createServer } from "node:net";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { verificationRun } from "./runtime.mjs";
+import { concurrently, verificationRun } from "./runtime.mjs";
 import { disposableInfrastructure } from "./infrastructure.mjs";
 import { verifyProductionImages } from "./production-images.mjs";
 
@@ -24,6 +24,72 @@ async function availablePorts(count) {
       listeners.map((server) => promisify(server.close.bind(server))()),
     );
   }
+}
+
+// Boots the stack and exercises onboarding, an API outage and Temporal
+// recovery against it.
+async function exerciseStack(temporalApiPort) {
+  await run.step(
+    "compose-start",
+    "docker",
+    [...compose, "up", "--detach", "--wait", "--wait-timeout", "300"],
+    { timeoutMs: 360_000 },
+  );
+  await run.step(
+    "onboarding",
+    "node",
+    ["tools/verification/production-smoke.mjs"],
+    {
+      extra: {
+        VERIFY_API_URL: run.env.TOWBAR_API_BASE_URL,
+        VERIFY_APP_URL: run.env.TOWBAR_APP_BASE_URL,
+      },
+      timeoutMs: 120_000,
+    },
+  );
+  await run.step("api-outage", "docker", [...compose, "stop", "api"]);
+  try {
+    await run.step(
+      "dashboard-during-api-outage",
+      "node",
+      [
+        "--input-type=module",
+        "--eval",
+        `import assert from "node:assert/strict";
+           const app = process.env.VERIFY_APP_URL;
+           const [health, page] = await Promise.all([
+             fetch(new URL("/health", app), { signal: AbortSignal.timeout(15_000) }),
+             fetch(new URL("/setup", app), { signal: AbortSignal.timeout(15_000) }),
+           ]);
+           assert.equal(health.status, 200);
+           assert.equal(page.status, 200);
+           assert.match(await page.text(), /Towbar/);
+           console.log("Dashboard remains available during API outage");`,
+      ],
+      { extra: { VERIFY_APP_URL: run.env.TOWBAR_APP_BASE_URL } },
+    );
+  } finally {
+    await run.step(
+      "api-recovery",
+      "docker",
+      [...compose, "up", "--detach", "--wait", "--wait-timeout", "120", "api"],
+      { timeoutMs: 150_000 },
+    );
+  }
+  await run.step("compose-state", "docker", [...compose, "ps", "--all"]);
+  await run.step(
+    "temporal-recovery",
+    "node",
+    ["tools/verification/production-temporal.mjs"],
+    {
+      extra: {
+        VERIFY_COMPOSE_ARGS: JSON.stringify(compose),
+        VERIFY_COMPOSE_PROJECT: project,
+        TOWBAR_TEST_TEMPORAL_ADDRESS: `127.0.0.1:${temporalApiPort}`,
+      },
+      timeoutMs: 420_000,
+    },
+  );
 }
 
 const run = await verificationRun("production");
@@ -81,84 +147,32 @@ try {
     .digest("base64url");
   configured = true;
   await run.step("compose-config", "docker", [...compose, "config", "--quiet"]);
-  await run.step("compose-build", "docker", [...compose, "build"], {
-    timeoutMs: 1_800_000,
-  });
-  await run.step("test-dependencies", "pnpm", [
-    "exec",
-    "turbo",
-    "build",
-    "--filter=towbar-api",
-  ]);
-  await run.step(
-    "compose-start",
-    "docker",
-    [...compose, "up", "--detach", "--wait", "--wait-timeout", "300"],
-    { timeoutMs: 360_000 },
+  // The host build only produces dist/ for the smoke scripts below; it does
+  // not feed the images, so it runs while they build.
+  await concurrently(
+    run.step("compose-build", "docker", [...compose, "build"], {
+      timeoutMs: 1_800_000,
+    }),
+    run.step("test-dependencies", "pnpm", [
+      "exec",
+      "turbo",
+      "build",
+      "--filter=towbar-api",
+    ]),
   );
-  await run.step(
-    "onboarding",
-    "node",
-    ["tools/verification/production-smoke.mjs"],
-    {
-      extra: {
-        VERIFY_API_URL: run.env.TOWBAR_API_BASE_URL,
-        VERIFY_APP_URL: run.env.TOWBAR_APP_BASE_URL,
-      },
-      timeoutMs: 120_000,
-    },
-  );
-  await run.step("api-outage", "docker", [...compose, "stop", "api"]);
-  try {
-    await run.step(
-      "dashboard-during-api-outage",
-      "node",
-      [
-        "--input-type=module",
-        "--eval",
-        `import assert from "node:assert/strict";
-         const app = process.env.VERIFY_APP_URL;
-         const [health, page] = await Promise.all([
-           fetch(new URL("/health", app), { signal: AbortSignal.timeout(15_000) }),
-           fetch(new URL("/setup", app), { signal: AbortSignal.timeout(15_000) }),
-         ]);
-         assert.equal(health.status, 200);
-         assert.equal(page.status, 200);
-         assert.match(await page.text(), /Towbar/);
-         console.log("Dashboard remains available during API outage");`,
-      ],
-      { extra: { VERIFY_APP_URL: run.env.TOWBAR_APP_BASE_URL } },
-    );
-  } finally {
-    await run.step(
-      "api-recovery",
-      "docker",
-      [...compose, "up", "--detach", "--wait", "--wait-timeout", "120", "api"],
-      { timeoutMs: 150_000 },
-    );
-  }
-  await run.step("compose-state", "docker", [...compose, "ps", "--all"]);
-  await run.step(
-    "temporal-recovery",
-    "node",
-    ["tools/verification/production-temporal.mjs"],
-    {
-      extra: {
-        VERIFY_COMPOSE_ARGS: JSON.stringify(compose),
-        VERIFY_COMPOSE_PROJECT: project,
-        TOWBAR_TEST_TEMPORAL_ADDRESS: `127.0.0.1:${temporalApiPort}`,
-      },
-      timeoutMs: 420_000,
-    },
-  );
-  await verifyProductionImages(
-    run,
-    Object.fromEntries(
-      ["api", "worker", "web-app"].map((service) => [
-        service,
-        `towbar/${service}:${project}`,
-      ]),
+  // The security gate reads only the built images, so it scans them while
+  // the stack boots and is exercised.
+  await concurrently(
+    verifyProductionImages(
+      run,
+      Object.fromEntries(
+        ["api", "worker", "web-app"].map((service) => [
+          service,
+          `towbar/${service}:${project}`,
+        ]),
+      ),
     ),
+    exerciseStack(temporalApiPort),
   );
 } catch (error) {
   console.error(error.message);
