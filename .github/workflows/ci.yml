@@ -10,8 +10,12 @@ permissions:
   packages: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Pull request runs are grouped by branch so a newer push supersedes the
+  # running check. Every other run is grouped by commit, so main pushes and
+  # tags are never cancelled or replaced while pending; the release checks
+  # need a result for each exact commit.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   monitoring-agent:

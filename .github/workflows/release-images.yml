@@ -110,8 +110,6 @@ jobs:
           platforms: linux/${{ matrix.platform }}
           provenance: mode=max
           sbom: true
-          cache-from: type=gha,scope=release-${{ matrix.service }}-${{ matrix.platform }}
-          cache-to: type=gha,mode=min,scope=release-${{ matrix.service }}-${{ matrix.platform }}
           build-args: SOURCE_COMMIT=${{ needs.prepare.outputs.commit }}
           labels: |
             org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
