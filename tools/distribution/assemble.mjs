@@ -18,10 +18,21 @@ if (
   throw new Error(
     "Usage: assemble.mjs DIRECTORY TAG COMMIT IMAGE_MANIFEST [NOTES]",
   );
+// A release rehearsal (release-images.yml on pull requests and dry runs)
+// assembles an untagged commit whose images sit in a throwaway local
+// registry. Every other check still applies.
+const rehearsalRegistry = process.env.TOWBAR_REHEARSAL_REGISTRY;
+if (
+  rehearsalRegistry &&
+  !/^(?:localhost|127\.0\.0\.1):\d+$/.test(rehearsalRegistry)
+)
+  throw new Error("A rehearsal registry must be a local registry");
 const git = (...args) =>
   execFileSync("git", args, { maxBuffer: 128 * 1024 * 1024 });
+if (git("rev-parse", "HEAD").toString().trim() !== commit)
+  throw new Error("Release commit must be the checked-out HEAD");
 if (
-  git("rev-parse", "HEAD").toString().trim() !== commit ||
+  !rehearsalRegistry &&
   git("rev-parse", `${version}^{commit}`).toString().trim() !== commit
 )
   throw new Error("Release tag must match checked-out HEAD");
@@ -38,7 +49,7 @@ const release = {
   body: notesFile ? (await readFile(notesFile, "utf8")).slice(0, 16000) : "",
 };
 const images = await readFile(imageFile);
-validateImages(JSON.parse(images), release);
+validateImages(JSON.parse(images), release, rehearsalRegistry || undefined);
 await mkdir(directory, { recursive: true });
 for (const name of artifactNames) {
   let body;

@@ -4,20 +4,44 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Stable release tag, for example v2.0.13
+        description: Stable release tag, for example v2.0.13 (ignored by dry runs)
         required: true
         type: string
+      dry_run:
+        description: Rehearse the build and installation smoke without publishing anything
+        required: false
+        type: boolean
+        default: false
+  # Pull requests that change the release path rehearse it (the rehearsal
+  # job below); they never reach the publishing jobs.
+  pull_request:
+    paths:
+      - .github/workflows/release-images.yml
+      - docker-bake.hcl
+      - apps/towbar-api/Dockerfile
+      - apps/towbar-worker/Dockerfile
+      - apps/towbar-web-app/Dockerfile
+      - install.sh
+      - infra/install.sh.in
+      - infra/towbar
+      - infra/towbar-cli/**
+      - tools/build-towbar-cli.mjs
+      - tools/distribution/**
 
 permissions:
   contents: read
 
+# Real releases share one queue. Rehearsals use their own group, so they
+# can never queue behind, or replace a pending, real release.
 concurrency:
-  group: towbar-release-publication
-  cancel-in-progress: false
+  group: ${{ (github.event_name == 'pull_request' || inputs.dry_run) && format('towbar-release-rehearsal-{0}', github.ref) || 'towbar-release-publication' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    # Real releases only: never on pull requests or dry runs.
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
     permissions:
       contents: read
     outputs:
@@ -63,6 +87,8 @@ jobs:
 
   build:
     needs: prepare
+    # Real releases only: never on pull requests or dry runs.
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 40
     permissions:
@@ -123,6 +149,8 @@ jobs:
 
   manifest:
     needs: [prepare, build]
+    # Real releases only: never on pull requests or dry runs.
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -224,6 +252,8 @@ jobs:
 
   local-installation-smoke:
     needs: [prepare, manifest]
+    # Real releases only: never on pull requests or dry runs.
+    if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -360,3 +390,168 @@ jobs:
           import { verifyPublicRelease } from './tools/distribution/release.mjs';
           await verifyPublicRelease(JSON.parse(await readFile('release-artifacts/release.json', 'utf8')));
           JS
+
+  # A rehearsal of the release path for pull requests that change it and for
+  # dry_run dispatches. Each platform bakes the same release targets to local
+  # OCI archives on its native runner; amd64 then serves its images from a
+  # throwaway registry on the runner and runs the installation smoke against
+  # them. The job holds no write permission and no registry login, pushes to
+  # no remote registry, and has no manifest, release or promotion steps.
+  rehearsal:
+    if: github.event_name == 'pull_request' || inputs.dry_run
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [amd64, arm64]
+        include:
+          - platform: amd64
+            runner: ubuntu-24.04
+          - platform: arm64
+            runner: ubuntu-24.04-arm
+    env:
+      REHEARSAL_REGISTRY: localhost:5000
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+        with:
+          cleanup: false
+      - name: Bake the service images to local archives
+        env:
+          REGISTRY: localhost:5000
+          PLATFORM: ${{ matrix.platform }}
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          export SOURCE_COMMIT="$(git rev-parse HEAD)"
+          export CREATED="$(git show -s --format=%cI HEAD)"
+          export VERSION="$(jq -r .version package.json)"
+          archives="$RUNNER_TEMP/rehearsal-images"
+          mkdir -p "$archives"
+          docker buildx bake --file docker-bake.hcl --progress plain \
+            --set "api.output=type=oci,dest=$archives/api.tar" \
+            --set "worker.output=type=oci,dest=$archives/worker.tar" \
+            --set "web-app.output=type=oci,dest=$archives/web-app.tar" \
+            release
+          ls -l "$archives"
+      - name: Serve the images from a throwaway local registry
+        if: matrix.platform == 'amd64'
+        run: |
+          set -euo pipefail
+          docker run --detach --name towbar-rehearsal-registry \
+            --publish 127.0.0.1:5000:5000 \
+            registry:3.1.1@sha256:325b4b29b041e82803abeb703e201655e4e23ab83264ec1a7c9ddb0a5b14a6e0
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail "http://$REHEARSAL_REGISTRY/v2/" >/dev/null; then break; fi
+            sleep 1
+          done
+          version="v$(jq -r .version package.json)"
+          commit="$(git rev-parse HEAD)"
+          images='{}'
+          for service in api worker web-app; do
+            reference="$REHEARSAL_REGISTRY/towbar-$service:rehearsal"
+            skopeo copy --all --preserve-digests --dest-tls-verify=false \
+              "oci-archive:$RUNNER_TEMP/rehearsal-images/$service.tar" "docker://$reference"
+            digest="sha256:$(skopeo inspect --raw --tls-verify=false "docker://$reference" | sha256sum | cut -d' ' -f1)"
+            images="$(jq -c --arg service "$service" --arg image "$REHEARSAL_REGISTRY/towbar-$service@$digest" '. + {($service): $image}' <<<"$images")"
+          done
+          jq -n --arg version "$version" --arg commit "$commit" --argjson images "$images" \
+            '{version: $version, commit: $commit, images: $images}' >"$RUNNER_TEMP/towbar-images.json"
+          cat "$RUNNER_TEMP/towbar-images.json"
+      - name: Assemble the rehearsal release artifacts
+        if: matrix.platform == 'amd64'
+        env:
+          TOWBAR_REHEARSAL_REGISTRY: ${{ env.REHEARSAL_REGISTRY }}
+        run: |
+          set -euo pipefail
+          node tools/distribution/assemble.mjs "$RUNNER_TEMP/rehearsal-artifacts" \
+            "v$(jq -r .version package.json)" "$(git rev-parse HEAD)" "$RUNNER_TEMP/towbar-images.json"
+          cd "$RUNNER_TEMP/rehearsal-artifacts"
+          sha256sum --check SHA256SUMS
+      # The same installation smoke as the real local-installation-smoke job,
+      # installing from the assembled artifacts and the throwaway registry.
+      - name: Install the rehearsal release locally
+        if: matrix.platform == 'amd64'
+        run: |
+          set -euo pipefail
+          evidence="$RUNNER_TEMP/towbar-local-installation"
+          mkdir -p "$evidence"
+
+          sudo env \
+            TOWBAR_INSTALL_URL=http://localhost:4021 \
+            TOWBAR_NON_INTERACTIVE=1 \
+            TOWBAR_RELEASE_SMOKE=true \
+            TOWBAR_RELEASE_SMOKE_REGISTRY="$REHEARSAL_REGISTRY" \
+            TOWBAR_RELEASE_DIRECTORY="$RUNNER_TEMP/rehearsal-artifacts" \
+            bash "$RUNNER_TEMP/rehearsal-artifacts/install.sh" | tee "$evidence/install.log"
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            --max-time 10 \
+            http://localhost:4021/health >"$evidence/health.json"
+          sudo towbar version | tee "$evidence/version.log"
+          grep --fixed-strings "Towbar v$(jq -r .version package.json)" "$evidence/version.log"
+          sudo towbar status | tee "$evidence/status.log"
+          sudo towbar doctor | tee "$evidence/doctor.log"
+
+      - name: Verify upgrades from System Health are enabled
+        if: matrix.platform == 'amd64'
+        run: |
+          sudo systemctl is-active --quiet towbar-upgrade.service
+          sudo towbar compose exec -T api node --input-type=module --eval \
+            'const { getUpgradeStatus } = await import("./dist/areas/upgrades/runner.js");
+             if (!(await getUpgradeStatus()).supported) process.exit(1);'
+
+      - name: Prove restart reuses the running images
+        if: matrix.platform == 'amd64'
+        run: |
+          set -euo pipefail
+          evidence="$RUNNER_TEMP/towbar-local-installation"
+          before="$(sudo towbar compose ps -q api worker web-app | sort)"
+          test -n "$before"
+          sudo towbar restart | tee "$evidence/restart.log"
+          after="$(sudo towbar compose ps -q api worker web-app | sort)"
+          test "$after" = "$before"
+          test "$(sudo find /opt/towbar/releases -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 1
+
+      - name: Collect service evidence
+        if: always() && matrix.platform == 'amd64'
+        run: |
+          evidence="$RUNNER_TEMP/towbar-local-installation"
+          mkdir -p "$evidence"
+          if sudo test -x /usr/local/bin/towbar && sudo test -L /opt/towbar/current; then
+            sudo towbar compose ps 2>&1 |
+              tee "$evidence/final-status.log" >/dev/null || true
+            sudo towbar compose logs --no-color 2>&1 |
+              tee "$evidence/compose.log" >/dev/null || true
+          fi
+          docker image ls >"$evidence/docker-images.log" 2>&1 || true
+          docker system df >"$evidence/docker-disk.log" 2>&1 || true
+
+      - name: Remove the disposable installation
+        if: always() && matrix.platform == 'amd64'
+        run: |
+          if sudo test -x /usr/local/bin/towbar && sudo test -L /opt/towbar/current; then
+            sudo towbar compose down --volumes --remove-orphans || true
+          fi
+          sudo rm -rf /opt/towbar /etc/towbar /usr/local/bin/towbar
+          docker rm --force towbar-rehearsal-registry >/dev/null 2>&1 || true
+
+      - name: Preserve rehearsal installation evidence
+        if: always() && matrix.platform == 'amd64'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: release-rehearsal-installation
+          path: ${{ runner.temp }}/towbar-local-installation/
+          retention-days: 14

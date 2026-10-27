@@ -106,6 +106,10 @@ download_release() {
   [[ "$package_version" == "${version#v}" ]] ||
     fail "$version contains package version $package_version"
   image_prefix="$TOWBAR_IMAGE_REGISTRY"
+  # Release rehearsals install locally built images from a throwaway registry.
+  if [[ "${TOWBAR_RELEASE_SMOKE:-false}" == true && -n "${TOWBAR_RELEASE_SMOKE_REGISTRY:-}" ]]; then
+    image_prefix="$TOWBAR_RELEASE_SMOKE_REGISTRY"
+  fi
   jq -e \
     --arg version "$version" \
     --arg commit "$commit" \

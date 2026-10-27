@@ -37,7 +37,13 @@ export function validateRelease(release) {
     throw new Error("Invalid release checksums");
   return release;
 }
-export function validateImages(images, release) {
+// registry defaults to the published image registry; release rehearsals pass
+// their throwaway local registry.
+export function validateImages(
+  images,
+  release,
+  registry = identity.imageRegistry,
+) {
   if (
     images.version !== release.version ||
     images.commit !== release.commit ||
@@ -46,7 +52,7 @@ export function validateImages(images, release) {
   )
     throw new Error("Image manifest does not match the release");
   for (const [service, image] of Object.entries(images.images)) {
-    const prefix = `${identity.imageRegistry}/towbar-${service}@sha256:`;
+    const prefix = `${registry}/towbar-${service}@sha256:`;
     if (
       !image.startsWith(prefix) ||
       !/^[a-f0-9]{64}$/.test(image.slice(prefix.length))

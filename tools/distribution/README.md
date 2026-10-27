@@ -15,6 +15,8 @@ Draft assets are downloaded before installation because GitHub keeps drafts priv
 
 An installation failure removes the draft and leaves the previous latest release available. Published releases cannot be overwritten by this workflow. A new version requires a new tag.
 
+Pull requests that change the release path, and dispatches with `dry_run`, run the `rehearsal` job instead of the publishing jobs. It bakes both platforms to local OCI archives on native runners, serves the amd64 images from a throwaway registry on the runner, assembles the artifacts for the untagged commit (`TOWBAR_REHEARSAL_REGISTRY`), and runs the same installation smoke with `TOWBAR_RELEASE_SMOKE_REGISTRY` pointing at that registry. The job holds only `contents: read` and no registry login. Tag and version checks against `main`, multi-platform manifests, GHCR access, the draft release and promotion run only in real releases.
+
 ## Downloads and upgrades
 
 The latest installer is available at `https://github.com/avgeek-oss/towbar/releases/latest/download/install.sh`. Each installer pins the matching CLI, source, and image manifest to its own version. CLI and System Health update discovery use the GitHub Releases API. Schemas are flat release assets, such as `repository.v2.json`, with latest download links for editors.
