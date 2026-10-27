@@ -3,9 +3,17 @@ import path from "node:path";
 const scanner =
   "aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969";
 
-export async function verifyProductionImages(run, images) {
+// cacheDirectory: an absolute host directory that keeps the scanner database
+// between runs (CI restores it with actions/cache). Without it the database
+// lives in a disposable volume that is removed after the scans.
+export async function verifyProductionImages(
+  run,
+  images,
+  { cacheDirectory } = {},
+) {
   const failures = [];
   const cacheVolume = `towbar-image-scan-cache-${run.id}`;
+  const cache = cacheDirectory ?? cacheVolume;
   try {
     for (const [service, tag] of Object.entries(images)) {
       const container = `towbar-image-scan-${run.id}-${service}`;
@@ -26,7 +34,7 @@ export async function verifyProductionImages(run, images) {
           "--volume",
           `${run.directory}:/scan`,
           "--volume",
-          `${cacheVolume}:/root/.cache/trivy`,
+          `${cache}:/root/.cache/trivy`,
           scanner,
           "image",
           "--cache-dir",
@@ -60,13 +68,15 @@ export async function verifyProductionImages(run, images) {
       }
     }
   } finally {
-    const cacheExists = await run.capture("docker", [
-      "volume",
-      "ls",
-      "--quiet",
-      "--filter",
-      `name=^${cacheVolume}$`,
-    ]);
+    const cacheExists =
+      !cacheDirectory &&
+      (await run.capture("docker", [
+        "volume",
+        "ls",
+        "--quiet",
+        "--filter",
+        `name=^${cacheVolume}$`,
+      ]));
     if (cacheExists) await run.capture("docker", ["volume", "rm", cacheVolume]);
   }
   if (failures.length)

@@ -174,8 +174,28 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The image security gate keeps the scanner database between runs. The
+      # key changes daily; within a day, the scanner still downloads a newer
+      # database whenever the cached one is past its own next-update time.
+      - name: Date the scanner database cache
+        id: trivy-cache
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+      # v4.3.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: tmp/trivy-cache/db
+          key: trivy-db-${{ runner.os }}-${{ steps.trivy-cache.outputs.date }}
+          restore-keys: trivy-db-${{ runner.os }}-
       - name: Build, boot and verify a fresh production installation
-        run: node tools/verification/production.mjs
+        env:
+          TOWBAR_TRIVY_CACHE_DIR: ${{ github.workspace }}/tmp/trivy-cache
+        run: |
+          mkdir -p tmp/trivy-cache
+          node tools/verification/production.mjs
+      # The scanner runs as root; let the cache step read what it wrote.
+      - name: Hand the scanner database to the runner user
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" tmp/trivy-cache
       - name: Preserve production verification evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

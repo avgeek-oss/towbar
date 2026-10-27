@@ -172,6 +172,7 @@ try {
           `towbar/${service}:${project}`,
         ]),
       ),
+      { cacheDirectory: process.env.TOWBAR_TRIVY_CACHE_DIR || undefined },
     ),
     exerciseStack(temporalApiPort),
   );
