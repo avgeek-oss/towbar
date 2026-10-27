@@ -6,6 +6,7 @@ import {
   checkPublicEndpoint,
   originHealthCurlArguments,
   originHealthFailureMessage,
+  publicEndpointHttp,
   publicHealthFailureMessage,
 } from "./endpoint-health.js";
 import { CommandError } from "./process.js";
@@ -80,7 +81,7 @@ void test("public health retries report the final connection cause instead of st
     { code: "ENOTFOUND" },
   );
   const error = new TypeError("fetch failed", { cause });
-  const fetchMock = t.mock.method(globalThis, "fetch", () =>
+  const fetchMock = t.mock.method(publicEndpointHttp, "fetch", () =>
     Promise.reject(error),
   );
   const check = assert.rejects(
@@ -103,7 +104,7 @@ void test("public health retries report the final connection cause instead of st
 
 void test("public health succeeds after a transient connection failure", async (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  const fetchMock = t.mock.method(globalThis, "fetch", () =>
+  const fetchMock = t.mock.method(publicEndpointHttp, "fetch", () =>
     Promise.resolve(new Response("ok")),
   );
   fetchMock.mock.mockImplementationOnce(() =>
@@ -120,7 +121,7 @@ void test("public health preserves cancellation rather than reporting a connecti
   const controller = new AbortController();
   const reason = new Error("Deployment cancelled");
   controller.abort(reason);
-  t.mock.method(globalThis, "fetch", () => Promise.reject(reason));
+  t.mock.method(publicEndpointHttp, "fetch", () => Promise.reject(reason));
   await assert.rejects(
     checkPublicEndpoint("app.example.com", "/health", controller.signal),
     (error) => error === reason,
