@@ -35,7 +35,7 @@ For retained workload logs, use [Collector and storage troubleshooting](/docs/op
 
 ## Preview problems
 
-A preview requires a same-repository pull request targeting a connected environment’s mapped branch, previews enabled for that environment and the Service, and matching input paths when configured. Fork pull requests are not eligible. **Sync now** can reconcile an existing eligible pull request after a missed webhook.
+A preview requires a same-repository pull request targeting a connected environment’s mapped branch, previews enabled for that environment and the Service, and matching input paths when configured. Fork pull requests are not eligible. **Sync now** can reconcile an existing eligible pull request after a missed webhook. If the pull request comment reports missing required secrets, save the Service's Preview secrets, then use **Sync now**.
 
 If an older healthy preview remains online after a failed build, inspect the new deployment's failure. Towbar preserves the previous healthy preview until a replacement can be promoted. See [Preview environments](/docs/previews).
 
