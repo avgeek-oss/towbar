@@ -122,4 +122,4 @@ Read `tools/verification/README.md` for coverage and `.github/workflows/release-
 
 ## A practical reading order
 
-Start with `docker-compose.yml`, then the manifest parser, API routes, worker workflows and deployer. Use the [contribution guide](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md) to run checks, or follow [Your first deployment](https://www.towbar.dev/docs/getting-started) to use Towbar.
+Start with `docker-compose.yml`, then the manifest parser, API routes, worker workflows and deployer. Use the [development notes](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md) to run checks, or follow [Your first deployment](https://www.towbar.dev/docs/getting-started) to use Towbar.

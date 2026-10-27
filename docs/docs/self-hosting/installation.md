@@ -33,7 +33,7 @@ PostgreSQL and Temporal stay private. The Temporal operator UI binds to loopback
   <Card title="Local access" icon="monitor" href="/docs/self-hosting/installation/local">Use loopback dashboard and API ports on the host. External automation is disabled.</Card>
 </CardGroup>
 
-Both modes use the same host installer and Compose stack. The repository's source Compose workflow is for contributors; see [CONTRIBUTING.md](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md).
+Both modes use the same host installer and Compose stack. The repository's source Compose workflow is for development; see [CONTRIBUTING.md](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md).
 
 ## Files on the control-plane host
 

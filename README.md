@@ -146,12 +146,15 @@ For an existing workload, use the migration guide for
 [Render](https://www.towbar.dev/docs/migrate-from-render), or
 [Vercel](https://www.towbar.dev/docs/migrate-from-vercel).
 
-## Contribute
+## Feedback and issues
 
-Bug reports, feature requests, documentation improvements, and code
-contributions are welcome. [Open an issue](https://github.com/avgeek-oss/towbar/issues)
-or read [CONTRIBUTING.md](CONTRIBUTING.md) for the local setup and required
-checks. Report vulnerabilities privately through [SECURITY.md](SECURITY.md).
+Avgeek OSS does not accept public contributions, to curb automated pull
+requests and because no dedicated resources are available to review and sign
+them off. Bug reports, feature requests and other feedback are welcome:
+[open an issue](https://github.com/avgeek-oss/towbar/issues), and we triage it
+and strive to fix it at the earliest. Report vulnerabilities privately through
+[SECURITY.md](SECURITY.md). The maintainers' local setup and required checks are
+in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Towbar uses Node.js 26, pnpm 11, and Turborepo. Release history is recorded in
 [CHANGELOG.md](CHANGELOG.md).
