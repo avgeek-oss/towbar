@@ -50,7 +50,7 @@ export const repositoryTools: McpTool[] = [
   tool(
     "repository_search",
     "Find available GitHub or GitLab repositories",
-    "Find a repository connection and provider-specific identifier for towbar_source_connect. GitHub returns a githubInstallationId for each repository and supports an optional connectionId account filter; GitLab uses its workspace provider configuration and supports cloud or self-managed instances.",
+    "Find a repository connection and provider-specific identifier for towbar_source_connect. GitHub returns a githubInstallationId for each repository and supports an optional connectionId account filter; GitLab uses its workspace provider configuration and supports cloud or self-managed instances. For GitLab, supply integration and omit connectionId; omit integration for GitHub.",
     z
       .object({
         provider: z.enum(["github", "gitlab"]).default("github"),

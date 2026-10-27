@@ -67,7 +67,7 @@ Encode the PEM with `base64 < private-key.pem | tr -d '\n'`. If you set a webhoo
 
 Open **Manage → Integrations → GitHub** and choose **Connect GitHub account**. Select only the accounts and repositories Towbar should manage. The connection widget is shown only because the runtime configuration is valid; no credential form is exposed.
 
-<Screenshot light="/assets/release-v2/github-setup-light.jpg" dark="/assets/release-v2/github-setup-dark.jpg" alt="GitHub shows runtime App availability before an installation is connected." caption="\n    The installation action appears after the GitHub App configuration values\n    pass startup validation.\n  " width={3200} height={1800} />
+<Screenshot light="/assets/release-v2/github-setup-light.jpg" dark="/assets/release-v2/github-setup-dark.jpg" alt="GitHub shows runtime App availability before an installation is connected." caption="The installation action appears after the GitHub App configuration values pass startup validation." width={3200} height={1800} />
 
 After changing App permissions, approve the update in GitHub. Disconnecting removes Towbar's active installation access while leaving the runtime App identity unchanged. Use the connection status in Towbar and GitHub's webhook delivery history to diagnose access or delivery failures.
 
