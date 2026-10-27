@@ -10,16 +10,25 @@ permissions:
   packages: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Pull request runs are grouped by branch so a newer push supersedes the
+  # running check. Every other run is grouped by commit, so main pushes and
+  # tags are never cancelled or replaced while pending; the release checks
+  # need a result for each exact commit.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   monitoring-agent:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
-    container: golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # v6.5.0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: 1.27.3
+          cache: true
+          cache-dependency-path: apps/towbar-monitoring-agent/go.sum
       - run: test -z "$(gofmt -l .)"
         working-directory: apps/towbar-monitoring-agent
       - run: go vet ./... && go test -race ./...
@@ -39,6 +48,15 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
+      # v4.3.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.npm/_npx
+          key: npx-mint-4.2.851-${{ runner.os }}
+      - name: Warm the Mintlify CLI
+        run: npx --yes mint@4.2.851 --version
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "1"
       - name: Validate Mintlify configuration
         run: npx --yes mint@4.2.851 validate
         working-directory: docs
