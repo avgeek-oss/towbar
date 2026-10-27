@@ -5,6 +5,8 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.62] - 2026-10-27
+
 ### Fixed
 
 - Reconcile Previews for open pull requests after **Sync now** and other syncs that don't deploy, as documented.
