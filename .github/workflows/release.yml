@@ -78,8 +78,8 @@ jobs:
         run: |
           set -euo pipefail
           escaped=$(printf '%s' "$VERSION" | sed 's/[.]/\\./g')
-          if ! grep -Eq "^## \[${escaped}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no '## [<version>] - YYYY-MM-DD' section for $VERSION. Add it before releasing."
+          if ! grep -Eq "^## ${escaped} \([0-9]{4}-[0-9]{2}-[0-9]{2}\)$" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## <version> (YYYY-MM-DD)' section for $VERSION. Add it before releasing."
             exit 1
           fi
       - name: Check the tag and release are new

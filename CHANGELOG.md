@@ -3,9 +3,7 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-## [2.0.63] - 2026-10-27
+## 2.0.63 (2026-10-27)
 
 ### Fixed
 
@@ -17,27 +15,27 @@ All notable changes to Towbar are documented in this file. This project follows
 - Restructure documentation and the footer to match the shared OSS documentation pattern.
 - Cache the scanner database in every CI job and retry GHCR when its mirror is unavailable.
 
-## [2.0.62] - 2026-10-27
+## 2.0.62 (2026-10-27)
 
 ### Fixed
 
 - Reconcile Previews for open pull requests after **Sync now** and other syncs that don't deploy, as documented.
 - Report missing Preview secrets in the pull request comment instead of retrying silently until reconciliation gives up. An existing Preview stays online and shows why the latest revision was not deployed.
 
-## [2.0.61] - 2026-10-19
+## 2.0.61 (2026-10-19)
 
 ### Fixed
 
 - Remove a BuildKit filter that silently prevented unused cache from being pruned during builds, manual cleanup, and hourly maintenance. Preserve active cache records and current and rollback images.
 
-## [2.0.60] - 2026-10-19
+## 2.0.60 (2026-10-19)
 
 ### Fixed
 
 - Align Docker cleanup's pending list with removal safety checks, including retained releases on former servers, image aliases, protected workloads, and container references.
 - Show removals and failures first in cleanup results, keep skipped objects expandable, and explain attempts that remove no objects.
 
-## [2.0.59] - 2026-10-19
+## 2.0.59 (2026-10-19)
 
 ### Fixed
 
@@ -46,7 +44,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Sort repositories alphabetically by the full organization and repository name.
 - Make the public-demo stream-expiry test independent of worker startup time.
 
-## [2.0.58] - 2026-10-19
+## 2.0.58 (2026-10-19)
 
 ### Added
 
@@ -58,7 +56,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Removing a repository connection now withdraws its declarations and transfers compatible workloads without deleting secrets, volumes or deployment history. Disconnected and archived snapshots no longer cause conflicts.
 - Reject stale removal reviews and explain missing destination Repository Secrets before adoption.
 
-## [2.0.57] - 2026-10-18
+## 2.0.57 (2026-10-18)
 
 ### Changed
 
@@ -70,7 +68,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Keep shared secret previews visible above the editor and stable at the input's left edge. Distinguish shared references with orange text and report specific preview errors.
 - Preserve TLS capitalization in deployment progress and status labels.
 
-## [2.0.49] - 2026-10-15
+## 2.0.49 (2026-10-15)
 
 ### Added
 
@@ -82,7 +80,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Localize record timestamps in the log table, including live records and large result sets, while retaining second precision.
 - Resume the live trail from the last received cursor after pausing instead of replaying from the original search position.
 
-## [2.0.48] - 2026-10-15
+## 2.0.48 (2026-10-15)
 
 ### Changed
 
@@ -91,7 +89,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Keep filters and custom columns available for expanded JSON fields, including double-encoded messages. Preserve plain text and malformed JSON as received.
 - Place square filter and search buttons beside the search input on mobile, matching its height. Narrow the settings column while keeping the gear centered.
 
-## [2.0.46] - 2026-10-15
+## 2.0.46 (2026-10-15)
 
 ### Added
 
@@ -109,7 +107,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Keep relative timestamps current and avoid showing new requests in the future because of a stale clock snapshot.
 - Verify fresh installations against the complete migration journal and check the new log storage columns.
 
-## [2.0.45] - 2026-10-15
+## 2.0.45 (2026-10-15)
 
 ### Added
 
@@ -119,7 +117,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Support Command-Z and Ctrl-Z to undo date-range and filter changes while preserving native text undo.
 - Use the shared calendar and time picker in logs and server/workload monitoring.
 
-## [2.0.44] - 2026-10-14
+## 2.0.44 (2026-10-14)
 
 ### Fixed
 
@@ -129,7 +127,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Discover service and deployment icons from HTML declarations and API Link headers, with a `/favicon.ico` fallback and expiring retries. Keep preview icons scoped to their own hostname.
 - Expose `/favicon.ico` publicly on Towbar's web and API origins, redirecting to the packaged PNG artwork with its correct media type.
 
-## [2.0.43] - 2026-10-14
+## 2.0.43 (2026-10-14)
 
 ### Changed
 
@@ -141,14 +139,14 @@ All notable changes to Towbar are documented in this file. This project follows
 
 - Allow removal of archived workloads with conflicting retained domain owners without releasing ownership before their routes are retired. Keep active assignments and explicit domain handoffs protected.
 
-## [2.0.42] - 2026-10-13
+## 2.0.42 (2026-10-13)
 
 ### Changed
 
 - Install the shared design system and Mintlify documentation tools from public npm without GitHub package credentials.
 - Adopt the shared mobile API-key table, consistent MCP client names and icons, and table layouts on mobile.
 
-## [2.0.41] - 2026-10-12
+## 2.0.41 (2026-10-12)
 
 ### Added
 
@@ -166,7 +164,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Report the underlying DNS, connection, or TLS failure when public endpoint
   health checks cannot connect, instead of reporting HTTP status 0.
 
-## [2.0.40] - 2026-10-11
+## 2.0.40 (2026-10-11)
 
 ### Fixed
 
@@ -174,7 +172,7 @@ All notable changes to Towbar are documented in this file. This project follows
   CPU count. Keep per-container CPU limits, memory headroom checks, and
   health-based promotion in place.
 
-## [2.0.39] - 2026-10-10
+## 2.0.39 (2026-10-10)
 
 ### Fixed
 
@@ -183,14 +181,14 @@ All notable changes to Towbar are documented in this file. This project follows
 - Preserve the permissions of existing OAuth connections; administrator access
   requires a new consent grant and remains limited by the user's current role.
 
-## [2.0.38] - 2026-10-10
+## 2.0.38 (2026-10-10)
 
 ### Fixed
 
 - Show Not deployed for services and datastores without deployment history.
 - Include the configured datastore image version beside its engine name.
 
-## [2.0.37] - 2026-10-10
+## 2.0.37 (2026-10-10)
 
 ### Added
 
@@ -204,7 +202,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Use GitHub Releases for CLI and System Health update discovery, removing the
   separate download host and publication broker from future releases.
 
-## [2.0.36] - 2026-10-10
+## 2.0.36 (2026-10-10)
 
 ### Added
 
@@ -221,7 +219,7 @@ All notable changes to Towbar are documented in this file. This project follows
 
 - Reject mutable and unsupported PostgreSQL image tags before deployment.
 
-## [2.0.35] - 2026-10-09
+## 2.0.35 (2026-10-09)
 
 ### Changed
 
@@ -241,7 +239,7 @@ All notable changes to Towbar are documented in this file. This project follows
   owner prefix.
 - Remove proxy trust configuration and initialize runtime YAML directly.
 
-## [2.0.34] - 2026-10-08
+## 2.0.34 (2026-10-08)
 
 ### Changed
 
@@ -262,7 +260,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Stop progress timers after failure or cancellation and distinguish missing
   historical steps from work waiting to start.
 
-## [2.0.33] - 2026-10-08
+## 2.0.33 (2026-10-08)
 
 ### Changed
 
@@ -279,7 +277,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Move manifest code padding inside the scrolling editor so the first and last
   lines stay inset, and remove the permanent deployment-log link underline.
 
-## [2.0.32] - 2026-10-08
+## 2.0.32 (2026-10-08)
 
 ### Changed
 
@@ -296,7 +294,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Keep searchable dropdown inputs inside their popovers and improve chart axis
   label spacing and yellow syntax-key contrast.
 
-## [2.0.31] - 2026-10-08
+## 2.0.31 (2026-10-08)
 
 ### Changed
 
@@ -321,7 +319,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Upgrade the MCP SDK to 1.31.0 to address GHSA-6qxp-vccf-f47h.
 - Upgrade the image-processing dependency to sharp 0.35.5 to address GHSA-wq5f-xc86-pv6w.
 
-## [2.0.30] - 2026-10-05
+## 2.0.30 (2026-10-05)
 
 ### Added
 
@@ -355,7 +353,7 @@ All notable changes to Towbar are documented in this file. This project follows
   reserve space for the close control when titles wrap on narrow screens. Overlay
   bodies and footers use consistent 16px gaps and dialogs use 20px outer padding.
 
-## [2.0.29] - 2026-10-03
+## 2.0.29 (2026-10-03)
 
 ### Fixed
 
@@ -365,7 +363,7 @@ All notable changes to Towbar are documented in this file. This project follows
   releases and active or released claims. Ambiguous legacy domains remain
   protected without blocking unrelated workloads.
 
-## [2.0.25] - 2026-10-01
+## 2.0.25 (2026-10-01)
 
 ### Added
 
@@ -389,7 +387,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Manifest links use the correct GitHub or GitLab provider, preserving
   self-hosted GitLab URLs and nested namespaces.
 
-## [2.0.24] - 2026-10-01
+## 2.0.24 (2026-10-01)
 
 ### Added
 
@@ -405,7 +403,7 @@ All notable changes to Towbar are documented in this file. This project follows
   a yellow loading indicator.
 - The gRPC dependency is patched to version 1.14.5.
 
-## [2.0.23] - 2026-09-30
+## 2.0.23 (2026-09-30)
 
 ### Changed
 
@@ -420,7 +418,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Candidate startup failures appear in redacted deployment logs. Docker data-root
   checks that cannot run report the deploy user's required passwordless sudo access.
 
-## [2.0.22] - 2026-09-30
+## 2.0.22 (2026-09-30)
 
 ### Changed
 
@@ -439,7 +437,7 @@ All notable changes to Towbar are documented in this file. This project follows
   cleanup, preserving the running release and restoring the previous release
   when the replacement did not commit.
 
-## [2.0.21] - 2026-09-30
+## 2.0.21 (2026-09-30)
 
 ### Changed
 
@@ -474,7 +472,7 @@ All notable changes to Towbar are documented in this file. This project follows
   Integration test images use official Ubuntu repositories over HTTPS, retry
   package downloads, and stop when package indexes cannot be loaded.
 
-## [2.0.20] - 2026-09-30
+## 2.0.20 (2026-09-30)
 
 ### Changed
 
@@ -488,7 +486,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Integration checks build shared API and worker packages in order, preventing
   intermittent build failures.
 
-## [2.0.19] - 2026-09-29
+## 2.0.19 (2026-09-29)
 
 ### Added
 
@@ -516,7 +514,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Updated dashboard, MCP, authentication, email, and development dependencies
   with security and reliability fixes.
 
-## [2.0.18] - 2026-09-29
+## 2.0.18 (2026-09-29)
 
 ### Added
 
@@ -535,7 +533,7 @@ All notable changes to Towbar are documented in this file. This project follows
   Both sidebars adjust to the bar's height, including when it wraps on mobile.
 - Updated HTTP and email dependencies with security fixes.
 
-## [2.0.17] - 2026-09-28
+## 2.0.17 (2026-09-28)
 
 ### Added
 
@@ -568,7 +566,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Production builds keep button, modal, and table styles when Analytics loads
   before the global stylesheet.
 
-## [2.0.16] - 2026-09-27
+## 2.0.16 (2026-09-27)
 
 ### Added
 
@@ -586,7 +584,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - An opt-in public demo gives each visitor an isolated, ten-minute sandbox with
   sample Services, Datastores, servers, and safe simulated actions.
 
-## [2.0.15] - 2026-09-27
+## 2.0.15 (2026-09-27)
 
 ### Added
 
@@ -605,7 +603,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Service and Datastore manifests use the corresponding repository directories.
   Notification and secret guides reflect the current workload model.
 
-## [2.0.14] - 2026-09-26
+## 2.0.14 (2026-09-26)
 
 ### Changed
 
@@ -624,7 +622,7 @@ All notable changes to Towbar are documented in this file. This project follows
   repository list no longer polls its inventory every five seconds.
 - Obsolete source-level secret references are removed from the editor and docs.
 
-## [2.0.13] - 2026-09-26
+## 2.0.13 (2026-09-26)
 
 ### Added
 
@@ -653,7 +651,7 @@ All notable changes to Towbar are documented in this file. This project follows
   next environment loads. Server setup shows a live countdown before returning
   to Overview.
 
-## [2.0.12] - 2026-09-24
+## 2.0.12 (2026-09-24)
 
 ### Added
 
@@ -687,7 +685,7 @@ All notable changes to Towbar are documented in this file. This project follows
   switching integration providers keeps the sidebar mounted to avoid logo
   flashes.
 
-## [2.0.11] - 2026-09-24
+## 2.0.11 (2026-09-24)
 
 ### Added
 
@@ -729,7 +727,7 @@ All notable changes to Towbar are documented in this file. This project follows
   revision tooltips stay within the viewport. Secret-row connector lines are
   readable in both themes.
 
-## [2.0.10] - 2026-09-24
+## 2.0.10 (2026-09-24)
 
 ### Added
 
@@ -808,7 +806,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - The verification dialog's request-limit explanation, failed environment
   discovery fallback copy, and redundant comparison-gap explanation.
 
-## [2.0.9] - 2026-09-23
+## 2.0.9 (2026-09-23)
 
 ### Added
 
@@ -831,14 +829,14 @@ All notable changes to Towbar are documented in this file. This project follows
 - YAML-declared secret values can be cleared from their app or resource while
   preserving the declaration for later configuration.
 
-## [2.0.8] - 2026-09-23
+## 2.0.8 (2026-09-23)
 
 ### Fixed
 
 - GitHub repository connections store the selected installation's internal
   record ID, allowing newly connected repositories to be imported successfully.
 
-## [2.0.7] - 2026-09-23
+## 2.0.7 (2026-09-23)
 
 ### Changed
 
@@ -863,7 +861,7 @@ All notable changes to Towbar are documented in this file. This project follows
 - Narrow integration pages keep widgets at full width until the remaining
   content area can comfortably fit two columns.
 
-## [2.0.0] - 2026-09-20
+## 2.0.0 (2026-09-20)
 
 ### Added
 
@@ -941,19 +939,3 @@ All notable changes to Towbar are documented in this file. This project follows
   private parent directory to the scanner container.
 - Branch mapping errors remain visible beside the edit form while preserving
   the entered branch and previous mapping.
-
-[Unreleased]: https://github.com/avgeek-oss/towbar/compare/v2.0.25...HEAD
-[2.0.25]: https://github.com/avgeek-oss/towbar/compare/v2.0.24...v2.0.25
-[2.0.24]: https://github.com/avgeek-oss/towbar/compare/v2.0.23...v2.0.24
-[2.0.23]: https://github.com/avgeek-oss/towbar/compare/v2.0.22...v2.0.23
-[2.0.22]: https://github.com/avgeek-oss/towbar/compare/v2.0.21...v2.0.22
-[2.0.21]: https://github.com/avgeek-oss/towbar/compare/v2.0.20...v2.0.21
-[2.0.20]: https://github.com/avgeek-oss/towbar/compare/v2.0.19...v2.0.20
-[2.0.13]: https://github.com/avgeek-oss/towbar/compare/v2.0.12...v2.0.13
-[2.0.12]: https://github.com/avgeek-oss/towbar/compare/v2.0.11...v2.0.12
-[2.0.11]: https://github.com/avgeek-oss/towbar/compare/v2.0.10...v2.0.11
-[2.0.10]: https://github.com/avgeek-oss/towbar/compare/v2.0.9...v2.0.10
-[2.0.9]: https://github.com/avgeek-oss/towbar/compare/v2.0.8...v2.0.9
-[2.0.8]: https://github.com/avgeek-oss/towbar/releases/tag/v2.0.8
-[2.0.7]: https://github.com/avgeek-oss/towbar/releases/tag/v2.0.7
-[2.0.0]: https://github.com/avgeek-oss/towbar/releases/tag/v2.0.0
