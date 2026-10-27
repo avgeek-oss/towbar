@@ -151,7 +151,7 @@ test("a failed mirror download retries GHCR before the scans run", async () => {
   assert.ok(!steps[0].args.includes("--db-repository"));
   assert.equal(
     steps[1].args[steps[1].args.indexOf("--db-repository") + 1],
-    "ghcr.io/aquasec/trivy-db:2",
+    "ghcr.io/aquasecurity/trivy-db:2",
   );
 });
 

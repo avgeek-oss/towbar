@@ -5,4 +5,4 @@ export const trivyScanner =
 // Trivy tries its default mirror first and moves to GHCR only on errors it
 // treats as temporary; a plain 404 from the mirror ends the download (CI run
 // 40492875814). A failed download is therefore retried against GHCR alone.
-export const trivyFallbackDbRepository = "ghcr.io/aquasec/trivy-db:2";
+export const trivyFallbackDbRepository = "ghcr.io/aquasecurity/trivy-db:2";
