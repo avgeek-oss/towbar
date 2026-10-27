@@ -93,6 +93,10 @@ const envSchema = z
     TEMPORAL_ADDRESS: z.string().min(1).default("127.0.0.1:7233"),
     TEMPORAL_NAMESPACE: z.string().min(1).default("default"),
     TEMPORAL_API_KEY: optionalEnvironmentString(z.string().min(1)),
+    // How long a Temporal client connection may take before enqueueing gives
+    // up. The default is the Temporal SDK's own; tests without a Temporal
+    // server lower it so tolerated enqueue failures do not wait 10 s each.
+    TEMPORAL_CONNECT_TIMEOUT_MS: z.coerce.number().int().min(1).default(10_000),
     SOURCE_COMMIT: z.string().min(7).default("development"),
     TOWBAR_COMMIT_SHA: optionalEnvironmentString(
       z.string().regex(/^[a-f0-9]{40}$/u),

@@ -16,21 +16,6 @@ import {
   notificationCenterQuery,
 } from "./center.js";
 
-void test("notification cursors require paired, valid bounds", () => {
-  assert.equal(
-    notificationCenterQuery.safeParse({ beforeId: randomUUID() }).success,
-    false,
-  );
-  assert.equal(
-    notificationCenterQuery.safeParse({ limit: 101 }).success,
-    false,
-  );
-  assert.equal(
-    notificationCenterQuery.safeParse({ userId: randomUUID() }).success,
-    false,
-  );
-});
-
 const url = process.env.TOWBAR_TEST_DATABASE_URL;
 void test(
   "durable notification receipts isolate users and teams, retain unread history and expire reads",

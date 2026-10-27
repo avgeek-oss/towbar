@@ -84,3 +84,25 @@ test("interrupted scanner cleanup is limited to the named run-owned container", 
     args: ["volume", "rm", "towbar-image-scan-cache-isolated-run"],
   });
 });
+
+test("a host cache directory keeps the scanner database between runs", async () => {
+  const captured = [];
+  const run = {
+    id: "isolated-run",
+    directory: "/tmp/isolated-run",
+    async step(name, command, args) {
+      assert.ok(args.includes("/var/cache/trivy:/root/.cache/trivy"));
+      assert.ok(
+        !args.some((arg) => arg.startsWith("towbar-image-scan-cache-")),
+      );
+    },
+    async capture(command, args) {
+      captured.push(args);
+      return "";
+    },
+  };
+  await verifyProductionImages(run, images, {
+    cacheDirectory: "/var/cache/trivy",
+  });
+  assert.ok(!captured.some((args) => args[0] === "volume"));
+});

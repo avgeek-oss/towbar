@@ -59,4 +59,7 @@ export function configureSettingsTestEnv(databaseUrl: string | undefined) {
   process.env.TOWBAR_CREDENTIALS_KEY = randomBytes(32).toString("base64");
   process.env.TOWBAR_INTERNAL_HMAC_SECRET = randomBytes(32).toString("hex");
   process.env.TOWBAR_PASSWORD_BREACH_CHECK = "false";
+  // These suites run without a Temporal server, and the API only logs a
+  // failed email enqueue; fail each connection attempt immediately.
+  process.env.TEMPORAL_CONNECT_TIMEOUT_MS = "50";
 }

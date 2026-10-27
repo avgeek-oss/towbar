@@ -33,18 +33,28 @@ import { HttpError } from "../../http/errors.js";
 const execFile = promisify(execFileCallback);
 const databaseUrl = process.env.TOWBAR_TEST_DATABASE_URL;
 const clickhouseUrl = process.env.TOWBAR_TEST_CLICKHOUSE_URL;
-const docker = async (...args: string[]) =>
-  (
+const docker = async (...args: string[]) => {
+  const probeStart = Date.now();
+  const output = (
     await execFile("docker", args, {
       timeout: 60000,
       maxBuffer: 4 * 1024 * 1024,
     })
   ).stdout.trim();
+  const probeMs = Date.now() - probeStart;
+  if (probeMs >= 500)
+    console.log(`PROBE docker ${probeMs}ms ${args.slice(0, 3).join(" ")}`);
+  return output;
+};
 async function until(check: () => Promise<boolean>, description: string) {
   const deadline = Date.now() + 45000;
+  const probeStart = Date.now();
   while (Date.now() < deadline) {
-    if (await check()) return;
-    await delay(500);
+    if (await check()) {
+      console.log(`PROBE until ${Date.now() - probeStart}ms ${description}`);
+      return;
+    }
+    await delay(100);
   }
   throw new Error(`Timed out: ${description}`);
 }
@@ -343,10 +353,16 @@ void test(
         205,
         "checkpoint restart must not duplicate prior records",
       );
-      for (let i = 0; i < 24; i++) {
-        await emit(`rotation-${i} ${"x".repeat(4000)}`);
-        await delay(100);
-      }
+      // The same 24 lines, 100 ms apart, as one exec instead of 24 round trips.
+      await docker(
+        "exec",
+        sourceName,
+        "sh",
+        "-c",
+        'exec 1>/proc/1/fd/1; i=0; while test "$i" -lt 24; do printf "rotation-%s %s\\n" "$i" "$1"; i=$((i+1)); sleep 0.1; done',
+        "sh",
+        "x".repeat(4000),
+      );
       await emit("after rotation");
       await until(
         async () =>
