@@ -5,6 +5,10 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Resolve a newly created public hostname through its authoritative nameservers when the system resolver reports it missing, so a cached negative DNS answer no longer fails the public HTTPS check for new Previews and domains.
+
 ## [2.0.62] - 2026-10-27
 
 ### Fixed
