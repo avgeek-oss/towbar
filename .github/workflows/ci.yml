@@ -15,11 +15,16 @@ concurrency:
 
 jobs:
   monitoring-agent:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
-    container: golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # v6.5.0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: 1.27.3
+          cache: true
+          cache-dependency-path: apps/towbar-monitoring-agent/go.sum
       - run: test -z "$(gofmt -l .)"
         working-directory: apps/towbar-monitoring-agent
       - run: go vet ./... && go test -race ./...
@@ -35,19 +40,20 @@ jobs:
     steps:
       # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      # v6.1.0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
       # v7.0.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter towbar-docs
       - name: Validate Mintlify configuration
-        run: npx --yes mint@4.2.851 validate
-        working-directory: docs
+        run: pnpm --filter towbar-docs exec mint validate
       - name: Check Mintlify links and redirects
-        run: npx --yes mint@4.2.851 broken-links --check-anchors --check-redirects
-        working-directory: docs
+        run: pnpm --filter towbar-docs exec mint broken-links --check-anchors --check-redirects
       - name: Audit Mintlify accessibility
-        run: npx --yes mint@4.2.851 a11y
-        working-directory: docs
+        run: pnpm --filter towbar-docs exec mint a11y
 
   verify:
     runs-on: ubuntu-latest

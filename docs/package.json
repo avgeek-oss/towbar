@@ -6,6 +6,7 @@
     "check": "mintlify-docs check --config site.json --dir ."
   },
   "devDependencies": {
-    "@avgeek-oss/mintlify-docs": "0.1.6"
+    "@avgeek-oss/mintlify-docs": "0.1.6",
+    "mint": "4.2.851"
   }
 }

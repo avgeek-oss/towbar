@@ -32,10 +32,13 @@ overrides:
   "ws@8.19.0": 8.21.0
 
 allowBuilds:
+  "@scarf/scarf": false
   "@swc/core": true
   cpu-features: false
   esbuild: true
+  keytar: false
   protobufjs: true
+  puppeteer: false
   sharp: true
   ssh2: false
 

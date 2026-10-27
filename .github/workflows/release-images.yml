@@ -92,6 +92,8 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.commit }}
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+        with:
+          cleanup: false
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
           registry: ghcr.io
@@ -99,6 +101,9 @@ jobs:
           password: ${{ github.token }}
       - id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+          DOCKER_BUILD_SUMMARY: false
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -106,7 +111,7 @@ jobs:
           provenance: mode=max
           sbom: true
           cache-from: type=gha,scope=release-${{ matrix.service }}-${{ matrix.platform }}
-          cache-to: type=gha,mode=max,scope=release-${{ matrix.service }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=min,scope=release-${{ matrix.service }}-${{ matrix.platform }}
           build-args: SOURCE_COMMIT=${{ needs.prepare.outputs.commit }}
           labels: |
             org.opencontainers.image.created=${{ needs.prepare.outputs.created }}
