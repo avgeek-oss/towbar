@@ -4590,9 +4590,16 @@
               { "type": "null" },
               { "type": "string", "format": "date-time" }
             ]
-          }
+          },
+          "previewsEnabled": { "type": "boolean" }
         },
-        "required": ["id", "name", "branch", "disconnectedAt"]
+        "required": [
+          "id",
+          "name",
+          "branch",
+          "disconnectedAt",
+          "previewsEnabled"
+        ]
       },
       "Response_247": {
         "type": "object",

@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
+import { Connection, WorkflowClient } from "@temporalio/client";
 import { eq } from "drizzle-orm";
 import {
   apps,
   deployments,
   previewEnvironments,
   sourceEntities,
+  sourceEnvironments,
   workspaces,
 } from "@workspace/towbar-database/schema";
 import {
@@ -37,8 +39,32 @@ void test(
     });
     const { getTowbarDatabase, closeDatabase } =
       await import("../../infrastructure/database.js");
-    const { listAppDeployments, requestDeploymentRetry } =
+    const { getApp, listApps, listAppDeployments, requestDeploymentRetry } =
       await import("./service.js");
+    const { closeTemporalClient } =
+      await import("../../infrastructure/temporal.js");
+    const dispatches: Parameters<WorkflowClient["signalWithStart"]>[1][] = [];
+    let queueUnavailable = true;
+    t.mock.method(Connection, "connect", () =>
+      Promise.resolve(Connection.lazy()),
+    );
+    t.mock.method(
+      WorkflowClient.prototype,
+      "signalWithStart",
+      function (
+        this: WorkflowClient,
+        _workflow: Parameters<WorkflowClient["signalWithStart"]>[0],
+        options: Parameters<WorkflowClient["signalWithStart"]>[1],
+      ) {
+        dispatches.push(options);
+        if (queueUnavailable) return Promise.reject(new Error("queue offline"));
+        return Promise.resolve(
+          Object.assign(this.getHandle(options.workflowId), {
+            signaledRunId: "test-run",
+          }),
+        );
+      },
+    );
     const db = getTowbarDatabase();
     const workspaceId = randomUUID(),
       appId = randomUUID(),
@@ -54,10 +80,15 @@ void test(
         .delete(deployments)
         .where(eq(deployments.workspaceId, workspaceId));
       await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
+      await closeTemporalClient();
       await closeDatabase();
     });
     const { sourceId, environmentId } =
       await seedConnectedEnvironment(workspaceId);
+    await db
+      .update(sourceEnvironments)
+      .set({ previewsEnabled: true })
+      .where(eq(sourceEnvironments.id, environmentId));
     await seedApiServers([{ id: serverId, workspaceId, ip: "192.0.2.10" }]);
     const config = normalizeDeploymentManifest({
       version: 2,
@@ -93,6 +124,14 @@ void test(
       sourceRevision: "a".repeat(40),
       requiredSecrets,
     });
+    assert.equal(
+      (await getApp(appId, workspaceId)).environment?.previewsEnabled,
+      true,
+    );
+    assert.equal(
+      (await listApps(workspaceId))[0]?.environment?.previewsEnabled,
+      true,
+    );
     const hostname = "pr-42.preview.example.com",
       gitRef = "refs/pull/42/head";
     await db.insert(previewEnvironments).values({
@@ -170,6 +209,8 @@ void test(
       workspaceId,
       requestedBy: null,
     };
+    await assert.rejects(requestDeploymentRetry(input), /queue offline/);
+    queueUnavailable = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       const result = await requestDeploymentRetry(input);
       assert.equal(result.deployment.id, retryId);
@@ -177,6 +218,17 @@ void test(
       assert.equal(result.deployment.hostname, hostname);
       assert.equal(result.replayed, true);
     }
+    assert.equal(dispatches.length, 3);
+    assert.deepEqual(dispatches[1]?.signalArgs, dispatches[0]?.signalArgs);
+    assert.deepEqual(dispatches[2]?.signalArgs, dispatches[0]?.signalArgs);
+    assert.equal(dispatches[1]?.workflowId, dispatches[0]?.workflowId);
+    await db
+      .update(deployments)
+      .set({ state: "succeeded" })
+      .where(eq(deployments.id, retryId));
+    const terminalRetry = await requestDeploymentRetry(input);
+    assert.equal(terminalRetry.deployment.id, retryId);
+    assert.equal(dispatches.length, 3);
     await assert.rejects(
       requestDeploymentRetry({ ...input, idempotencyKey: randomUUID() }),
       /Preview is no longer enabled/,
@@ -202,7 +254,7 @@ void test(
       /not found/i,
     );
     await assert.rejects(
-      requestDeploymentRetry({ ...input, deploymentId: retryId }),
+      requestDeploymentRetry({ ...input, deploymentId: productionId }),
       /Only failed or cancelled/,
     );
   },

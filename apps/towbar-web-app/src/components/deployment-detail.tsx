@@ -122,6 +122,7 @@ export function DeploymentDetail() {
             content: (
               <BreadcrumbEntitySwitcher
                 currentId={stream.deployment.appId}
+                deploymentEnvironment={stream.deployment.environment}
                 kind={
                   deploymentDeployableKind === "resource" ? "resources" : "apps"
                 }

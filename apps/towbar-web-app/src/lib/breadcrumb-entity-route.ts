@@ -12,6 +12,7 @@ const entityRoutes = {
 
 export function breadcrumbEntityHref({
   currentId,
+  deploymentEnvironment,
   kind,
   pathname,
   sourceId,
@@ -19,6 +20,7 @@ export function breadcrumbEntityHref({
   search = "",
 }: {
   currentId: string;
+  deploymentEnvironment?: "production" | "preview";
   kind: BreadcrumbEntityKind;
   pathname: string;
   sourceId?: string;
@@ -44,7 +46,9 @@ export function breadcrumbEntityHref({
   if (
     section === "deployments" &&
     kind === "apps" &&
-    new URLSearchParams(search).get("type") === "preview"
+    (deploymentEnvironment
+      ? deploymentEnvironment === "preview"
+      : new URLSearchParams(search).get("type") === "preview")
   ) {
     params.set("type", "preview");
   }

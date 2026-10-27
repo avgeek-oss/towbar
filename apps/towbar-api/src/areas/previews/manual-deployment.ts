@@ -66,7 +66,13 @@ export async function requestPreviewDeployment(input: {
     async () => {
       if (input.idempotencyKey) {
         const [existing] = await database
-          .select({ id: deployments.id })
+          .select({
+            id: deployments.id,
+            appId: deployments.appId,
+            state: deployments.state,
+            server: deployments.serverSnapshot,
+            buildServer: deployments.buildServerSnapshot,
+          })
           .from(deployments)
           .where(
             and(
@@ -76,8 +82,23 @@ export async function requestPreviewDeployment(input: {
             ),
           )
           .limit(1);
-        if (existing)
+        if (existing) {
+          if (existing.state === "queued") {
+            await enqueueDeployment({
+              appId: existing.appId,
+              deploymentId: existing.id,
+              buildConcurrency:
+                existing.buildServer?.buildConcurrency ??
+                existing.server.buildConcurrency ??
+                1,
+              previewBuildConcurrency:
+                existing.server.previewBuildConcurrency ?? 1,
+              priority: "preview",
+              serverIp: existing.buildServer?.ip ?? existing.server.ip,
+            });
+          }
           return { accepted: true, deploymentId: existing.id, replayed: true };
+        }
       }
       return deployCurrentPreview(input);
     },
