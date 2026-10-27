@@ -4,8 +4,8 @@ packages:
   - docs
 
 overrides:
-  # One Node type definition for the Node 24 runtime, including transitive ones.
-  "@types/node": 24.19.2
+  # One Node type definition for the Node 26 runtime, including transitive ones.
+  "@types/node": 26.6.5
   "@simplewebauthn/server@<=13.3.1": 13.3.2
   "js-yaml@>=4.0.0 <4.3.2": 4.3.2
   "@esbuild-kit/core-utils>esbuild": 0.28.2
@@ -53,7 +53,7 @@ catalog:
   "@temporalio/client": ^1.24.0
   "@temporalio/worker": ^1.24.0
   "@temporalio/workflow": ^1.24.0
-  "@types/node": 24.19.2
+  "@types/node": 26.6.5
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
   drizzle-orm: 0.45.3

@@ -35,7 +35,7 @@ complete walkthrough.
 
 ## Run locally
 
-From this directory, with Node.js 24 or newer:
+From this directory, with Node.js 26 or newer:
 
 ```bash
 npm start

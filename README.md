@@ -153,7 +153,7 @@ contributions are welcome. [Open an issue](https://github.com/avgeek-oss/towbar/
 or read [CONTRIBUTING.md](CONTRIBUTING.md) for the local setup and required
 checks. Report vulnerabilities privately through [SECURITY.md](SECURITY.md).
 
-Towbar uses Node.js 24, pnpm 11, and Turborepo. Release history is recorded in
+Towbar uses Node.js 26, pnpm 11, and Turborepo. Release history is recorded in
 [CHANGELOG.md](CHANGELOG.md).
 
 ## License
