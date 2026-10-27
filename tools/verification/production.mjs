@@ -29,11 +29,22 @@ async function availablePorts(count) {
 // Boots the stack and exercises onboarding, an API outage and Temporal
 // recovery against it.
 async function exerciseStack(temporalApiPort) {
-  await run.step(
-    "compose-start",
-    "docker",
-    [...compose, "up", "--detach", "--wait", "--wait-timeout", "300"],
-    { timeoutMs: 360_000 },
+  // The host build only produces dist/ for the smoke scripts below, so it
+  // runs while the stack waits for its health checks. Overlapping it with
+  // the CPU-bound image build instead slowed that build down.
+  await concurrently(
+    run.step(
+      "compose-start",
+      "docker",
+      [...compose, "up", "--detach", "--wait", "--wait-timeout", "300"],
+      { timeoutMs: 360_000 },
+    ),
+    run.step("test-dependencies", "pnpm", [
+      "exec",
+      "turbo",
+      "build",
+      "--filter=towbar-api",
+    ]),
   );
   await run.step(
     "onboarding",
@@ -147,19 +158,9 @@ try {
     .digest("base64url");
   configured = true;
   await run.step("compose-config", "docker", [...compose, "config", "--quiet"]);
-  // The host build only produces dist/ for the smoke scripts below; it does
-  // not feed the images, so it runs while they build.
-  await concurrently(
-    run.step("compose-build", "docker", [...compose, "build"], {
-      timeoutMs: 1_800_000,
-    }),
-    run.step("test-dependencies", "pnpm", [
-      "exec",
-      "turbo",
-      "build",
-      "--filter=towbar-api",
-    ]),
-  );
+  await run.step("compose-build", "docker", [...compose, "build"], {
+    timeoutMs: 1_800_000,
+  });
   // The security gate reads only the built images, so it scans them while
   // the stack boots and is exercised.
   await concurrently(
