@@ -1,11 +1,12 @@
-# Contributing to Towbar
+# Developing Towbar
 
-Thank you for helping improve Towbar.
+These are the maintainers' development notes: setup, checks, documentation and
+releases.
+
+Avgeek OSS does not accept public contributions, to curb automated pull requests and because no dedicated resources are available to review and sign them off. Feedback and [issues](https://github.com/avgeek-oss/towbar/issues) are welcome; we triage them and strive to fix them at the earliest.
 
 ## Before you start
 
-- Use an issue for significant behavior or schema changes so the design can be
-  discussed before implementation.
 - Never include customer data, private keys, access tokens, production IPs, or
   proprietary assets in an issue, fixture, test, or commit.
 - Security vulnerabilities must follow [SECURITY.md](SECURITY.md), not a public
@@ -43,7 +44,7 @@ Prefer the narrowest package check while iterating. Run the root verification
 before opening a pull request. Merging to `main` requires the `verify` check,
 which passes only when every CI job passed: checks, tests, docs,
 monitoring-agent, production, integration, and public-demo. The installer manages operator configuration in `/etc/towbar/config.yml`.
-For contributor-only Compose checks, generate disposable YAML with Python 3
+For development-only Compose checks, generate disposable YAML with Python 3
 and PyYAML, then render the container environment:
 
 ```bash
@@ -65,7 +66,7 @@ Changes to fixture routes must be reviewed against the public gateway allowlist.
 The Mintlify project lives in `docs/`, organized into Introduction, Using Towbar,
 and API & MCP. Introduction covers the product and self-hosting; product workflows
 belong in Using Towbar; client connection guides and individual generated references
-belong in API & MCP. Contributor source under `docs/contributors/` is retained in Git
+belong in API & MCP. Development notes under `docs/contributors/` are retained in Git
 and excluded from public publication through `.mintignore`. The detailed
 [architecture walkthrough](docs/contributors/architecture.md) remains available there.
 [Avgeek OSS Mintlify Docs](https://github.com/avgeek-oss/oss-docs) owns the shared homepage
@@ -108,7 +109,7 @@ and `mint broken-links` from that directory. Review changed pages on desktop and
 mobile, in light and dark mode. Configure Mintlify with `/docs` as this repository's
 documentation path.
 
-## Pull requests
+## Changes
 
 - Keep each change focused.
 - Add tests for behavior changes.
@@ -156,5 +157,4 @@ in the organization package settings and rerun the failed manifest job.
 Project stewardship and the current code owner are recorded in
 [MAINTAINERS.md](MAINTAINERS.md).
 
-By contributing, you agree that your contributions are licensed under the
-Apache License 2.0.
+Towbar is licensed under the Apache License 2.0.
