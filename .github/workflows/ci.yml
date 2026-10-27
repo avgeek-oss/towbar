@@ -67,8 +67,6 @@ jobs:
         run: npx --yes mint@4.2.851 a11y
         working-directory: docs
 
-  # verify aggregates package checks and tests. Required CI below is the full
-  # merge gate, including documentation and infrastructure verification.
   verify-checks:
     name: verify (checks)
     runs-on: ubuntu-latest
@@ -166,18 +164,6 @@ jobs:
       - name: Hand the scanner database to the runner user
         if: always()
         run: sudo chown -R "$(id -u):$(id -g)" tmp/trivy-cache
-
-  verify:
-    if: always()
-    needs: [verify-checks, verify-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Require both verify jobs to succeed
-        env:
-          RESULTS: ${{ toJSON(needs) }}
-        run: |
-          node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { if (job.result !== "success") { console.error(name + ": " + job.result); process.exitCode = 1; } }'
 
   compose:
     runs-on: ubuntu-latest
@@ -280,15 +266,30 @@ jobs:
       - run: docker build --target demo --tag towbar-demo:test --file apps/towbar-web-app/Dockerfile .
       - run: bash tools/test-public-demo.sh
 
-  required-ci:
-    name: Required CI
+  # The one check the main ruleset requires and Cut release reads. It needs
+  # every other CI job and fails unless all of them succeeded; always() makes
+  # a failed, cancelled or skipped job fail this check instead of skipping it,
+  # because a skipped required check counts as passing.
+  verify:
     if: always()
-    needs: [docs, verify, monitoring-agent, compose, integration, public-demo]
+    needs:
+      - docs
+      - verify-checks
+      - verify-tests
+      - monitoring-agent
+      - compose
+      - integration
+      - public-demo
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require every verification job to succeed
+      - name: Require every CI job to pass
         env:
           RESULTS: ${{ toJSON(needs) }}
         run: |
-          node -e 'const jobs = JSON.parse(process.env.RESULTS); for (const [name, job] of Object.entries(jobs)) { if (job.result !== "success") { console.error(name + ": " + job.result); process.exitCode = 1; } }'
+          printf '%s' "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          failed=$(printf '%s' "$RESULTS" | jq -r '[to_entries[] | select(.value.result != "success") | .key] | join(", ")')
+          if [ -n "$failed" ]; then
+            echo "::error::These CI jobs did not pass: $failed"
+            exit 1
+          fi

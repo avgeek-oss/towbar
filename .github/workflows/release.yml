@@ -104,7 +104,7 @@ jobs:
           for attempt in {1..12}; do
             gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?filter=all&per_page=100" --paginate --slurp > "$RUNNER_TEMP/release-checks.json"
             pending=0
-            for name in "Required CI"; do
+            for name in "verify"; do
               # The newest check run by id wins, so a queued rerun is waited for
               # rather than hidden behind an older success.
               state=$(jq -r --arg name "$name" '[.[].check_runs[] | select(.name == $name and .app.slug == "github-actions")] | sort_by(.id) | last | if . == null then "missing" elif .status != "completed" then .status else .conclusion end' "$RUNNER_TEMP/release-checks.json")
