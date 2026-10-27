@@ -21,7 +21,7 @@ export const documentationTopics = {
     "Review notification delivery status across providers, including attempts, errors, and retry times.",
   ),
   overview: guide(
-    "#start-with-the-overview",
+    "#read-the-dashboard",
     "Check workload health, recent deployments, server capacity, and incidents across your team.",
   ),
   conflicts: guide(
@@ -477,7 +477,7 @@ export const widgetDocumentation: Record<string, HeadingDocumentation> = {
   "incident details": documentationTopics.incidents,
   "active incidents": documentationTopics.incidents,
   "deployments trend": guide(
-    "#start-with-the-overview",
+    "#read-the-dashboard",
     "Daily deployment requests, successes, and failures, with the recent success rate and duration summary.",
   ),
   "deployment queue": guide(

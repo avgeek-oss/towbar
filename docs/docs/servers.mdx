@@ -58,7 +58,7 @@ Commands run with the SSH user's permissions and can change workloads outside To
 
 `buildConcurrency` limits build work on this host. `previewBuildConcurrency` reserves a bounded share for previews, defaults to 1, cannot exceed the total, and is capped at 4. Production and maintenance work take priority over previews.
 
-Also account for the installation-wide [worker activity limit](/docs/self-hosting/environment-variables#servers-and-worker-capacity). Increasing concurrency consumes real CPU, memory, and disk bandwidth on the target.
+Also account for the installation-wide [worker activity limit](/docs/self-hosting/configuration#servers-and-worker-capacity). Increasing concurrency consumes real CPU, memory, and disk bandwidth on the target.
 
 ## Log collection
 

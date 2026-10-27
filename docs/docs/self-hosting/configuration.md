@@ -1,9 +1,9 @@
 ---
-title: "Runtime configuration"
-description: "Reference for Towbar's YAML configuration, including secrets, integrations, notifications, and worker settings."
+title: "Configuration"
+description: "Configure the Towbar host, integrations, notifications, and worker capacity."
 ---
 
-Use this reference when configuring the Towbar installation. Workload secrets are described in [Secrets](/docs/secrets), and workload behavior belongs in the [deployment manifest](/docs/deployment-manifest).
+Edit the protected configuration on the control-plane host; keep secret values out of Git. Workload secrets are described in [Secrets](/docs/secrets), and workload behavior belongs in the [deployment manifest](/docs/deployment-manifest).
 
 The installer creates `/etc/towbar/config.yml` with root ownership and mode `600`. `towbar config path` prints that location without reading the file. Edit it with an editor such as `sudo nano "$(towbar config path)"`, validate it with `sudo towbar config validate`, and apply changes with `sudo towbar restart`. Editing YAML alone does not update running services.
 
@@ -21,12 +21,13 @@ database:
 security:
   credentialsKey: "..."
   internalHmacSecret: "..."
-integrations:
-  github:
-    enabled: true
-    appId: "12345"
-    appSlug: towbar
-    privateKeyBase64: "..."
+# Optional: enable only after creating a GitHub App.
+# integrations:
+#   github:
+#     enabled: true
+#     appId: "12345"
+#     appSlug: towbar
+#     privateKeyBase64: "..."
 ```
 
 Optional provider objects can be added under `integrations` and `notifications`. Keep identifiers and secrets quoted when they contain only digits or YAML-special characters. Unknown settings and duplicate YAML keys are rejected.

@@ -10,11 +10,26 @@ import {
 const root = fileURLToPath(new URL("../docs/", import.meta.url));
 const repository = path.dirname(root);
 const config = JSON.parse(await readFile(path.join(root, "docs.json"), "utf8"));
+const excludedDirectories = (
+  await readFile(path.join(root, ".mintignore"), "utf8")
+)
+  .split("\n")
+  .map((line) => line.trim())
+  .filter((line) => line && !line.startsWith("#"))
+  .map((line) => line.replace(/\/$/, ""));
 const pages = new Map();
 async function collect(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const file = path.join(directory, entry.name);
-    if (entry.isDirectory() && entry.name !== "plans") await collect(file);
+    const relative = path.relative(root, file).replaceAll(path.sep, "/");
+    if (
+      excludedDirectories.some(
+        (directory) =>
+          relative === directory || relative.startsWith(`${directory}/`),
+      )
+    )
+      continue;
+    if (entry.isDirectory()) await collect(file);
     else if (/\.mdx?$/.test(entry.name)) {
       const route = `/${path.relative(root, file).replace(/\.mdx?$/, "")}`;
       const source = await readFile(file, "utf8");
@@ -23,6 +38,7 @@ async function collect(directory) {
         /^---\n[\s\S]*?title: .+\n[\s\S]*?description: .+\n[\s\S]*?---/,
         `${route}: missing page metadata`,
       );
+      assert.ok(!pages.has(route), `Duplicate public route: ${route}`);
       pages.set(route, source);
     }
   }
@@ -62,7 +78,7 @@ const slug = (text) =>
     .replace(/\s+/g, "-");
 async function checkLink(href, from) {
   if (!href.startsWith("/") || href.startsWith("//")) return;
-  const [target, hash] = href.split("#");
+  let [target, hash] = href.split("#");
   let route = target.split("?")[0];
   const seen = new Set();
   while (redirects.has(route)) {
@@ -71,7 +87,11 @@ async function checkLink(href, from) {
       return;
     }
     seen.add(route);
-    route = redirects.get(route);
+    const destination = redirects.get(route);
+    if (!destination.startsWith("/")) return;
+    const [redirectPath, redirectHash] = destination.split("#");
+    route = redirectPath;
+    hash = redirectHash ?? hash;
   }
   if (route === "/") route = "/index";
   if (!pages.has(route) && pages.has(`${route}/index`)) route += "/index";

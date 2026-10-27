@@ -86,7 +86,7 @@ If you previously configured an API key, remove its authorization header or bear
 
 `tools/list` returns the operations permitted by your OAuth connection and current role. Read-only connections only list read tools. Write connections include permitted secret and Scout changes. Administrator connections include deployment, repository sync, service operations, server management, and datastore backup/restore. Only Administrators can approve this access. Connections follow the account holder's current team role. Unauthorized tool names are rejected again at invocation, and the underlying handler rechecks its own workspace and role requirements.
 
-The [tool catalogue](/docs/api/mcp-tools) documents every tool and its input schema. Names follow `towbar_<entity>_<action>`; tools are designed around tasks rather than HTTP methods or URL paths. Service and datastore actions share `kind` and `workloadId` inputs.
+The [tool catalogue](/mcp-reference/overview) documents every tool and its input schema. Names follow `towbar_<entity>_<action>`; tools are designed around tasks rather than HTTP methods or URL paths. Service and datastore actions share `kind` and `workloadId` inputs.
 
 ### Find and inspect
 

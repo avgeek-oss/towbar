@@ -60,7 +60,7 @@ The API owns database changes. Worker activities perform network and filesystem 
 3. `packages/towbar-core/src/manifest-v2.ts` parses `towbar.yml`, `.towbar/services` and `.towbar/datastores`.
 4. `reconciliation.ts` compares the resolved environment with inventory and applies changes transactionally.
 
-Invalid input preserves existing inventory and secret slots. Each environment gets a digest of its branch and effective configuration. See the [manifest reference](/docs/deployment-manifest) and repository `examples/`.
+Invalid input preserves existing inventory and secret slots. Each environment gets a digest of its branch and effective configuration. See the [manifest reference](https://www.towbar.dev/docs/deployment-manifest) and repository `examples/`.
 
 ## How a deployment runs
 
@@ -106,13 +106,13 @@ Workers resolve secrets at execution time. Plaintext stays out of snapshots, wor
 
 The worker uses SSH with verified host keys to run Docker and Caddy operations. Candidate health checks precede traffic changes; failed candidates leave the previous healthy release serving traffic.
 
-The optional [Scout Agent](/docs/scout) reports measurements to Towbar over HTTPS. It cannot execute deployments.
+The optional [Scout Agent](https://www.towbar.dev/docs/scout) reports measurements to Towbar over HTTPS. It cannot execute deployments.
 
 ## Centralized logs
 
 The native OTEL collector reads managed container output and sends it to Towbar over HTTPS. The API validates source identity and access before storing records in external ClickHouse. PostgreSQL holds source metadata, restrictions, and user table layouts. Browsers and collectors do not receive ClickHouse credentials.
 
-See the [log architecture diagram](/docs/operate/centralized-logs#architecture) and [collection setup](/docs/operate/log-collection). Scout metrics and on-demand Runtime Logs use separate collection paths.
+See the [log architecture diagram](https://www.towbar.dev/docs/operate/centralized-logs#architecture) and [collection setup](https://www.towbar.dev/docs/operate/log-collection). Scout metrics and on-demand Runtime Logs use separate collection paths.
 
 ## Reliability and release evidence
 
@@ -122,4 +122,4 @@ Read `tools/verification/README.md` for coverage and `.github/workflows/release-
 
 ## A practical reading order
 
-Start with `docker-compose.yml`, then the manifest parser, API routes, worker workflows and deployer. Use the [contribution guide](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md) to run checks, or follow [Your first deployment](/docs/getting-started) to use Towbar.
+Start with `docker-compose.yml`, then the manifest parser, API routes, worker workflows and deployer. Use the [contribution guide](https://github.com/avgeek-oss/towbar/blob/main/CONTRIBUTING.md) to run checks, or follow [Your first deployment](https://www.towbar.dev/docs/getting-started) to use Towbar.

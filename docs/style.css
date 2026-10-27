@@ -323,3 +323,97 @@ a[href^="/docs/use-cases/"] img[src^="/assets/database-logos/"] {
   transition: none;
   animation: none;
 }
+
+/* Shared OSS footer layout; keep native header, content, and sidebar sizing. */
+body #footer.advanced-footer > div {
+  max-width: 1280px;
+}
+
+body #footer.advanced-footer > div {
+  padding-inline: 16px;
+}
+
+body #footer.advanced-footer > div > div:first-child > div:nth-child(2) {
+  grid-template-columns: repeat(auto-fit, minmax(192px, 1fr));
+  gap: 24px;
+}
+
+body #footer.advanced-footer > div > div:first-child > div:nth-child(2) a {
+  min-height: 24px;
+}
+
+body
+  #footer.advanced-footer
+  > div
+  > div:first-child
+  > div:nth-child(2)
+  > div
+  > div {
+  gap: 4px;
+}
+
+@media (min-width: 1024px) {
+  body #footer.advanced-footer > div {
+    padding-inline: 48px;
+  }
+}
+
+@media (max-width: 767px) {
+  body #footer.advanced-footer > div > div:first-child > div:nth-child(2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  body #footer.advanced-footer > div > div:first-child > div:nth-child(2) a {
+    min-height: 44px;
+  }
+
+  body
+    #footer.advanced-footer
+    > div
+    > div:first-child
+    > div:nth-child(2)
+    > div
+    > div {
+    gap: 0;
+  }
+}
+
+body
+  #footer
+  a:is(
+    [href="https://www.mill.fyi"],
+    [href="https://www.posted.cc"],
+    [href="https://www.rootset.app"]
+  ) {
+  gap: 8px;
+}
+
+body
+  #footer
+  a:is(
+    [href="https://www.mill.fyi"],
+    [href="https://www.posted.cc"],
+    [href="https://www.rootset.app"]
+  )::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+body #footer a[href="https://www.mill.fyi"]::before {
+  background-image: url("/assets/projects/mill.png");
+}
+
+body #footer a[href="https://www.posted.cc"]::before {
+  background-image: url("/assets/projects/posted.png");
+}
+
+body #footer a[href="https://www.rootset.app"]::before {
+  background-image: url("/assets/projects/rootset.png");
+}

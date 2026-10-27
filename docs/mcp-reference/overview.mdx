@@ -1,0 +1,114 @@
+---
+title: MCP tool reference
+description: Individual Towbar tools, permissions, risk annotations, and runtime argument schemas.
+---
+
+Towbar registers 65 task-oriented tools independently of HTTP routes. [Connect an MCP client](/docs/api/mcp) through OAuth before using them. Discovery filters tools by the approved Read-only, Write, or Administrator access and your current workspace role. Account management, SSH terminals, and plaintext credential reveal remain browser-only.
+
+Each tool page includes its exact name, permissions, risk annotations, and generated argument schema. Use [automation workflows](/docs/api/workflows) for sequences across tools.
+
+Inventory and history tools return bounded pages with continuation fields. Histories backed by live inventories are best-effort pages, not snapshot cursors; concurrent changes can shift offsets.
+
+## Scout Alerts
+
+- [`towbar_alerts_inspect`](/mcp-reference/towbar_alerts_inspect): Inspect Scout alerts and incidents
+- [`towbar_alerts_configure`](/mcp-reference/towbar_alerts_configure): Create or update a Scout alert
+- [`towbar_alerts_remove`](/mcp-reference/towbar_alerts_remove): Remove a Scout alert rule
+
+## Deployments
+
+- [`towbar_deployment_compare`](/mcp-reference/towbar_deployment_compare): Compare performance between deployments
+- [`towbar_deployment_list`](/mcp-reference/towbar_deployment_list): List deployment history
+- [`towbar_deployment_inspect`](/mcp-reference/towbar_deployment_inspect): Inspect deployment progress and logs
+- [`towbar_deployment_cancel`](/mcp-reference/towbar_deployment_cancel): Cancel deployment
+- [`towbar_deployment_retry`](/mcp-reference/towbar_deployment_retry): Retry deployment
+- [`towbar_deployment_rescan`](/mcp-reference/towbar_deployment_rescan): Rescan deployed image
+
+## Centralized logs
+
+- [`towbar_logs_inspect`](/mcp-reference/towbar_logs_inspect): Inspect centralized logging
+- [`towbar_logs_query`](/mcp-reference/towbar_logs_query): Search centralized logs
+- [`towbar_logs_summary`](/mcp-reference/towbar_logs_summary): Summarize centralized logs
+- [`towbar_logs_follow`](/mcp-reference/towbar_logs_follow): Poll newly accepted centralized logs
+- [`towbar_logs_context`](/mcp-reference/towbar_logs_context): Inspect surrounding log records
+- [`towbar_logs_collection_configure`](/mcp-reference/towbar_logs_collection_configure): Enable or disable server log collection
+- [`towbar_logs_verify`](/mcp-reference/towbar_logs_verify): Verify ClickHouse log storage
+
+## Integrations
+
+- [`towbar_integration_list`](/mcp-reference/towbar_integration_list): List available integrations
+- [`towbar_github_disconnect`](/mcp-reference/towbar_github_disconnect): Disconnect GitHub account
+- [`towbar_github_retry_reporting`](/mcp-reference/towbar_github_retry_reporting): Retry preview reporting
+
+## Workspace
+
+- [`towbar_workspace_inspect`](/mcp-reference/towbar_workspace_inspect): Inspect workspace
+- [`towbar_workspace_check`](/mcp-reference/towbar_workspace_check): Refresh control-plane health
+
+## Discovery
+
+- [`towbar_inventory_search`](/mcp-reference/towbar_inventory_search): Find apps, resources, sources, or servers
+- [`towbar_repository_search`](/mcp-reference/towbar_repository_search): Find available GitHub or GitLab repositories
+
+## Repositories
+
+- [`towbar_source_inspect`](/mcp-reference/towbar_source_inspect): Inspect source and environments
+- [`towbar_source_connect`](/mcp-reference/towbar_source_connect): Connect repository
+- [`towbar_source_removal_preview`](/mcp-reference/towbar_source_removal_preview): Review repository removal
+- [`towbar_source_disconnect`](/mcp-reference/towbar_source_disconnect): Remove repository connection
+- [`towbar_source_environment_disconnect`](/mcp-reference/towbar_source_environment_disconnect): Disconnect repository environment
+- [`towbar_source_discover`](/mcp-reference/towbar_source_discover): Discover repository environments
+- [`towbar_source_sync`](/mcp-reference/towbar_source_sync): Sync connected environments
+- [`towbar_source_sync_inspect`](/mcp-reference/towbar_source_sync_inspect): Inspect source sync progress
+- [`towbar_manifest_lifecycle_list`](/mcp-reference/towbar_manifest_lifecycle_list): Inspect conflicts and retirements
+- [`towbar_retirement_remove`](/mcp-reference/towbar_retirement_remove): Permanently remove retired workload
+- [`towbar_source_change_github_connection`](/mcp-reference/towbar_source_change_github_connection): Change repository GitHub connection
+
+## Services and datastores
+
+- [`towbar_workload_inspect`](/mcp-reference/towbar_workload_inspect): Inspect service or datastore
+- [`towbar_workload_deploy`](/mcp-reference/towbar_workload_deploy): Deploy service or datastore
+- [`towbar_workload_rollback`](/mcp-reference/towbar_workload_rollback): Rollback service or datastore
+- [`towbar_workload_restart`](/mcp-reference/towbar_workload_restart): Restart service or datastore
+- [`towbar_workload_start`](/mcp-reference/towbar_workload_start): Start service or datastore
+- [`towbar_workload_stop`](/mcp-reference/towbar_workload_stop): Stop service or datastore
+- [`towbar_workload_logs`](/mcp-reference/towbar_workload_logs): Collect logs for service or datastore
+- [`towbar_workload_external_secrets_refresh`](/mcp-reference/towbar_workload_external_secrets_refresh): Refresh external secrets and redeploy
+- [`towbar_autodeploy_configure`](/mcp-reference/towbar_autodeploy_configure): Pause or resume automatic deployment
+
+## Scout Agent
+
+- [`towbar_performance_inspect`](/mcp-reference/towbar_performance_inspect): Inspect performance over time
+- [`towbar_monitoring_configure`](/mcp-reference/towbar_monitoring_configure): Configure enhanced monitoring
+
+## Servers
+
+- [`towbar_server_inspect`](/mcp-reference/towbar_server_inspect): Inspect server readiness and capacity
+- [`towbar_server_register`](/mcp-reference/towbar_server_register): Register server
+- [`towbar_server_remove`](/mcp-reference/towbar_server_remove): Remove server from Towbar
+- [`towbar_server_configure`](/mcp-reference/towbar_server_configure): Configure server
+- [`towbar_server_credentials_update`](/mcp-reference/towbar_server_credentials_update): Update server credentials
+- [`towbar_server_trust_host`](/mcp-reference/towbar_server_trust_host): Trust SSH host key
+- [`towbar_server_revoke_host`](/mcp-reference/towbar_server_revoke_host): Revoke trusted SSH key
+- [`towbar_server_prepare`](/mcp-reference/towbar_server_prepare): Prepare server for workloads
+- [`towbar_server_check`](/mcp-reference/towbar_server_check): Refresh server health
+- [`towbar_server_cleanup`](/mcp-reference/towbar_server_cleanup): Request server cleanup
+
+## Secrets
+
+- [`towbar_secrets_inspect`](/mcp-reference/towbar_secrets_inspect): Inspect secret names and revisions
+- [`towbar_secrets_update`](/mcp-reference/towbar_secrets_update): Update environment secrets
+
+## Backups and restores
+
+- [`towbar_backup_inspect`](/mcp-reference/towbar_backup_inspect): Inspect backups and restore progress
+- [`towbar_backup_create`](/mcp-reference/towbar_backup_create): Back up resource
+- [`towbar_backup_restore`](/mcp-reference/towbar_backup_restore): Restore resource backup
+- [`towbar_restore_cleanup`](/mcp-reference/towbar_restore_cleanup): Clean up completed restore
+- [`towbar_restore_cancel`](/mcp-reference/towbar_restore_cancel): Cancel restore
+
+## Preview environments
+
+- [`towbar_preview_list`](/mcp-reference/towbar_preview_list): Find pull request previews
+- [`towbar_preview_deploy`](/mcp-reference/towbar_preview_deploy): Deploy pull request preview
+- [`towbar_preview_cleanup`](/mcp-reference/towbar_preview_cleanup): Remove pull request preview

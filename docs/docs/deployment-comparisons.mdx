@@ -65,4 +65,4 @@ Use `GET /v1/api/workloads/{deployableId}/comparison-deployments` to discover su
 
 The response includes deployment metadata, equal observation windows, bounded points, metric summaries and deltas, restart information, and coverage warnings. These are read-only operations scoped to the authenticated workspace.
 
-For MCP, call `towbar_deployment_compare` with `workloadId` to discover candidates, then supply `baselineId` and `candidateId`. It returns summaries by default. Set `includePoints=true` for at most 24 representative points per deployment; summaries still use all available measurements. See the [MCP tool reference](/docs/api/mcp-tools).
+For MCP, call `towbar_deployment_compare` with `workloadId` to discover candidates, then supply `baselineId` and `candidateId`. It returns summaries by default. Set `includePoints=true` for at most 24 representative points per deployment; summaries still use all available measurements. See the [MCP tool reference](/mcp-reference/overview).

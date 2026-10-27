@@ -4,6 +4,8 @@ description: "Configure a GitHub App in Towbar's YAML configuration, install it,
 icon: "/assets/integration-logos/github.svg"
 ---
 
+import { Screenshot } from "/snippets/oss/screenshot.jsx";
+
 <img className="towbar-doc-brand-logo" src="/assets/integration-logos/github.svg" alt="GitHub logo" aria-hidden="true" />
 
 Towbar configures one GitHub App per Towbar installation and can connect it to multiple GitHub accounts. The App identity and private key live in `/etc/towbar/config.yml`. PostgreSQL stores connected installations and account metadata, never the App private key or an optional webhook secret.
@@ -65,30 +67,7 @@ Encode the PEM with `base64 < private-key.pem | tr -d '\n'`. If you set a webhoo
 
 Open **Manage → Integrations → GitHub** and choose **Connect GitHub account**. Select only the accounts and repositories Towbar should manage. The connection widget is shown only because the runtime configuration is valid; no credential form is exposed.
 
-<div className="towbar-doc-screenshot">
-  <div className="towbar-product-light">
-    <img
-      src="/assets/release-v2/github-setup-light.jpg"
-      alt="GitHub shows runtime App availability before an installation is connected."
-      width="3200"
-      height="1800"
-      loading="lazy"
-    />
-  </div>
-  <div className="towbar-product-dark">
-    <img
-      src="/assets/release-v2/github-setup-dark.jpg"
-      alt="GitHub shows runtime App availability before an installation is connected."
-      width="3200"
-      height="1800"
-      loading="lazy"
-    />
-  </div>
-  <p>
-    The installation action appears after the GitHub App configuration values
-    pass startup validation.
-  </p>
-</div>
+<Screenshot light="/assets/release-v2/github-setup-light.jpg" dark="/assets/release-v2/github-setup-dark.jpg" alt="GitHub shows runtime App availability before an installation is connected." caption="\n    The installation action appears after the GitHub App configuration values\n    pass startup validation.\n  " width={3200} height={1800} />
 
 After changing App permissions, approve the update in GitHub. Disconnecting removes Towbar's active installation access while leaving the runtime App identity unchanged. Use the connection status in Towbar and GitHub's webhook delivery history to diagnose access or delivery failures.
 

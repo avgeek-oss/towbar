@@ -113,7 +113,7 @@ Tightening access also hides earlier history. Removing the restriction does not 
 
 ## REST and MCP
 
-Use the [REST log endpoints](/api-reference/post_logs_query) or [MCP log tools](/docs/api/mcp-tools#centralized-logs). They support readiness, collector management, search, counts, context, and live records.
+Use the [REST log endpoints](/api-reference/post_logs_query) or [MCP log tools](/mcp-reference/overview#centralized-logs). They support readiness, collector management, search, counts, context, and live records.
 
 Collector mutations require **Idempotency-Key** in REST or **idempotencyKey** in MCP. Reuse it when retrying an uncertain result. Queries use UTC timestamps and bounded results; follow `nextCursor`, or narrow the range when results are partial. Neither interface accepts arbitrary SQL.
 

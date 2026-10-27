@@ -36,3 +36,7 @@ Read its current runtime state, health, and observation time. Then inspect the f
 For a failed health check, compare the process with `container.port` and `health` in the [manifest](/docs/services/configuration). Check the listen address, startup time, runtime secrets, and readiness response.
 
 A successful build does not prove current health. Missing measurements do not mean zero usage. Use [Scout Agent](/docs/scout) for continuous metrics and [alert rules](/docs/scout-alerts) for incident thresholds.
+
+## Investigate a change
+
+Check the latest observation time, the deployment or operation result, and logs at the first failed stage. Compare the same interval in [Performance history](/docs/operate/performance); gaps indicate missing measurements. If an alert fired, open its [incident](/docs/operate/incidents) and inspect notification delivery separately from the trigger.
