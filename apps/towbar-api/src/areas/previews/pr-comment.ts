@@ -172,6 +172,11 @@ export function combinePreviewPullRequestCommentEntries(
   skippedApps: PreviewSkippedApp[],
 ) {
   const skippedAppIds = new Set(skippedApps.map((app) => app.appId));
+  const blockedReasons = new Map(
+    skippedApps
+      .filter((app) => app.blocked)
+      .map((app) => [app.appId, app.reason]),
+  );
   const activeEnvironmentAppIds = new Set(
     environments
       .filter((environment) => environment.environmentStatus !== "deleted")
@@ -184,7 +189,15 @@ export function combinePreviewPullRequestCommentEntries(
           environment.environmentStatus !== "deleted" ||
           !skippedAppIds.has(environment.appId),
       )
-      .map(({ appId: _appId, ...environment }) => environment),
+      .map(({ appId, ...environment }) => {
+        const blockedReason =
+          environment.environmentStatus === "deleted"
+            ? undefined
+            : blockedReasons.get(appId);
+        return blockedReason
+          ? { ...environment, skippedReason: blockedReason }
+          : environment;
+      }),
     ...skippedApps
       .filter((app) => !activeEnvironmentAppIds.has(app.appId))
       .map((app) => ({
@@ -280,17 +293,21 @@ export function renderPreviewPullRequestComment(input: {
 }
 
 function previewCommentStatus(entry: PreviewPullRequestCommentEntry) {
-  if (entry.skippedReason) {
+  if (entry.skippedReason && !entry.environmentStatus) {
     return `⚪ Skipped — ${escapeMarkdownTableCell(entry.skippedReason)}`;
   }
-  return (
+  const status =
     (entry.environmentStatus
       ? environmentCommentStatuses[entry.environmentStatus]
       : undefined) ??
     (entry.deploymentState
       ? deploymentCommentStatuses[entry.deploymentState]
-      : "🟡 Preparing")
-  );
+      : "🟡 Preparing");
+  // A retained Preview keeps its status and link; the reason explains why the
+  // latest revision was not deployed to it.
+  return entry.skippedReason
+    ? `${status} · update skipped — ${escapeMarkdownTableCell(entry.skippedReason)}`
+    : status;
 }
 
 function escapeMarkdownTableCell(value: string) {

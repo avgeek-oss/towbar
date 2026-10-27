@@ -1745,7 +1745,14 @@ export const previewPullRequestReports = pgTable(
     branch: varchar("branch", { length: 255 }).notNull(),
     latestCommitSha: varchar("latest_commit_sha", { length: 64 }).notNull(),
     skippedApps: jsonb("skipped_apps")
-      .$type<Array<{ appId: string; appName: string; reason: string }>>()
+      .$type<
+        Array<{
+          appId: string;
+          appName: string;
+          reason: string;
+          blocked?: boolean;
+        }>
+      >()
       .default([])
       .notNull(),
     commentDeliveryStatus: previewReportDeliveryStatusEnum(

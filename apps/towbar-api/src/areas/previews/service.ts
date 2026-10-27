@@ -342,6 +342,7 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
         appId: candidate.appId,
         appName: candidate.appName,
         reason,
+        blocked: true,
       });
     } else {
       admissible.push(candidate);
