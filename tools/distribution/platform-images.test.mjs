@@ -65,7 +65,11 @@ test("release builds use matching native runners and publish only after platform
       "utf8",
     ),
   );
-  const { build, "merge-images": merge, manifest, publish } = workflow.jobs;
+  const {
+    build,
+    manifest,
+    "local-installation-smoke": installation,
+  } = workflow.jobs;
   assert.deepEqual(build.strategy.matrix.platform, ["amd64", "arm64"]);
   assert.equal(
     build.strategy.matrix.include.find((entry) => entry.platform === "arm64")
@@ -78,7 +82,13 @@ test("release builds use matching native runners and publish only after platform
     "ubuntu-24.04",
   );
   assert(!build.steps.some((step) => step.uses?.includes("setup-qemu")));
-  assert.deepEqual(merge.needs, ["prepare", "build"]);
-  assert.deepEqual(manifest.needs, ["prepare", "merge-images"]);
-  assert(publish.needs.includes("local-installation-smoke"));
+  assert.deepEqual(manifest.needs, ["prepare", "build"]);
+  assert.deepEqual(installation.needs, ["prepare", "manifest"]);
+  const step = (name) =>
+    installation.steps.findIndex((candidate) => candidate.name === name);
+  const promote = step("Publish the verified GitHub release");
+  assert(step("Install the candidate release locally") >= 0);
+  assert(promote > step("Install the candidate release locally"));
+  assert(promote > step("Prove restart reuses the running images"));
+  assert.equal(installation.steps[promote].if, undefined);
 });
