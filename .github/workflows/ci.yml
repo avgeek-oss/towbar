@@ -22,9 +22,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      # v6.5.0
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version: 1.27.3
           cache: true
@@ -42,41 +41,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      # v7.0.1
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      # v7.0.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-      # v4.3.0
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/.npm/_npx
-          key: npx-mint-4.2.851-${{ runner.os }}
+          key: npx-mint-4.2.986-${{ runner.os }}
       - name: Warm the Mintlify CLI
-        run: npx --yes mint@4.2.851 --version
+        run: npx --yes mint@4.2.986 --version
         env:
           PUPPETEER_SKIP_DOWNLOAD: "1"
       - name: Validate Mintlify configuration
-        run: npx --yes mint@4.2.851 validate
+        run: npx --yes mint@4.2.986 validate
         working-directory: docs
       - name: Check Mintlify links and redirects
-        run: npx --yes mint@4.2.851 broken-links --check-anchors --check-redirects
+        run: npx --yes mint@4.2.986 broken-links --check-anchors --check-redirects
         working-directory: docs
       - name: Audit Mintlify accessibility
-        run: npx --yes mint@4.2.851 a11y
+        run: npx --yes mint@4.2.986 a11y
         working-directory: docs
 
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      # v7.0.1
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      # v6.1.0
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
-      # v7.0.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -126,12 +119,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      # v7.0.1
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      # v6.1.0
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
-      # v7.0.0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -145,8 +135,7 @@ jobs:
       - name: Date the scanner database cache
         id: trivy-cache
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
-      # v4.3.0
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: tmp/trivy-cache/db
           key: trivy-db-${{ runner.os }}-${{ steps.trivy-cache.outputs.date }}
@@ -167,10 +156,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      # v7.0.1
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -181,8 +169,7 @@ jobs:
       - name: Date the scanner database cache
         id: trivy-cache
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
-      # v4.3.0
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: tmp/trivy-cache/db
           key: trivy-db-${{ runner.os }}-${{ steps.trivy-cache.outputs.date }}
@@ -199,7 +186,7 @@ jobs:
         run: sudo chown -R "$(id -u):$(id -g)" tmp/trivy-cache
       - name: Preserve production verification evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: verification-production
           path: tmp/verification/
@@ -214,9 +201,9 @@ jobs:
       matrix:
         group: [api, docker, app, resources, scanner]
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -226,8 +213,7 @@ jobs:
         id: trivy-cache
         if: matrix.group == 'scanner'
         run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
-      # v4.3.0
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         if: matrix.group == 'scanner'
         with:
           path: tmp/trivy-cache/db
@@ -245,7 +231,7 @@ jobs:
         run: sudo chown -R "$(id -u):$(id -g)" tmp/trivy-cache
       - name: Preserve integration verification evidence
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: verification-${{ matrix.group }}
           path: tmp/verification/
@@ -255,8 +241,8 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
       - run: node --test tools/demo-deploy.test.mjs
