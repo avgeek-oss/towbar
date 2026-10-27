@@ -435,6 +435,7 @@ jobs:
           archives="$RUNNER_TEMP/rehearsal-images"
           mkdir -p "$archives"
           docker buildx bake --file docker-bake.hcl --progress plain \
+            --allow "fs.write=$archives" \
             --set "api.output=type=oci,dest=$archives/api.tar" \
             --set "worker.output=type=oci,dest=$archives/worker.tar" \
             --set "web-app.output=type=oci,dest=$archives/web-app.tar" \
