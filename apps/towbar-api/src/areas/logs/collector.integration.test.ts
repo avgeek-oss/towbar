@@ -44,7 +44,7 @@ async function until(check: () => Promise<boolean>, description: string) {
   const deadline = Date.now() + 45000;
   while (Date.now() < deadline) {
     if (await check()) return;
-    await delay(500);
+    await delay(100);
   }
   throw new Error(`Timed out: ${description}`);
 }
@@ -343,10 +343,16 @@ void test(
         205,
         "checkpoint restart must not duplicate prior records",
       );
-      for (let i = 0; i < 24; i++) {
-        await emit(`rotation-${i} ${"x".repeat(4000)}`);
-        await delay(100);
-      }
+      // The same 24 lines, 100 ms apart, as one exec instead of 24 round trips.
+      await docker(
+        "exec",
+        sourceName,
+        "sh",
+        "-c",
+        'exec 1>/proc/1/fd/1; i=0; while test "$i" -lt 24; do printf "rotation-%s %s\\n" "$i" "$1"; i=$((i+1)); sleep 0.1; done',
+        "sh",
+        "x".repeat(4000),
+      );
       await emit("after rotation");
       await until(
         async () =>
