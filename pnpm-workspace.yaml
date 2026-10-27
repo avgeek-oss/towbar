@@ -4,6 +4,8 @@ packages:
   - docs
 
 overrides:
+  # One Node type definition for the Node 24 runtime, including transitive ones.
+  "@types/node": 24.19.2
   "@simplewebauthn/server@<=13.3.1": 13.3.2
   "js-yaml@>=4.0.0 <4.3.2": 4.3.2
   "@esbuild-kit/core-utils>esbuild": 0.28.2
