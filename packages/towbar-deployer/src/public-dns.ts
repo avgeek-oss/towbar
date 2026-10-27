@@ -13,6 +13,7 @@ type SystemLookup = (
 
 type AuthoritativeDns = {
   resolveNs: (zone: string) => Promise<string[]>;
+  isAlias: (name: string) => Promise<boolean>;
   lookupAll: (hostname: string) => Promise<LookupAddress[]>;
   resolveAt: (servers: string[], hostname: string) => Promise<LookupAddress[]>;
   resolveCnameAt: (servers: string[], hostname: string) => Promise<string[]>;
@@ -25,6 +26,11 @@ const systemLookup: SystemLookup = (hostname, callback) =>
 
 const nodeAuthoritativeDns: AuthoritativeDns = {
   resolveNs: (zone) => dns.resolveNs(zone),
+  isAlias: (name) =>
+    dns.resolveCname(name).then(
+      (targets) => targets.length > 0,
+      () => false,
+    ),
   lookupAll: (hostname) => dns.lookup(hostname, { all: true }),
   async resolveAt(servers, hostname) {
     const resolver = new dns.Resolver({ timeout: 3_000, tries: 2 });
@@ -119,7 +125,9 @@ async function authoritativeServers(
   for (let index = 0; index < labels.length - 1; index += 1) {
     const zone = labels.slice(index).join(".");
     const nameservers = await resolver.resolveNs(zone).catch(() => []);
-    if (!nameservers.length) continue;
+    // A recursive NS query follows a CNAME to its target's zone. An alias is
+    // never a zone apex, so its parent zone holds the record instead.
+    if (!nameservers.length || (await resolver.isAlias(zone))) continue;
     const servers = (
       await Promise.all(
         nameservers.map((nameserver) =>

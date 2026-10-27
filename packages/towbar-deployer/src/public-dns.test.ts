@@ -119,6 +119,7 @@ void test("asks the closest enclosing zone's nameservers", async () => {
         return Promise.resolve([{ address: "198.51.100.7", family: 4 }]);
       },
       resolveCnameAt: () => Promise.reject(new Error("unexpected alias")),
+      isAlias: () => Promise.resolve(false),
     },
   );
   assert.deepEqual(zones, ["app-pr-15-abc.example.com", "example.com"]);
@@ -143,6 +144,7 @@ void test("stops above the top-level domain", async () => {
       lookupAll: () => Promise.resolve([]),
       resolveAt: () => Promise.resolve([]),
       resolveCnameAt: () => Promise.resolve([]),
+      isAlias: () => Promise.resolve(false),
     },
   );
   assert.deepEqual(zones, ["missing.example.com", "example.com"]);
@@ -154,13 +156,14 @@ function aliasZones(records: {
   aliases: Record<string, string>;
 }) {
   const queried: string[] = [];
+  const zoneApexes = ["example.com", "edge.example.net"];
   const dns = {
-    resolveNs: (zone: string) =>
-      Promise.resolve(
-        ["example.com", "edge.example.net"].includes(zone)
-          ? [`ns.${zone}`]
-          : [],
-      ),
+    // Like a recursive resolver, follow an alias to its target's NS records.
+    resolveNs: (zone: string) => {
+      const apex = records.aliases[zone]?.toLowerCase() ?? zone;
+      return Promise.resolve(zoneApexes.includes(apex) ? [`ns.${apex}`] : []);
+    },
+    isAlias: (name: string) => Promise.resolve(name in records.aliases),
     lookupAll: (nameserver: string) =>
       Promise.resolve([
         {
@@ -230,4 +233,20 @@ void test("stops on alias loops and overly long alias chains", async () => {
     [],
   );
   assert.equal(chain.queried.length, 8);
+});
+
+void test("ignores nameservers reached through an alias to another zone's apex", async () => {
+  const { dns, queried } = aliasZones({
+    aliases: { "preview.example.com": "edge.example.net" },
+    addresses: { "edge.example.net": "198.51.100.11" },
+  });
+  const addresses = await resolveFromAuthoritativeNameservers(
+    "preview.example.com",
+    dns,
+  );
+  assert.deepEqual(addresses, [{ address: "198.51.100.11", family: 4 }]);
+  assert.deepEqual(queried, [
+    "192.0.2.53 preview.example.com",
+    "192.0.2.63 edge.example.net",
+  ]);
 });
