@@ -140,12 +140,15 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Some suites import their own package's dist/ (for example
+      # towbar-database's upgrade tests), which turbo's test task does not
+      # build; the build also fills turbo's cache for the test task.
+      - run: pnpm build
       - run: pnpm test
       - name: Verify Trivy archive permissions as a non-root Docker user
         run: pnpm --filter towbar-worker exec tsx --test src/vulnerability-scanners/trivy.docker.test.ts
         env:
           TOWBAR_DOCKER_TESTS: "1"
-      - run: pnpm build
 
   verify:
     if: always()
