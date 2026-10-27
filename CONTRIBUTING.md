@@ -39,8 +39,8 @@ pnpm verify
 
 Prefer the narrowest package check while iterating. Run the root verification
 before opening a pull request. Merging to `main` requires the `verify` check,
-which passes only when every CI job passed: package checks and tests,
-documentation, monitoring-agent, Compose, integration, and public-demo. The installer manages operator configuration in `/etc/towbar/config.yml`.
+which passes only when every CI job passed: checks, tests, docs,
+monitoring-agent, production, integration, and public-demo. The installer manages operator configuration in `/etc/towbar/config.yml`.
 For contributor-only Compose checks, generate disposable YAML with Python 3
 and PyYAML, then render the container environment:
 
