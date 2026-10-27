@@ -169,7 +169,14 @@ try {
       TOWBAR_TEST_BACKUP: "1",
     });
   }
-  if (group === "scanner") await lifecycle("scanner", "trivy-lifecycle");
+  if (group === "scanner")
+    await lifecycle(
+      "scanner",
+      "trivy-lifecycle",
+      process.env.TOWBAR_TRIVY_CACHE_DIR
+        ? { TOWBAR_TRIVY_CACHE_DIR: process.env.TOWBAR_TRIVY_CACHE_DIR }
+        : {},
+    );
 } catch (error) {
   console.error(error);
   process.exitCode = 1;

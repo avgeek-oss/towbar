@@ -18,8 +18,13 @@ test("image gate checks every artifact and rejects findings or scanner errors", 
       return "";
     },
     async step(name, command, args) {
-      checked.push(args.at(-1));
       assert.equal(command, "docker");
+      if (name === "image-security-db") {
+        assert.ok(args.includes("--download-db-only"));
+        return;
+      }
+      checked.push(args.at(-1));
+      assert.ok(args.includes("--skip-db-update"));
       assert.ok(
         args.includes(
           "towbar-image-scan-cache-isolated-run:/root/.cache/trivy",
@@ -59,17 +64,29 @@ test("interrupted scanner cleanup is limited to the named run-owned container", 
     },
   };
   await assert.rejects(verifyProductionImages(run, { api: images.api }));
+  // Both database attempts time out, so no scan starts.
+  for (const index of [0, 2]) {
+    assert.ok(
+      captured[index].args.includes(
+        "name=^/towbar-image-scan-isolated-run-db$",
+      ),
+    );
+    assert.ok(
+      captured[index].args.includes(
+        "label=com.towbar.verification.run=isolated-run",
+      ),
+    );
+    assert.deepEqual(captured[index + 1], {
+      command: "docker",
+      args: ["rm", "--force", "towbar-image-scan-isolated-run-db"],
+    });
+  }
   assert.ok(
-    captured[0].args.includes("name=^/towbar-image-scan-isolated-run-api$"),
+    !captured.some(({ args }) =>
+      args.includes("name=^/towbar-image-scan-isolated-run-api$"),
+    ),
   );
-  assert.ok(
-    captured[0].args.includes("label=com.towbar.verification.run=isolated-run"),
-  );
-  assert.deepEqual(captured[1], {
-    command: "docker",
-    args: ["rm", "--force", "towbar-image-scan-isolated-run-api"],
-  });
-  assert.deepEqual(captured[2], {
+  assert.deepEqual(captured[4], {
     command: "docker",
     args: [
       "volume",
@@ -79,7 +96,7 @@ test("interrupted scanner cleanup is limited to the named run-owned container", 
       "name=^towbar-image-scan-cache-isolated-run$",
     ],
   });
-  assert.deepEqual(captured[3], {
+  assert.deepEqual(captured[5], {
     command: "docker",
     args: ["volume", "rm", "towbar-image-scan-cache-isolated-run"],
   });
@@ -105,4 +122,57 @@ test("a host cache directory keeps the scanner database between runs", async () 
     cacheDirectory: "/var/cache/trivy",
   });
   assert.ok(!captured.some((args) => args[0] === "volume"));
+});
+
+test("a failed mirror download retries GHCR before the scans run", async () => {
+  const steps = [];
+  const run = {
+    id: "isolated-run",
+    directory: "/tmp/isolated-run",
+    async step(name, command, args) {
+      steps.push({ name, args });
+      if (name === "image-security-db") throw new Error("mirror 404");
+    },
+    async capture() {
+      return "";
+    },
+  };
+  await verifyProductionImages(run, images);
+  assert.deepEqual(
+    steps.map(({ name }) => name),
+    [
+      "image-security-db",
+      "image-security-db-ghcr",
+      "image-security-api",
+      "image-security-worker",
+      "image-security-web-app",
+    ],
+  );
+  assert.ok(!steps[0].args.includes("--db-repository"));
+  assert.equal(
+    steps[1].args[steps[1].args.indexOf("--db-repository") + 1],
+    "ghcr.io/aquasec/trivy-db:2",
+  );
+});
+
+test("without a database from either source the gate fails without scanning", async () => {
+  const steps = [];
+  const errors = [new Error("mirror 404"), new Error("ghcr unavailable")];
+  const run = {
+    id: "isolated-run",
+    directory: "/tmp/isolated-run",
+    async step(name) {
+      steps.push(name);
+      throw errors[steps.length - 1];
+    },
+    async capture() {
+      return "";
+    },
+  };
+  await assert.rejects(verifyProductionImages(run, images), (error) => {
+    assert.ok(error instanceof AggregateError);
+    assert.deepEqual(error.errors, errors);
+    return true;
+  });
+  assert.deepEqual(steps, ["image-security-db", "image-security-db-ghcr"]);
 });
