@@ -27,7 +27,10 @@ import {
   repositoryProviderClient,
 } from "../sources/repository-provider.js";
 import { withPreviewLifecycleLock } from "./lifecycle-lock.js";
-import { samePreviewPullRequestRevision } from "./pull-request.js";
+import {
+  missingPreviewSecretsReason,
+  samePreviewPullRequestRevision,
+} from "./pull-request.js";
 import { selectObsoletePreviewApps } from "./cleanup-selection.js";
 import { resolvePreviewConfiguration } from "./configuration.js";
 import { assertRequiredInstanceSecrets } from "../apps/secrets.js";
@@ -51,6 +54,7 @@ import {
 import { previewPullRequestDisposition } from "./pull-request.js";
 import { publishPreviewPullRequestComment } from "./pr-comment.js";
 import {
+  type PreviewSkippedApp,
   closePreviewPullRequestReport,
   recordPreviewPullRequestPlan,
 } from "./reporting-state.js";
@@ -320,18 +324,44 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
   if (!samePreviewPullRequestRevision(pullRequest, latestPullRequest)) {
     return { cleanupIds: [], deploymentIds: [], retry: true };
   }
-  await recordPreviewPullRequestPlan({
-    branch: pullRequest.headBranch,
-    hasDeployments: relevant.length > 0,
-    latestCommitSha: pullRequest.headSha,
-    pullRequestNumber: pullRequest.number,
-    skippedApps: eligible
-      .filter((candidate) => !relevantAppIds.has(candidate.appId))
-      .map((candidate) => ({
+  // Missing Preview secrets need operator action, so report them on the pull
+  // request instead of retrying until the workflow gives up.
+  const admissible: typeof relevant = [];
+  const blocked: PreviewSkippedApp[] = [];
+  for (const candidate of relevant) {
+    const reason = await assertRequiredInstanceSecrets({
+      appId: candidate.appId,
+      config: candidate.config,
+      sourceId: event.sourceId,
+      workspaceId: source.workspaceId,
+      preview: true,
+      declarations: candidate.requiredSecrets,
+    }).then(() => null, missingPreviewSecretsReason);
+    if (reason) {
+      blocked.push({
         appId: candidate.appId,
         appName: candidate.appName,
-        reason: "no matching changes",
-      })),
+        reason,
+      });
+    } else {
+      admissible.push(candidate);
+    }
+  }
+  await recordPreviewPullRequestPlan({
+    branch: pullRequest.headBranch,
+    hasDeployments: admissible.length > 0,
+    latestCommitSha: pullRequest.headSha,
+    pullRequestNumber: pullRequest.number,
+    skippedApps: [
+      ...eligible
+        .filter((candidate) => !relevantAppIds.has(candidate.appId))
+        .map((candidate) => ({
+          appId: candidate.appId,
+          appName: candidate.appName,
+          reason: "no matching changes",
+        })),
+      ...blocked,
+    ],
     sourceId: event.sourceId,
     workspaceId: source.workspaceId,
   });
@@ -368,29 +398,21 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
     pullRequestNumber: pullRequest.number,
     sourceId: event.sourceId,
   });
-  if (relevant.length === 0) {
+  if (admissible.length === 0) {
     await publishPreviewPullRequestComment({
       pullRequestNumber: pullRequest.number,
       sourceId: event.sourceId,
     }).catch(() => undefined);
     return { ...cleanup, deploymentIds: [], retry: false };
   }
-  const repositoryTree = relevant.some(
+  const repositoryTree = admissible.some(
     (candidate) => candidate.config.deploymentInputs.length > 0,
   )
     ? await fetchRepositoryTree(providerConnection, pullRequest.headSha)
     : undefined;
 
   const admissions = [];
-  for (const candidate of relevant) {
-    await assertRequiredInstanceSecrets({
-      appId: candidate.appId,
-      config: candidate.config,
-      sourceId: event.sourceId,
-      workspaceId: source.workspaceId,
-      preview: true,
-      declarations: candidate.requiredSecrets,
-    });
+  for (const candidate of admissible) {
     const hostname = previewHostname({
       appId: candidate.appId,
       domain: candidate.config.preview!.domain,
