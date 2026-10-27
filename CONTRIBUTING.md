@@ -32,6 +32,8 @@ The shared packages are public on npmjs.org. Local installs, CI and source Docke
 ## Local checks
 
 ```bash
+# Node 26 no longer bundles Corepack.
+npm install --global corepack@0.36.0
 corepack enable
 pnpm install --frozen-lockfile
 pnpm verify

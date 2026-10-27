@@ -16,7 +16,7 @@ RUN turbo prune towbar-worker --docker
 
 FROM base AS installer
 WORKDIR /repo
-RUN corepack enable pnpm
+RUN npm install --global corepack@0.36.0 && corepack enable pnpm
 COPY --from=pruner /repo/out/json/ ./
 COPY --from=pruner /repo/.npmrc ./.npmrc
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \

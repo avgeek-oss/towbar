@@ -8,7 +8,7 @@ COPY . .
 RUN turbo prune towbar-web-app --docker
 FROM base AS installer
 WORKDIR /repo
-RUN apk add --no-cache libc6-compat && corepack enable pnpm
+RUN apk add --no-cache libc6-compat && npm install --global corepack@0.36.0 && corepack enable pnpm
 COPY --from=pruner /repo/out/json/ ./
 COPY --from=pruner /repo/.npmrc ./.npmrc
 RUN --mount=type=cache,id=towbar-pnpm-store,target=/pnpm/store,sharing=locked \
