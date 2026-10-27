@@ -112,6 +112,13 @@ build status, Preview URL, and deployment details link. A hidden stable marker
 lets Towbar update the same GitHub comment instead of posting a new comment for
 each state change.
 
+If a Service's required Preview secrets are missing, Towbar skips that Service
+and shows the reason in the pull request comment. Other Services in the same
+pull request still deploy. An existing Preview stays online, and its entry keeps
+its status and URL with a note that the update was skipped. Save the Preview
+secrets in Towbar, then use **Sync now** to deploy the pull request again without
+a new commit.
+
 Temporary failures delivering GitHub statuses or comments are retried automatically in the background. Towbar publishes the latest Preview state, respects GitHub rate limits, and reuses existing deployments and comments. Reporting delays do not restart or stop a Preview. Delivery errors remain available through the GitHub integration API for diagnostics.
 
 ## GitLab reporting
