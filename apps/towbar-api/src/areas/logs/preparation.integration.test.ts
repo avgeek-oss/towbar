@@ -23,7 +23,9 @@ import {
   recoverLogCollectorOperations,
 } from "./lifecycle.js";
 
-const databaseUrl = process.env.TOWBAR_TEST_DATABASE_URL;
+// A dedicated database: recoverLogCollectorOperations() below reads every
+// queued collector, including those of suites running alongside this one.
+const databaseUrl = process.env.TOWBAR_LOG_PREPARATION_TEST_DATABASE_URL;
 const clickhouseUrl = process.env.TOWBAR_TEST_CLICKHOUSE_URL;
 void test(
   "server setup installs a scoped collector before preparation completes",
