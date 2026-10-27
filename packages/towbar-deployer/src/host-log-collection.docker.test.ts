@@ -31,22 +31,14 @@ void test(
     const directory = await mkdtemp(
       path.join(tmpdir(), "towbar-host-logs-docker-"),
     );
-    const docker = async (...args: string[]) => {
-      const probeStart = Date.now();
-      const output = (
+    const docker = async (...args: string[]) =>
+      (
         await execute("docker", args, {
           encoding: "utf8",
           timeout: 120_000,
           maxBuffer: 4 * 1024 * 1024,
         })
       ).stdout.trim();
-      const probeMs = Date.now() - probeStart;
-      if (probeMs >= 500)
-        console.log(
-          `PROBE docker ${probeMs}ms ${args.slice(0, 6).join(" ").slice(0, 120)}`,
-        );
-      return output;
-    };
     const remote = (...args: string[]) => docker("exec", target, ...args);
     const remoteAsDeploy = (...args: string[]) =>
       docker("exec", "--user", "deploy", target, ...args);
@@ -147,9 +139,11 @@ void test(
       assert(ready, "Disposable Linux Docker target did not become ready");
       await remote("mkdir", "-p", "/test/secrets/runtime");
       const dockerfile = path.join(directory, "Dockerfile");
+      // httpd as PID 1 ignores SIGTERM, so every stop and restart of the
+      // fixture waited for Docker's 10 s grace period; the shell exits on it.
       await writeFile(
         dockerfile,
-        'FROM alpine:3.22\nRUN apk add --no-cache busybox-extras && mkdir -p /var/lib/fluent-bit /www/api/v1 && echo ok > /www/api/v1/health\nUSER 1000:1000\nCMD ["httpd", "-f", "-p", "2020", "-h", "/www"]\n',
+        'FROM alpine:3.22\nRUN apk add --no-cache busybox-extras && mkdir -p /var/lib/fluent-bit /www/api/v1 && echo ok > /www/api/v1/health\nUSER 1000:1000\nCMD ["sh","-c","trap \'exit 0\' TERM; httpd -f -p 2020 -h /www & wait"]\n',
       );
       await docker("cp", dockerfile, `${target}:/test/Dockerfile`);
       await remote("docker", "build", "-q", "-t", "collector:test", "/test");
