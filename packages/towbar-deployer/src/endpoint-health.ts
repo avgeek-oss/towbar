@@ -1,6 +1,21 @@
+import { Agent, fetch as networkFetch } from "undici";
+
 import { CommandError, runCommand } from "./process.js";
+import { freshPublicLookup } from "./public-dns.js";
 
 const originHealthAttempts = 90;
+const publicEndpointAgent = new Agent({
+  connect: { lookup: freshPublicLookup() },
+});
+
+/** Public HTTPS requests; replaceable in tests. */
+export const publicEndpointHttp = {
+  fetch: (
+    url: string,
+    init: { redirect: "manual"; signal: AbortSignal },
+  ): Promise<{ ok: boolean; status: number }> =>
+    networkFetch(url, { ...init, dispatcher: publicEndpointAgent }),
+};
 
 export async function checkPublicEndpoint(
   domain: string,
@@ -13,14 +28,16 @@ export async function checkPublicEndpoint(
     const requestSignal = signal
       ? AbortSignal.any([signal, AbortSignal.timeout(10_000)])
       : AbortSignal.timeout(10_000);
-    const response = await fetch(`https://${domain}${healthPath}`, {
-      redirect: "manual",
-      signal: requestSignal,
-    }).catch((error: unknown) => {
-      if (signal?.aborted) throw signal.reason;
-      lastError = error;
-      return null;
-    });
+    const response = await publicEndpointHttp
+      .fetch(`https://${domain}${healthPath}`, {
+        redirect: "manual",
+        signal: requestSignal,
+      })
+      .catch((error: unknown) => {
+        if (signal?.aborted) throw signal.reason;
+        lastError = error;
+        return null;
+      });
     if (response?.ok) return;
     lastStatus = response?.status ?? 0;
     if (response) lastError = undefined;
