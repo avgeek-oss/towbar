@@ -65,6 +65,9 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@workspace/typescript-config": "workspace:*",
+    "eslint-plugin-turbo": "2.11.7",
+    "oxlint": "1.89.0",
+    "oxlint-tsgolint": "7.0.2005",
     "prettier": "catalog:",
     "turbo": "2.11.7",
     "typescript": "catalog:",

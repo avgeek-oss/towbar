@@ -9,7 +9,12 @@
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/turbo.json"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/turbo.json",
+        "$TURBO_ROOT$/.oxlintrc.json",
+        "$TURBO_ROOT$/tools/oxlint/**"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^build"]

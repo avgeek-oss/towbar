@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --fix --max-warnings 0",
+    "lint": "oxlint -c ../../.oxlintrc.json --type-aware --report-unused-disable-directives --deny-warnings",
+    "lint:fix": "oxlint -c ../../.oxlintrc.json --type-aware --report-unused-disable-directives --deny-warnings --fix",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
@@ -26,9 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@workspace/eslint-config": "workspace:^",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "catalog:",
     "tsx": "^4.23.15",
     "typescript": "catalog:"
   }

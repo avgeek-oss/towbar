@@ -7,6 +7,7 @@ import {
 } from "@avgeek-oss/design-system/patterns/auth/identity-auth-frame";
 import { TowbarLockup } from "@workspace/towbar-web-ui/brand";
 import { Button, ButtonLink } from "@avgeek-oss/design-system/buttons/button";
+import Link from "next/link";
 import { Alert } from "@avgeek-oss/design-system/feedback/alert";
 import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
 
@@ -40,9 +41,9 @@ export function DemoWelcome() {
     <main>
       <IdentityAuthFrame>
         <div className="content-grid">
-          <a aria-label="Towbar demo" className="w-fit" href="/demo">
+          <Link aria-label="Towbar demo" className="w-fit" href="/demo">
             <TowbarLockup />
-          </a>
+          </Link>
           <IdentityAuthHeading
             title="Explore Towbar Control Plane"
             titleElementType="h1"
