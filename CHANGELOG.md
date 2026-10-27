@@ -5,9 +5,17 @@ All notable changes to Towbar are documented in this file. This project follows
 
 ## [Unreleased]
 
+## [2.0.63] - 2026-10-27
+
 ### Fixed
 
 - Resolve a newly created public hostname through its authoritative nameservers when the system resolver reports it missing, so a cached negative DNS answer no longer fails the public HTTPS check for new Previews and domains.
+- Wait for PostgreSQL's final TCP listener before restoring backups and validating the restored database.
+
+### Changed
+
+- Restructure documentation and the footer to match the shared OSS documentation pattern.
+- Cache the scanner database in every CI job and retry GHCR when its mirror is unavailable.
 
 ## [2.0.62] - 2026-10-27
 
