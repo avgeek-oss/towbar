@@ -27,6 +27,22 @@ updates:
     ignore:
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+  - package-ecosystem: docker-compose
+    directories:
+      - /
+      - /infra/demo
+      - /examples/platform-modes/compose
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
+    ignore:
+      # A major version of PostgreSQL, Temporal, Caddy or Redis needs a
+      # planned migration, not a routine bump.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: gomod
+    directory: /apps/towbar-monitoring-agent
+    patterns: ["*"]
+    multi-ecosystem-group: dependencies
   - package-ecosystem: github-actions
     directory: /
     patterns: ["*"]

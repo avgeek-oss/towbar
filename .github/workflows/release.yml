@@ -29,6 +29,7 @@ concurrency:
 jobs:
   cut:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -44,7 +45,11 @@ jobs:
           else
             echo "**Release.** If every check passes, this run tags main and dispatches Publish release images." >> "$GITHUB_STEP_SUMMARY"
           fi
+      # No persisted credentials: only the tag push and removal below need
+      # them, and they pass GH_TOKEN to that one git command.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
@@ -144,17 +149,29 @@ jobs:
             echo "::error::main moved to ${live:0:7} while this run checked ${GITHUB_SHA:0:7}. Nothing was tagged; run again on the new head."
             exit 1
           fi
+          git_push() {
+            local basic
+            basic="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+            echo "::add-mask::$basic"
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $basic" push origin "$@"
+          }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" "$GITHUB_SHA" -m "Towbar $TAG"
-          git push origin "refs/tags/$TAG"
+          git_push "refs/tags/$TAG"
       - name: Dispatch Publish release images
         if: ${{ !inputs.dry_run }}
         run: |
           set -euo pipefail
+          git_push() {
+            local basic
+            basic="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+            echo "::add-mask::$basic"
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $basic" push origin "$@"
+          }
           live=$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)
           if [ "$live" != "$GITHUB_SHA" ]; then
-            git push origin ":refs/tags/$TAG"
+            git_push ":refs/tags/$TAG"
             echo "::error::main moved to ${live:0:7} after $TAG was created. The publisher requires the tag on the head of main, so the tag was removed again. Run Cut release again on the new head."
             exit 1
           fi

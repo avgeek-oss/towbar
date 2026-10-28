@@ -15,7 +15,7 @@ x-backend-environment: &backend-environment
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.11-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
     restart: unless-stopped
     environment:
       POSTGRES_DB: towbar
@@ -95,7 +95,7 @@ services:
     networks: [platform]
 
   temporal-ui:
-    image: temporalio/ui:2.34.0
+    image: temporalio/ui:2.34.0@sha256:cb17ea423d76a8a19a269d0bcd81fc12eee1f6365acd2a56b590dafb35696a95
     restart: unless-stopped
     depends_on:
       temporal:

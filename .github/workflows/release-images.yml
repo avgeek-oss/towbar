@@ -18,8 +18,10 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
+      checks: read
     outputs:
       commit: ${{ steps.release.outputs.commit }}
       created: ${{ steps.release.outputs.created }}
@@ -30,6 +32,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - id: release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,6 +63,35 @@ jobs:
             echo "version=$version"
             echo "registry=$(jq -r .imageRegistry repository.json)"
           } >>"$GITHUB_OUTPUT"
+      # This workflow can also be started by hand, so it checks CI itself
+      # instead of trusting Cut release: the newest `verify` run for the
+      # exact commit must have passed. A pending run is waited for; a failed
+      # one stops the release at once.
+      - name: Require a passing verify for the exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_COMMIT: ${{ steps.release.outputs.commit }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..12}; do
+            gh api "repos/$GH_REPO/commits/$RELEASE_COMMIT/check-runs?filter=all&per_page=100" --paginate --slurp >"$RUNNER_TEMP/release-checks.json"
+            status=0
+            node tools/distribution/verified-commit.mjs --commit "$RELEASE_COMMIT" --checks "$RUNNER_TEMP/release-checks.json" || status=$?
+            case "$status" in
+              0) exit 0 ;;
+              75) ;;
+              *)
+                echo "::error::The exact release commit $RELEASE_COMMIT did not pass verify. Fix main before releasing."
+                exit 1
+                ;;
+            esac
+            if [ "$attempt" -eq 12 ]; then
+              echo "::error::verify has not finished for $RELEASE_COMMIT. Wait for CI, then run this again."
+              exit 1
+            fi
+            sleep 15
+          done
 
   build:
     needs: prepare
@@ -81,6 +113,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.prepare.outputs.commit }}
+          persist-credentials: false
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
         with:
           cleanup: false
@@ -121,17 +154,21 @@ jobs:
           path: "*-${{ matrix.platform }}.json"
           retention-days: 1
 
+  # Pushes the multi-platform images. It holds packages: write but not
+  # contents: write, and it installs no packages: the scripts it runs are
+  # Towbar's own dependency-free tools.
   manifest:
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
-      contents: write
+      contents: read
       packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.prepare.outputs.commit }}
-          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
@@ -190,6 +227,32 @@ jobs:
               exit 1
             fi
           done < <(jq -r '.images[]' towbar-images.json)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-image-manifest
+          path: towbar-images.json
+          retention-days: 1
+
+  # Creates the draft release and attaches its assets. It holds
+  # contents: write and runs only gh and Towbar's dependency-free tools.
+  release-assets:
+    needs: [prepare, manifest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-image-manifest
       - name: Prepare draft release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -216,24 +279,10 @@ jobs:
           gh release view "$RELEASE_TAG" --json body --jq .body > release-notes.md
           node tools/distribution/assemble.mjs release-artifacts "$RELEASE_TAG" "$RELEASE_COMMIT" towbar-images.json release-notes.md
           gh release upload "$RELEASE_TAG" release-artifacts/* --clobber
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: release-distribution-artifacts
-          path: release-artifacts/
-          retention-days: 14
-
-  local-installation-smoke:
-    needs: [prepare, manifest]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: release-distribution-artifacts
-          path: ${{ runner.temp }}/release-artifacts
+      # Draft assets are visible only with write access, so they are compared
+      # here; the installation smoke then runs on this verified copy.
       - name: Verify draft release assets
+        id: verify-draft
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -241,7 +290,37 @@ jobs:
         run: |
           set -euo pipefail
           gh release download "$RELEASE_TAG" --dir "$RUNNER_TEMP/github-assets"
-          diff --recursive "$RUNNER_TEMP/release-artifacts" "$RUNNER_TEMP/github-assets"
+          diff --recursive release-artifacts "$RUNNER_TEMP/github-assets"
+          cd "$RUNNER_TEMP/github-assets"
+          sha256sum --check SHA256SUMS
+      - name: Withdraw a release whose assets do not match
+        if: failure() && steps.verify-draft.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: gh release delete "$RELEASE_TAG" --yes
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-distribution-artifacts
+          path: release-artifacts/
+          retention-days: 14
+
+  # Runs the downloaded installer with sudo, so it holds no write scope.
+  # Withdrawal and publication happen in the jobs after it.
+  local-installation-smoke:
+    needs: [prepare, release-assets]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-distribution-artifacts
+          path: ${{ runner.temp }}/github-assets
+      - name: Check the release assets
+        run: |
           cd "$RUNNER_TEMP/github-assets"
           sha256sum --check SHA256SUMS
       - name: Install the candidate release locally
@@ -291,14 +370,6 @@ jobs:
           test "$after" = "$before"
           test "$(sudo find /opt/towbar/releases -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 1
 
-      - name: Withdraw a release that fails installation
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-        run: gh release delete "$RELEASE_TAG" --yes
-
       - name: Collect service evidence
         if: always()
         run: |
@@ -329,11 +400,35 @@ jobs:
           path: ${{ runner.temp }}/towbar-local-installation/
           retention-days: 14
 
-      # Promotion. These steps have no if:, so they run only when every step
-      # above, including the installation, succeeded.
+  # A failed installation withdraws the draft so the installer cannot select
+  # it. Release tag names cannot be reused; fix it under a new patch version.
+  withdraw:
+    needs: [prepare, local-installation-smoke]
+    if: always() && needs.local-installation-smoke.result == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Withdraw a release that fails installation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+        run: gh release delete "$RELEASE_TAG" --yes
+
+  # Promotion runs only after the installation smoke succeeded.
+  publish:
+    needs: [prepare, local-installation-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.prepare.outputs.commit }}
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc

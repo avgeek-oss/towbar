@@ -136,7 +136,9 @@ Node.js to run them.
 After the release pull request merges, create and push the matching `v2.x.y` tag
 from the merge commit, then run
 the **Publish release images** workflow from `main` with that tag. The workflow
-refuses a tag that does not point at the selected `main` commit.
+refuses a tag that does not point at the selected `main` commit, and a commit
+whose latest `verify` run did not pass; it waits up to three minutes while
+`verify` is still running.
 
 The workflow builds each API, worker, and dashboard image on matching native
 amd64 and arm64 runners. It validates both platform digests, combines them into
