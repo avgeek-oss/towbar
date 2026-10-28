@@ -126,7 +126,6 @@ void test(
     const key = await createWorkspacePrivateKey({
       name: "Build server key",
       algorithm: "ed25519",
-      requestedBy: userId,
       workspaceId,
     });
     for (const [id, config] of [

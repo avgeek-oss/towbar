@@ -23,6 +23,7 @@ void test("server public settings round trip true, false and legacy defaults wit
       preparedConfigDigest: "digest",
       preparedAt: now,
       archivedAt: null,
+      lastRemovedAt: null,
       createdAt: now,
       updatedAt: now,
     };

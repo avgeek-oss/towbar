@@ -10,8 +10,7 @@ import {
 } from "@workspace/towbar-database/schema";
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution, requireActor } from "../auth/actor-context.js";
+import { requireActor } from "../auth/actor-context.js";
 import { getGitHubRepository } from "../github/client.js";
 import { getGitHubInstallationForSource } from "../github/service.js";
 import { listRepositoryBranches } from "../github/branches.js";
@@ -192,20 +191,6 @@ export async function changeSourceGitHubConnection(
         .update(sourceEnvironments)
         .set({ mappingRevision: randomUUID(), updatedAt: new Date() })
         .where(eq(sourceEnvironments.id, environment.id));
-    await recordAuditEvent(transaction, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.actorUserId,
-      action: "source.connection.changed",
-      targetType: "source",
-      targetId: source.id,
-      metadata: {
-        from: `${source.repositoryOwner}/${source.repositoryName}`,
-        to: `${repository.owner}/${repository.name}`,
-        previousConnectionId: source.integrationInstallationId,
-        connectionId: destination.id,
-      },
-      ...auditAttribution(),
-    });
     return { source: updated };
   });
 }

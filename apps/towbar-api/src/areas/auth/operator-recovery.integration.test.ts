@@ -214,14 +214,6 @@ void test(
         ).status,
         200,
       );
-      const audit = await database
-        .select()
-        .from(schema.auditEvents)
-        .where(eq(schema.auditEvents.targetId, admin.id));
-      assert(
-        audit.some((event) => event.action === "account.operator-recovery"),
-      );
-      assert(!JSON.stringify(audit).includes(temporaryPassword));
       await database
         .update(schema.users)
         .set({ disabledAt: new Date() })

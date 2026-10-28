@@ -1,8 +1,3 @@
-import {
-  auditLogFilters,
-  auditLogsQuery,
-  listAuditLogs,
-} from "../../../areas/event-history/audit-logs.js";
 import { sessionUser } from "../../../http/session-user.js";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -177,33 +172,4 @@ teamRoutes.delete(
     );
     return c.body(null, 204);
   },
-);
-
-teamRoutes.get(
-  "/audit-logs/filters",
-  operation({
-    permissions: ["team.read"],
-    browserOnly: true,
-    summary: "List audit event and user filters",
-    responseSchema: 'team.ts:get:"/audit-logs/filters"',
-    response:
-      "Registered audit events and users with captured events in this team.",
-  }),
-  async (c) => c.json(await auditLogFilters(sessionUser(c))),
-);
-teamRoutes.get(
-  "/audit-logs",
-  operation({
-    permissions: ["team.read"],
-    browserOnly: true,
-    query: auditLogsQuery,
-    summary: "List team audit logs",
-    responseSchema: 'team.ts:get:"/audit-logs"',
-    response:
-      "Paginated audit events with attribution, targets, and safe metadata.",
-  }),
-  async (c) =>
-    c.json(
-      await listAuditLogs(sessionUser(c), auditLogsQuery.parse(c.req.query())),
-    ),
 );

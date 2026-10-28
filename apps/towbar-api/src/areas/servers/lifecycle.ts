@@ -1,15 +1,13 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { captureQueuedActor } from "../auth/actor-context.js";
 import { randomUUID } from "node:crypto";
 import { enqueueMonitoringAgent } from "../../infrastructure/temporal.js";
 import { and, eq, inArray, isNull, notInArray } from "drizzle-orm";
-
 import {
   digestValue,
   getDeployableDeploymentDigest,
   requiresServerPreparation,
 } from "@workspace/towbar-core";
+import type { NormalizedServer } from "@workspace/towbar-core";
 import {
   apps,
   deployments,
@@ -25,12 +23,9 @@ import {
   servers,
   sshHostKeys,
 } from "@workspace/towbar-database/schema";
-
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { getServer, serverSelection, toPublicServer } from "./service.js";
-
-import type { NormalizedServer } from "@workspace/towbar-core";
 
 export async function createServer(input: {
   config: NormalizedServer;
@@ -348,21 +343,13 @@ export async function removeServer(input: {
       .update(servers)
       .set({
         archivedAt: now,
+        lastRemovedAt: now,
         privateKeyId: null,
         preparedAt: null,
         preparedConfigDigest: null,
         updatedAt: now,
       })
       .where(eq(servers.id, server.id));
-    await recordAuditEvent(transaction, {
-      action: "server.removed",
-      actorUserId: input.requestedBy,
-      targetId: server.id,
-      targetType: "server",
-      workspaceId: input.workspaceId,
-      metadata: {},
-      ...auditAttribution(),
-    });
   });
   if (pending) await enqueueMonitoringAgent(pending).catch(() => undefined);
   return { pending: Boolean(pending) };

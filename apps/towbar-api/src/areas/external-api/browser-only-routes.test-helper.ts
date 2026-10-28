@@ -45,8 +45,6 @@ export const expectedBrowserOnlyRoutes = new Set([
   "GET /sources/:sourceId/notifications/webhook/destinations",
   "GET /system-health/upgrade",
   "GET /team",
-  "GET /team/audit-logs",
-  "GET /team/audit-logs/filters",
   "GET /team/invitations",
   "GET /team/members",
   "PATCH /profile",

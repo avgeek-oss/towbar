@@ -1,7 +1,6 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { createPrivateKey, randomUUID } from "node:crypto";
 import { and, eq, isNull, sql } from "drizzle-orm";
+import type { SecretMutation } from "@workspace/towbar-core";
 import {
   applySecretMutation,
   decryptCredential,
@@ -23,7 +22,6 @@ import {
 import { getEnv } from "../../env.js";
 import { conflict, notFound, unprocessable } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import type { SecretMutation } from "@workspace/towbar-core";
 
 export type SecretDatabase = Pick<
   ReturnType<typeof getTowbarDatabase>,
@@ -291,19 +289,6 @@ async function mutateSecretInDatabase(
       .set(record)
       .where(eq(managedSecrets.id, id));
   else await database.insert(managedSecrets).values(record);
-  await recordAuditEvent(database, {
-    workspaceId: slot.workspaceId,
-    actorUserId,
-    action: "secrets.updated",
-    targetType: slot.type,
-    targetId: ownerKey(slot),
-    metadata: {
-      environment: slot.environment,
-      stage: slot.stage,
-      revision,
-    },
-    ...auditAttribution(),
-  });
   return { keys: record.keys, revision, updatedAt };
 }
 
@@ -354,7 +339,6 @@ export function validateServerCredentialValues(values: Record<string, string>) {
 
 export async function promoteVerifiedServerPrivateKey(
   input: {
-    actorUserId: string | null;
     expectedRevision: string | null;
     privateKey: string;
     privateKeyId: string;
@@ -414,15 +398,6 @@ export async function promoteVerifiedServerPrivateKey(
       .set(record)
       .where(eq(managedSecrets.id, id));
   else await database.insert(managedSecrets).values(record);
-  await recordAuditEvent(database, {
-    workspaceId: slot.workspaceId,
-    actorUserId: input.actorUserId,
-    action: "server.credentials.verified",
-    targetType: "server",
-    targetId: input.serverId,
-    metadata: { revision },
-    ...auditAttribution(),
-  });
   await database
     .update(servers)
     .set({ privateKeyId: input.privateKeyId, updatedAt })
@@ -457,50 +432,15 @@ export async function resolveServerCredentials(
   return result;
 }
 
-export async function revealSecretValue(
-  slot: SecretSlot,
-  key: string,
-  actorUserId: string | null,
-) {
+export async function revealSecretValue(slot: SecretSlot, key: string) {
   await requireSecretOwner(slot);
   const { values, revision } = await readSecretValues(slot);
   if (!Object.hasOwn(values, key)) throw notFound("Secret");
-  await recordAuditEvent(getTowbarDatabase(), {
-    workspaceId: slot.workspaceId,
-    actorUserId,
-    action: "secrets.revealed",
-    targetType: slot.type,
-    targetId: ownerKey(slot),
-    metadata: {
-      environment: slot.environment,
-      stage: slot.stage,
-      key,
-      revision,
-    },
-    ...auditAttribution(),
-  });
   return { value: values[key]!, revision };
 }
 
-export async function revealSecretValues(
-  slot: SecretSlot,
-  actorUserId: string | null,
-) {
+export async function revealSecretValues(slot: SecretSlot) {
   await requireSecretOwner(slot);
   const { values, revision } = await readSecretValues(slot);
-  await recordAuditEvent(getTowbarDatabase(), {
-    workspaceId: slot.workspaceId,
-    actorUserId,
-    action: "secrets.revealed",
-    targetType: slot.type,
-    targetId: ownerKey(slot),
-    metadata: {
-      environment: slot.environment,
-      stage: slot.stage,
-      keyCount: Object.keys(values).length,
-      revision,
-    },
-    ...auditAttribution(),
-  });
   return { values, revision };
 }

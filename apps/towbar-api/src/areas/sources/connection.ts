@@ -1,7 +1,5 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
-import { actorAllows } from "@workspace/towbar-access";
 import { requireActor } from "../auth/actor-context.js";
+import { actorAllows } from "@workspace/towbar-access";
 import { and, eq, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -214,19 +212,6 @@ export async function connectRepositorySource(
         },
       })
       .returning();
-    await recordAuditEvent(transaction, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.actorUserId,
-      action: "source.connected",
-      targetType: "source",
-      targetId: source.id,
-      metadata: {
-        environments: JSON.stringify(
-          resolved.map(({ environment, branch }) => ({ environment, branch })),
-        ),
-      },
-      ...auditAttribution(),
-    });
     return { source, environments };
   });
   const syncs = [];

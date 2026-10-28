@@ -29,7 +29,6 @@ void test("detail routes keep help scoped to the feature being viewed", () => {
     ["/settings/email-password", "emailPassword"],
     ["/settings/passkeys", "security"],
     ["/team-settings/api-keys", "apiKeys"],
-    ["/team-settings/audit-logs", "auditLogs"],
     ["/manage/integrations/deliveries", "deliveries"],
     ["/team-settings/ssh-keys", "keys"],
     ["/manage/ssh-keys", "keys"],

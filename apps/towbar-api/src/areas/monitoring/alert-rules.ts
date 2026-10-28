@@ -1,5 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { and, desc, eq, isNull, lt, or, sql } from "drizzle-orm";
 import {
   SCOUT_ALERT_RULE_LIMIT_PER_ENTITY,
@@ -211,15 +209,6 @@ export async function saveScoutAlertRule(
         .returning();
     }
     if (!result) throw new Error("Scout rule was not saved");
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.requestedBy,
-      action: input.ruleId ? "scout.rule_updated" : "scout.rule_created",
-      targetType: "server",
-      targetId: input.serverId,
-      metadata: { ruleId: result.id },
-      ...auditAttribution(),
-    });
     return result;
   });
 }
@@ -269,15 +258,6 @@ export async function deleteScoutAlertRule(
       .returning({ id: scoutAlertRules.id });
     if (!row) throw notFound("Scout alert rule");
     await resolveRuleIncidents(tx, row.id, "rule_deleted");
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.requestedBy,
-      action: "scout.rule_deleted",
-      targetType: "server",
-      targetId: input.serverId,
-      metadata: { ruleId: row.id },
-      ...auditAttribution(),
-    });
   });
 }
 

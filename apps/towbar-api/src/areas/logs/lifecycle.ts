@@ -25,12 +25,10 @@ import {
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { enqueueLogCollector } from "../../infrastructure/temporal.js";
 import {
-  auditAttribution,
   authorizeQueuedEffect,
   captureQueuedActor,
   withActor,
 } from "../auth/actor-context.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { resolveServerCredentials } from "../secrets/store.js";
 import { getServer } from "../servers/service.js";
 import {
@@ -243,17 +241,6 @@ async function admitCollector(
       .insert(logCollectors)
       .values(values)
       .onConflictDoUpdate({ target: logCollectors.serverId, set: values });
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      actorUserId: null,
-      action: input.enabled
-        ? "logs.install_requested"
-        : "logs.disable_requested",
-      targetType: "server",
-      targetId: input.serverId,
-      metadata: { generation, version: logCollectorVersion },
-      ...auditAttribution(),
-    });
     return false;
   });
   const current = await getLogCollection(input.serverId, input.workspaceId);

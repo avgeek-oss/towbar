@@ -5,11 +5,7 @@ import { Client, type ClientChannel } from "ssh2";
 import { WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
 import { getEnv } from "../../env.js";
-import {
-  auditTerminal,
-  authorizeTerminal,
-  consumeTerminalTicket,
-} from "./terminal.js";
+import { authorizeTerminal, consumeTerminalTicket } from "./terminal.js";
 import { terminalPrivateKey } from "./terminal-key.js";
 
 const dimensions = {
@@ -62,7 +58,6 @@ export function attachServerTerminal(server: Server) {
       let connection: Connection | undefined;
       let connecting = false;
       let closed = false;
-      let audited = false;
       let outstanding = 0;
       let authenticatedAt = 0;
       let lastInput = Date.now();
@@ -134,15 +129,6 @@ export function attachServerTerminal(server: Server) {
         ws.close(1000);
         const terminate = setTimeout(() => ws.terminate(), 1000);
         terminate.unref();
-        if (connection && audited)
-          void auditTerminal(
-            connection.ticket,
-            connectionId,
-            "closed",
-            reason,
-          ).catch(() =>
-            console.error("Unable to record terminal closure", connectionId),
-          );
       }
       const output = (data: Buffer) => {
         if (closed) return;
@@ -214,15 +200,7 @@ export function attachServerTerminal(server: Server) {
             ssh.on("ready", () => {
               void (async () => {
                 await authorizeTerminal(connection!.ticket, headers);
-                await auditTerminal(connection!.ticket, connectionId, "opened");
-                audited = true;
                 if (closed) {
-                  await auditTerminal(
-                    connection!.ticket,
-                    connectionId,
-                    "closed",
-                    "Disconnected during connection",
-                  );
                   return;
                 }
                 ssh!.shell(

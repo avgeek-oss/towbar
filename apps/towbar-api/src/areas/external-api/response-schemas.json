@@ -2052,8 +2052,6 @@
     "team.ts:get:\"/invitations\"": {},
     "team.ts:post:\"/invitations\"": {},
     "team.ts:delete:\"/invitations/:invitationId\"": {},
-    "team.ts:get:\"/audit-logs/filters\"": {},
-    "team.ts:get:\"/audit-logs\"": {},
     "monitoring-overview.ts:get:\"/incidents\"": {
       "allOf": [
         { "$ref": "#/components/schemas/Response_75" },
@@ -15869,8 +15867,8 @@
         "serverId": { "type": "string" },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         }
       },
@@ -15939,8 +15937,8 @@
         "serverId": { "type": "string" },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         },
         "finishedAt": { "type": "string" },
@@ -16470,8 +16468,6 @@
               { "type": "string", "const": "apikey.create" },
               { "type": "string", "const": "apikey.update" },
               { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" },
               { "type": "string", "const": "repository.connect" },
               { "type": "string", "const": "repository.read" },
               { "type": "string", "const": "repository.disconnect" },
@@ -16498,7 +16494,9 @@
               { "type": "string", "const": "inbox.read" },
               { "type": "string", "const": "inbox.update" },
               { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" }
+              { "type": "string", "const": "privateKey.manage" },
+              { "type": "string", "const": "system.read" },
+              { "type": "string", "const": "system.manage" }
             ]
           }
         }
@@ -16540,8 +16538,8 @@
         "actor": {
           "anyOf": [
             { "type": "string", "const": "session" },
-            { "type": "string", "const": "personal-key" },
             { "type": "string", "const": "system" },
+            { "type": "string", "const": "personal-key" },
             { "type": "string", "const": "team-key" }
           ]
         },
@@ -16580,8 +16578,6 @@
               { "type": "string", "const": "apikey.create" },
               { "type": "string", "const": "apikey.update" },
               { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" },
               { "type": "string", "const": "repository.connect" },
               { "type": "string", "const": "repository.read" },
               { "type": "string", "const": "repository.disconnect" },
@@ -16608,7 +16604,9 @@
               { "type": "string", "const": "inbox.read" },
               { "type": "string", "const": "inbox.update" },
               { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" }
+              { "type": "string", "const": "privateKey.manage" },
+              { "type": "string", "const": "system.read" },
+              { "type": "string", "const": "system.manage" }
             ]
           }
         }
@@ -18826,8 +18824,8 @@
         },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         },
         "manifestDigest": { "type": "string" },
@@ -19211,8 +19209,8 @@
         },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         },
         "manifestDigest": { "type": "string" },
@@ -19364,8 +19362,8 @@
         },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         },
         "manifestDigest": { "type": "string" },
@@ -19602,8 +19600,8 @@
         },
         "kind": {
           "anyOf": [
-            { "type": "string", "const": "rollback" },
-            { "type": "string", "const": "deploy" }
+            { "type": "string", "const": "deploy" },
+            { "type": "string", "const": "rollback" }
           ]
         },
         "manifestDigest": { "type": "string" },
@@ -20215,8 +20213,6 @@
               { "type": "string", "const": "apikey.create" },
               { "type": "string", "const": "apikey.update" },
               { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" },
               { "type": "string", "const": "repository.connect" },
               { "type": "string", "const": "repository.read" },
               { "type": "string", "const": "repository.disconnect" },
@@ -20243,7 +20239,9 @@
               { "type": "string", "const": "inbox.read" },
               { "type": "string", "const": "inbox.update" },
               { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" }
+              { "type": "string", "const": "privateKey.manage" },
+              { "type": "string", "const": "system.read" },
+              { "type": "string", "const": "system.manage" }
             ]
           }
         }
@@ -22978,7 +22976,6 @@
         "errorCode": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "sourceId": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "cycle": { "type": "number" },
-        "targetId": { "anyOf": [{ "type": "null" }, { "type": "string" }] },
         "title": { "type": "string" },
         "provider": {
           "anyOf": [
@@ -23017,7 +23014,8 @@
           ]
         },
         "destinationId": { "type": "string" },
-        "entityName": { "type": "string" }
+        "entityName": { "type": "string" },
+        "targetId": { "anyOf": [{ "type": "null" }, { "type": "string" }] }
       },
       "required": [
         "destination",
@@ -23029,7 +23027,6 @@
         "errorCode",
         "sourceId",
         "cycle",
-        "targetId",
         "title",
         "provider",
         "serverId",
@@ -23040,7 +23037,8 @@
         "lastAttemptedAt",
         "deliveredAt",
         "destinationId",
-        "entityName"
+        "entityName",
+        "targetId"
       ]
     },
     "Response_490": {

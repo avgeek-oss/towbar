@@ -13,11 +13,7 @@ import {
   workspaces,
 } from "@workspace/towbar-database/schema";
 import { conflict, forbidden, unauthorized } from "../../http/errors.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import {
-  type AuthDatabase,
-  getTowbarDatabase,
-} from "../../infrastructure/database.js";
+import { getTowbarDatabase } from "../../infrastructure/database.js";
 import {
   createIdentityAuth,
   getIdentityAuth,
@@ -86,7 +82,6 @@ export async function createInitialAdmin(input: {
     body: { email, password: input.password },
     asResponse: true,
   });
-  await recordSuccessfulSignIn(getTowbarDatabase(), response);
   return response;
 }
 export async function authenticatePassword(
@@ -105,35 +100,7 @@ export async function authenticatePassword(
       headers,
       asResponse: true,
     });
-    await recordSuccessfulSignIn(tx, response);
     return response;
-  });
-}
-
-export async function recordSuccessfulSignIn(
-  database: AuthDatabase,
-  response: Response,
-) {
-  if (!response.ok) return;
-  const body = (await response.clone().json()) as {
-    twoFactorRedirect?: boolean;
-    user?: { id?: string };
-  };
-  const userId = body.twoFactorRedirect ? undefined : body.user?.id;
-  if (!userId) return;
-  const [membership] = await database
-    .select({ workspaceId: workspaceMembers.workspaceId })
-    .from(workspaceMembers)
-    .where(eq(workspaceMembers.userId, userId))
-    .limit(1);
-  if (!membership) return;
-  await recordAuditEvent(database, {
-    workspaceId: membership.workspaceId,
-    actorKind: "session",
-    actorUserId: userId,
-    action: "account.signed-in",
-    targetType: "account",
-    targetId: userId,
   });
 }
 export async function getUserIdentity(userId: string) {

@@ -34,8 +34,6 @@ export type {
 
 export { deploymentStates } from "@workspace/towbar-contracts/temporal";
 
-export type { AuditEventIcon } from "@workspace/towbar-contracts";
-
 export type {
   AnalyticsReport,
   AnalyticsFilter,

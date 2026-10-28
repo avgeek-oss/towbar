@@ -97,7 +97,6 @@ privateKeyRoutes.post(
       name: input.name,
       privateKey: input.mode === "manual" ? input.privateKey : undefined,
       publicKey: input.mode === "manual" ? input.publicKey : undefined,
-      requestedBy: user.id,
       workspaceId: user.workspaceId,
     });
     context.header("Cache-Control", "no-store");
@@ -125,7 +124,6 @@ privateKeyRoutes.patch(
         context.req.param("privateKeyId")!,
         "privateKeyId",
       ),
-      requestedBy: user.id,
       workspaceId: user.workspaceId,
     });
     context.header("Cache-Control", "no-store");
@@ -174,7 +172,6 @@ privateKeyRoutes.delete(
         context.req.param("privateKeyId")!,
         "privateKeyId",
       ),
-      requestedBy: user.id,
       workspaceId: user.workspaceId,
     });
     context.header("Cache-Control", "no-store");

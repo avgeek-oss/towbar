@@ -10,7 +10,6 @@ import {
 } from "@workspace/towbar-core";
 import {
   apps,
-  auditEvents,
   deployments,
   integrationInstallations,
   releases,
@@ -430,12 +429,6 @@ void test(
             ((await revealed.json()) as { value: string }).value,
             "line one\nline two",
           );
-          const [event] = await db
-            .select()
-            .from(auditEvents)
-            .where(eq(auditEvents.action, "secrets.revealed"));
-          assert(event);
-          assert(!JSON.stringify(event).includes("line one"));
           const response = await api.request(`/apps/${appId}/secrets`);
           assert.match(
             response.headers.get("cache-control") ?? "",

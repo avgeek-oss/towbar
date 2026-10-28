@@ -1,22 +1,18 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution, requireActor } from "../auth/actor-context.js";
+import { requireActor } from "../auth/actor-context.js";
 import { and, eq, isNull } from "drizzle-orm";
-
 import { evaluateAutoDeployPause } from "@workspace/towbar-core";
+import type {
+  AutoDeployPauseGate,
+  DeferredAutomaticDeployment,
+} from "@workspace/towbar-core";
 import {
   apps,
   sourceEnvironments,
   sourceSyncs,
   sources,
 } from "@workspace/towbar-database/schema";
-
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-
-import type {
-  AutoDeployPauseGate,
-  DeferredAutomaticDeployment,
-} from "@workspace/towbar-core";
 
 export async function getSourceAutoDeployControl(
   sourceId: string,
@@ -243,16 +239,5 @@ export async function updateEnvironmentAutomation(input: {
       .update(sourceEnvironments)
       .set({ autoDeployPaused: input.paused, updatedAt: new Date() })
       .where(eq(sourceEnvironments.id, input.environmentId));
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      ...auditAttribution(),
-      action: "environment.automation-updated",
-      targetType: "environment",
-      targetId: input.environmentId,
-      metadata: {
-        paused: input.paused,
-        mappingRevision: input.expectedRevision,
-      },
-    });
   });
 }

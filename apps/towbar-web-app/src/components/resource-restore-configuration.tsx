@@ -7,9 +7,8 @@ import {
   Undo02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useState } from "react";
 import type { FormEvent } from "react";
-
+import { useState } from "react";
 import type {
   BackupAssurance,
   Resource,
@@ -38,7 +37,6 @@ import {
   type ResourceTableColumn,
 } from "@avgeek-oss/design-system/patterns/resource-table";
 import { StatusBadge } from "@workspace/towbar-web-ui/status-badge";
-
 import { ElapsedTime } from "./elapsed-time";
 import { ActionButton } from "@/components/page-parts";
 import { CloudProviderLogo } from "@/components/cloud-provider-logo";
@@ -366,7 +364,7 @@ function RestoreConfirmation({
                   onChange={(event) => setReason(event.currentTarget.value)}
                 />
                 <FieldDescription>
-                  Recorded in the restore audit trail. Minimum 10 characters.
+                  Recorded in the restore request. Minimum 10 characters.
                 </FieldDescription>
               </Field>
               <Field>
@@ -525,7 +523,7 @@ function RestoreHistory({
       <ResourceTable
         ariaLabel="Restore history"
         columns={restoreColumns}
-        emptyDescription="Restore operations appear here with their audit trail."
+        emptyDescription="Restore operations appear here with their request history."
         emptyTitle="No restore history"
         getRowKey={(operation) => operation.id}
         items={operations}

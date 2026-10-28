@@ -29,7 +29,6 @@ import {
   findSession,
   getInitialSetupStatus,
   getUserIdentity,
-  recordSuccessfulSignIn,
 } from "../../../areas/auth/service.js";
 import {
   createIdentityAuth,
@@ -252,15 +251,6 @@ publicAuthRoutes.all("/identity/*", async (context) => {
           .where(eq(users.id, before.user.id))
           .for("update");
       const response = await auth.handler(context.req.raw);
-      if (
-        response.ok &&
-        !before &&
-        [
-          "/passkey/verify-authentication",
-          "/passkey/verify-recovery-code",
-        ].includes(path)
-      )
-        await recordSuccessfulSignIn(tx, response);
       if (response.ok && before && path === "/passkey/verify-authentication") {
         const body = (await response.clone().json()) as {
           session: { id: string };

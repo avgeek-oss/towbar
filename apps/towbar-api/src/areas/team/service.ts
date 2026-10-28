@@ -1,4 +1,3 @@
-import { audit } from "./audit.js";
 import { invitationAccepted } from "./invitation-email.js";
 import { randomUUID } from "node:crypto";
 import { and, count, desc, eq, gt, inArray, isNull } from "drizzle-orm";
@@ -29,7 +28,6 @@ import {
   getIdentityAuth,
   identityProvisioning,
 } from "../auth/identity.js";
-import { recordSuccessfulSignIn } from "../auth/service.js";
 import { getNotificationProviderConfiguration } from "../notifications/configuration.js";
 import { lockTeam, requireTeamAdmin } from "./authorization.js";
 import { enqueueTeamEmail } from "./email-outbox.js";
@@ -67,7 +65,6 @@ export async function updateTeam(
         name: workspaces.name,
         description: workspaces.description,
       });
-    await audit(tx, user, "team.updated", user.workspaceId);
     return team;
   });
 }
@@ -108,9 +105,6 @@ export async function createTeamMember(
         role: input.role,
       })
       .returning({ id: workspaceMembers.id });
-    await audit(tx, user, "member.created", account.user.id, {
-      role: input.role,
-    });
     await enqueueTeamEmail(tx, {
       workspaceId: user.workspaceId,
       recipient: email,
@@ -170,7 +164,6 @@ export async function updateMemberRole(
         .update(users)
         .set({ displayName: name, updatedAt: new Date() })
         .where(eq(users.id, target.user.id));
-      await audit(tx, user, "member.updated", target.user.id, { name });
     }
     if (target.member.role === role) return { role };
     if (target.member.role === "admin" && role !== "admin")
@@ -209,10 +202,6 @@ export async function updateMemberRole(
     }
     if (target.member.role === "admin" && role !== "admin")
       await revokeInviterInvitations(tx, user.workspaceId, target.user.id);
-    await audit(tx, user, "member.role-changed", target.user.id, {
-      previousRole: target.member.role,
-      role,
-    });
     await enqueueTeamEmail(tx, {
       workspaceId: user.workspaceId,
       recipient: target.user.email,
@@ -276,7 +265,6 @@ export async function removeTeamMember(
     await tx.delete(sessions).where(eq(sessions.userId, target.user.id));
     await tx.delete(workspaceMembers).where(eq(workspaceMembers.id, memberId));
     await revokeInviterInvitations(tx, user.workspaceId, target.user.id);
-    await audit(tx, user, "member.removed", target.user.id);
     await enqueueTeamEmail(tx, {
       workspaceId: user.workspaceId,
       recipient: target.user.email,
@@ -399,9 +387,6 @@ export async function createTeamInvitation(
         actionUrl: inviteUrl,
       },
     });
-    await audit(tx, user, "invitation.created", invitation.id, {
-      role: input.role,
-    });
     return { id: invitation.id, inviteUrl, expiresAt: invitation.expiresAt };
   });
 }
@@ -422,7 +407,6 @@ export async function revokeInvitation(user: AuthenticatedUser, id: string) {
       .returning({ id: workspaceInvitations.id });
     if (!invitation) throw notFound("Pending invitation");
     await cancelInvitationEmails(tx, id);
-    await audit(tx, user, "invitation.revoked", id);
   });
 }
 async function findPendingInvitation(
@@ -549,8 +533,7 @@ export async function completeInvitationSignup(
       .set({ mustChangePassword: true })
       .where(eq(users.id, result.user.id));
     await cancelInvitationEmails(tx, id);
-    await invitationAccepted(tx, row, result.user.id);
-    await recordSuccessfulSignIn(tx, response);
+    await invitationAccepted(tx, row);
     return response;
   });
 }
@@ -567,7 +550,7 @@ export async function acceptExistingInvitation(id: string, headers: Headers) {
       throw forbidden("Verify your email before accepting the invitation");
     await auth.api.acceptInvitation({ headers, body: { invitationId: id } });
     await cancelInvitationEmails(tx, id);
-    await invitationAccepted(tx, row, session.user.id);
+    await invitationAccepted(tx, row);
     return { accepted: true };
   });
 }

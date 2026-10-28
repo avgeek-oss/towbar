@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import type { TestContext } from "node:test";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as schema from "@workspace/towbar-database/schema";
 import type { AuthDatabase } from "../../infrastructure/database.js";
 import type { AuthenticatedUser } from "../../http/types.js";
@@ -250,17 +250,6 @@ export async function assertInvitationSecurity({
         (await auth.getUserIdentity(member.userId))!.mustChangePassword,
         true,
       );
-      const [audit] = await database
-        .select()
-        .from(schema.auditEvents)
-        .where(
-          and(
-            eq(schema.auditEvents.targetId, member.userId),
-            eq(schema.auditEvents.action, "account.operator-recovery"),
-          ),
-        );
-      assert.equal(audit!.actorKind, "system");
-      assert(!JSON.stringify(audit).includes("52917"));
       await teams.updateMemberRole(admin, member.id, "viewer");
       await assert.rejects(
         auth.resetAdminPassword({

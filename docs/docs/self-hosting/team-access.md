@@ -31,7 +31,7 @@ Under **Settings → Team Settings → Members**, choose **Create invite**, ente
 
 Resend creates a replacement invitation. Revoking an invitation or demoting/removing its inviting Admin invalidates pending invitations and cancels their queued mail. Opening a link for preview does not consume it. Delivery status means SMTP acceptance, not confirmed inbox delivery.
 
-There must always be at least one active Admin. Removing a member revokes their sessions and personal keys. Operational history and audit attribution remain. Rejoining does not reactivate old keys.
+There must always be at least one active Admin. Removing a member revokes their sessions and personal keys. Operational history remains. Rejoining does not reactivate old keys.
 
 ## Personal and team keys
 

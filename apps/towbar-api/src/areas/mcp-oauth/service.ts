@@ -12,7 +12,6 @@ import {
   workspaceMembers,
 } from "@workspace/towbar-database/schema";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { createApiKey } from "../api-keys/service.js";
 import { requireRecentAuthentication } from "../auth/recent-authentication.js";
 import { currentMembership, lockTeam } from "../team/authorization.js";
@@ -244,20 +243,6 @@ export async function exchangeCode(
           .update(apiKeys)
           .set({ enabled: false, updatedAt: new Date() })
           .where(eq(apiKeys.id, request.keyId));
-        await recordAuditEvent(tx, {
-          workspaceId: request.workspaceId!,
-          actorKind: "system",
-          action: "api-key.revoked",
-          targetType: "api-key",
-          targetId: request.keyId,
-          metadata: {
-            scope: "personal",
-            tokenType: "mcp-oauth",
-            oauthClientId: request.clientId,
-            oauthClientName: request.clientName,
-            oauthClientTrust: request.clientTrust,
-          },
-        });
       }
       return null;
     }
@@ -362,21 +347,5 @@ export async function revokeOAuthToken(clientId: string, token: string) {
       .update(apiKeys)
       .set({ enabled: false, updatedAt: new Date() })
       .where(eq(apiKeys.id, key.id));
-    await recordAuditEvent(tx, {
-      workspaceId: key.policy.workspaceId,
-      actorKind: "personal-key",
-      actorKeyId: key.id,
-      actorUserId: key.policy.ownerUserId,
-      action: "api-key.revoked",
-      targetType: "api-key",
-      targetId: key.id,
-      metadata: {
-        scope: "personal",
-        tokenType: "mcp-oauth",
-        oauthClientId: clientId,
-        oauthClientName: key.policy.oauthClientName,
-        oauthClientTrust: key.policy.oauthClientTrust,
-      },
-    });
   });
 }

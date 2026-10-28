@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { createManifestLifecycleFixture } from "./manifest-lifecycle-fixture.ts";
 import { createServerCleanupFixture } from "./server-cleanup-fixture.ts";
 import packageManifest from "../../../package.json" with { type: "json" };
@@ -42,7 +43,6 @@ import {
   fixtureMonitoringAgent,
   fixtureMonitoringHistory,
 } from "./monitoring-fixture.ts";
-import { randomUUID } from "node:crypto";
 import {
   createServer,
   type IncomingMessage,
@@ -50,7 +50,6 @@ import {
 } from "node:http";
 import { pathToFileURL } from "node:url";
 import { isMainThread } from "node:worker_threads";
-
 import type {
   App,
   BackupAssurance,
@@ -2500,7 +2499,7 @@ export function createFixtureApiServer({
       "ingress",
     ),
   ];
-  const eventHistory = eventHistoryFixture(teamAccess.getUser, user);
+  const eventHistory = eventHistoryFixture(teamAccess.getUser);
   let emailDestinations = [
     {
       id: "a1111111-1111-4111-8111-555555555555",

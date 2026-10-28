@@ -1,6 +1,4 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { createHash, randomUUID } from "node:crypto";
-import { auditAttribution } from "../auth/actor-context.js";
 import { defaultKeyHasher } from "@better-auth/api-key";
 import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 import {
@@ -216,23 +214,6 @@ export async function createApiKey(
       ownerUserId: scope === "personal" ? user.id : null,
       creatorUserId: user.id,
     });
-    await recordAuditEvent(tx, {
-      workspaceId: user.workspaceId,
-      actorKind: "session",
-      actorUserId: user.id,
-      action: "api-key.created",
-      targetType: "api-key",
-      targetId: key.id,
-      metadata: {
-        scope,
-        access: input.access,
-        includeAdmin,
-        permissionMode,
-        expiresAt: expiresAt?.toISOString() ?? null,
-        ...tokenMetadata,
-      },
-      ...auditAttribution(),
-    });
     if (scope === "team")
       await enqueueAdminEmail(tx, {
         workspaceId: user.workspaceId,
@@ -312,22 +293,6 @@ export async function revokeApiKey(
       .update(apiKeys)
       .set({ enabled: false, updatedAt: new Date() })
       .where(eq(apiKeys.id, id));
-    await recordAuditEvent(tx, {
-      workspaceId: user.workspaceId,
-      actorKind: "session",
-      actorUserId: user.id,
-      action: "api-key.revoked",
-      targetType: "api-key",
-      targetId: id,
-      metadata: {
-        scope,
-        tokenType: previous.tokenType,
-        oauthClientId: previous.oauthClientId,
-        oauthClientName: previous.oauthClientName,
-        oauthClientTrust: previous.oauthClientTrust,
-      },
-      ...auditAttribution(),
-    });
     if (scope === "team")
       await enqueueAdminEmail(tx, {
         workspaceId: user.workspaceId,

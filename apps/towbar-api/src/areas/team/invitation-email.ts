@@ -1,6 +1,4 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import type { AuthDatabase } from "../../infrastructure/database.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { enqueueAdminEmail } from "./email-outbox.js";
 
 export async function invitationAccepted(
@@ -13,17 +11,7 @@ export async function invitationAccepted(
       role: string;
     };
   },
-  userId: string,
 ) {
-  await recordAuditEvent(tx, {
-    workspaceId: row.invitation.workspaceId,
-    actorKind: "session",
-    actorUserId: userId,
-    action: "invitation.accepted",
-    targetType: "invitation",
-    targetId: row.invitation.id,
-    ...auditAttribution(),
-  });
   await enqueueAdminEmail(tx, {
     workspaceId: row.invitation.workspaceId,
     template: "invitation-accepted",

@@ -12,10 +12,6 @@ function guide(path: string, description: string): HeadingDocumentation {
 }
 
 export const documentationTopics = {
-  auditLogs: guide(
-    "team-settings#audit-logs",
-    "Browse captured team activity by event and user. Open an event to inspect its target, attribution, and metadata.",
-  ),
   deliveries: guide(
     "integrations/notifications#delivery-history",
     "Review notification delivery status across providers, including attempts, errors, and retry times.",
@@ -294,7 +290,6 @@ function integrationDocumentationTopic(path: string) {
 export function documentationTopic(pathname: string): Topic | undefined {
   const path = pathname.replace(/\/$/, "") || "/";
   if (path === "/") return "overview";
-  if (path === "/team-settings/audit-logs") return "auditLogs";
   if (
     path === "/manage/notifications/deliveries" ||
     path === "/manage/integrations/deliveries" ||

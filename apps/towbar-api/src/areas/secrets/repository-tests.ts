@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import {
   apps,
-  auditEvents,
   managedSecrets,
   sources,
 } from "@workspace/towbar-database/schema";
@@ -228,16 +227,6 @@ export async function testRepositorySecrets({
           ((await response.json()) as { value: string }).value,
           "repository-token",
         );
-        const audits = await db
-          .select()
-          .from(auditEvents)
-          .where(eq(auditEvents.targetId, `repository:${sourceId}`));
-        assert(audits.some((event) => event.action === "secrets.revealed"));
-        assert(!JSON.stringify(audits).includes("repository-token"));
-        // Existing bulk-reveal tests assert their own audit counts.
-        await db
-          .delete(auditEvents)
-          .where(eq(auditEvents.targetId, `repository:${sourceId}`));
       } finally {
         setRole("admin");
         setWorkspace(workspaceId);

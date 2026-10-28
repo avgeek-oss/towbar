@@ -15,14 +15,12 @@ import {
   integrationAuthorizations,
 } from "@workspace/towbar-database/schema";
 import { z } from "zod";
-
 import { getEnv } from "../../env.js";
 import { badRequest, serviceUnavailable } from "../../http/errors.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { integrationFetch } from "../../infrastructure/outbound-network.js";
 import { requireGitLabRuntimeConfiguration } from "../../infrastructure/runtime-integrations.js";
-import { auditAttribution, requireActor } from "../auth/actor-context.js";
+import { requireActor } from "../auth/actor-context.js";
 import { encryptIntegrationCredentials } from "../integrations/service.js";
 
 const tokenResponseSchema = z.object({
@@ -207,14 +205,6 @@ export async function completeGitLabAuthorization(input: {
       provider: "gitlab",
     });
   }
-  await recordAuditEvent(database, {
-    workspaceId: input.workspaceId,
-    ...auditAttribution(),
-    action: existing ? "integration.updated" : "integration.created",
-    targetType: "integration",
-    targetId: id,
-    metadata: { provider: "gitlab", gitlabUserId: user.id },
-  });
   return { id, username: user.username };
 }
 
@@ -248,14 +238,6 @@ export async function disconnectGitLabAuthorization(input: {
       verifiedAt: null,
     })
     .where(eq(integrationAuthorizations.id, authorization.id));
-  await recordAuditEvent(database, {
-    workspaceId: input.workspaceId,
-    ...auditAttribution(),
-    action: "integration.disconnected",
-    targetType: "integration",
-    targetId: authorization.id,
-    metadata: { provider: "gitlab" },
-  });
 }
 
 function attemptAssociatedData(workspaceId: string, id: string) {

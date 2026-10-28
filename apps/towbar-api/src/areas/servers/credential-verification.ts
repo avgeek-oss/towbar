@@ -285,7 +285,6 @@ export async function finishServerCredentialVerification(
         });
         await promoteVerifiedServerPrivateKey(
           {
-            actorUserId: verification.requestedBy,
             expectedRevision: verification.expectedCredentialRevision,
             privateKey,
             privateKeyId: verification.privateKeyId,

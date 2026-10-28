@@ -13,8 +13,7 @@ import {
 } from "@workspace/towbar-database/schema";
 import { badRequest, conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution, captureQueuedActor } from "../auth/actor-context.js";
+import { captureQueuedActor } from "../auth/actor-context.js";
 import {
   lockDomainClaims,
   synchronizeDomainClaims,
@@ -193,19 +192,6 @@ export async function removeRetiredWorkload(
         });
       if (operation) ids.push(operation);
     }
-    await recordAuditEvent(database, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.requestedBy,
-      action: "workload.retirement.removal_requested",
-      targetType: "app",
-      targetId: app.id,
-      metadata: {
-        reason: input.reason,
-        manifestId: app.manifestId,
-        operationCount: ids.length,
-      },
-      ...auditAttribution(),
-    });
     return ids;
   });
   for (const operation of operations) await dispatch(operation.id);

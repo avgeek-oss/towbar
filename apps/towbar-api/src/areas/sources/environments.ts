@@ -1,8 +1,6 @@
 import { withdrawRepository } from "./withdrawal.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
-import { actorAllows } from "@workspace/towbar-access";
 import { captureQueuedActor, requireActor } from "../auth/actor-context.js";
+import { actorAllows } from "@workspace/towbar-access";
 import { environmentSyncStatuses } from "./environment-status.js";
 import { randomUUID } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
@@ -80,7 +78,6 @@ export async function connectSourceEnvironment(input: {
   workspaceId: string;
   environment: string;
   branch: string;
-  actorUserId: string | null;
 }) {
   const actor = requireActor(input.workspaceId, ["repository.connect"]);
   const mapping = sourceEnvironmentMappingSchema.parse({
@@ -141,15 +138,6 @@ export async function connectSourceEnvironment(input: {
           .returning()
       : await transaction.insert(sourceEnvironments).values(values).returning();
     if (!environment) throw new Error("Unable to connect environment");
-    await recordAuditEvent(transaction, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.actorUserId,
-      action: "source.environment.connected",
-      targetType: "source",
-      targetId: source.id,
-      metadata: { environment: mapping.environment, branch: mapping.branch },
-      ...auditAttribution(),
-    });
     return environment;
   });
 }
@@ -160,7 +148,6 @@ export async function updateEnvironmentBranch(input: {
   workspaceId: string;
   branch: string;
   expectedRevision: string;
-  actorUserId: string | null;
 }) {
   const actor = requireActor(input.workspaceId, ["repository.update"]);
   const source = await sourceRepository(input.sourceId, input.workspaceId);
@@ -208,19 +195,6 @@ export async function updateEnvironmentBranch(input: {
         "The environment mapping changed. Refresh before saving.",
         "ENVIRONMENT_MAPPING_CHANGED",
       );
-    await recordAuditEvent(transaction, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.actorUserId,
-      action: "source.environment.branch_updated",
-      targetType: "source",
-      targetId: source.id,
-      metadata: {
-        environment: environment.name,
-        previousBranch: environment.branch,
-        branch: mapping.branch,
-      },
-      ...auditAttribution(),
-    });
     return updated;
   });
 }
@@ -326,7 +300,6 @@ export function disconnectSourceEnvironment(input: {
       environmentId: input.environmentId,
       expectedMappingRevision: input.expectedRevision,
       expectedRevision: input.expectedRemovalRevision,
-      actorUserId: input.actorUserId,
     });
     if (!("name" in result))
       throw new Error("Environment withdrawal did not return an environment");

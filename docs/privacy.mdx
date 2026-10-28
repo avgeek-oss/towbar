@@ -12,7 +12,7 @@ Secret values are encrypted in PostgreSQL. Normal responses show metadata only.
 Recently authenticated Admins can explicitly reveal stored values in the dashboard;
 API keys and MCP clients cannot use reveal endpoints. Execution services retrieve
 the values needed to run authorized work. Secret responses disable caching, and
-audit events record the action without recording the secret value.
+deployment records exclude the secret value.
 
 The hosted documentation is published through Mintlify and links to GitHub and
 the separately operated Towbar dashboard. Those services apply their own

@@ -24,7 +24,7 @@ sudo towbar compose run --rm --no-deps api node dist/cli/recover-admin.js \
   --email=admin@example.com
 ```
 
-The command prints a new temporary password once. Copy it privately; it is never sent by email or included in the audit event. Sign in and choose a new password before using the dashboard. Recovery revokes this user's browser sessions, personal API keys, pending password-reset links, and pending email changes. Team API keys and the user's role remain unchanged.
+The command prints a new temporary password once. Copy it privately; it is never sent by email. Sign in and choose a new password before using the dashboard. Recovery revokes this user's browser sessions, personal API keys, pending password-reset links, and pending email changes. Team API keys and the user's role remain unchanged.
 
 Password recovery works without SMTP. The temporary password is generated with cryptographic randomness and does not require an external password-breach lookup. Normal password changes retain the installation's password policy.
 
@@ -48,7 +48,7 @@ sudo towbar compose run --rm --no-deps api node dist/cli/reset-user-mfa.js \
   --email=person@example.com
 ```
 
-It removes recovery codes, revokes sessions, personal API keys and pending recovery links, and records an audit event. It retains the current password and passkeys. The user can sign in with their password, verify any retained passkey, and add a replacement under **Account Settings → Passkeys**. If the password is also lost, use email password recovery; an Admin account can use the password command above.
+It removes recovery codes, revokes sessions, personal API keys and pending recovery links. It retains the current password and passkeys. The user can sign in with their password, verify any retained passkey, and add a replacement under **Account Settings → Passkeys**. If the password is also lost, use email password recovery; an Admin account can use the password command above.
 
 For an Admin who lost both password and passkeys, combine recovery in one command:
 

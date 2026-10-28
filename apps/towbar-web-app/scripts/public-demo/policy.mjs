@@ -14,7 +14,7 @@ const readRoutes = [
   /^\/v1\/public\/auth\/(state|setup-status)$/,
   /^\/v1\/core\/(session|profile|sessions|version|system-health|integrations)$/,
   /^\/v1\/core\/profile\/(preferences|passkeys)$/,
-  /^\/v1\/core\/team(?:\/(members|invitations|audit-logs(?:\/filters)?))?$/,
+  /^\/v1\/core\/team(?:\/(members|invitations))?$/,
   /^\/v1\/core\/settings\/(secrets|private-keys)$/,
   /^\/v1\/core\/github(?:\/(installation|repositories|branches))?$/,
   /^\/v1\/core\/gitlab\/(connections|repositories|groups|branches)$/,

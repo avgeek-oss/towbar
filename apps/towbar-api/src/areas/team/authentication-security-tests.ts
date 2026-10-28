@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import type { TestContext } from "node:test";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import * as schema from "@workspace/towbar-database/schema";
 import { getEnv } from "../../env.js";
 import type { AuthDatabase } from "../../infrastructure/database.js";
@@ -32,22 +32,6 @@ export async function assertAuthenticationSecurity({
   ) => Response | Promise<Response>;
   headersFor: (response: Response) => Headers;
 }) {
-  const accountAudit = await database
-    .select({ action: schema.auditEvents.action })
-    .from(schema.auditEvents)
-    .where(
-      and(
-        eq(schema.auditEvents.actorUserId, admin.id),
-        inArray(schema.auditEvents.action, [
-          "account.signed-up",
-          "account.signed-in",
-        ]),
-      ),
-    );
-  assert.deepEqual(
-    new Set(accountAudit.map((event) => event.action)),
-    new Set(["account.signed-up", "account.signed-in"]),
-  );
   await t.test(
     "password recovery is single-use and revokes existing sessions",
     async () => {

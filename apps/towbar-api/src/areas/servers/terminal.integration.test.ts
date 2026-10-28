@@ -72,7 +72,6 @@ void test(
         algorithm: "ed25519",
         name: "Terminal test",
         workspaceId: admin.workspaceId,
-        requestedBy: admin.id,
       });
       const privateKey = await revealWorkspacePrivateKey(
         key!.id,
@@ -117,7 +116,6 @@ void test(
       await db.transaction((tx) =>
         promoteVerifiedServerPrivateKey(
           {
-            actorUserId: admin.id,
             expectedRevision: null,
             privateKey,
             privateKeyId: key!.id,
@@ -336,14 +334,6 @@ void test(
         assert(!mismatched.state.ready);
         assert.match(mismatched.state.reason, /identity changed/);
       });
-      const audits = await db
-        .select()
-        .from(schema.auditEvents)
-        .where(eq(schema.auditEvents.targetId, serverId));
-      assert(audits.some((event) => event.action === "server.terminal.opened"));
-      assert(audits.some((event) => event.action === "server.terminal.closed"));
-      assert(!JSON.stringify(audits).includes("terminal-works"));
-      assert(!JSON.stringify(audits).includes("PRIVATE KEY"));
     } finally {
       for (const ws of connections) ws.terminate();
       stop?.();

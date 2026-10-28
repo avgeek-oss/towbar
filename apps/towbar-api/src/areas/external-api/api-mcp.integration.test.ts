@@ -27,7 +27,6 @@ import {
   apiKeyPolicies,
   apiKeys,
   apps,
-  auditEvents,
   authRateLimitBuckets,
   deploymentSteps,
   deployments,
@@ -404,18 +403,6 @@ void test(
           const text = JSON.stringify(await listApiKeys(user));
           assert(!text.includes(write.token));
           assert(!text.includes(stored!.key));
-          const audit = await db
-            .select()
-            .from(auditEvents)
-            .where(eq(auditEvents.workspaceId, workspaceId));
-          assert(
-            audit.some(
-              (event) =>
-                event.action === "api-key.created" &&
-                event.targetId === write.key.id,
-            ),
-          );
-          assert(!JSON.stringify(audit).includes(write.token));
           assert.equal(
             (await request("/identity", write.token)).headers.get(
               "cache-control",

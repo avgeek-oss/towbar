@@ -42,6 +42,11 @@ void test(
       });
       let adminHeaders = cookies(setup);
       const admin = (await auth.findSession(adminHeaders))!.user;
+      for (const path of [
+        "/v1/core/team/audit-logs",
+        "/v1/core/team/audit-logs/filters",
+      ])
+        assert.equal((await request(path, adminHeaders)).status, 404);
       let memberHeaders: Headers;
       let memberId: string;
       await t.test(

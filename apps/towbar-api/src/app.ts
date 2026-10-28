@@ -1,19 +1,14 @@
 import { mcpOAuthRoutes } from "./routes/mcp-oauth.js";
 import { faviconRoutes } from "./routes/favicon.js";
-import { auditRequestContext } from "./infrastructure/audit-context.js";
 import { randomUUID } from "node:crypto";
-
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
-
 import { httpObservabilityMiddleware } from "@workspace/observability-node/hono";
-
 import { getAllowedOrigins, getEnv } from "./env.js";
 import { normalizeError } from "./http/error-response.js";
 import { pingDatabase } from "./infrastructure/database.js";
 import { internalV1, publicV1 } from "./routes/v1/index.js";
-
 import type { TowbarHonoEnvironment } from "./http/types.js";
 
 function createRoutedApp(routeScope: "internal" | "public") {
@@ -27,7 +22,7 @@ function createRoutedApp(routeScope: "internal" | "public") {
       : randomUUID();
     context.set("requestId", requestId);
     context.header("x-request-id", requestId);
-    await auditRequestContext.run(requestId, next);
+    await next();
   });
   if (routeScope === "public") app.route("/", mcpOAuthRoutes);
   app.use(

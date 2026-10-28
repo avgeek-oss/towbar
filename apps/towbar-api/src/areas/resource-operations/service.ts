@@ -1,5 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { and, desc, eq, inArray, isNull, max } from "drizzle-orm";
 import {
   backupOperationResultSchema,
@@ -14,7 +12,6 @@ import {
   resourceOperationEvents,
   resourceOperations,
 } from "@workspace/towbar-database/schema";
-
 import { conflict, notFound, unprocessable } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { cancelResourceOperationWorkflow } from "../../infrastructure/temporal.js";
@@ -30,12 +27,12 @@ import {
   publicOperationSelection,
 } from "./queries.js";
 
-export { getServerOrphans } from "./queries.js";
 export { finishResourceOperation } from "./completion.js";
 export {
   getOperationExecutionContext,
   resolveOperationSecrets,
 } from "./execution.js";
+export { getServerOrphans } from "./queries.js";
 export {
   getResourceBackupAssurance,
   listOperationEvents,
@@ -270,19 +267,6 @@ export async function requestResourceRestore(input: {
     workspaceId: input.workspaceId,
   });
   if (!admitted.replayed) {
-    await recordAuditEvent(getTowbarDatabase(), {
-      action: "resource.restore.requested",
-      actorUserId: input.requestedBy,
-      metadata: {
-        backupId: backup.id,
-        operationId: admitted.operation.id,
-        reason: input.reason,
-      },
-      targetId: target.id,
-      targetType: "resource",
-      workspaceId: input.workspaceId,
-      ...auditAttribution(),
-    });
     await emitResourceOperationNotification(
       admitted.operation.id,
       "restore.started",
@@ -379,26 +363,11 @@ export async function requestRestoreCleanup(input: {
     sourceId: restore.sourceId,
     workspaceId: input.workspaceId,
   });
-  if (!admitted.replayed) {
-    await recordAuditEvent(getTowbarDatabase(), {
-      action: "resource.restore_cleanup.requested",
-      actorUserId: input.requestedBy,
-      metadata: {
-        operationId: admitted.operation.id,
-        restoreId: input.restoreId,
-      },
-      targetId: target.id,
-      targetType: "resource",
-      workspaceId: input.workspaceId,
-      ...auditAttribution(),
-    });
-  }
   return admitted;
 }
 
 export async function cancelResourceRestore(input: {
   operationId: string;
-  requestedBy: string | null;
   resourceId: string;
   workspaceId: string;
 }) {
@@ -455,15 +424,6 @@ export async function cancelResourceRestore(input: {
     await cancelResourceOperationWorkflow(operation.id);
     return operation;
   }
-  await recordAuditEvent(getTowbarDatabase(), {
-    action: "resource.restore.cancel_requested",
-    actorUserId: input.requestedBy,
-    metadata: { operationId: operation.id },
-    targetId: input.resourceId,
-    targetType: "resource",
-    workspaceId: input.workspaceId,
-    ...auditAttribution(),
-  });
   await cancelResourceOperationWorkflow(operation.id);
   return updated;
 }

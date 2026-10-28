@@ -3,19 +3,16 @@ import {
   captureQueuedActor,
 } from "../auth/actor-context.js";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
-
-import { createServerPreparationSteps } from "@workspace/towbar-core";
 import type { ServerPreparationStep } from "@workspace/towbar-core";
+import { createServerPreparationSteps } from "@workspace/towbar-core";
 import {
   apps,
-  auditEvents,
   serverChecks,
   serverPreparations,
   servers,
   sshHostKeys,
   workspacePrivateKeys,
 } from "@workspace/towbar-database/schema";
-
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import {
@@ -70,6 +67,7 @@ export async function requestServerPreparation(input: {
       configDigest: servers.configDigest,
       id: servers.id,
       preparedAt: servers.preparedAt,
+      lastRemovedAt: servers.lastRemovedAt,
       preparedConfigDigest: servers.preparedConfigDigest,
     })
     .from(servers)
@@ -173,6 +171,7 @@ export async function getServerPreparationExecutionContext(
       requestedByActor: serverPreparations.requestedByActor,
       status: serverPreparations.status,
       preparedAt: servers.preparedAt,
+      lastRemovedAt: servers.lastRemovedAt,
       serverId: servers.id,
       workspaceId: servers.workspaceId,
       privateKeyName: workspacePrivateKeys.name,
@@ -216,34 +215,21 @@ export async function getServerPreparationExecutionContext(
         isNull(sshHostKeys.revokedAt),
       ),
     );
-  const [priorRemoval] = context.preparedAt
-    ? []
-    : await database
-        .select({ id: auditEvents.id })
-        .from(auditEvents)
-        .where(
-          and(
-            eq(auditEvents.action, "server.removed"),
-            eq(auditEvents.targetId, context.serverId),
-            eq(auditEvents.targetType, "server"),
-            eq(auditEvents.workspaceId, context.workspaceId),
-          ),
-        )
-        .limit(1);
-  const cleanupDeployableIds = priorRemoval
-    ? (
-        await database
-          .select({ id: apps.id })
-          .from(apps)
-          .where(
-            and(
-              eq(apps.serverId, context.serverId),
-              eq(apps.kind, "app"),
-              isNull(apps.archivedAt),
-            ),
-          )
-      ).map((app) => app.id)
-    : [];
+  const cleanupDeployableIds =
+    !context.preparedAt && context.lastRemovedAt
+      ? (
+          await database
+            .select({ id: apps.id })
+            .from(apps)
+            .where(
+              and(
+                eq(apps.serverId, context.serverId),
+                eq(apps.kind, "app"),
+                isNull(apps.archivedAt),
+              ),
+            )
+        ).map((app) => app.id)
+      : [];
   await database
     .update(serverPreparations)
     .set({ startedAt: new Date(), status: "running" })

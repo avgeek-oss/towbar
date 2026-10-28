@@ -93,7 +93,6 @@ void test(
       const key = await createWorkspacePrivateKey({
         algorithm: "ed25519",
         name: "Setup key",
-        requestedBy: userId,
         workspaceId,
       });
       await db.insert(servers).values({
@@ -108,7 +107,6 @@ void test(
       await db.transaction((tx) =>
         promoteVerifiedServerPrivateKey(
           {
-            actorUserId: userId,
             expectedRevision: null,
             privateKey,
             privateKeyId: key.id,
