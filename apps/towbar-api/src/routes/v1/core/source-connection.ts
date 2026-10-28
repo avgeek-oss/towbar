@@ -14,7 +14,7 @@ export const sourceConnectionRoutes = new Hono<TowbarHonoEnvironment>();
 sourceConnectionRoutes.post(
   "/discover",
   operation({
-    permissions: ["repository.connect"],
+    permissions: ["admin"],
     responseSchema: 'source-connection.ts:post:"/discover"',
     summary: "Discover repository environments",
     body: sourceDiscoverySchema,
@@ -32,7 +32,7 @@ sourceConnectionRoutes.post(
 sourceConnectionRoutes.post(
   "/connect",
   operation({
-    permissions: ["repository.connect"],
+    permissions: ["admin"],
     responseSchema: 'source-connection.ts:post:"/connect"',
     summary: "Connect repository and environments",
     body: sourceConnectionSchema,

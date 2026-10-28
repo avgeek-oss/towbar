@@ -4,7 +4,6 @@ import test from "node:test";
 import { eq } from "drizzle-orm";
 import { actorAllows } from "@workspace/towbar-access";
 import {
-  apiKeyPolicies,
   users,
   workspaceMembers,
   workspaces,
@@ -84,66 +83,44 @@ void test(
         includeAdmin: true,
       });
       assert(full.token);
-      assert.equal(full.key.permissionMode, "full-admin");
-      await db
-        .update(apiKeyPolicies)
-        .set({
-          grants: full.key.grants.filter(
-            (action) => action !== "server.collectLogs",
-          ),
-        })
-        .where(eq(apiKeyPolicies.keyId, full.key.id));
+      assert.deepEqual(full.key.grants, ["viewer", "member", "admin"]);
       const principal = (await keys.findApiKey(full.token))!;
-      assert(actorAllows(principal.actor, ["server.collectLogs"]));
+      assert(actorAllows(principal.actor, ["admin"]));
       const reference = withActor(principal.actor, () =>
-        captureQueuedActor(admin.workspaceId, [
-          "deployment.create",
-          "server.collectLogs",
-        ]),
+        captureQueuedActor(admin.workspaceId, ["admin"]),
       ).requestedByActor;
       const admitted = await authorizeQueuedEffect(
         reference,
         admin.workspaceId,
-        ["server.collectLogs"],
+        ["admin"],
       );
-      assert(actorAllows(admitted, ["server.collectLogs"]));
+      assert(actorAllows(admitted, ["admin"]));
       const narrowed = await authorizeQueuedEffect(
-        { ...reference, grants: ["repository.read"] },
+        { ...reference, grants: ["viewer"] },
         admin.workspaceId,
-        ["repository.read"],
+        ["viewer"],
       );
-      assert(!actorAllows(narrowed, ["server.collectLogs"]));
-      assert(!actorAllows(narrowed, ["server.prepare"]));
+      assert(!actorAllows(narrowed, ["admin"]));
+      assert(!actorAllows(narrowed, ["admin"]));
       await teams.updateMemberRole(admin, ownerMembership.id, "member");
       const demoted = (await keys.findApiKey(full.token))!;
       assert.equal(demoted.actor.kind, "personal-key");
       if (demoted.actor.kind === "personal-key") {
-        assert.equal(demoted.actor.policy.permissionMode, "scoped");
         assert.equal(demoted.actor.policy.includeAdmin, false);
       }
-      assert(!actorAllows(demoted.actor, ["server.collectLogs"]));
-      assert(actorAllows(demoted.actor, ["secret.update"]));
+      assert(!actorAllows(demoted.actor, ["admin"]));
+      assert(actorAllows(demoted.actor, ["member"]));
       await assert.rejects(
-        authorizeQueuedEffect(reference, admin.workspaceId, [
-          "server.collectLogs",
-        ]),
+        authorizeQueuedEffect(reference, admin.workspaceId, ["admin"]),
       );
       await teams.updateMemberRole(admin, ownerMembership.id, "admin");
       assert(
-        !actorAllows((await keys.findApiKey(full.token))!.actor, [
-          "server.collectLogs",
-        ]),
+        !actorAllows((await keys.findApiKey(full.token))!.actor, ["admin"]),
       );
       await assert.rejects(
-        authorizeQueuedEffect(reference, admin.workspaceId, [
-          "server.collectLogs",
-        ]),
+        authorizeQueuedEffect(reference, admin.workspaceId, ["admin"]),
       );
-      assert(
-        actorAllows((await keys.findApiKey(teamToken))!.actor, [
-          "server.collectLogs",
-        ]),
-      );
+      assert(actorAllows((await keys.findApiKey(teamToken))!.actor, ["admin"]));
 
       const replacement = await keys.createApiKey(owner, {
         name: "Replacement full",
@@ -153,7 +130,7 @@ void test(
       assert(replacement.token);
       assert(
         actorAllows((await keys.findApiKey(replacement.token))!.actor, [
-          "server.collectLogs",
+          "admin",
         ]),
       );
       await db
@@ -170,11 +147,7 @@ void test(
       await teams.removeTeamMember(admin, ownerMembership.id);
       assert.equal(await keys.findApiKey(full.token), null);
       assert.equal(await keys.findApiKey(replacement.token), null);
-      assert(
-        actorAllows((await keys.findApiKey(teamToken))!.actor, [
-          "server.collectLogs",
-        ]),
-      );
+      assert(actorAllows((await keys.findApiKey(teamToken))!.actor, ["admin"]));
     } finally {
       await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
       await db.delete(users).where(eq(users.id, owner.id));

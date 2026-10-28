@@ -1,8 +1,8 @@
 $kind: http-request
 id: 59613646-7180-528c-9503-7dd8a948e144
 description:
-  "Required permissions: repository.disconnect. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId/removal-preview?environmentId="
 method: GET
 headers:

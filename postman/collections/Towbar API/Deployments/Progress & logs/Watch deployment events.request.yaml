@@ -1,8 +1,8 @@
 $kind: http-request
 id: 8d4aa1a7-d334-5e60-b649-2c7d9cd40caf
 description:
-  "Required permissions: deployment.read. Personal keys are capped by the current member
-  role; team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and
   server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID.
   MCP returns a finite snapshot; call again to poll."
 url: "{{baseUrl}}/deployments/:deploymentId/events?after=&snapshot=true"

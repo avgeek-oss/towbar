@@ -8,7 +8,7 @@ export const serverTerminalRoutes = new Hono<TowbarHonoEnvironment>();
 serverTerminalRoutes.post(
   "/:serverId/terminal",
   operation({
-    permissions: ["server.terminal"],
+    permissions: ["admin"],
     browserOnly: true,
     freshSession: true,
     summary: "Open a server terminal",

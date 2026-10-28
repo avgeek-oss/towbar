@@ -180,9 +180,7 @@ export function DeploymentDetail() {
       </DashboardPage>
     );
   }
-  const actions = !can("deployment.create") ? undefined : !terminal.has(
-      item.state,
-    ) ? (
+  const actions = !can("admin") ? undefined : !terminal.has(item.state) ? (
     <ActionButton
       action={() =>
         api.post(`/v1/core/deployments/${deploymentId}/actions/cancel`)

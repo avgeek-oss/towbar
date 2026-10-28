@@ -1,8 +1,8 @@
 $kind: http-request
 id: 5eeba3a3-3a62-546a-9d3f-d6912225aedb
 description:
-  "Required permissions: deployment.create. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/actions/rollback"
 method: POST
 headers:

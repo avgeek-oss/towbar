@@ -1,8 +1,8 @@
 $kind: http-request
 id: 86abbc92-d5c2-560d-b145-7c6448affce0
 description:
-  "Required permissions: resource.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url:
   "{{baseUrl}}/resources?q=&view=all&sourceId=&environment=&serverIp=&resourceType=postgres&runn\
   ing=running&health=healthy"

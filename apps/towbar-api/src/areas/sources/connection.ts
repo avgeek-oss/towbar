@@ -76,7 +76,7 @@ export async function connectRepositorySource(
     requestSync: requestEnvironmentSync,
   },
 ) {
-  const actor = requireActor(input.workspaceId, ["repository.connect"]);
+  const actor = requireActor(input.workspaceId, ["admin"]);
   const connection = await repositoryConnection(input);
   const githubRepository = await dependencies.repository(connection);
   const resolved: {
@@ -146,7 +146,7 @@ export async function connectRepositorySource(
             ...values,
             status: "active",
             archivedAt: null,
-            autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+            autoDeployPaused: !actorAllows(actor, ["admin"]),
             updatedAt: new Date(),
           })
           .where(eq(sources.id, existing.id))
@@ -164,7 +164,7 @@ export async function connectRepositorySource(
           name: mapping.environment,
           branch: mapping.branch,
           previewsEnabled: mapping.previewsEnabled,
-          autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+          autoDeployPaused: !actorAllows(actor, ["admin"]),
         })),
       )
       .onConflictDoUpdate({
@@ -172,7 +172,7 @@ export async function connectRepositorySource(
         set: {
           branch: sql`excluded.branch`,
           previewsEnabled: sql`excluded.previews_enabled`,
-          autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+          autoDeployPaused: !actorAllows(actor, ["admin"]),
           mappingRevision: sql`gen_random_uuid()`,
           disconnectedAt: null,
           updatedAt: new Date(),

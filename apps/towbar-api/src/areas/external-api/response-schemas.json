@@ -14396,10 +14396,10 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "type": "string", "const": "scout" },
               { "type": "string", "const": "deployments" },
               { "type": "string", "const": "deploymentFailures" },
               { "type": "string", "const": "health" },
+              { "type": "string", "const": "scout" },
               { "type": "string", "const": "backups" },
               { "type": "string", "const": "restores" }
             ]
@@ -15325,9 +15325,9 @@
         "workspaceId": { "type": "string" },
         "workspaceRole": {
           "anyOf": [
-            { "type": "string", "const": "admin" },
+            { "type": "string", "const": "viewer" },
             { "type": "string", "const": "member" },
-            { "type": "string", "const": "viewer" }
+            { "type": "string", "const": "admin" }
           ]
         },
         "teamName": { "type": "string" },
@@ -15339,65 +15339,9 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "type": "string", "const": "identity.read" },
-              { "type": "string", "const": "server.read" },
-              { "type": "string", "const": "server.prepare" },
-              { "type": "string", "const": "server.update" },
-              { "type": "string", "const": "server.credentials" },
-              { "type": "string", "const": "server.remove" },
-              { "type": "string", "const": "server.terminal" },
-              { "type": "string", "const": "server.collectLogs" },
-              { "type": "string", "const": "invitation.read" },
-              { "type": "string", "const": "invitation.create" },
-              { "type": "string", "const": "invitation.cancel" },
-              { "type": "string", "const": "member.read" },
-              { "type": "string", "const": "member.create" },
-              { "type": "string", "const": "member.update" },
-              { "type": "string", "const": "member.delete" },
-              { "type": "string", "const": "deployment.read" },
-              { "type": "string", "const": "deployment.create" },
-              { "type": "string", "const": "deployment.cancel" },
-              { "type": "string", "const": "secret.update" },
-              { "type": "string", "const": "secret.list" },
-              { "type": "string", "const": "secret.reveal" },
-              { "type": "string", "const": "organization.update" },
-              { "type": "string", "const": "organization.delete" },
-              { "type": "string", "const": "personal.manage" },
-              { "type": "string", "const": "team.read" },
-              { "type": "string", "const": "team.update" },
-              { "type": "string", "const": "apikey.read" },
-              { "type": "string", "const": "apikey.create" },
-              { "type": "string", "const": "apikey.update" },
-              { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "repository.connect" },
-              { "type": "string", "const": "repository.read" },
-              { "type": "string", "const": "repository.disconnect" },
-              { "type": "string", "const": "repository.update" },
-              { "type": "string", "const": "repository.sync" },
-              { "type": "string", "const": "workload.read" },
-              { "type": "string", "const": "workload.operate" },
-              { "type": "string", "const": "resource.read" },
-              { "type": "string", "const": "resource.backup" },
-              { "type": "string", "const": "resource.restore" },
-              { "type": "string", "const": "sharedSecret.update" },
-              { "type": "string", "const": "sharedSecret.list" },
-              { "type": "string", "const": "sharedSecret.reveal" },
-              { "type": "string", "const": "sharedSecret.reference" },
-              { "type": "string", "const": "logs.read" },
-              { "type": "string", "const": "logs.readAdmin" },
-              { "type": "string", "const": "scout.read" },
-              { "type": "string", "const": "scout.configure" },
-              { "type": "string", "const": "alert.read" },
-              { "type": "string", "const": "alert.configure" },
-              { "type": "string", "const": "integration.manage" },
-              { "type": "string", "const": "githubInstallation.read" },
-              { "type": "string", "const": "notification.manage" },
-              { "type": "string", "const": "inbox.read" },
-              { "type": "string", "const": "inbox.update" },
-              { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" }
+              { "type": "string", "const": "viewer" },
+              { "type": "string", "const": "member" },
+              { "type": "string", "const": "admin" }
             ]
           }
         }
@@ -15417,9 +15361,9 @@
         "workspaceId": { "type": "string" },
         "workspaceRole": {
           "anyOf": [
-            { "type": "string", "const": "admin" },
+            { "type": "string", "const": "viewer" },
             { "type": "string", "const": "member" },
-            { "type": "string", "const": "viewer" }
+            { "type": "string", "const": "admin" }
           ]
         },
         "email": { "type": "string" },
@@ -15439,9 +15383,9 @@
         "actor": {
           "anyOf": [
             { "type": "string", "const": "session" },
-            { "type": "string", "const": "system" },
             { "type": "string", "const": "personal-key" },
-            { "type": "string", "const": "team-key" }
+            { "type": "string", "const": "team-key" },
+            { "type": "string", "const": "system" }
           ]
         },
         "workspaceId": { "type": "string" },
@@ -15449,65 +15393,9 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "type": "string", "const": "identity.read" },
-              { "type": "string", "const": "server.read" },
-              { "type": "string", "const": "server.prepare" },
-              { "type": "string", "const": "server.update" },
-              { "type": "string", "const": "server.credentials" },
-              { "type": "string", "const": "server.remove" },
-              { "type": "string", "const": "server.terminal" },
-              { "type": "string", "const": "server.collectLogs" },
-              { "type": "string", "const": "invitation.read" },
-              { "type": "string", "const": "invitation.create" },
-              { "type": "string", "const": "invitation.cancel" },
-              { "type": "string", "const": "member.read" },
-              { "type": "string", "const": "member.create" },
-              { "type": "string", "const": "member.update" },
-              { "type": "string", "const": "member.delete" },
-              { "type": "string", "const": "deployment.read" },
-              { "type": "string", "const": "deployment.create" },
-              { "type": "string", "const": "deployment.cancel" },
-              { "type": "string", "const": "secret.update" },
-              { "type": "string", "const": "secret.list" },
-              { "type": "string", "const": "secret.reveal" },
-              { "type": "string", "const": "organization.update" },
-              { "type": "string", "const": "organization.delete" },
-              { "type": "string", "const": "personal.manage" },
-              { "type": "string", "const": "team.read" },
-              { "type": "string", "const": "team.update" },
-              { "type": "string", "const": "apikey.read" },
-              { "type": "string", "const": "apikey.create" },
-              { "type": "string", "const": "apikey.update" },
-              { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "repository.connect" },
-              { "type": "string", "const": "repository.read" },
-              { "type": "string", "const": "repository.disconnect" },
-              { "type": "string", "const": "repository.update" },
-              { "type": "string", "const": "repository.sync" },
-              { "type": "string", "const": "workload.read" },
-              { "type": "string", "const": "workload.operate" },
-              { "type": "string", "const": "resource.read" },
-              { "type": "string", "const": "resource.backup" },
-              { "type": "string", "const": "resource.restore" },
-              { "type": "string", "const": "sharedSecret.update" },
-              { "type": "string", "const": "sharedSecret.list" },
-              { "type": "string", "const": "sharedSecret.reveal" },
-              { "type": "string", "const": "sharedSecret.reference" },
-              { "type": "string", "const": "logs.read" },
-              { "type": "string", "const": "logs.readAdmin" },
-              { "type": "string", "const": "scout.read" },
-              { "type": "string", "const": "scout.configure" },
-              { "type": "string", "const": "alert.read" },
-              { "type": "string", "const": "alert.configure" },
-              { "type": "string", "const": "integration.manage" },
-              { "type": "string", "const": "githubInstallation.read" },
-              { "type": "string", "const": "notification.manage" },
-              { "type": "string", "const": "inbox.read" },
-              { "type": "string", "const": "inbox.update" },
-              { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" }
+              { "type": "string", "const": "viewer" },
+              { "type": "string", "const": "member" },
+              { "type": "string", "const": "admin" }
             ]
           }
         }
@@ -16919,8 +16807,8 @@
         },
         "runtime": {
           "anyOf": [
-            { "type": "string", "const": "workload" },
-            { "type": "string", "const": "ingress" }
+            { "type": "string", "const": "ingress" },
+            { "type": "string", "const": "workload" }
           ]
         },
         "service": { "type": "string" },
@@ -17129,11 +17017,11 @@
         "kind": {
           "anyOf": [
             { "type": "string", "const": "image" },
-            { "type": "string", "const": "workload" },
             { "type": "string", "const": "container" },
             { "type": "string", "const": "network" },
             { "type": "string", "const": "route" },
-            { "type": "string", "const": "volume" }
+            { "type": "string", "const": "volume" },
+            { "type": "string", "const": "workload" }
           ]
         }
       },
@@ -17160,11 +17048,11 @@
         "kind": {
           "anyOf": [
             { "type": "string", "const": "image" },
-            { "type": "string", "const": "workload" },
             { "type": "string", "const": "container" },
             { "type": "string", "const": "network" },
             { "type": "string", "const": "route" },
-            { "type": "string", "const": "volume" }
+            { "type": "string", "const": "volume" },
+            { "type": "string", "const": "workload" }
           ]
         }
       },
@@ -19007,65 +18895,9 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "type": "string", "const": "identity.read" },
-              { "type": "string", "const": "server.read" },
-              { "type": "string", "const": "server.prepare" },
-              { "type": "string", "const": "server.update" },
-              { "type": "string", "const": "server.credentials" },
-              { "type": "string", "const": "server.remove" },
-              { "type": "string", "const": "server.terminal" },
-              { "type": "string", "const": "server.collectLogs" },
-              { "type": "string", "const": "invitation.read" },
-              { "type": "string", "const": "invitation.create" },
-              { "type": "string", "const": "invitation.cancel" },
-              { "type": "string", "const": "member.read" },
-              { "type": "string", "const": "member.create" },
-              { "type": "string", "const": "member.update" },
-              { "type": "string", "const": "member.delete" },
-              { "type": "string", "const": "deployment.read" },
-              { "type": "string", "const": "deployment.create" },
-              { "type": "string", "const": "deployment.cancel" },
-              { "type": "string", "const": "secret.update" },
-              { "type": "string", "const": "secret.list" },
-              { "type": "string", "const": "secret.reveal" },
-              { "type": "string", "const": "organization.update" },
-              { "type": "string", "const": "organization.delete" },
-              { "type": "string", "const": "personal.manage" },
-              { "type": "string", "const": "team.read" },
-              { "type": "string", "const": "team.update" },
-              { "type": "string", "const": "apikey.read" },
-              { "type": "string", "const": "apikey.create" },
-              { "type": "string", "const": "apikey.update" },
-              { "type": "string", "const": "apikey.delete" },
-              { "type": "string", "const": "repository.connect" },
-              { "type": "string", "const": "repository.read" },
-              { "type": "string", "const": "repository.disconnect" },
-              { "type": "string", "const": "repository.update" },
-              { "type": "string", "const": "repository.sync" },
-              { "type": "string", "const": "workload.read" },
-              { "type": "string", "const": "workload.operate" },
-              { "type": "string", "const": "resource.read" },
-              { "type": "string", "const": "resource.backup" },
-              { "type": "string", "const": "resource.restore" },
-              { "type": "string", "const": "sharedSecret.update" },
-              { "type": "string", "const": "sharedSecret.list" },
-              { "type": "string", "const": "sharedSecret.reveal" },
-              { "type": "string", "const": "sharedSecret.reference" },
-              { "type": "string", "const": "logs.read" },
-              { "type": "string", "const": "logs.readAdmin" },
-              { "type": "string", "const": "scout.read" },
-              { "type": "string", "const": "scout.configure" },
-              { "type": "string", "const": "alert.read" },
-              { "type": "string", "const": "alert.configure" },
-              { "type": "string", "const": "integration.manage" },
-              { "type": "string", "const": "githubInstallation.read" },
-              { "type": "string", "const": "notification.manage" },
-              { "type": "string", "const": "inbox.read" },
-              { "type": "string", "const": "inbox.update" },
-              { "type": "string", "const": "privateKey.reveal" },
-              { "type": "string", "const": "privateKey.manage" },
-              { "type": "string", "const": "system.read" },
-              { "type": "string", "const": "system.manage" }
+              { "type": "string", "const": "viewer" },
+              { "type": "string", "const": "member" },
+              { "type": "string", "const": "admin" }
             ]
           }
         }
@@ -21069,8 +20901,8 @@
           "anyOf": [
             { "type": "string", "const": "create" },
             { "type": "string", "const": "update" },
-            { "type": "string", "const": "restore" },
             { "type": "string", "const": "archive" },
+            { "type": "string", "const": "restore" },
             { "type": "string", "const": "unchanged" }
           ]
         },
@@ -21107,8 +20939,8 @@
           "anyOf": [
             { "type": "string", "const": "create" },
             { "type": "string", "const": "update" },
-            { "type": "string", "const": "restore" },
             { "type": "string", "const": "archive" },
+            { "type": "string", "const": "restore" },
             { "type": "string", "const": "unchanged" }
           ]
         },
@@ -21145,8 +20977,8 @@
           "anyOf": [
             { "type": "string", "const": "create" },
             { "type": "string", "const": "update" },
-            { "type": "string", "const": "restore" },
             { "type": "string", "const": "archive" },
+            { "type": "string", "const": "restore" },
             { "type": "string", "const": "unchanged" }
           ]
         },
@@ -21503,10 +21335,10 @@
           "type": "array",
           "items": {
             "anyOf": [
-              { "type": "string", "const": "scout" },
               { "type": "string", "const": "deployments" },
               { "type": "string", "const": "deploymentFailures" },
               { "type": "string", "const": "health" },
+              { "type": "string", "const": "scout" },
               { "type": "string", "const": "backups" },
               { "type": "string", "const": "restores" }
             ]
@@ -21609,10 +21441,10 @@
         "category": {
           "anyOf": [
             { "type": "string", "const": "test" },
-            { "type": "string", "const": "scout" },
             { "type": "string", "const": "deployments" },
             { "type": "string", "const": "deploymentFailures" },
             { "type": "string", "const": "health" },
+            { "type": "string", "const": "scout" },
             { "type": "string", "const": "backups" },
             { "type": "string", "const": "restores" }
           ]
@@ -21728,11 +21560,11 @@
             { "type": "string", "const": "preview" },
             { "type": "string", "const": "deployment" },
             { "type": "string", "const": "resource" },
-            { "type": "string", "const": "notification" },
+            { "type": "string", "const": "source" },
+            { "type": "string", "const": "app" },
             { "type": "string", "const": "backup" },
             { "type": "string", "const": "restore" },
-            { "type": "string", "const": "source" },
-            { "type": "string", "const": "app" }
+            { "type": "string", "const": "notification" }
           ]
         },
         "name": { "type": "string" }
@@ -21808,10 +21640,10 @@
         "category": {
           "anyOf": [
             { "type": "string", "const": "test" },
-            { "type": "string", "const": "scout" },
             { "type": "string", "const": "deployments" },
             { "type": "string", "const": "deploymentFailures" },
             { "type": "string", "const": "health" },
+            { "type": "string", "const": "scout" },
             { "type": "string", "const": "backups" },
             { "type": "string", "const": "restores" }
           ]

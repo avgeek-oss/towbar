@@ -98,7 +98,7 @@ export async function requestServerCleanup(input: {
       idempotencyKey: key,
       temporalWorkflowId: resourceOperationWorkflowId(id),
       requestedBy: input.requestedBy,
-      ...captureQueuedActor(input.workspaceId, ["server.remove"]),
+      ...captureQueuedActor(input.workspaceId, ["admin"]),
     })
     .onConflictDoNothing()
     .returning(publicOperationSelection);

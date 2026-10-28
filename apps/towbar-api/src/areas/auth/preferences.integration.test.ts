@@ -373,9 +373,7 @@ void test(
         context.set("actor", streamPrincipal.actor);
         if (context.req.param("kind") === "key")
           context.set("apiKey", streamPrincipal.key);
-        const allowed = await streamStillAuthorized(context, [
-          "deployment.read",
-        ]);
+        const allowed = await streamStillAuthorized(context, ["viewer"]);
         return context.json({
           allowed,
           preferences: requestDateTimePreferences(context),

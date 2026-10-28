@@ -39,7 +39,7 @@ export const accountRoutes = new Hono<TowbarHonoEnvironment>();
 accountRoutes.get(
   "/sessions",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     responseSchema: 'account.ts:get:"/sessions"',
     summary: "List user sessions",
     browserOnly: true,
@@ -55,7 +55,7 @@ accountRoutes.get(
 accountRoutes.delete(
   "/sessions/:sessionId",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     responseSchema: 'account.ts:delete:"/sessions/:sessionId"',
     summary: "Revoke user session",
     browserOnly: true,
@@ -75,7 +75,7 @@ accountRoutes.delete(
 accountRoutes.get(
   "/profile",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     responseSchema: 'account.ts:get:"/profile"',
     summary: "Get current profile",
     browserOnly: true,
@@ -87,7 +87,7 @@ accountRoutes.get(
 accountRoutes.patch(
   "/profile",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     responseSchema: 'account.ts:patch:"/profile"',
     summary: "Update profile",
     browserOnly: true,
@@ -114,7 +114,7 @@ accountRoutes.patch(
 accountRoutes.put(
   "/profile/password",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     responseSchema: 'account.ts:put:"/profile/password"',
     summary: "Change password",
     browserOnly: true,
@@ -139,7 +139,7 @@ accountRoutes.put(
 accountRoutes.get(
   "/identity",
   operation({
-    permissions: ["identity.read"],
+    permissions: ["viewer"],
     summary: "Get current actor and team",
     responseSchema: 'account.ts:get:"/identity"',
     response: "Actor kind, team ID, and effective permissions.",
@@ -156,7 +156,7 @@ const emailChangeSchema = z.object({ email: z.email().max(320) }).strict();
 accountRoutes.get(
   "/profile/email-change",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Get pending email change",
     responseSchema: 'account.ts:get:"/profile/email-change"',
@@ -167,7 +167,7 @@ accountRoutes.get(
 accountRoutes.post(
   "/profile/email-change",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Request email change",
     responseSchema: 'account.ts:post:"/profile/email-change"',
@@ -190,7 +190,7 @@ accountRoutes.post(
 accountRoutes.delete(
   "/profile/email-change",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Cancel email change",
     responseSchema: 'account.ts:delete:"/profile/email-change"',
@@ -205,7 +205,7 @@ accountRoutes.delete(
 accountRoutes.post(
   "/profile/passkeys/recovery-codes",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Replace passkey recovery codes",
     responseSchema: 'account.ts:post:"/profile/passkeys/recovery-codes"',

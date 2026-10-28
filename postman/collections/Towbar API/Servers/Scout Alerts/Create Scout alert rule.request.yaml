@@ -1,8 +1,8 @@
 $kind: http-request
 id: 08ed9683-cb48-57b5-aac4-40b7d354d110
 description:
-  "Required permissions: alert.configure. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: member. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/scout-alerts/rules"
 method: POST
 headers:

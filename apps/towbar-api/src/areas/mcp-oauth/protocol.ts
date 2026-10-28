@@ -1,9 +1,10 @@
+import { scopes as oauthScopes } from "@workspace/towbar-access";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { getEnv } from "../../env.js";
 
 export const tokenLifetimeSeconds = 30 * 86400;
-export const oauthScopes = ["mcp:read", "mcp:write", "mcp:admin"];
+export { scopes as oauthScopes } from "@workspace/towbar-access";
 export const oauthIssuer = () =>
   getEnv().TOWBAR_API_BASE_URL.replace(/\/$/, "");
 export const mcpResource = () => `${oauthIssuer()}/v1/mcp`;
@@ -56,23 +57,24 @@ export const clientMetadataSchema = z.object({
     .default(["authorization_code"]),
   response_types: z.array(z.literal("code")).length(1).default(["code"]),
 });
-export function parseScope(value = "mcp:read") {
+export function parseScope(value = "viewer") {
   const scopes = [...new Set(value.split(" "))];
-  if (!scopes.length || scopes.some((s) => !oauthScopes.includes(s)))
+  if (
+    !scopes.length ||
+    scopes.some((s) => !oauthScopes.some((scope) => scope === s))
+  )
     throw new OAuthError(
       "invalid_scope",
-      "Supported scopes are mcp:read, mcp:write and mcp:admin",
+      "Supported scopes are viewer, member and admin",
     );
-  if (scopes.includes("mcp:admin")) return "mcp:read mcp:write mcp:admin";
-  return scopes.includes("mcp:write") ? "mcp:read mcp:write" : "mcp:read";
+  if (scopes.includes("admin")) return "viewer member admin";
+  return scopes.includes("member") ? "viewer member" : "viewer";
 }
 export function oauthKeyPermissions(scope: string) {
   const scopes = scope.split(" ");
   return {
-    access: scopes.includes("mcp:write")
-      ? ("edit" as const)
-      : ("read" as const),
-    includeAdmin: scopes.includes("mcp:admin"),
+    access: scopes.includes("member") ? ("edit" as const) : ("read" as const),
+    includeAdmin: scopes.includes("admin"),
   };
 }
 export function requireResource(value: string | undefined) {

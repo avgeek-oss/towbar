@@ -1,8 +1,8 @@
 $kind: http-request
 id: 2b8170df-82e0-520a-a45a-ccf3099bd79c
 description:
-  "Required permissions: integration.manage. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/github/actions/retry-preview-reporting"
 method: POST
 headers:

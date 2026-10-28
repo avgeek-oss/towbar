@@ -27,7 +27,7 @@ export const serverCredentialRoutes = new Hono<TowbarHonoEnvironment>();
 serverCredentialRoutes.get(
   "/",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'server-credentials.ts:get:"/"',
     summary: "Get server credential metadata",
     response: "JSON object containing credential, canManage.",
@@ -57,7 +57,7 @@ serverCredentialRoutes.get(
 serverCredentialRoutes.patch(
   "/",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'server-credentials.ts:patch:"/"',
     summary: "Update server credentials",
     body: secretMutationSchema,
@@ -88,7 +88,7 @@ serverCredentialRoutes.patch(
 serverCredentialRoutes.post(
   "/actions/verify-private-key",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'server-credentials.ts:post:"/actions/verify-private-key"',
     summary: "Verify and save an SSH private key",
     body: privateKeyVerificationSchema,
@@ -124,7 +124,7 @@ serverCredentialRoutes.post(
 serverCredentialRoutes.get(
   "/verifications/:verificationId",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema:
       'server-credentials.ts:get:"/verifications/:verificationId"',
     summary: "Get SSH private key verification",

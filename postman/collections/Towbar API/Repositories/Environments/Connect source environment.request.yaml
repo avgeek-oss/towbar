@@ -1,8 +1,8 @@
 $kind: http-request
 id: 1b1eb8e2-e9fd-5735-ab9b-87812de09097
 description:
-  "Required permissions: repository.connect. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId/environments"
 method: POST
 headers:

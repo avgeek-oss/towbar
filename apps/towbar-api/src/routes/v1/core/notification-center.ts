@@ -17,7 +17,7 @@ export const notificationCenterRoutes = new Hono<TowbarHonoEnvironment>();
 notificationCenterRoutes.get(
   "/providers",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notification-center.ts:get:"/providers"',
     summary: "Get environment-configured notification providers",
@@ -35,7 +35,7 @@ notificationCenterRoutes.get(
 notificationCenterRoutes.get(
   "/",
   operation({
-    permissions: ["inbox.read"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'notification-center.ts:get:"/"',
     summary: "List unread and recently read notifications",
@@ -59,7 +59,7 @@ notificationCenterRoutes.get(
 notificationCenterRoutes.post(
   "/read-all",
   operation({
-    permissions: ["inbox.read"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'notification-center.ts:post:"/read-all"',
     summary: "Mark all notifications as read for the signed-in user",

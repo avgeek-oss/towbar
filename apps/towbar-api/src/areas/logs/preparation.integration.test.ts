@@ -124,7 +124,7 @@ void test(
         trustedBy: userId,
       });
       const attribution = withActor(actor, () =>
-        captureQueuedActor(workspaceId, ["server.prepare"]),
+        captureQueuedActor(workspaceId, ["admin"]),
       );
       await db.insert(serverPreparations).values({
         id: preparationId,
@@ -167,7 +167,7 @@ void test(
             .set({
               requestedByActor: {
                 ...attribution.requestedByActor,
-                grants: ["server.prepare"],
+                grants: ["admin"],
               },
             })
             .where(eq(serverPreparations.id, preparationId));

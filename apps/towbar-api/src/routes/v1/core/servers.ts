@@ -87,7 +87,7 @@ export const serverRoutes = new Hono<TowbarHonoEnvironment>();
 serverRoutes.get(
   "/",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/"',
     query: serverFilters,
     summary: "List servers",
@@ -105,7 +105,7 @@ serverRoutes.get(
 serverRoutes.post(
   "/",
   operation({
-    permissions: ["server.update"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:post:"/"',
     summary: "Create server",
     body: serverConfigurationSchema,
@@ -130,7 +130,7 @@ serverRoutes.post(
 serverRoutes.get(
   "/:serverId",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId"',
     summary: "Get server",
     response:
@@ -144,9 +144,9 @@ serverRoutes.get(
       user.workspaceId,
     );
     return context.json({
-      canCleanupOrphans: actorAllows(context.get("actor"), ["server.remove"]),
-      canManageServer: actorAllows(context.get("actor"), ["server.update"]),
-      canRemoveServer: actorAllows(context.get("actor"), ["server.remove"]),
+      canCleanupOrphans: actorAllows(context.get("actor"), ["admin"]),
+      canManageServer: actorAllows(context.get("actor"), ["admin"]),
+      canRemoveServer: actorAllows(context.get("actor"), ["admin"]),
       server,
     });
   },
@@ -154,7 +154,7 @@ serverRoutes.get(
 serverRoutes.patch(
   "/:serverId",
   operation({
-    permissions: ["server.update"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:patch:"/:serverId"',
     summary: "Update server",
     body: serverConfigurationSchema,
@@ -177,7 +177,7 @@ serverRoutes.patch(
 serverRoutes.patch(
   "/:serverId/name",
   operation({
-    permissions: ["server.update"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:patch:"/:serverId/name"',
     summary: "Update server name",
     body: serverNameSchema,
@@ -198,7 +198,7 @@ serverRoutes.patch(
 serverRoutes.get(
   "/:serverId/apps",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/apps"',
     summary: "List server apps",
     response: "JSON object containing apps.",
@@ -215,7 +215,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/resources",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/resources"',
     summary: "List server resources",
     response: "JSON object containing resources.",
@@ -232,7 +232,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/deployments",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/deployments"',
     summary: "List server deployments",
     response: "JSON object containing deployments.",
@@ -249,7 +249,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/cleanup",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/cleanup"',
     summary: "Get server cleanup history",
     query: serverChecksQuerySchema,
@@ -273,7 +273,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/capacity",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/capacity"',
     summary: "Get server capacity",
     response: "JSON object containing capacity.",
@@ -291,7 +291,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/checks",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/checks"',
     summary: "List server checks",
     query: serverChecksQuerySchema,
@@ -312,7 +312,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/preparations",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/preparations"',
     summary: "List server preparations",
     response: "JSON object containing preparations.",
@@ -329,7 +329,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/orphans",
   operation({
-    permissions: ["server.read"],
+    permissions: ["viewer"],
     responseSchema: 'servers.ts:get:"/:serverId/orphans"',
     summary: "Get server orphans",
     response: "JSON object containing orphans.",
@@ -346,7 +346,7 @@ serverRoutes.get(
 serverRoutes.get(
   "/:serverId/host-keys",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:get:"/:serverId/host-keys"',
     summary: "List trusted host keys",
     response: "JSON object containing hostKeys.",
@@ -363,7 +363,7 @@ serverRoutes.get(
 serverRoutes.post(
   "/:serverId/actions/check",
   operation({
-    permissions: ["server.update"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:post:"/:serverId/actions/check"',
     summary: "Request server check",
     response: "JSON object containing check.",
@@ -386,7 +386,7 @@ serverRoutes.post(
 serverRoutes.post(
   "/:serverId/actions/prepare",
   operation({
-    permissions: ["server.prepare"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:post:"/:serverId/actions/prepare"',
     summary: "Request server preparation",
     response: "JSON object containing preparation.",
@@ -409,7 +409,7 @@ serverRoutes.post(
 serverRoutes.post(
   "/:serverId/actions/cleanup-orphans",
   operation({
-    permissions: ["server.remove"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:post:"/:serverId/actions/cleanup-orphans"',
     summary: "Request orphan cleanup",
     body: cleanupSchema,
@@ -435,7 +435,7 @@ serverRoutes.post(
 serverRoutes.post(
   "/:serverId/host-keys/actions/trust",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:post:"/:serverId/host-keys/actions/trust"',
     summary: "Trust server host key",
     body: hostKeySchema,
@@ -461,7 +461,7 @@ serverRoutes.post(
 serverRoutes.delete(
   "/:serverId/host-keys/:hostKeyId",
   operation({
-    permissions: ["server.credentials"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:delete:"/:serverId/host-keys/:hostKeyId"',
     summary: "Revoke server host key",
     response: "No response body.",
@@ -492,7 +492,7 @@ function requireIdempotencyKey(value: string | undefined) {
 serverRoutes.delete(
   "/:serverId",
   operation({
-    permissions: ["server.remove"],
+    permissions: ["admin"],
     responseSchema: 'servers.ts:delete:"/:serverId"',
     summary: "Remove server",
     additionalStatuses: [202],

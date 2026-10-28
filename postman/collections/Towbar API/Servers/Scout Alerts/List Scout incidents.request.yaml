@@ -1,7 +1,7 @@
 $kind: http-request
 id: 694584a5-c9ca-536e-a008-8057997df2ac
 description:
-  "Required permissions: alert.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url:
   "{{baseUrl}}/servers/:serverId/scout-alerts/incidents?state=active&limit=20&before=&beforeId=&\

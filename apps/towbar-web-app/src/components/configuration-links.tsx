@@ -12,12 +12,12 @@ export function ConfigurationLinks({
   const { can } = useAccess();
   return (
     <span className="mt-2 flex flex-wrap gap-3">
-      {can("server.credentials") ? (
+      {can("admin") ? (
         <InlineLink href={`/servers/${serverId}/settings/configuration`}>
           Server credentials
         </InlineLink>
       ) : null}
-      {deployable && can("secret.list") ? (
+      {deployable && can("member") ? (
         <InlineLink
           href={`/${deployable.kind === "app" ? "services" : "datastores"}/${deployable.id}/settings/secrets`}
         >

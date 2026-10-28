@@ -57,20 +57,16 @@ void test("all roles read ordinary logs; only effective administrators read rest
     userId = randomUUID();
   for (const role of ["viewer", "member", "admin"] as const) {
     assert(
-      actorAllows({ kind: "session", workspaceId, userId, role }, [
-        "logs.read",
-      ]),
+      actorAllows({ kind: "session", workspaceId, userId, role }, ["viewer"]),
     );
     assert.equal(
-      actorAllows({ kind: "session", workspaceId, userId, role }, [
-        "logs.readAdmin",
-      ]),
+      actorAllows({ kind: "session", workspaceId, userId, role }, ["admin"]),
       role === "admin",
     );
     for (const access of ["read", "edit"] as const) {
       const grants = keyCeiling(role, access, false);
-      assert(grants.includes("logs.read"));
-      assert(!grants.includes("logs.readAdmin"));
+      assert(grants.includes("viewer"));
+      assert(!grants.includes("admin"));
     }
   }
   const adminGrant = {
@@ -89,7 +85,7 @@ void test("all roles read ordinary logs; only effective administrators read rest
         role: "admin",
         policy: adminGrant,
       },
-      ["logs.readAdmin"],
+      ["admin"],
     ),
   );
   assert(
@@ -102,7 +98,7 @@ void test("all roles read ordinary logs; only effective administrators read rest
         role: "member",
         policy: adminGrant,
       },
-      ["logs.readAdmin"],
+      ["admin"],
     ),
   );
 });

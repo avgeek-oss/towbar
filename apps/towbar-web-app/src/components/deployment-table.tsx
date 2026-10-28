@@ -103,7 +103,7 @@ export function DeploymentTable({
       ),
       className: "min-w-40",
     },
-    ...(can("deployment.create") &&
+    ...(can("admin") &&
     deployments.some(
       (item) => item.state === "failed" || item.state === "cancelled",
     )

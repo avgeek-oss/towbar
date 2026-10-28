@@ -1,8 +1,8 @@
 $kind: http-request
 id: 9f3a0bfb-70b1-50ed-a017-90266fe646aa
 description:
-  "Required permissions: deployment.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url:
   "{{baseUrl}}/deployments/history?page=1&limit=10&environment=production&targetEnvironment=&typ\
   e=app&state=queued&trigger=auto_deploy&serverId=&sort=newest"

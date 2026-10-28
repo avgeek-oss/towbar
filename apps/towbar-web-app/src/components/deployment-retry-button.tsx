@@ -20,7 +20,7 @@ export function DeploymentRetryButton({
   const { can } = useAccess();
   const router = useRouter();
   const requestKey = useRef<string | null>(null);
-  if (!can("deployment.create")) return null;
+  if (!can("admin")) return null;
   return (
     <ActionButton
       action={() => {

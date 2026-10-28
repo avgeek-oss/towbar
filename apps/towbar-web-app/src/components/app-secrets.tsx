@@ -390,8 +390,8 @@ function SecretVariablesEditor({
     endpoint.includes("/secrets") &&
       !endpoint.includes("/apps/") &&
       !endpoint.includes("/resources/")
-      ? "sharedSecret.reveal"
-      : "secret.reveal",
+      ? "admin"
+      : "admin",
   );
   const [busyAction, setBusyAction] = useState<"mode" | "save" | null>(null);
   const busy = busyAction !== null;
@@ -421,10 +421,7 @@ function SecretVariablesEditor({
   }, [canReveal]);
   const revealReference = useCallback(
     async (scope: "globals" | "repo", key: string) => {
-      if (
-        !can("sharedSecret.reveal") ||
-        (scope === "repo" && !binding.repositoryId)
-      )
+      if (!can("admin") || (scope === "repo" && !binding.repositoryId))
         throw new Error("You don't have permission to view this value");
       const result = await api.post<{ value: string }>(
         `${scope === "globals" ? "/v1/core/settings/secrets" : `/v1/core/sources/${binding.repositoryId}/secrets`}/production/${binding.stage}/reveal`,
@@ -682,9 +679,7 @@ function SecretVariablesEditor({
                     value={fileText}
                     onChange={setFileText}
                     disabled={busy}
-                    revealReference={
-                      can("sharedSecret.reveal") ? revealReference : undefined
-                    }
+                    revealReference={can("admin") ? revealReference : undefined}
                     readOnlyLinePrefixes={
                       canManageKeys ? undefined : keys.map((key) => `${key}=`)
                     }
@@ -804,9 +799,7 @@ function SecretVariablesEditor({
                               disabled={!canManage || busy}
                               reveal={reveal}
                               revealReference={
-                                can("sharedSecret.reveal")
-                                  ? revealReference
-                                  : undefined
+                                can("admin") ? revealReference : undefined
                               }
                               onChange={(value) =>
                                 setReplacements((current) => ({

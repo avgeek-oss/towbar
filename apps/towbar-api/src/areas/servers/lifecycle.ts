@@ -298,7 +298,7 @@ export async function removeServer(input: {
           removalRequested: true,
           removalRequestedBy: input.requestedBy,
           requestedBy: input.requestedBy,
-          ...captureQueuedActor(input.workspaceId, ["server.remove"]),
+          ...captureQueuedActor(input.workspaceId, ["admin"]),
           errorMessage: null,
           operationStartedAt: null,
           updatedAt: new Date(),

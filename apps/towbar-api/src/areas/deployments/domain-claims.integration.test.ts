@@ -147,7 +147,7 @@ void test(
               sourceEnvironmentId: environmentId,
               mappingRevision,
               deployAfterSync,
-              ...captureQueuedActor(workspaceId, ["repository.sync"]),
+              ...captureQueuedActor(workspaceId, ["admin"]),
             })
             .returning(),
         );
@@ -246,7 +246,7 @@ void test(
         .set({
           requestedByActor: {
             ...authorizedSync.requestedByActor!,
-            grants: ["repository.sync"],
+            grants: ["admin"],
           },
         })
         .where(eq(sourceSyncs.id, authorizedSync.id));
@@ -458,7 +458,7 @@ void test(
               sourceId: foreignSourceId,
               sourceEnvironmentId: foreignEnvironment.id,
               mappingRevision: foreignEnvironment.mappingRevision,
-              ...captureQueuedActor(foreignWorkspaceId, ["repository.sync"]),
+              ...captureQueuedActor(foreignWorkspaceId, ["admin"]),
             })
             .returning(),
         );

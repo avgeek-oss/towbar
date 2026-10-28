@@ -45,7 +45,7 @@ export async function listNotificationDeliveries(
     workspaceId: string;
   },
 ) {
-  requireActor(input.workspaceId, ["notification.manage"]);
+  requireActor(input.workspaceId, ["admin"]);
   const search = searchPattern(input.search);
   const rows = await getTowbarDatabase()
     .select({

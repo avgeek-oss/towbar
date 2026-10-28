@@ -18,7 +18,7 @@ const querySchema = z
 manifestLifecycleRoutes.get(
   "/manifest-lifecycle",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     summary: "List manifest conflicts and retirements",
     query: querySchema,
     responseSchema: 'manifest-lifecycle.ts:get:"/manifest-lifecycle"',
@@ -37,7 +37,7 @@ manifestLifecycleRoutes.get(
 manifestLifecycleRoutes.post(
   "/retirements/:workloadId/actions/remove",
   operation({
-    permissions: ["server.remove"],
+    permissions: ["admin"],
     summary: "Permanently remove a retired workload",
     idempotencyKey: true,
     body: z

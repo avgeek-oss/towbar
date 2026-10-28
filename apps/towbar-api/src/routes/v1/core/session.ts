@@ -10,7 +10,7 @@ export const sessionRoutes = new Hono<TowbarHonoEnvironment>();
 sessionRoutes.get(
   "/",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'session.ts:get:"/"',
     summary: "Read current session",
@@ -21,7 +21,7 @@ sessionRoutes.get(
 sessionRoutes.delete(
   "/",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'session.ts:delete:"/"',
     summary: "Sign out",
@@ -40,7 +40,7 @@ sessionRoutes.delete(
 sessionRoutes.post(
   "/reauthenticate",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'session.ts:post:"/reauthenticate"',
     summary: "Confirm recent authentication",

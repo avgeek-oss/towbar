@@ -195,7 +195,7 @@ Caddy discards raw headers, query strings, fragments, and IP addresses from anal
 
 Collection is best effort. Scout accepts up to 1,000 records per second and 512 dimension combinations per pending batch across a server. High-cardinality paths or visitor IDs can cause undercounting. The retry buffer holds at most 10 MiB or one hour; outages beyond that cannot be reconstructed.
 
-Reports require `scout.read`. Retention defaults to 30 days and supports 7, 30, or 90 days. Reducing it hides older records immediately and deletes them during maintenance. Increasing retention does not recover deleted history. Removing analytics from Git stops acceptance after sync; redeploy to remove the Caddy collection routes.
+Reports require `read`. Retention defaults to 30 days and supports 7, 30, or 90 days. Reducing it hides older records immediately and deletes them during maintenance. Increasing retention does not recover deleted history. Removing analytics from Git stops acceptance after sync; redeploy to remove the Caddy collection routes.
 
 ### API
 

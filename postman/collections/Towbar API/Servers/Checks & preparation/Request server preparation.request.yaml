@@ -1,8 +1,8 @@
 $kind: http-request
 id: f721acb7-630c-51e6-b876-1d65c8d8f398
 description:
-  "Required permissions: server.prepare. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/actions/prepare"
 method: POST
 headers:

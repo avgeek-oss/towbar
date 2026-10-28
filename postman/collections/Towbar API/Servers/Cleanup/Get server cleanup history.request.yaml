@@ -1,8 +1,8 @@
 $kind: http-request
 id: 453ae292-601f-539a-bab0-918541c66d50
 description:
-  "Required permissions: server.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/cleanup?limit=10&page=1"
 method: GET
 headers:

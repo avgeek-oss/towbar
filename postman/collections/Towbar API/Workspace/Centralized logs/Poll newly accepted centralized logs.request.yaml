@@ -1,7 +1,7 @@
 $kind: http-request
 id: 80dd1c53-1842-5a2b-bc86-75ece669d2fd
 description:
-  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url: "{{baseUrl}}/logs/follow"
 method: POST

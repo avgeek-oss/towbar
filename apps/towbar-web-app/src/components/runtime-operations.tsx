@@ -106,7 +106,7 @@ export function DeployableActionsMenu({
     }
   }
 
-  if (!can("workload.operate")) return null;
+  if (!can("admin")) return null;
   return (
     <>
       <Dropdown>

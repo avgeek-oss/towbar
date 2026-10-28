@@ -67,7 +67,7 @@ export const resourceRoutes = new Hono<TowbarHonoEnvironment>();
 resourceRoutes.get(
   "/",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/"',
     query: workloadFilters,
     summary: "List resources",
@@ -90,7 +90,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId"',
     summary: "Get resource",
     response: "JSON object containing resource.",
@@ -110,7 +110,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId/auto-deploy-control",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId/auto-deploy-control"',
     summary: "Get resource auto-deploy settings",
     response: "JSON object containing autoDeploy, canManageAutoDeploy.",
@@ -124,9 +124,7 @@ resourceRoutes.get(
         expectedType: "resource",
         workspaceId: user.workspaceId,
       }),
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -134,7 +132,7 @@ resourceRoutes.get(
 resourceRoutes.patch(
   "/:resourceId/auto-deploy-control",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:patch:"/:resourceId/auto-deploy-control"',
     summary: "Update resource auto-deploy settings",
     body: autoDeployControlPatchSchema,
@@ -155,9 +153,7 @@ resourceRoutes.patch(
     }
     return context.json({
       autoDeploy,
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -165,7 +161,7 @@ resourceRoutes.patch(
 resourceRoutes.get(
   "/:resourceId/deployments",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId/deployments"',
     summary: "List resource deployments",
     response: "JSON object containing deployments.",
@@ -183,7 +179,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId/releases",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId/releases"',
     summary: "List resource releases",
     response: "JSON object containing releases.",
@@ -201,7 +197,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId/operations",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId/operations"',
     summary: "List resource operations",
     response: "JSON object containing operations.",
@@ -219,7 +215,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId/backup-assurance",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema: 'resources.ts:get:"/:resourceId/backup-assurance"',
     summary: "Get resource backup assurance",
     response:
@@ -242,7 +238,7 @@ resourceRoutes.get(
         user.workspaceId,
       ),
       awsConfigured,
-      canRestore: actorAllows(context.get("actor"), ["resource.restore"]),
+      canRestore: actorAllows(context.get("actor"), ["admin"]),
       gcpConfigured,
     });
   },
@@ -251,7 +247,7 @@ resourceRoutes.get(
 resourceRoutes.get(
   "/:resourceId/operations/:operationId/events",
   operation({
-    permissions: ["resource.read"],
+    permissions: ["viewer"],
     responseSchema:
       'resources.ts:get:"/:resourceId/operations/:operationId/events"',
     summary: "List operation events",
@@ -270,7 +266,7 @@ resourceRoutes.get(
 resourceRoutes.post(
   "/:resourceId/actions/deploy",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:post:"/:resourceId/actions/deploy"',
     summary: "Request resource deployment",
     idempotencyKey: true,
@@ -296,7 +292,7 @@ resourceRoutes.post(
 resourceRoutes.post(
   "/:resourceId/actions/refresh-external-secrets",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema:
       'resources.ts:post:"/:resourceId/actions/refresh-external-secrets"',
     summary: "Redeploy a resource with current external secrets",
@@ -323,7 +319,7 @@ resourceRoutes.post(
 resourceRoutes.post(
   "/:resourceId/actions/rollback",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:post:"/:resourceId/actions/rollback"',
     summary: "Request resource rollback",
     body: rollbackSchema,
@@ -353,9 +349,7 @@ for (const action of ["backup", "restart", "start", "stop"] as const) {
   resourceRoutes.post(
     `/:resourceId/actions/${action}`,
     operation({
-      permissions: [
-        action === "backup" ? "resource.backup" : "workload.operate",
-      ],
+      permissions: [action === "backup" ? "admin" : "admin"],
       responseSchema: "resources.ts:post:`/:resourceId/actions/${action}`",
       summary: `${action.charAt(0).toUpperCase() + action.slice(1)} resource`,
       ...(action === "backup" ? {} : { body: runtimeActionSchema }),
@@ -384,7 +378,7 @@ for (const action of ["backup", "restart", "start", "stop"] as const) {
 resourceRoutes.post(
   "/:resourceId/actions/restore",
   operation({
-    permissions: ["resource.restore"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:post:"/:resourceId/actions/restore"',
     summary: "Request resource restore",
     body: restoreSchema,
@@ -411,7 +405,7 @@ resourceRoutes.post(
 resourceRoutes.post(
   "/:resourceId/actions/restore-cleanup",
   operation({
-    permissions: ["resource.restore"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:post:"/:resourceId/actions/restore-cleanup"',
     summary: "Request restore cleanup",
     body: restoreCleanupSchema,
@@ -439,7 +433,7 @@ resourceRoutes.post(
 resourceRoutes.post(
   "/:resourceId/operations/:operationId/actions/cancel",
   operation({
-    permissions: ["resource.restore"],
+    permissions: ["admin"],
     responseSchema:
       'resources.ts:post:"/:resourceId/operations/:operationId/actions/cancel"',
     summary: "Cancel resource restore",
@@ -461,7 +455,7 @@ resourceRoutes.post(
 resourceRoutes.post(
   "/:resourceId/actions/logs",
   operation({
-    permissions: ["workload.operate"],
+    permissions: ["admin"],
     responseSchema: 'resources.ts:post:"/:resourceId/actions/logs"',
     summary: "Request resource operation",
     body: logsSchema,

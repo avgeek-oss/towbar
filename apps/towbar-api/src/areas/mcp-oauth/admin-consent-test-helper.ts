@@ -32,44 +32,30 @@ export async function assertAdminConsent(
   await t.test(
     "ordinary edit consent excludes deployments; explicit admin consent exposes deployment tools and stays scoped",
     async () => {
-      for (const scope of ["mcp:write", "mcp:admin"]) {
+      for (const scope of ["member", "admin"]) {
         const issued = await issue(scope);
         const principal = await keys.findApiKey(issued.access_token);
         assert(principal);
-        const admin = scope === "mcp:admin";
-        assert.equal(
-          principal.user.capabilities.includes("deployment.create"),
-          admin,
+        const admin = scope === "admin";
+        assert.deepEqual(
+          principal.user.capabilities,
+          admin ? ["viewer", "member", "admin"] : ["viewer", "member"],
         );
-        assert.equal(
-          principal.user.capabilities.includes("repository.sync"),
-          admin,
-        );
-        for (const permission of [
-          "server.terminal",
-          "secret.reveal",
-          "sharedSecret.reveal",
-          "member.delete",
-          "apikey.create",
-        ] as const)
-          assert(!principal.user.capabilities.includes(permission), permission);
+        assert.equal(principal.user.workspaceRole, admin ? "admin" : "member");
         const key = (await keys.listApiKeys(user)).find(
           (key) => key.id === principal.key.id,
         )!;
         assert.equal(key.includeAdmin, admin);
-        assert.equal(key.permissionMode, "scoped");
         if (admin) {
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: key.grants.filter(
-                (permission) => permission !== "deployment.create",
-              ),
+              grants: key.grants.filter((permission) => permission !== "admin"),
             })
             .where(eq(apiKeyPolicies.keyId, key.id));
           const narrowed = await keys.findApiKey(issued.access_token);
           assert(narrowed);
-          assert(!narrowed.user.capabilities.includes("deployment.create"));
+          assert(!narrowed.user.capabilities.includes("admin"));
           await db
             .update(apiKeyPolicies)
             .set({ grants: key.grants })
@@ -100,10 +86,7 @@ export async function assertAdminConsent(
               }),
             });
             assert.equal(response.status, 403);
-            assert.match(
-              response.headers.get("www-authenticate")!,
-              /mcp:admin/,
-            );
+            assert.match(response.headers.get("www-authenticate")!, /admin/);
           }
         } finally {
           await mcp.close();
@@ -199,7 +182,7 @@ export async function assertAdminConsent(
             .where(eq(workspaceMembers.userId, user.id));
         }
       }
-      const issued = await issue("mcp:admin");
+      const issued = await issue("admin");
       const principal = await keys.findApiKey(issued.access_token);
       assert(principal);
       await db
@@ -236,29 +219,26 @@ export async function assertUserSelectedConsent<Grant>(
   await t.test(
     "user choice overrides requested scope and promotion permanently revokes access and pending codes",
     async () => {
-      const adminGrant = await consent({ scope: "mcp:read" }, "admin");
+      const adminGrant = await consent({ scope: "viewer" }, "admin");
       const adminTokens = (await (
         await ok(await token(adminGrant))
       ).json()) as { access_token: string; scope: string };
-      assert.equal(adminTokens.scope, "mcp:read mcp:write mcp:admin");
+      assert.equal(adminTokens.scope, "viewer member admin");
       assert(
         (
           await keys.findApiKey(adminTokens.access_token)
-        )?.user.capabilities.includes("deployment.create"),
+        )?.user.capabilities.includes("admin"),
       );
-      const readGrant = await consent(
-        { scope: "mcp:read mcp:write mcp:admin" },
-        "read",
-      );
+      const readGrant = await consent({ scope: "viewer member admin" }, "read");
       const readTokens = (await (await ok(await token(readGrant))).json()) as {
         access_token: string;
         scope: string;
       };
-      assert.equal(readTokens.scope, "mcp:read");
+      assert.equal(readTokens.scope, "viewer");
       assert(
         !(
           await keys.findApiKey(readTokens.access_token)
-        )?.user.capabilities.includes("deployment.create"),
+        )?.user.capabilities.includes("admin"),
       );
       await db
         .update(workspaceMembers)

@@ -99,7 +99,7 @@ Find a service by name:
 }
 ```
 
-Use the returned ID with the matching inspection tool. Deployment and infrastructure management require an OAuth connection approved with `mcp:admin`.
+Use the returned ID with the matching inspection tool. Deployment and infrastructure management require an OAuth connection approved with `admin`.
 
 ## Connection behavior
 
@@ -151,13 +151,13 @@ For client developers: use **Streamable HTTP** with OAuth and no custom Authoriz
 
 Your selection is translated into these protocol scopes:
 
-| Scope       | Access                                                                                                                                                                                               |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp:read`  | Read-only; the default.                                                                                                                                                                              |
-| `mcp:write` | Edit secrets and permitted Scout/alert settings. Includes Read.                                                                                                                                      |
-| `mcp:admin` | Administrative automation, including deployments, repository sync, service operations, server management, and datastore backup/restore. Includes Read and Write. Only Administrators can approve it. |
+| Scope    | Access                                                                                                                                                                                               |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `viewer` | Read-only; the default.                                                                                                                                                                              |
+| `member` | Edit secrets and permitted Scout/alert settings. Includes Read.                                                                                                                                      |
+| `admin`  | Administrative automation, including deployments, repository sync, service operations, server management, and datastore backup/restore. Includes Read and Write. Only Administrators can approve it. |
 
-Approving administrative access requires a recent password or passkey confirmation. Choose **Administrator** in **Select Scope** to grant this access. Tokens retain the permissions approved at consent and remain constrained by the account holder's current role; they do not automatically gain new permissions after upgrades. Account/key management, SSH terminals, and plaintext credential reveal remain browser-only.
+Approving administrative access requires a recent password or passkey confirmation. Choose **Administrator** in **Select Scope** to grant this access. A token acts with the lower of its approved role ceiling and the account holder's current role. The only protocol scopes are `viewer`, `member`, and `admin`. Account/key management, SSH terminals, and plaintext credential reveal remain browser-only.
 
 Existing Read-only and Write connections do not gain administrative access. Reconnect and select **Administrator** in a new consent request. For Codex, after adding the server, run:
 
@@ -170,3 +170,5 @@ Towbar prefers HTTPS Client ID Metadata Documents (CIMD) and supports Dynamic Cl
 The consent form shows the application and a scope selector, followed by **Deny**, **Approve**, and **Back to the application**. Changing your team role, including a promotion, or removing your membership revokes your MCP connections and unexchanged authorization codes. Reconnect with your new role; restoring the old role does not reactivate a revoked connection.
 
 </Accordion>
+
+The role-scope upgrade revokes old granular OAuth grants and scoped API keys. Reconnect MCP clients and recreate affected REST keys after upgrading. Existing full administrative REST keys retain their broad authority.

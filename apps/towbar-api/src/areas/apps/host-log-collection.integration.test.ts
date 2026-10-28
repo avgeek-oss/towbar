@@ -123,7 +123,7 @@ void test(
       kind: "session" as const,
       workspaceId,
       userId,
-      grants: ["deployment.create", "server.collectLogs"],
+      grants: ["admin"],
     };
     try {
       await seedEnvironmentTeam({ workspaceId, userId, sourceId });
@@ -218,7 +218,7 @@ void test(
               scope: "team" as const,
               access: "edit" as const,
               includeAdmin: true,
-              grants: ["deployment.create" as const],
+              grants: ["admin" as const],
             },
           };
           assert.throws(
@@ -379,7 +379,7 @@ void test(
             .set({
               requestedByActor: {
                 ...attribution,
-                grants: ["deployment.create"],
+                grants: ["admin"],
               },
             })
             .where(eq(deployments.id, queuedId));
@@ -463,7 +463,7 @@ void test(
             .set({
               requestedByActor: {
                 ...attribution,
-                grants: ["deployment.create"],
+                grants: ["admin"],
               },
             })
             .where(eq(deployments.id, queuedId));

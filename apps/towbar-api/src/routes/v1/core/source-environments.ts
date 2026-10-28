@@ -32,7 +32,7 @@ export const sourceEnvironmentRoutes = new Hono<TowbarHonoEnvironment>();
 sourceEnvironmentRoutes.get(
   "/",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'source-environments.ts:get:"/"',
     summary: "List source environments",
     response: "Connected source environments and branch mappings.",
@@ -50,7 +50,7 @@ sourceEnvironmentRoutes.get(
 sourceEnvironmentRoutes.post(
   "/",
   operation({
-    permissions: ["repository.connect"],
+    permissions: ["admin"],
     responseSchema: 'source-environments.ts:post:"/"',
     summary: "Connect source environment",
     body: sourceEnvironmentMappingSchema,
@@ -83,7 +83,7 @@ sourceEnvironmentRoutes.post(
 sourceEnvironmentRoutes.patch(
   "/:environmentId",
   operation({
-    permissions: ["repository.update"],
+    permissions: ["admin"],
     responseSchema: 'source-environments.ts:patch:"/:environmentId"',
     summary: "Change environment branch",
     body: branchSchema,
@@ -121,7 +121,7 @@ sourceEnvironmentRoutes.patch(
 sourceEnvironmentRoutes.post(
   "/:environmentId/syncs",
   operation({
-    permissions: ["repository.sync"],
+    permissions: ["admin"],
     responseSchema: 'source-environments.ts:post:"/:environmentId/syncs"',
     summary: "Sync environment",
     response: "Queued environment sync.",
@@ -149,7 +149,7 @@ sourceEnvironmentRoutes.post(
 sourceEnvironmentRoutes.delete(
   "/:environmentId",
   operation({
-    permissions: ["repository.disconnect"],
+    permissions: ["admin"],
     responseSchema: 'source-environments.ts:delete:"/:environmentId"',
     summary: "Disconnect environment",
     body: disconnectSchema,
@@ -181,7 +181,7 @@ sourceEnvironmentRoutes.delete(
 sourceEnvironmentRoutes.post(
   "/syncs",
   operation({
-    permissions: ["repository.sync"],
+    permissions: ["admin"],
     responseSchema: 'source-environments.ts:post:"/syncs"',
     summary: "Sync all connected environments",
     response: "Independent queue outcomes for each connected environment.",
@@ -230,7 +230,7 @@ sourceEnvironmentRoutes.post(
 sourceEnvironmentRoutes.get(
   "/:environmentId/manifest",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'source-environments.ts:get:"/:environmentId/manifest"',
     summary: "Read an environment manifest snapshot",
     response: "Files from the last successful environment sync.",
@@ -256,7 +256,7 @@ const automationSchema = revisionSchema.extend({ paused: z.boolean() });
 sourceEnvironmentRoutes.patch(
   "/:environmentId/auto-deploy-control",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     body: automationSchema,
     responseSchema:
       'source-environments.ts:patch:"/:environmentId/auto-deploy-control"',

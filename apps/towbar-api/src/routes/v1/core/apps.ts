@@ -53,7 +53,7 @@ export const appRoutes = new Hono<TowbarHonoEnvironment>();
 appRoutes.get(
   "/",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/"',
     query: workloadFilters,
     summary: "List apps",
@@ -76,7 +76,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId"',
     summary: "Get app",
     response: "JSON object containing app.",
@@ -93,7 +93,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/favicon",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'apps.ts:get:"/:appId/favicon"',
     summary: "Get a workload icon",
@@ -114,7 +114,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/jobs",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/jobs"',
     summary: "List scheduled app jobs",
     response: "Manifest jobs and their latest 100 executions.",
@@ -134,7 +134,7 @@ const runJobSchema = z
 appRoutes.post(
   "/:appId/actions/run-job",
   operation({
-    permissions: ["workload.operate"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:post:"/:appId/actions/run-job"',
     summary: "Run a manifest-defined app job",
     body: runJobSchema,
@@ -161,7 +161,7 @@ appRoutes.post(
 appRoutes.get(
   "/:appId/storage",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/storage"',
     summary: "Get app persistent storage",
     response: "Declared and observed volumes for this app environment.",
@@ -179,7 +179,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/auto-deploy-control",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/auto-deploy-control"',
     summary: "Get app auto-deploy settings",
     response: "JSON object containing autoDeploy, canManageAutoDeploy.",
@@ -193,9 +193,7 @@ appRoutes.get(
         expectedType: "app",
         workspaceId: user.workspaceId,
       }),
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -203,7 +201,7 @@ appRoutes.get(
 appRoutes.patch(
   "/:appId/auto-deploy-control",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:patch:"/:appId/auto-deploy-control"',
     summary: "Update app auto-deploy settings",
     body: autoDeployControlPatchSchema,
@@ -224,9 +222,7 @@ appRoutes.patch(
     }
     return context.json({
       autoDeploy,
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -234,7 +230,7 @@ appRoutes.patch(
 appRoutes.get(
   "/:appId/deployments",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/deployments"',
     summary: "List app deployments",
     query: z
@@ -259,7 +255,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/releases",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/releases"',
     summary: "List app releases",
     response: "JSON object containing releases.",
@@ -277,7 +273,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/previews",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/previews"',
     summary: "List preview environments",
     response: "JSON object containing previews.",
@@ -295,7 +291,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/operations",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/operations"',
     summary: "List app operations",
     response: "JSON object containing operations.",
@@ -313,7 +309,7 @@ appRoutes.get(
 appRoutes.get(
   "/:appId/operations/:operationId/events",
   operation({
-    permissions: ["workload.read"],
+    permissions: ["viewer"],
     responseSchema: 'apps.ts:get:"/:appId/operations/:operationId/events"',
     summary: "List app operation progress",
     response: "JSON object containing operation events.",
@@ -331,7 +327,7 @@ appRoutes.get(
 appRoutes.post(
   "/:appId/actions/deploy",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:post:"/:appId/actions/deploy"',
     summary: "Request app deployment",
     idempotencyKey: true,
@@ -356,7 +352,7 @@ appRoutes.post(
 appRoutes.post(
   "/:appId/actions/refresh-external-secrets",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:post:"/:appId/actions/refresh-external-secrets"',
     summary: "Redeploy an app with current external secrets",
     idempotencyKey: true,
@@ -381,7 +377,7 @@ appRoutes.post(
 appRoutes.post(
   "/:appId/actions/rollback",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:post:"/:appId/actions/rollback"',
     summary: "Request app rollback",
     body: rollbackSchema,
@@ -410,7 +406,7 @@ for (const action of ["restart", "start", "stop"] as const) {
   appRoutes.post(
     `/:appId/actions/${action}`,
     operation({
-      permissions: ["workload.operate"],
+      permissions: ["admin"],
       responseSchema: "apps.ts:post:`/:appId/actions/${action}`",
       summary: `${action.charAt(0).toUpperCase() + action.slice(1)} app`,
       body: runtimeActionSchema,
@@ -438,7 +434,7 @@ for (const action of ["restart", "start", "stop"] as const) {
 appRoutes.post(
   "/:appId/actions/logs",
   operation({
-    permissions: ["workload.operate"],
+    permissions: ["admin"],
     responseSchema: 'apps.ts:post:"/:appId/actions/logs"',
     summary: "Request app operation",
     body: logsSchema,

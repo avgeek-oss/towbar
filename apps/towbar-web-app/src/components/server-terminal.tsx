@@ -230,7 +230,7 @@ export function ServerTerminal({
     setStatus("disconnected");
     setMessage(undefined);
   }
-  if (!can("server.terminal"))
+  if (!can("admin"))
     return <QueryError message="Only admins can open a server terminal." />;
   return (
     <Widget>

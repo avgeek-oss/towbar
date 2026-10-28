@@ -22,7 +22,7 @@ apiKeyRoutes.use("*", async (c, next) => {
 apiKeyRoutes.get(
   "/personal",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "List personal API keys",
     responseSchema: 'api-keys.ts:get:"/personal"',
@@ -44,7 +44,7 @@ apiKeyRoutes.get(
 apiKeyRoutes.post(
   "/personal",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Create personal API key",
     idempotencyKey: true,
@@ -71,7 +71,7 @@ apiKeyRoutes.post(
 apiKeyRoutes.delete(
   "/personal/:keyId",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Revoke personal API key",
     responseSchema: 'api-keys.ts:delete:"/personal/:keyId"',
@@ -89,7 +89,7 @@ apiKeyRoutes.delete(
 apiKeyRoutes.get(
   "/team",
   operation({
-    permissions: ["apikey.read"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "List team API keys",
     responseSchema: 'api-keys.ts:get:"/team"',
@@ -100,7 +100,7 @@ apiKeyRoutes.get(
 apiKeyRoutes.post(
   "/team",
   operation({
-    permissions: ["apikey.create"],
+    permissions: ["admin"],
     browserOnly: true,
     freshSession: true,
     summary: "Create team API key",
@@ -123,7 +123,7 @@ apiKeyRoutes.post(
 apiKeyRoutes.delete(
   "/team/:keyId",
   operation({
-    permissions: ["apikey.delete"],
+    permissions: ["admin"],
     browserOnly: true,
     freshSession: true,
     summary: "Revoke team API key",

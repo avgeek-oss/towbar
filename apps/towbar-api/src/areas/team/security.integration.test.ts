@@ -246,7 +246,7 @@ void test(
       );
       const queued = withActor(
         (await keys.findApiKey(personalToken))!.actor,
-        () => captureQueuedActor(admin.workspaceId, ["secret.update"]),
+        () => captureQueuedActor(admin.workspaceId, ["member"]),
       );
       await t.test(
         "demotion immediately caps personal keys and queued work, and promotion cannot restore grants",
@@ -254,11 +254,11 @@ void test(
           await teams.updateMemberRole(admin, member.id, "viewer");
           const capped = (await keys.findApiKey(personalToken))!;
           assert.equal(capped.key.access, "read");
-          assert.equal(actorAllows(capped.actor, ["secret.update"]), false);
-          assert.equal(actorAllows(capped.actor, ["repository.read"]), true);
+          assert.equal(actorAllows(capped.actor, ["member"]), false);
+          assert.equal(actorAllows(capped.actor, ["viewer"]), true);
           await assert.rejects(
             authorizeQueuedEffect(queued.requestedByActor, admin.workspaceId, [
-              "secret.update",
+              "member",
             ]),
           );
           memberHeaders = headersFor(
@@ -591,7 +591,7 @@ void test(
           assert.equal(teamKey.actor.kind, "team-key");
           assert.equal(teamKey.user.id, null);
           assert.equal(await auth.findSession(adminHeaders), null);
-          assert.equal(actorAllows(teamKey.actor, ["deployment.create"]), true);
+          assert.equal(actorAllows(teamKey.actor, ["admin"]), true);
         },
       );
     } finally {

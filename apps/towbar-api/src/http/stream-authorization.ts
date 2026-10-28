@@ -1,11 +1,11 @@
-import { type Action, actorAllows } from "@workspace/towbar-access";
+import { type Scope, actorAllows } from "@workspace/towbar-access";
 import { resolveApiKeyPrincipal } from "../areas/api-keys/service.js";
 import { findSession } from "../areas/auth/service.js";
 import type { Context } from "hono";
 import type { TowbarHonoEnvironment } from "./types.js";
 export async function streamStillAuthorized(
   context: Context<TowbarHonoEnvironment>,
-  permissions: readonly Action[],
+  permissions: readonly Scope[],
 ) {
   const workspaceId = context.get("actor").workspaceId;
   const key = context.get("apiKey");

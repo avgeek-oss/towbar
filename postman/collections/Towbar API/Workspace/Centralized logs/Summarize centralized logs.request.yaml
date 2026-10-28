@@ -1,7 +1,7 @@
 $kind: http-request
 id: 8704ee9f-9ca4-5cf8-933c-2bdb5d0cb39c
 description:
-  "Required permissions: logs.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url: "{{baseUrl}}/logs/summary"
 method: POST

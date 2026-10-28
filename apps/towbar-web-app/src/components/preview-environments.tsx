@@ -100,7 +100,7 @@ export function PreviewEnvironments({
       header: "Actions",
       className: "whitespace-nowrap",
       cell: (preview) =>
-        can("deployment.create") || preview.status === "healthy" ? (
+        can("admin") || preview.status === "healthy" ? (
           <div className="flex items-center gap-2">
             {preview.status === "failed" && preview.latestDeploymentId ? (
               <DeploymentRetryButton
@@ -113,8 +113,7 @@ export function PreviewEnvironments({
                 Open Preview
               </InlineExternalLink>
             ) : null}
-            {!can("deployment.create") ? null : preview.status ===
-              "cleanup_failed" ? (
+            {!can("admin") ? null : preview.status === "cleanup_failed" ? (
               <ActionButton
                 ariaLabel={`Retry cleanup for PR #${preview.pullRequestNumber}`}
                 confirm={{

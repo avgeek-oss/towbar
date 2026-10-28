@@ -1,10 +1,11 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
   type AccessActor,
-  type Action,
-  actorActions,
+  type Scope,
   actorAllows,
-  isAction,
+  actorScopes,
+  isScope,
+  scopesAllow,
 } from "@workspace/towbar-access";
 import { and, eq, isNull } from "drizzle-orm";
 import { users, workspaceMembers } from "@workspace/towbar-database/schema";
@@ -28,7 +29,7 @@ export function currentActor() {
 }
 export function requireActor(
   workspaceId: string,
-  permissions: readonly Action[],
+  permissions: readonly Scope[],
 ) {
   const actor = currentActor();
   if (!actor || !actorAllows(actor, permissions, workspaceId))
@@ -37,13 +38,13 @@ export function requireActor(
 }
 export function captureQueuedActor(
   workspaceId: string,
-  permissions: readonly Action[],
+  permissions: readonly Scope[],
 ) {
   const actor = requireActor(workspaceId, permissions);
   const reference: QueuedActor = {
     kind: actor.kind,
     workspaceId,
-    grants: actorActions(actor),
+    grants: actorScopes(actor),
     ...("userId" in actor ? { userId: actor.userId } : {}),
     ...("keyId" in actor ? { keyId: actor.keyId } : {}),
     ...(actor.kind === "system" ? { source: actor.source } : {}),
@@ -56,10 +57,7 @@ export function captureQueuedActor(
 async function resolveQueuedActor(
   reference: QueuedActor | null | undefined,
 ): Promise<AccessActor> {
-  if (
-    !reference?.grants ||
-    reference.grants.some((action) => !isAction(action))
-  )
+  if (!reference?.grants || reference.grants.some((action) => !isScope(action)))
     throw forbidden("The operation has no valid authorization");
   if (reference.kind === "system") {
     if (!reference.source)
@@ -68,7 +66,7 @@ async function resolveQueuedActor(
       kind: "system",
       workspaceId: reference.workspaceId,
       source: reference.source,
-      grants: reference.grants.filter(isAction),
+      grants: reference.grants.filter(isScope),
     };
   }
   let actor: AccessActor;
@@ -96,7 +94,7 @@ async function resolveQueuedActor(
       workspaceId: reference.workspaceId,
       userId: reference.userId,
       role: membership.role,
-      grants: reference.grants.filter(isAction),
+      grants: reference.grants.filter(isScope),
     };
   } else {
     if (!reference.keyId)
@@ -115,9 +113,8 @@ async function resolveQueuedActor(
       ...principal.actor,
       policy: {
         ...principal.actor.policy,
-        permissionMode: "scoped",
-        grants: actorActions(principal.actor).filter((action) =>
-          reference.grants!.includes(action),
+        grants: actorScopes(principal.actor).filter((action) =>
+          scopesAllow(reference.grants!.filter(isScope), action),
         ),
       },
     };
@@ -127,12 +124,14 @@ async function resolveQueuedActor(
 export async function authorizeQueuedEffect(
   reference: QueuedActor | null | undefined,
   workspaceId: string,
-  permissions: readonly Action[],
+  permissions: readonly Scope[],
 ) {
   const actor = await resolveQueuedActor(reference);
   if (
     !reference?.grants ||
-    !permissions.every((action) => reference.grants!.includes(action)) ||
+    !permissions.every((action) =>
+      scopesAllow(reference.grants!.filter(isScope), action),
+    ) ||
     !actorAllows(actor, permissions, workspaceId)
   )
     throw forbidden("Access changed before this operation could run");

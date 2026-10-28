@@ -19,7 +19,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import {
   isWorkspaceRole,
-  type Action,
+  type Scope,
   type WorkspaceRole,
 } from "@workspace/towbar-access";
 import { CopyTextButton } from "./copy-text-button";
@@ -117,28 +117,28 @@ const teamSettingsPages: Record<
   {
     icon: ComponentProps<typeof HugeiconsIcon>["icon"];
     label: string;
-    permission: Action;
+    permission: Scope;
   }
 > = {
   general: {
     icon: Settings01Icon,
     label: "General",
-    permission: "team.read",
+    permission: "admin",
   },
   members: {
     icon: UserGroupIcon,
     label: "Members",
-    permission: "team.read",
+    permission: "admin",
   },
   "workspace-secrets": {
     icon: Key01Icon,
     label: "Workspace Secrets",
-    permission: "sharedSecret.list",
+    permission: "member",
   },
   "api-keys": {
     icon: Key01Icon,
     label: "API Keys",
-    permission: "team.read",
+    permission: "admin",
   },
 };
 
@@ -170,7 +170,7 @@ export function TeamSettingsShell({
       breadcrumbAncestors={[
         {
           label: "Team Settings",
-          href: can("team.read")
+          href: can("admin")
             ? "/team-settings/general"
             : "/team-settings/workspace-secrets",
         },

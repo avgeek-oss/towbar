@@ -1,8 +1,8 @@
 $kind: http-request
 id: dd843ac4-00e9-5607-a665-f00967c13c9c
 description:
-  "Required permissions: deployment.create. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/apps/:appId/auto-deploy-control"
 method: PATCH
 headers:

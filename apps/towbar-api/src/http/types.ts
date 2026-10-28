@@ -1,6 +1,6 @@
 import type {
   AccessActor,
-  Action,
+  Scope,
   WorkspaceRole,
 } from "@workspace/towbar-access";
 import type { DateTimePreferences } from "@workspace/towbar-core/date-time";
@@ -16,7 +16,7 @@ export type AuthenticatedUser = {
   mustChangePassword?: boolean;
   passwordSetupRequired?: boolean;
   twoFactorEnabled?: boolean;
-  capabilities?: readonly Action[];
+  capabilities?: readonly Scope[];
 };
 
 type RequestPrincipal =
@@ -27,7 +27,7 @@ type RequestPrincipal =
       name: string;
       workspaceId: string;
       workspaceRole: null;
-      capabilities: readonly Action[];
+      capabilities: readonly Scope[];
     };
 
 export type TowbarVariables = {

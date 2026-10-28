@@ -1,8 +1,8 @@
 $kind: http-request
 id: 2ee83414-b77b-5a9e-8564-aa43e9467a98
 description:
-  "Required permissions: deployment.create. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/previews/:previewEnvironmentId/actions/delete"
 method: POST
 headers:

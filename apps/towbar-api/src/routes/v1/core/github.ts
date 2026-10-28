@@ -35,7 +35,7 @@ export const githubRoutes = new Hono<TowbarHonoEnvironment>();
 githubRoutes.get(
   "/",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     responseSchema: 'github.ts:get:"/"',
     summary: "Get GitHub integration",
     response:
@@ -62,7 +62,7 @@ githubRoutes.get(
 githubRoutes.post(
   "/actions/retry-preview-reporting",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     responseSchema: 'github.ts:post:"/actions/retry-preview-reporting"',
     summary: "Retry failed preview reporting",
     response: "The number of preview reports queued for retry.",
@@ -79,7 +79,7 @@ githubRoutes.post(
 githubRoutes.post(
   "/actions/installation-url",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     responseSchema: 'github.ts:post:"/actions/installation-url"',
     summary: "Create installation URL",
     browserOnly: true,
@@ -99,7 +99,7 @@ githubRoutes.post(
 githubRoutes.post(
   "/actions/complete-installation",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     responseSchema: 'github.ts:post:"/actions/complete-installation"',
     summary: "Complete installation",
     browserOnly: true,
@@ -122,7 +122,7 @@ githubRoutes.post(
 githubRoutes.get(
   "/repositories",
   operation({
-    permissions: ["githubInstallation.read"],
+    permissions: ["member"],
     responseSchema: 'github.ts:get:"/repositories"',
     query: connectionQuery,
     summary: "Get workspace GitHub repositories",
@@ -150,7 +150,7 @@ const branchesQuery = z
 githubRoutes.get(
   "/branches",
   operation({
-    permissions: ["githubInstallation.read"],
+    permissions: ["member"],
     responseSchema: 'github.ts:get:"/branches"',
     summary: "List repository branches",
     query: branchesQuery,
@@ -171,7 +171,7 @@ githubRoutes.get(
 githubRoutes.delete(
   "/",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     responseSchema: 'github.ts:delete:"/"',
     query: connectionQuery,
     summary: "Disconnect GitHub account",
@@ -190,7 +190,7 @@ githubRoutes.delete(
 githubRoutes.get(
   "/installation",
   operation({
-    permissions: ["githubInstallation.read"],
+    permissions: ["member"],
     summary: "Get connected GitHub installation",
     responseSchema: 'github.ts:get:"/installation"',
     response:

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Hono } from "hono";
-import { isAction } from "@workspace/towbar-access";
+import { isScope } from "@workspace/towbar-access";
 import { operation, operationDescription } from "./operation.js";
 import { requireDeclaredPolicy } from "./declared-policy.js";
 import type { TowbarHonoEnvironment } from "./types.js";
@@ -27,7 +27,7 @@ void test("every protected route has explicit valid permissions", async () => {
       );
       assert.equal(policies.length, 1, key);
       assert(policies[0]!.permissions.length > 0, key);
-      assert(policies[0]!.permissions.every(isAction), key);
+      assert(policies[0]!.permissions.every(isScope), key);
       if (/\/(reveal(?:-all)?|secret|configuration\/secrets)$/.test(key)) {
         assert.equal(policies[0]!.browserOnly, true, key);
         assert.equal(policies[0]!.freshSession, true, key);
@@ -44,7 +44,7 @@ void test("a newly mounted route with no policy fails closed at runtime", async 
   app.get(
     "/protected",
     operation({
-      permissions: ["repository.read"],
+      permissions: ["viewer"],
       responseSchema: "test",
       summary: "test",
       response: "test",

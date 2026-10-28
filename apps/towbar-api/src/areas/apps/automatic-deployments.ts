@@ -94,7 +94,7 @@ export async function scheduleSourceAutomaticDeployments(
   const result = sync.deployAfterSync
     ? await withActor(
         await authorizeQueuedEffect(sync.requestedByActor, sync.workspaceId, [
-          "deployment.create",
+          "admin",
         ]),
         () =>
           scheduleEligibleAutomaticDeployments({
@@ -460,7 +460,7 @@ async function scheduleEligibleAutomaticDeployments(input: {
             kind: "system",
             source: "worker",
             workspaceId: input.workspaceId,
-            grants: ["deployment.create"],
+            grants: ["admin"],
           },
           () =>
             (input.requestDeployment ?? requestAppDeployment)({

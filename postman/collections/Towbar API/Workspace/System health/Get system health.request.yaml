@@ -1,8 +1,8 @@
 $kind: http-request
 id: 8bd83e5d-cdfa-5bbb-a513-2d32a0a61758
 description:
-  "Required permissions: system.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/system-health"
 method: GET
 headers:

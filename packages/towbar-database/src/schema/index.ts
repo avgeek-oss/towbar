@@ -495,10 +495,6 @@ export const apiKeyPolicies = pgTable(
     }),
     access: text("access").$type<"read" | "edit">().notNull(),
     includeAdmin: boolean("include_admin").default(false).notNull(),
-    permissionMode: text("permission_mode")
-      .$type<"scoped" | "full-admin">()
-      .default("scoped")
-      .notNull(),
     grants: jsonb("grants").$type<string[]>().notNull(),
     tokenType: text("token_type")
       .$type<"api-key" | "mcp-oauth">()
@@ -531,8 +527,8 @@ export const apiKeyPolicies = pgTable(
       sql`${table.tokenType} in ('api-key', 'mcp-oauth')`,
     ),
     check(
-      "towbar_api_policy_permission_mode",
-      sql`${table.permissionMode} = 'scoped' or (${table.permissionMode} = 'full-admin' and ${table.tokenType} = 'api-key' and ${table.access} = 'edit' and ${table.includeAdmin})`,
+      "towbar_api_policy_scopes",
+      sql`jsonb_typeof(${table.grants}) = 'array' and ${table.grants} <@ '["viewer", "member", "admin"]'::jsonb`,
     ),
     check(
       "towbar_api_policy_oauth",

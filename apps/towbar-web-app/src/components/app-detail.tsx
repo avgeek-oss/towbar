@@ -168,7 +168,7 @@ export function AppDetail() {
         Boolean(latestDeployment) &&
         !item.archivedAt &&
         (!item.manifestState || item.manifestState === "active") &&
-        can("deployment.create") ? (
+        can("admin") ? (
           <div className="flex flex-wrap justify-end gap-2">
             {Object.keys(item.config.externalSecrets ?? {}).length > 0 ? (
               <ActionButton
@@ -280,7 +280,7 @@ export function AppDetail() {
               >
                 {!latestDeployment && item.serverReady ? (
                   <FirstDeployment
-                    canDeploy={can("deployment.create")}
+                    canDeploy={can("admin")}
                     deployableId={appId}
                     type="app"
                   />

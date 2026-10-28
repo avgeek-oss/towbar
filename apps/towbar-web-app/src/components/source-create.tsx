@@ -152,7 +152,7 @@ function SourceCreate({
             </EmptyState.Description>
           </EmptyState.Header>
           <EmptyState.Content>
-            {can("integration.manage") ? (
+            {can("admin") ? (
               <ButtonLink href="/manage/integrations/github">
                 <IntegrationProviderLogo provider="github" className="invert" />
                 Open GitHub integration

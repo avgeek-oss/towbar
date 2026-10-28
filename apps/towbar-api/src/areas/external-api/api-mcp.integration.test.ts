@@ -182,30 +182,26 @@ void test(
             await db
               .update(apiKeyPolicies)
               .set({
-                grants: original.filter(
-                  (action) => action !== "server.collectLogs",
-                ),
+                grants: original.filter((action) => action !== "admin"),
               })
               .where(eq(apiKeyPolicies.keyId, credential.key.id));
             try {
               const identity = (await (
                 await request("/identity", credential.token)
               ).json()) as { capabilities: string[] };
-              assert(identity.capabilities.includes("server.collectLogs"));
+              assert(!identity.capabilities.includes("admin"));
               await db
                 .update(apiKeyPolicies)
-                .set({ permissionMode: "scoped" })
+                .set({ grants: ["viewer", "member"] })
                 .where(eq(apiKeyPolicies.keyId, credential.key.id));
               const restrictedIdentity = (await (
                 await request("/identity", credential.token)
               ).json()) as { capabilities: string[] };
-              assert(
-                !restrictedIdentity.capabilities.includes("server.collectLogs"),
-              );
+              assert(!restrictedIdentity.capabilities.includes("admin"));
             } finally {
               await db
                 .update(apiKeyPolicies)
-                .set({ grants: original, permissionMode: "full-admin" })
+                .set({ grants: original })
                 .where(eq(apiKeyPolicies.keyId, credential.key.id));
             }
           }

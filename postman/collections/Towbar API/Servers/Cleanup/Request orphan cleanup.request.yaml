@@ -1,8 +1,8 @@
 $kind: http-request
 id: 290121ad-c089-5741-8e14-8fae4df3f26c
 description:
-  "Required permissions: server.remove. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/actions/cleanup-orphans"
 method: POST
 headers:

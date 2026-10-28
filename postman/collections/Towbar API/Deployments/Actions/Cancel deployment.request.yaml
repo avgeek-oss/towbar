@@ -1,8 +1,8 @@
 $kind: http-request
 id: 75158897-e635-5c32-9e9a-ec71b0b66f34
 description:
-  "Required permissions: deployment.cancel. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/deployments/:deploymentId/actions/cancel"
 method: POST
 headers:

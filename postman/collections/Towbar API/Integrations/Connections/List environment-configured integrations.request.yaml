@@ -1,8 +1,8 @@
 $kind: http-request
 id: a44ff69b-216c-5a08-b551-c4a68b013255
 description:
-  "Required permissions: integration.manage. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/integrations"
 method: GET
 headers:

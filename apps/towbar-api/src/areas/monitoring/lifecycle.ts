@@ -140,7 +140,7 @@ export async function requestMonitoringAgent(input: {
         : null,
       errorMessage: null,
       requestedBy: input.requestedBy,
-      ...captureQueuedActor(input.workspaceId, ["scout.configure"]),
+      ...captureQueuedActor(input.workspaceId, ["member"]),
       operationStartedAt: null,
       removalRequested: false,
       removalRequestedBy: null,
@@ -180,7 +180,7 @@ export async function getMonitoringExecutionContext(
     await authorizeQueuedEffect(
       row.agent.requestedByActor,
       row.server.workspaceId,
-      [row.agent.removalRequested ? "server.remove" : "scout.configure"],
+      [row.agent.removalRequested ? "admin" : "member"],
     );
   if (["waiting", "online", "disabled"].includes(row.agent.status)) return null;
   if (!busyStates.has(row.agent.status))
@@ -353,7 +353,7 @@ async function finishPendingServerRemovals() {
       try {
         await withActor(
           await authorizeQueuedEffect(row.requestedByActor, row.workspaceId, [
-            "server.remove",
+            "admin",
           ]),
           () => removeServer({ ...row, requestedBy: row.requestedBy }),
         );

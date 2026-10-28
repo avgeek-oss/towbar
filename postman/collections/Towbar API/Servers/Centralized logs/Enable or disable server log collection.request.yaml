@@ -1,8 +1,8 @@
 $kind: http-request
 id: 0a9eb8d9-09f4-57f5-8d97-e1ca5e4d8610
 description:
-  "Required permissions: server.collectLogs. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/log-collection"
 method: PUT
 headers:

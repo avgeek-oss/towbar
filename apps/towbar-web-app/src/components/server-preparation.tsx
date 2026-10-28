@@ -38,7 +38,7 @@ export function PrepareServerButton(
 ) {
   const { can } = useAccess();
   const router = useRouter();
-  if (!can("server.prepare") || props.setupStatus === "ready") return null;
+  if (!can("admin") || props.setupStatus === "ready") return null;
   const busy = props.setupStatus === "preparing";
   const actionLabel =
     props.setupStatus === "failed" ? "Retry setup" : "Resume Setup";
@@ -119,7 +119,7 @@ export function ServerPreparationOverview(props: ServerPreparationProps) {
             description="Connect a stored private key and trust the server’s host key."
             status={props.credentialsPending ? "waiting" : "succeeded"}
             href={
-              can("server.credentials")
+              can("admin")
                 ? `/servers/${props.serverId}/settings/configuration`
                 : undefined
             }

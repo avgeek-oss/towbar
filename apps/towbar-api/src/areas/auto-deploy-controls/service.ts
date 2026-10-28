@@ -193,7 +193,7 @@ export async function updateEnvironmentAutomation(input: {
   expectedRevision: string;
   paused: boolean;
 }) {
-  requireActor(input.workspaceId, ["deployment.create"]);
+  requireActor(input.workspaceId, ["admin"]);
   await getTowbarDatabase().transaction(async (tx) => {
     const [environment] = await tx
       .select({

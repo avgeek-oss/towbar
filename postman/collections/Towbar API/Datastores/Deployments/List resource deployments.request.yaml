@@ -1,8 +1,8 @@
 $kind: http-request
 id: 6995bfff-daee-57c5-9a7a-f920c8f102f4
 description:
-  "Required permissions: resource.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/deployments"
 method: GET
 headers:

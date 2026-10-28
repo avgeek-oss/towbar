@@ -1,8 +1,8 @@
 $kind: http-request
 id: 3e3237a0-6d83-5171-bc5e-a5f2214f0257
 description:
-  "Required permissions: githubInstallation.read. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: member. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/github/installation"
 method: GET
 headers:

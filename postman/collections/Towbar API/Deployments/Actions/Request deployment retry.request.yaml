@@ -1,8 +1,8 @@
 $kind: http-request
 id: 48a480fa-997f-5c9b-a6f4-1bd4be075d68
 description:
-  "Required permissions: deployment.create. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/deployments/:deploymentId/actions/retry"
 method: POST
 headers:

@@ -238,7 +238,7 @@ export function ServersIndex() {
     <DashboardPage
       icon={ServerStack01Icon}
       actions={
-        can("server.update") ? (
+        can("admin") ? (
           <ButtonLink href="/servers/new">
             <HugeiconsIcon
               aria-hidden="true"

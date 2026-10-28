@@ -27,7 +27,7 @@ export const preferenceRoutes = new Hono<TowbarHonoEnvironment>();
 preferenceRoutes.get(
   "/profile/preferences/logs-table",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Get log table preferences",
     response:
@@ -42,7 +42,7 @@ preferenceRoutes.get(
 preferenceRoutes.put(
   "/profile/preferences/logs-table",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: logTablePreferencesSchema,
     summary: "Update log table preferences",
@@ -60,7 +60,7 @@ preferenceRoutes.put(
 preferenceRoutes.get(
   "/profile/passkeys",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "List personal passkeys",
     response: "Passkey names and creation dates for the signed-in user.",
@@ -74,7 +74,7 @@ preferenceRoutes.get(
 preferenceRoutes.post(
   "/profile/preferences/range",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: rangeInitializationSchema,
     summary: "Initialize a time range",
@@ -93,7 +93,7 @@ preferenceRoutes.post(
 preferenceRoutes.post(
   "/profile/preferences/range/resolve",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: preferredRangeSchema,
     summary: "Resolve a time range",
@@ -117,7 +117,7 @@ preferenceRoutes.post(
 preferenceRoutes.get(
   "/profile/preferences",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     summary: "Get date and time preferences",
     response:
@@ -137,7 +137,7 @@ preferenceRoutes.get(
 preferenceRoutes.put(
   "/profile/preferences",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: dateTimePreferencesSchema,
     summary: "Update date and time preferences",
@@ -161,7 +161,7 @@ preferenceRoutes.put(
 preferenceRoutes.post(
   "/profile/preferences/preview",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: dateTimePreferencesSchema,
     summary: "Preview date and time preferences",
@@ -186,7 +186,7 @@ const localizationInput = z
 preferenceRoutes.post(
   "/date-time/localize",
   operation({
-    permissions: ["personal.manage"],
+    permissions: ["viewer"],
     browserOnly: true,
     body: localizationInput,
     summary: "Localize timestamps",

@@ -105,7 +105,7 @@ void test(
             sourceEnvironmentId: environment.id,
             mappingRevision: revision,
             ...withActor(actor, () =>
-              captureQueuedActor(workspaceId, ["repository.sync"]),
+              captureQueuedActor(workspaceId, ["admin"]),
             ),
           })
           .returning();

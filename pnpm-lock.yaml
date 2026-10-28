@@ -423,10 +423,6 @@ importers:
         version: 7.0.2
 
   packages/towbar-access:
-    dependencies:
-      better-auth:
-        specifier: 1.7.7
-        version: 1.7.7(@opentelemetry/api@1.9.1)(drizzle-kit@0.31.11)(drizzle-orm@0.45.3(@opentelemetry/api@1.9.1)(kysely@0.29.5)(postgres@3.4.9))(next@16.4.3(@opentelemetry/api@1.9.1)(@types/node@26.6.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
       "@types/node":
         specifier: 26.6.5

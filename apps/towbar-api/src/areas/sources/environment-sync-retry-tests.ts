@@ -31,7 +31,7 @@ export async function assertCompletedSyncRetry(input: {
       sourceId,
       sourceEnvironmentId: staging.id,
       mappingRevision: staging.mappingRevision,
-      ...captureQueuedActor(workspaceId, ["repository.sync"]),
+      ...captureQueuedActor(workspaceId, ["admin"]),
     })
     .returning();
   assert(job);

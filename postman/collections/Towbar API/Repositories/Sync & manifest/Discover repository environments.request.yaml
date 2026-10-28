@@ -1,8 +1,8 @@
 $kind: http-request
 id: edd83d4b-8641-5efc-93ce-0bd84c64b6ce
 description:
-  "Required permissions: repository.connect. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/discover"
 method: POST
 headers:

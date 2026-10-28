@@ -6,11 +6,12 @@ import {
   type KeyAccess,
   type KeyPolicy,
   type KeyScope,
-  actorActions,
+  actorScopes,
   canCreateKey,
-  isAction,
+  isScope,
   isWorkspaceRole,
   keyCeiling,
+  keyRole,
 } from "@workspace/towbar-access";
 import {
   apiKeyPolicies,
@@ -43,7 +44,6 @@ const publicColumns = {
   scope: apiKeyPolicies.scope,
   access: apiKeyPolicies.access,
   includeAdmin: apiKeyPolicies.includeAdmin,
-  permissionMode: apiKeyPolicies.permissionMode,
   grants: apiKeyPolicies.grants,
   prefix: apiKeys.start,
   expiresAt: apiKeys.expiresAt,
@@ -134,10 +134,6 @@ export async function createApiKey(
     .digest("hex");
   const scope = input.scope ?? "personal";
   const includeAdmin = input.includeAdmin ?? false;
-  const permissionMode =
-    !input.oauth && includeAdmin && input.access === "edit"
-      ? ("full-admin" as const)
-      : ("scoped" as const);
   const expiresAt =
     input.expiresAt === null
       ? null
@@ -209,7 +205,6 @@ export async function createApiKey(
       scope,
       access: input.access,
       includeAdmin,
-      permissionMode,
       grants,
       ownerUserId: scope === "personal" ? user.id : null,
       creatorUserId: user.id,
@@ -229,7 +224,6 @@ export async function createApiKey(
         scope,
         access: input.access,
         includeAdmin,
-        permissionMode,
         grants,
         prefix: key.start,
         expiresAt: key.expiresAt,
@@ -359,15 +353,14 @@ export async function resolveApiKeyPrincipal(id: string) {
   if (
     !stored ||
     stored.key.configId !== stored.policy.scope ||
-    stored.policy.grants.some((action) => !isAction(action))
+    stored.policy.grants.some((action) => !isScope(action))
   )
     return null;
   const policy: KeyPolicy = {
     scope: stored.policy.scope,
     access: stored.policy.access,
     includeAdmin: stored.policy.includeAdmin,
-    permissionMode: stored.policy.permissionMode,
-    grants: stored.policy.grants.filter(isAction),
+    grants: stored.policy.grants.filter(isScope),
   };
   if (policy.scope === "team") {
     if (
@@ -395,7 +388,7 @@ export async function resolveApiKeyPrincipal(id: string) {
         name: stored.key.name ?? "Team API key",
         workspaceId: actor.workspaceId,
         workspaceRole: null,
-        capabilities: actorActions(actor),
+        capabilities: actorScopes(actor),
       },
     };
   }
@@ -431,7 +424,7 @@ export async function resolveApiKeyPrincipal(id: string) {
     kind: "personal-key",
     workspaceId: stored.policy.workspaceId,
     userId: user.id,
-    role: user.role,
+    role: keyRole(user.role, policy),
     keyId: id,
     policy,
     tokenAttribution: {
@@ -455,8 +448,8 @@ export async function resolveApiKeyPrincipal(id: string) {
       name: user.name,
       dateTimePreferences: user.dateTimePreferences,
       workspaceId: actor.workspaceId,
-      workspaceRole: user.role,
-      capabilities: actorActions(actor),
+      workspaceRole: actor.role,
+      capabilities: actorScopes(actor),
     },
   };
 }

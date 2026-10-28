@@ -50,7 +50,7 @@ export async function assertAdminCollectorKeyAccess({
     assert(key.token);
     const principal = await findApiKey(key.token);
     assert(principal);
-    assert(!actorAllows(principal.actor, ["server.collectLogs"]));
+    assert(!actorAllows(principal.actor, ["admin"]));
     await assert.rejects(
       withActor(principal.actor, () =>
         requestAppDeployment({
@@ -72,14 +72,13 @@ export async function assertAdminCollectorKeyAccess({
       clientLogo: null,
       clientTrust: "unverified",
       resource: "https://app.test/v1/mcp",
-      grants: ["deployment.create", "server.collectLogs"],
+      grants: ["admin"],
     },
   });
   assert(oauth.token);
-  assert.equal(oauth.key.permissionMode, "scoped");
   const oauthPrincipal = await findApiKey(oauth.token);
   assert(oauthPrincipal);
-  assert(!actorAllows(oauthPrincipal.actor, ["server.collectLogs"]));
+  assert(!actorAllows(oauthPrincipal.actor, ["admin"]));
   await assert.rejects(
     withActor(oauthPrincipal.actor, () =>
       requestAppDeployment({
@@ -102,9 +101,7 @@ export async function assertAdminCollectorKeyAccess({
     await db
       .update(apiKeyPolicies)
       .set({
-        grants: key.key.grants.filter(
-          (action) => action !== "server.collectLogs",
-        ),
+        grants: key.key.grants.filter((action) => action !== "admin"),
       })
       .where(eq(apiKeyPolicies.keyId, key.key.id));
     const principal = await findApiKey(key.token);
@@ -124,7 +121,7 @@ export async function assertAdminCollectorKeyAccess({
     assert(stored);
     const queued = stored.requestedByActor;
     assert(queued && queued.grants);
-    assert(queued.grants.includes("server.collectLogs"));
+    assert(queued.grants.includes("admin"));
     assert.equal(stored.requestedByKeyId, key.key.id);
     const execution = await getDeploymentExecutionContext(result.deployment.id);
     assert(isNormalizedApp(execution.app));
@@ -134,9 +131,7 @@ export async function assertAdminCollectorKeyAccess({
       .set({
         requestedByActor: {
           ...queued,
-          grants: queued.grants.filter(
-            (action) => action !== "server.collectLogs",
-          ),
+          grants: queued.grants.filter((action) => action !== "admin"),
         },
       })
       .where(eq(deployments.id, result.deployment.id));
@@ -164,11 +159,11 @@ export async function assertAdminCollectorKeyAccess({
     }
     await db
       .update(apiKeyPolicies)
-      .set({ permissionMode: "scoped" })
+      .set({ grants: ["viewer", "member"] })
       .where(eq(apiKeyPolicies.keyId, key.key.id));
     const restricted = await findApiKey(key.token);
     assert(restricted);
-    assert(!actorAllows(restricted.actor, ["server.collectLogs"]));
+    assert(!actorAllows(restricted.actor, ["admin"]));
     await assert.rejects(
       withActor(restricted.actor, () =>
         requestAppDeployment({
@@ -186,7 +181,7 @@ export async function assertAdminCollectorKeyAccess({
     );
     await db
       .update(apiKeyPolicies)
-      .set({ permissionMode: "full-admin" })
+      .set({ grants: ["viewer", "member", "admin"] })
       .where(eq(apiKeyPolicies.keyId, key.key.id));
     const expired = await createApiKey(user, {
       name: `Expired ${scope}`,

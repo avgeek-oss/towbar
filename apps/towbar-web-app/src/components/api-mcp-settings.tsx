@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  type KeyScope,
-  type KeyAccess,
-  type KeyPermissionMode,
-} from "@workspace/towbar-access";
+import { type KeyScope, type KeyAccess } from "@workspace/towbar-access";
 import { useAccess } from "./access-context";
 import { PageSelectionTitle } from "./page-selection-title";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -37,7 +33,6 @@ type ApiKey = {
   prefix: string;
   access: KeyAccess;
   includeAdmin: boolean;
-  permissionMode: KeyPermissionMode;
   scope: KeyScope;
   createdAt: string;
   lastUsedAt: string | null;
@@ -131,9 +126,7 @@ export function ApiMcpSettings({ section }: { section: KeyStoreSection }) {
         key.access === "read"
           ? "Read-only"
           : key.includeAdmin
-            ? key.permissionMode === "full-admin"
-              ? "Administrative permissions"
-              : "Scoped administrative permissions"
+            ? "Administrative permissions"
             : "Edit",
     },
     {

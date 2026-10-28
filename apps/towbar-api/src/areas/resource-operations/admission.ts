@@ -1,5 +1,4 @@
 import { captureQueuedActor } from "../auth/actor-context.js";
-import { operationPermissions } from "./permissions.js";
 import { randomUUID } from "node:crypto";
 
 import { and, eq } from "drizzle-orm";
@@ -52,10 +51,7 @@ export async function admitOperation(input: {
         phase: input.request.type === "restore" ? "queued" : null,
         request: input.request,
         requestedBy: input.requestedBy,
-        ...captureQueuedActor(
-          input.workspaceId,
-          operationPermissions(input.request),
-        ),
+        ...captureQueuedActor(input.workspaceId, ["admin"]),
         resourceId: input.resourceId,
         serverId: input.serverId,
         serverSnapshot: input.serverSnapshot,

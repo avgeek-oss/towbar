@@ -4,7 +4,7 @@ import { and, count, desc, eq, gt, inArray, isNull } from "drizzle-orm";
 import {
   type WorkspaceRole,
   constrainPersonalKey,
-  isAction,
+  isScope,
 } from "@workspace/towbar-access";
 import {
   apiKeyPolicies,
@@ -186,7 +186,7 @@ export async function updateMemberRole(
       );
     for (const policy of policies) {
       const constrained = constrainPersonalKey(
-        { ...policy, grants: policy.grants.filter(isAction) },
+        { ...policy, grants: policy.grants.filter(isScope) },
         role,
       );
       await tx
@@ -194,7 +194,6 @@ export async function updateMemberRole(
         .set({
           access: constrained.access,
           includeAdmin: constrained.includeAdmin,
-          permissionMode: constrained.permissionMode ?? "scoped",
           grants: [...constrained.grants],
           version: policy.version + 1,
         })

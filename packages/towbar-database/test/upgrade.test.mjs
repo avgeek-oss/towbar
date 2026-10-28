@@ -51,11 +51,12 @@ test("migration journal keeps notification destinations and failure subscription
     "0033_repository_secrets.sql",
     "0034_remove_audit_logs.sql",
     "0035_retire_upgrades_and_providers.sql",
+    "0036_broad_authorization_scopes.sql",
   ]);
   const journal = JSON.parse(
     await readFile(`${migrationsFolder}/meta/_journal.json`, "utf8"),
   );
-  assert.equal(journal.entries.length, 35);
+  assert.equal(journal.entries.length, 36);
   assert.equal(journal.entries[0].tag, "001_team_access_v2");
   assert.equal(journal.entries[1].tag, "0002_curvy_wasp");
   assert.equal(journal.entries[2].tag, "0003_sad_gabe_jones");
@@ -274,7 +275,6 @@ test(
         ["towbar_deployments", "requested_by_actor"],
         ["towbar_source_syncs", "requested_by_actor"],
         ["towbar_api_key_policies", "creation_request_id"],
-        ["towbar_api_key_policies", "permission_mode"],
         ["towbar_users", "must_change_password"],
         ["towbar_users", "log_table_preferences"],
         ["towbar_auth_recovery_codes", "code_hashes"],

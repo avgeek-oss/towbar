@@ -1,4 +1,4 @@
-import type { Action } from "@workspace/towbar-access";
+import type { Scope } from "@workspace/towbar-access";
 import { z } from "zod";
 import { secretKeySchema } from "@workspace/towbar-core";
 import { operations } from "./catalogue.js";
@@ -22,7 +22,7 @@ export type McpTool = {
   description: string;
   input: z.ZodType;
   readOnly: boolean;
-  permissions: readonly Action[];
+  permissions: readonly Scope[];
   destructive: boolean;
   idempotent: boolean;
   run: (

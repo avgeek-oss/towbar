@@ -57,7 +57,7 @@ sudo towbar doctor
   height="1800"
 />
 
-Setup skips collection when ClickHouse is absent or the requesting account lacks `server.collectLogs`. It preserves an explicit disable. A configured but unavailable database or failed install stops setup at the collector step.
+Setup skips collection when ClickHouse is absent or the requesting account lacks `admin`. It preserves an explicit disable. A configured but unavailable database or failed install stops setup at the collector step.
 
 | State or action            | Meaning                                           |
 | -------------------------- | ------------------------------------------------- |
@@ -68,7 +68,7 @@ Setup skips collection when ClickHouse is absent or the requesting account lacks
 | Update collector           | Install the version shipped with Towbar.          |
 | Disable collection         | Revoke ingestion access and queue removal.        |
 
-The collector needs outbound HTTPS to the Towbar API. Installation uses the server's stored SSH key and trusted host key. API and MCP callers need `server.collectLogs` for collector changes, including automatic setup.
+The collector needs outbound HTTPS to the Towbar API. Installation uses the server's stored SSH key and trusted host key. API and MCP callers need `admin` for collector changes, including automatic setup.
 
 ## Application output
 

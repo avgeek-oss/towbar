@@ -29,7 +29,7 @@ export const scoutAlertRoutes = new Hono<TowbarHonoEnvironment>();
 scoutAlertRoutes.get(
   "/",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'scout-alerts.ts:get:"/"',
     summary: "Inspect Scout alert rules",
     query: scoutIncidentQuerySchema.pick({ deployableId: true }),
@@ -38,7 +38,7 @@ scoutAlertRoutes.get(
   }),
   async (context) => {
     return context.json({
-      canManage: actorAllows(context.get("actor"), ["alert.configure"]),
+      canManage: actorAllows(context.get("actor"), ["member"]),
       ...(await listScoutAlertRules({
         ...scoutIncidentQuerySchema
           .pick({ deployableId: true })
@@ -52,7 +52,7 @@ scoutAlertRoutes.get(
 scoutAlertRoutes.post(
   "/rules",
   operation({
-    permissions: ["alert.configure"],
+    permissions: ["member"],
     responseSchema: 'scout-alerts.ts:post:"/rules"',
     summary: "Create Scout alert rule",
     body: scoutAlertRuleSchema,
@@ -78,7 +78,7 @@ scoutAlertRoutes.post(
 scoutAlertRoutes.put(
   "/rules/:ruleId",
   operation({
-    permissions: ["alert.configure"],
+    permissions: ["member"],
     responseSchema: 'scout-alerts.ts:put:"/rules/:ruleId"',
     summary: "Update Scout alert rule",
     body: scoutAlertRuleSchema,
@@ -102,7 +102,7 @@ scoutAlertRoutes.put(
 scoutAlertRoutes.delete(
   "/rules/:ruleId",
   operation({
-    permissions: ["alert.configure"],
+    permissions: ["member"],
     responseSchema: 'scout-alerts.ts:delete:"/rules/:ruleId"',
     summary: "Delete Scout alert rule",
     response: "Stops evaluation and preserves incident history.",
@@ -122,7 +122,7 @@ scoutAlertRoutes.delete(
 scoutAlertRoutes.get(
   "/incidents",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'scout-alerts.ts:get:"/incidents"',
     summary: "List Scout incidents",
     query: scoutIncidentQuerySchema,
@@ -144,7 +144,7 @@ scoutAlertRoutes.get(
 scoutAlertRoutes.get(
   "/incidents/:incidentId",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'scout-alerts.ts:get:"/incidents/:incidentId"',
     summary: "Inspect Scout incident",
     response:
@@ -164,7 +164,7 @@ scoutAlertRoutes.get(
 scoutAlertRoutes.get(
   "/incidents/:incidentId/notifications",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema:
       'scout-alerts.ts:get:"/incidents/:incidentId/notifications"',
     summary: "List incident notification deliveries",
@@ -189,7 +189,7 @@ export const scoutComparisonRoutes = new Hono<TowbarHonoEnvironment>();
 scoutComparisonRoutes.get(
   "/workloads/:deployableId/comparison-deployments",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema:
       'scout-alerts.ts:get:"/workloads/:deployableId/comparison-deployments"',
     summary: "List deployments available for comparison",
@@ -209,7 +209,7 @@ scoutComparisonRoutes.get(
 scoutComparisonRoutes.get(
   "/workloads/:deployableId/deployment-comparison",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema:
       'scout-alerts.ts:get:"/workloads/:deployableId/deployment-comparison"',
     summary: "Compare deployment performance",

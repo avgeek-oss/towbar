@@ -1,8 +1,8 @@
 $kind: http-request
 id: 10912be4-a6cc-5ba1-b555-82e9cedeba73
 description:
-  "Required permissions: githubInstallation.read. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: member. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/github/branches?connectionId=&owner=example-inc&repository=example-app"
 method: GET
 headers:

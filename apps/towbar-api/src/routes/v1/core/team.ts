@@ -39,7 +39,7 @@ teamRoutes.use("*", async (c, next) => {
 teamRoutes.get(
   "/",
   operation({
-    permissions: ["team.read"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Get team settings",
     responseSchema: 'team.ts:get:"/"',
@@ -50,7 +50,7 @@ teamRoutes.get(
 teamRoutes.patch(
   "/",
   operation({
-    permissions: ["team.update"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Update team settings",
     responseSchema: 'team.ts:patch:"/"',
@@ -65,7 +65,7 @@ teamRoutes.patch(
 teamRoutes.get(
   "/members",
   operation({
-    permissions: ["member.read"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "List team members",
     responseSchema: 'team.ts:get:"/members"',
@@ -78,7 +78,7 @@ teamRoutes.get(
 teamRoutes.patch(
   "/members/:memberId",
   operation({
-    permissions: ["member.update"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Update member details and role",
     responseSchema: 'team.ts:patch:"/members/:memberId"',
@@ -105,7 +105,7 @@ teamRoutes.patch(
 teamRoutes.delete(
   "/members/:memberId",
   operation({
-    permissions: ["member.delete"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Remove member access",
     responseSchema: 'team.ts:delete:"/members/:memberId"',
@@ -123,7 +123,7 @@ teamRoutes.delete(
 teamRoutes.get(
   "/invitations",
   operation({
-    permissions: ["invitation.read"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "List team invitations",
     responseSchema: 'team.ts:get:"/invitations"',
@@ -134,7 +134,7 @@ teamRoutes.get(
 teamRoutes.post(
   "/invitations",
   operation({
-    permissions: ["invitation.create"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Create team invitation",
     responseSchema: 'team.ts:post:"/invitations"',
@@ -158,7 +158,7 @@ teamRoutes.post(
 teamRoutes.delete(
   "/invitations/:invitationId",
   operation({
-    permissions: ["invitation.cancel"],
+    permissions: ["admin"],
     browserOnly: true,
     summary: "Revoke team invitation",
     responseSchema: 'team.ts:delete:"/invitations/:invitationId"',

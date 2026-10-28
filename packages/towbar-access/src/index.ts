@@ -1,8 +1,3 @@
-import {
-  createAccessControl,
-  type Statements,
-} from "better-auth/plugins/access";
-
 export const workspaceRoles = ["admin", "member", "viewer"] as const;
 export type WorkspaceRole = (typeof workspaceRoles)[number];
 export const roleLabels: Record<WorkspaceRole, string> = {
@@ -20,138 +15,57 @@ export const roleDescriptions: Record<WorkspaceRole, string> = {
 export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
   return value === "admin" || value === "member" || value === "viewer";
 }
-export const statements = {
-  identity: ["read"],
-  repository: ["read", "connect", "update", "sync", "disconnect"],
-  deployment: ["read", "create", "cancel"],
-  workload: ["read", "operate"],
-  resource: ["read", "backup", "restore"],
-  server: [
-    "read",
-    "prepare",
-    "update",
-    "credentials",
-    "remove",
-    "terminal",
-    "collectLogs",
-  ],
-  secret: ["list", "update", "reveal"],
-  sharedSecret: ["list", "update", "reference", "reveal"],
-  logs: ["read", "readAdmin"],
-  scout: ["read", "configure"],
-  alert: ["read", "configure"],
-  integration: ["manage"],
-  githubInstallation: ["read"],
-  notification: ["manage"],
-  inbox: ["read", "update"],
-  privateKey: ["manage", "reveal"],
-  member: ["read", "create", "update", "delete"],
-  invitation: ["read", "create", "cancel"],
-  organization: ["update", "delete"],
-  apikey: ["create", "read", "update", "delete"],
-  team: ["read", "update"],
-  system: ["read", "manage"],
-  personal: ["manage"],
-} as const;
-export type Resource = keyof typeof statements;
-export type Action = {
-  [R in Resource]: `${R}.${(typeof statements)[R][number]}`;
-}[Resource];
-type RolePermissions = {
-  [R in Resource]?: readonly (typeof statements)[R][number][];
-};
-const viewerPermissions = {
-  identity: ["read"],
-  repository: ["read"],
-  deployment: ["read"],
-  workload: ["read"],
-  resource: ["read"],
-  server: ["read"],
-  logs: ["read"],
-  scout: ["read"],
-  alert: ["read"],
-  inbox: ["read", "update"],
-  personal: ["manage"],
-} as const satisfies RolePermissions;
-const memberPermissions = {
-  ...viewerPermissions,
-  secret: ["list", "update"],
-  sharedSecret: ["list", "update", "reference"],
-  scout: ["read", "configure"],
-  alert: ["read", "configure"],
-  githubInstallation: ["read"],
-} as const satisfies RolePermissions;
-const aclStatements: Statements = statements;
-export const accessControl = createAccessControl(aclStatements);
-export const accessRoles = {
-  admin: accessControl.newRole(statements),
-  member: accessControl.newRole(memberPermissions),
-  viewer: accessControl.newRole(viewerPermissions),
-};
-export const allActions = Object.entries(statements).flatMap(
-  ([resource, actions]) =>
-    actions.map((action) => `${resource}.${action}` as Action),
-);
-export function isAction(value: string): value is Action {
-  return allActions.includes(value as Action);
+export const scopes = ["viewer", "member", "admin"] as const;
+export type Scope = (typeof scopes)[number];
+export function isScope(value: string): value is Scope {
+  return value === "viewer" || value === "member" || value === "admin";
 }
-export function roleAllows(role: WorkspaceRole, action: Action): boolean {
-  const [resource, operation] = action.split(".");
-  return accessRoles[role].authorize({ [resource!]: [operation!] }).success;
+export function scopesAllow(grants: readonly Scope[], scope: Scope): boolean {
+  return (
+    grants.includes(scope) ||
+    grants.includes("admin") ||
+    (scope === "viewer" && grants.includes("member"))
+  );
 }
-export function roleActions(role: WorkspaceRole): Action[] {
-  return allActions.filter((action) => roleAllows(role, action));
+export function roleAllows(role: WorkspaceRole, scope: Scope): boolean {
+  return (
+    scope === "viewer" ||
+    (scope === "member" && role !== "viewer") ||
+    (scope === "admin" && role === "admin")
+  );
+}
+export function roleScopes(role: WorkspaceRole): Scope[] {
+  return scopes.filter((scope) => roleAllows(role, scope));
 }
 
 export type KeyAccess = "read" | "edit";
 export type KeyScope = "personal" | "team";
-export type KeyPermissionMode = "scoped" | "full-admin";
 export type KeyPolicy = {
   scope: KeyScope;
   access: KeyAccess;
   includeAdmin: boolean;
-  permissionMode?: KeyPermissionMode;
-  grants: readonly Action[];
+  grants: readonly Scope[];
 };
-const browserOnlyResources = new Set<Resource>([
-  "personal",
-  "inbox",
-  "member",
-  "invitation",
-  "organization",
-  "apikey",
-  "team",
-  "privateKey",
-]);
-const browserOnlyActions = new Set<Action>([
-  "server.terminal",
-  "secret.reveal",
-  "sharedSecret.reveal",
-]);
-export function automationAllows(action: Action): boolean {
-  return (
-    !browserOnlyResources.has(action.split(".")[0] as Resource) &&
-    !browserOnlyActions.has(action)
-  );
-}
 export function keyCeiling(
   role: WorkspaceRole,
   access: KeyAccess,
   includeAdmin: boolean,
-): Action[] {
-  const ceilingRole =
-    includeAdmin && role === "admin"
-      ? "admin"
-      : role === "viewer"
-        ? "viewer"
-        : "member";
-  return roleActions(ceilingRole).filter(
-    (action) =>
-      automationAllows(action) &&
-      (access === "edit" ||
-        action.endsWith(".read") ||
-        action.endsWith(".list")),
+): Scope[] {
+  return roleScopes(
+    access === "read" || role === "viewer"
+      ? "viewer"
+      : includeAdmin && role === "admin"
+        ? "admin"
+        : "member",
   );
+}
+export function keyRole(role: WorkspaceRole, policy: KeyPolicy): WorkspaceRole {
+  const allowed = keyCeiling(role, policy.access, policy.includeAdmin);
+  if (allowed.includes("admin") && scopesAllow(policy.grants, "admin"))
+    return "admin";
+  if (allowed.includes("member") && scopesAllow(policy.grants, "member"))
+    return "member";
+  return "viewer";
 }
 export function canCreateKey(
   role: WorkspaceRole,
@@ -169,18 +83,14 @@ export function constrainPersonalKey(
 ): KeyPolicy {
   const access = role === "viewer" ? "read" : policy.access;
   const includeAdmin = role === "admin" && policy.includeAdmin;
-  const allowed = new Set(keyCeiling(role, access, includeAdmin));
+  const allowed = keyCeiling(role, access, includeAdmin);
   return {
     ...policy,
     access,
     includeAdmin,
-    ...(policy.permissionMode === "full-admin" && role !== "admin"
-      ? { permissionMode: "scoped" as const }
-      : {}),
-    grants: (policy.permissionMode === "full-admin"
-      ? keyCeiling("admin", policy.access, policy.includeAdmin)
-      : policy.grants
-    ).filter((action) => allowed.has(action)),
+    grants: scopes.filter(
+      (scope) => scopesAllow(policy.grants, scope) && allowed.includes(scope),
+    ),
   };
 }
 export type AccessActor =
@@ -189,7 +99,7 @@ export type AccessActor =
       workspaceId: string;
       userId: string;
       role: WorkspaceRole;
-      grants?: readonly Action[];
+      grants?: readonly Scope[];
     }
   | {
       kind: "personal-key";
@@ -210,44 +120,37 @@ export type AccessActor =
       kind: "system";
       workspaceId: string;
       source: "github" | "worker";
-      grants: readonly Action[];
+      grants: readonly Scope[];
     };
 export function actorAllows(
   actor: AccessActor,
-  required: readonly Action[],
+  required: readonly Scope[],
   workspaceId = actor.workspaceId,
 ): boolean {
   if (actor.workspaceId !== workspaceId || required.length === 0) return false;
   if (actor.kind === "session")
     return required.every(
-      (action) =>
-        roleAllows(actor.role, action) &&
-        (!actor.grants || actor.grants.includes(action)),
+      (scope) =>
+        roleAllows(actor.role, scope) &&
+        (!actor.grants || scopesAllow(actor.grants, scope)),
     );
   if (actor.kind === "system")
-    return required.every((action) => actor.grants.includes(action));
+    return required.every((scope) => scopesAllow(actor.grants, scope));
   if (
     actor.policy.scope !== (actor.kind === "personal-key" ? "personal" : "team")
   )
     return false;
   const role = actor.kind === "personal-key" ? actor.role : "admin";
-  const allowed = new Set(
-    keyCeiling(role, actor.policy.access, actor.policy.includeAdmin),
+  const allowed = keyCeiling(
+    role,
+    actor.policy.access,
+    actor.policy.includeAdmin,
   );
-  if (actor.policy.permissionMode === "full-admin") {
-    if (
-      actor.policy.access !== "edit" ||
-      !actor.policy.includeAdmin ||
-      (actor.kind === "personal-key" &&
-        actor.tokenAttribution?.tokenType === "mcp-oauth")
-    )
-      return false;
-    return required.every((action) => allowed.has(action));
-  }
   return required.every(
-    (action) => allowed.has(action) && actor.policy.grants.includes(action),
+    (scope) =>
+      allowed.includes(scope) && scopesAllow(actor.policy.grants, scope),
   );
 }
-export function actorActions(actor: AccessActor): Action[] {
-  return allActions.filter((action) => actorAllows(actor, [action]));
+export function actorScopes(actor: AccessActor): Scope[] {
+  return scopes.filter((scope) => actorAllows(actor, [scope]));
 }

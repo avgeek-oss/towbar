@@ -1,8 +1,8 @@
 $kind: http-request
 id: 95afb2ff-98ab-5f8a-abf9-c417633187c7
 description:
-  "Required permissions: server.credentials. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/credentials/verifications/:verificationId"
 method: GET
 headers:

@@ -98,7 +98,7 @@ export function AppJobs({ appId }: { appId: string }) {
             key: "actions",
             header: "",
             cell: (job) =>
-              can("workload.operate") ? (
+              can("admin") ? (
                 <ActionButton
                   variant="secondary"
                   isDisabled={

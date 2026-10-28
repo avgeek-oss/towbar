@@ -110,7 +110,7 @@ export async function requestServerCredentialVerification(input: {
       expectedCredentialRevision: input.expectedRevision,
       privateKeyId: input.privateKeyId,
       requestedBy: input.requestedBy,
-      ...captureQueuedActor(input.workspaceId, ["server.credentials"]),
+      ...captureQueuedActor(input.workspaceId, ["admin"]),
       serverId: input.serverId,
     })
     .returning(publicSelection);
@@ -185,7 +185,7 @@ export async function getServerCredentialVerificationExecutionContext(
     await authorizeQueuedEffect(
       verification.requestedByActor,
       verification.workspaceId,
-      ["server.credentials"],
+      ["admin"],
     );
   const privateKey = decryptCredential<string>({
     associatedData: associatedData({ ...verification, id: verificationId }),

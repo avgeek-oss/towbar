@@ -6,7 +6,7 @@ import type {
   NormalizedDeployable,
   NormalizedServer,
 } from "@workspace/towbar-core";
-import type { Action } from "@workspace/towbar-access";
+import type { Scope } from "@workspace/towbar-access";
 import { and, eq } from "drizzle-orm";
 import { deployments } from "@workspace/towbar-database/schema";
 import { conflict, notFound } from "../../http/errors.js";
@@ -14,10 +14,8 @@ import { getTowbarDatabase } from "../../infrastructure/database.js";
 
 export function hostLogDeploymentPermissions(
   ...deployables: NormalizedDeployable[]
-): Action[] {
-  return deployables.some(collectsHostDockerLogs)
-    ? ["deployment.create", "server.collectLogs"]
-    : ["deployment.create"];
+): Scope[] {
+  return deployables.some(collectsHostDockerLogs) ? ["admin"] : ["admin"];
 }
 
 export function requireHostLogCollection(

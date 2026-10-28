@@ -104,7 +104,7 @@ export const infrastructureTools: McpTool[] = [
       });
       return { ...result, series, events: records(result.events).slice(0, 20) };
     },
-    { permissions: ["scout.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "monitoring_configure",
@@ -143,7 +143,7 @@ export const infrastructureTools: McpTool[] = [
             }),
       }),
     {
-      permissions: ["scout.configure"],
+      permissions: ["member"],
       readOnly: false,
       destructive: true,
       idempotent: false,
@@ -199,7 +199,7 @@ export const infrastructureTools: McpTool[] = [
       }
       return result;
     },
-    { permissions: ["server.read", "scout.read"] },
+    { permissions: ["viewer"] },
   ),
   action(
     "server_register",
@@ -289,7 +289,7 @@ export const infrastructureTools: McpTool[] = [
         path: a.targetId ? { ownerId: a.targetId } : {},
         query: { environment: a.environment },
       }),
-    { permissions: ["secret.list", "sharedSecret.list"] },
+    { permissions: ["member"] },
   ),
   tool(
     "secrets_update",
@@ -319,7 +319,7 @@ export const infrastructureTools: McpTool[] = [
         },
       }),
     {
-      permissions: ["secret.update", "sharedSecret.update"],
+      permissions: ["member"],
       readOnly: false,
       destructive: true,
       idempotent: false,
@@ -387,7 +387,7 @@ export const infrastructureTools: McpTool[] = [
           : {}),
       };
     },
-    { permissions: ["repository.read", "resource.read"] },
+    { permissions: ["viewer"] },
   ),
   action(
     "backup_create",
@@ -447,7 +447,7 @@ export const infrastructureTools: McpTool[] = [
         a.offset,
         a.limit,
       ),
-    { permissions: ["workload.read", "repository.read"] },
+    { permissions: ["viewer"] },
   ),
   action(
     "preview_deploy",

@@ -400,7 +400,7 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
         kind: "system",
         source: "github",
         workspaceId: source.workspaceId,
-        grants: ["deployment.create"],
+        grants: ["admin"],
       },
       () =>
         admitPreviewDeployment({

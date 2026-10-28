@@ -423,9 +423,7 @@ export async function withdrawRepository(
     registry: review.registry,
     plans: review.plans,
     serverByIp: review.serverByIp,
-    allowAutomaticDeployment: Boolean(
-      actor && actorAllows(actor, ["deployment.create"]),
-    ),
+    allowAutomaticDeployment: Boolean(actor && actorAllows(actor, ["admin"])),
     scheduleAutomaticDeployment: false,
   });
   const transferredIds = review.plans.flatMap((plan) =>

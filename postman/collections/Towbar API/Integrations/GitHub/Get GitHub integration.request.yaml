@@ -1,8 +1,8 @@
 $kind: http-request
 id: 40067c6b-0ce5-5b99-9ff1-efd54d6ca557
 description:
-  "Required permissions: integration.manage. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/github"
 method: GET
 headers:

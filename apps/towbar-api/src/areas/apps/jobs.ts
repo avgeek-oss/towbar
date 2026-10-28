@@ -110,7 +110,7 @@ export async function requestAppJob(input: {
   requestedBy: string | null;
   scheduledAt?: Date;
 }) {
-  requireActor(input.workspaceId, ["workload.operate"]);
+  requireActor(input.workspaceId, ["admin"]);
   // The advisory lock serializes admission without locking the app's foreign key.
   // Admission commits before signalling Temporal, so workers can see the row.
   return await getTowbarDatabase().transaction(async (lock) => {
@@ -251,7 +251,7 @@ export async function queueScheduledAppJobs(now = new Date()) {
             kind: "system",
             source: "worker",
             workspaceId: target.workspaceId,
-            grants: ["workload.operate"],
+            grants: ["admin"],
           },
           () =>
             requestAppJob({

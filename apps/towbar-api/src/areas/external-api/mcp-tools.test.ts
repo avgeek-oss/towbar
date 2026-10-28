@@ -44,7 +44,7 @@ void test("MCP catalogue is curated, namespaced, directly typed, and independent
   assert.equal(integrations.length, 1);
   assert.equal(mcpTools.length, 65);
   for (const tool of integrations)
-    assert.deepEqual(tool.permissions, ["integration.manage"]);
+    assert.deepEqual(tool.permissions, ["admin"]);
   assert(mcpTools.length < operations.length);
   assert.equal(new Set(mcpTools.map((t) => t.name)).size, mcpTools.length);
   for (const tool of mcpTools) {
@@ -126,7 +126,7 @@ void test("server configuration advertises and forwards the host log opt-in with
     (schema.properties!.hostLogCollection as { type: string }).type,
     "boolean",
   );
-  assert.deepEqual(configure.permissions, ["server.update"]);
+  assert.deepEqual(configure.permissions, ["admin"]);
   for (const hostLogCollection of [true, false]) {
     const h = harness();
     await configure.run(
@@ -375,7 +375,7 @@ void test("monitoring requires installation acknowledgement and inspects persist
   );
   assert.equal(h.calls[1]?.route, "/apps/:appId/metrics");
   assert.deepEqual(h.calls[1]?.query, { range: "7d" });
-  assert(get("monitoring_configure").permissions.includes("scout.configure"));
+  assert(get("monitoring_configure").permissions.includes("member"));
 });
 
 void test("Scout tools inspect before mutation and keep comparison output bounded", async () => {
@@ -417,7 +417,7 @@ void test("Scout tools inspect before mutation and keep comparison output bounde
   );
   assert((detailed.baseline as { points: unknown[] }).points.length <= 24);
   assert(
-    get("alerts_configure").permissions.includes("alert.configure") &&
+    get("alerts_configure").permissions.includes("member") &&
       !get("alerts_configure").readOnly,
   );
 });
@@ -501,7 +501,7 @@ void test("repository withdrawal tools preserve review revisions and use shared 
   const h = harness();
   const preview = get("source_removal_preview");
   assert(preview.readOnly);
-  assert.deepEqual(preview.permissions, ["repository.disconnect"]);
+  assert.deepEqual(preview.permissions, ["admin"]);
   await preview.run({ sourceId: uuid, environmentId: otherUuid }, h.context);
   assert.deepEqual(h.calls[0], {
     method: "GET",

@@ -67,7 +67,7 @@ export async function connectSourceEnvironment(input: {
   environment: string;
   branch: string;
 }) {
-  const actor = requireActor(input.workspaceId, ["repository.connect"]);
+  const actor = requireActor(input.workspaceId, ["admin"]);
   const mapping = sourceEnvironmentMappingSchema.parse({
     environment: input.environment,
     branch: input.branch,
@@ -115,7 +115,7 @@ export async function connectSourceEnvironment(input: {
       previewsEnabled: resolved.manifest.previewsEnabled,
       mappingRevision: randomUUID(),
       disconnectedAt: null,
-      autoDeployPaused: !actorAllows(actor, ["deployment.create"]),
+      autoDeployPaused: !actorAllows(actor, ["admin"]),
       updatedAt: new Date(),
     };
     const [environment] = existing
@@ -137,7 +137,7 @@ export async function updateEnvironmentBranch(input: {
   branch: string;
   expectedRevision: string;
 }) {
-  const actor = requireActor(input.workspaceId, ["repository.update"]);
+  const actor = requireActor(input.workspaceId, ["admin"]);
   const source = await sourceRepository(input.sourceId, input.workspaceId);
   const [environment] = await getTowbarDatabase()
     .select()
@@ -164,9 +164,7 @@ export async function updateEnvironmentBranch(input: {
       .update(sourceEnvironments)
       .set({
         branch: mapping.branch,
-        ...(!actorAllows(actor, ["deployment.create"])
-          ? { autoDeployPaused: true }
-          : {}),
+        ...(!actorAllows(actor, ["admin"]) ? { autoDeployPaused: true } : {}),
         mappingRevision: randomUUID(),
         updatedAt: new Date(),
       })
@@ -221,11 +219,7 @@ export async function requestEnvironmentSync(
         "ENVIRONMENT_MAPPING_CHANGED",
       );
     }
-    if (
-      !actorAllows(requireActor(input.workspaceId, ["repository.sync"]), [
-        "deployment.create",
-      ])
-    ) {
+    if (!actorAllows(requireActor(input.workspaceId, ["admin"]), ["admin"])) {
       await transaction
         .update(sourceEnvironments)
         .set({ autoDeployPaused: true, updatedAt: new Date() })
@@ -240,9 +234,7 @@ export async function requestEnvironmentSync(
         requestedBy: input.requestedBy,
         ...captureQueuedActor(
           input.workspaceId,
-          input.deployAfterSync
-            ? ["repository.sync", "deployment.create"]
-            : ["repository.sync"],
+          input.deployAfterSync ? ["admin"] : ["admin"],
         ),
         deployAfterSync: input.deployAfterSync,
       })

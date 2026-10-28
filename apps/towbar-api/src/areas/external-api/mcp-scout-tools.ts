@@ -31,7 +31,7 @@ export const scoutTools: McpTool[] = [
       ]);
       return { ...settings, ...incidents };
     },
-    { permissions: ["alert.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "alerts_configure",
@@ -50,7 +50,7 @@ export const scoutTools: McpTool[] = [
       });
     },
     {
-      permissions: ["alert.configure"],
+      permissions: ["member"],
       readOnly: false,
       destructive: false,
       idempotent: false,
@@ -67,7 +67,7 @@ export const scoutTools: McpTool[] = [
         route: "/servers/:serverId/scout-alerts/rules/:ruleId",
         path: a,
       }),
-    { permissions: ["alert.configure"], readOnly: false, destructive: true },
+    { permissions: ["member"], readOnly: false, destructive: true },
   ),
   tool(
     "deployment_compare",
@@ -121,6 +121,6 @@ export const scoutTools: McpTool[] = [
       }
       return result;
     },
-    { permissions: ["alert.read"] },
+    { permissions: ["viewer"] },
   ),
 ];
