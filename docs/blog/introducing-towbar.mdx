@@ -49,7 +49,7 @@ Towbar separates the secrets that operate the platform from the secrets used by 
 
 Static integration credentials are supplied through the Towbar runtime configuration. This includes registry access, backup providers, external-secret providers, notification channels, Cloudflare, and other runtime integrations. The dashboard does not provide forms for entering the credentials that run Towbar. Notifications lists supported providers and shows when configuration is missing.
 
-GitHub installation and GitLab OAuth authorization are interactive because their providers require an account authorization flow. The application identity and webhook secrets still belong to the Towbar runtime environment. Dynamic grants and the minimum account metadata needed to use them stay in the self-hosted control plane.
+GitHub installation is interactive because GitHub requires an account authorization flow. The application identity and webhook secrets still belong to the Towbar runtime environment. Dynamic grants and the minimum account metadata needed to use them stay in the self-hosted control plane.
 
 Workload secrets are different. Service and Datastore manifests declare which keys are needed, but values never go into Git. Admins and members can save encrypted build, runtime, hook, environment, preview, or shared values in Towbar. A workload must refer to a shared value explicitly, so adding a secret to the workspace does not silently inject it everywhere. Towbar records the revision used for a deployment without copying plaintext into workflow history.
 
@@ -57,7 +57,7 @@ This split keeps the repository reviewable, keeps platform credentials out of th
 
 ## Repositories and environments
 
-Towbar connects to GitHub through a GitHub App and to GitLab through OAuth. It can discover repositories or projects, read immutable source archives, receive push and pull or merge request events, and report deployment results back to the provider.
+Towbar connects to GitHub through a GitHub App. It can discover repositories, read immutable source archives, receive push and pull request events, and report deployment results back to GitHub.
 
 Each Towbar Repository can have named environments mapped to branches. The mapping is explicit: production might follow `main`, staging might follow `develop`, and another environment can follow a release branch. Syncing an environment validates the complete declaration at one commit and updates its inventory atomically. If a new declaration is invalid, Towbar keeps the last valid inventory instead of partially applying the change.
 
@@ -152,7 +152,7 @@ Towbar also scans deployed images for known vulnerabilities. Findings include th
 
 Applications can continue to write container logs, which Towbar captures for troubleshooting. For external log ingestion, configure a collector or logging integration provided by the destination.
 
-Operational notifications can go to Slack, email through SMTP, Discord, Telegram, or a webhook. Routes select categories and destinations, while delivery history records attempts and provider-safe errors. Authentication and repeated rate-limit failures can notify the team through another configured channel.
+Operational notifications can go to Slack, email through SMTP, or a webhook. Routes select categories and destinations, while delivery history records attempts and provider-safe errors. Authentication and repeated rate-limit failures can notify the team through another configured channel.
 
 Runtime integrations also cover private OCI registries, backup storage, external secrets through Infisical or Doppler, and Cloudflare. Provider configuration is singular per Towbar installation and visible only when its complete environment configuration passes startup validation. This keeps the UI focused on what the current instance can actually use.
 

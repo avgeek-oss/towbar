@@ -477,12 +477,6 @@ void test(
               "/github/actions/complete-installation",
               "post_github_actions_complete_installation",
             ],
-            ["POST", "/gitlab/oauth/start", "post_gitlab_oauth_start"],
-            [
-              "DELETE",
-              "/gitlab/oauth/connection",
-              "delete_gitlab_oauth_connection",
-            ],
           ];
           connectedEnvironment = await seedConnectedEnvironment(workspaceId);
           const client = await connect(mcpWrite.token);

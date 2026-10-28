@@ -8,28 +8,18 @@ import { renderOperationalEmail } from "@workspace/towbar-email";
 import { getEnv } from "../../env.js";
 
 import {
-  discordNotificationConfigSchema,
   notificationEventPayloadSchema,
   slackNotificationConfigSchema,
   smtpNotificationConfigSchema,
-  telegramNotificationConfigSchema,
   webhookNotificationConfigSchema,
 } from "@workspace/towbar-core";
 
 import type { NotificationProviderConfiguration } from "./configuration.js";
 import { NotificationProviderError } from "./provider-error.js";
-import {
-  sendDiscordNotification,
-  sendTelegramNotification,
-  sendWebhookNotification,
-} from "./external-providers.js";
+import { sendWebhookNotification } from "./external-providers.js";
 
 export { NotificationProviderError } from "./provider-error.js";
-export {
-  requirePublicHttpsUrl,
-  sendDiscordNotification,
-  sendTelegramNotification,
-} from "./external-providers.js";
+export { requirePublicHttpsUrl } from "./external-providers.js";
 
 import type {
   NotificationEventPayload,
@@ -78,30 +68,6 @@ export async function deliverNotification(input: {
       eventId: input.eventId,
       payload,
       providerConfiguration: input.providerConfiguration,
-    });
-  }
-  if (input.provider === "discord") {
-    return await sendDiscordNotification({
-      config: discordNotificationConfigSchema.parse(input.config),
-      eventId: input.eventId,
-      payload,
-    });
-  }
-  if (input.provider === "telegram") {
-    if (input.providerConfiguration.provider !== "telegram") {
-      throw invalidProviderConfiguration("Telegram");
-    }
-    const routeConfig = telegramNotificationConfigSchema.parse(input.config);
-    const chatId = routeConfig.chatId ?? input.providerConfiguration.chatId;
-    if (!chatId) throw invalidProviderConfiguration("Telegram chat");
-    return await sendTelegramNotification({
-      config: {
-        ...routeConfig,
-        botToken: input.providerConfiguration.botToken,
-        chatId,
-      },
-      eventId: input.eventId,
-      payload,
     });
   }
   return await sendWebhookNotification({

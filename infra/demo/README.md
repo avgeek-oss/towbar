@@ -279,7 +279,7 @@ the visitor; OAuth authorization, token issuance, and MCP execution stay blocked
 | Auto-deploy, preferences, alert rule CRUD                                  | Updates the visitor's sample configuration                                    |
 | Notification destination edit/test                                         | Saves sample destinations and returns a simulated result; never sends         |
 | Source discovery/connect and new source environment changes                | Fixture repositories and manifests; no Git fetch                              |
-| GitHub/GitLab connection flow                                              | Same-origin fixture callback; no real OAuth grant                             |
+| GitHub connection flow                                                     | Same-origin fixture callback; no real OAuth grant                             |
 | Team/member/invitation and sample API key management                       | In-memory records and inert sample keys; no email or gateway authentication   |
 | Account sign-in, passkey/2FA enrollment, live terminals, API/MCP execution | Remain unavailable; no fixture-only shortcut changes gateway authentication   |
 | Unknown routes or arbitrary image proxy requests                           | Rejected by the explicit gateway allowlist                                    |

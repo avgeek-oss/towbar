@@ -21,7 +21,7 @@ import { ScoutIcon } from "./scout-icons";
 type Delivery = {
   id: string;
   type: string;
-  provider: "slack" | "smtp" | "discord" | "telegram" | "webhook";
+  provider: "slack" | "smtp" | "webhook";
   destination: string;
   state: string;
   createdAt: string;

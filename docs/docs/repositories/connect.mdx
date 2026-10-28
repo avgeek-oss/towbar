@@ -3,11 +3,11 @@ title: "Connect a repository"
 description: "Grant source-control access, map branches, and import your first workloads."
 ---
 
-A Repository is a connection to one GitHub or GitLab project. Towbar reads its configuration from Git; connecting it does not deploy anything.
+A Repository is a connection to one GitHub project. Towbar reads its configuration from Git; connecting it does not deploy anything.
 
 ## Before you connect
 
-1. Configure the [GitHub](/docs/integrations/github) or [GitLab](/docs/integrations/gitlab) integration and grant it access to the project.
+1. Configure the [GitHub](/docs/integrations/github) integration and grant it access to the project.
 2. Register every target IP named by the manifest under [Servers](/docs/servers). A server can be prepared later, but it must exist before the first sync.
 3. Commit `towbar.yml` and at least one entity file on the branch you plan to map. Start with the [manifest guide](/docs/deployment-manifest).
 

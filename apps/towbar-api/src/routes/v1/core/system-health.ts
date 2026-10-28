@@ -1,4 +1,3 @@
-import { upgradeRoutes } from "./upgrades.js";
 import { operation } from "../../../http/operation.js";
 import { Hono } from "hono";
 
@@ -36,5 +35,3 @@ systemHealthRoutes.post(
   async (context) =>
     context.json(await runSystemHealthChecks(context.get("user").workspaceId)),
 );
-
-systemHealthRoutes.route("/upgrade", upgradeRoutes);

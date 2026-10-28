@@ -100,19 +100,11 @@ export type DeploymentExecutionContext = {
   trustedHostKeys: TrustedHostKey[];
 };
 
-export type RepositorySourceCredential =
-  | {
-      apiUrl: string;
-      provider: "github";
-      token: string;
-    }
-  | {
-      allowPrivateNetwork: boolean;
-      baseUrl: string;
-      projectId: string;
-      provider: "gitlab";
-      token: string;
-    };
+export type RepositorySourceCredential = {
+  apiUrl: string;
+  provider: "github";
+  token: string;
+};
 
 export type TrustedHostKey = {
   algorithm: string;

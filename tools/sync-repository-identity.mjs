@@ -45,14 +45,6 @@ export const releasesApiUrl = ${JSON.stringify("https://api.github.com/repos/" +
     { parser: "typescript" },
   ),
 );
-await output(
-  "infra/upgrade-runner/repository_identity.py",
-  `# Generated from repository.json; run pnpm repository:sync.
-REPOSITORY = ${JSON.stringify(identity.repository)}
-REPOSITORY_URL = "https://github.com/" + REPOSITORY
-RELEASES_API_URL = "https://api.github.com/repos/" + REPOSITORY + "/releases"
-`,
-);
 const packagePath = "package.json";
 const pkg = JSON.parse(await readFile(new URL(packagePath, root), "utf8"));
 pkg.bugs = `https://github.com/${identity.repository}/issues`;

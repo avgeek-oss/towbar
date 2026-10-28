@@ -6,10 +6,10 @@ export function NotificationProviderIcon({
   provider,
   className = "size-4 shrink-0",
 }: {
-  provider: "slack" | "smtp" | "discord" | "telegram" | "webhook";
+  provider: "slack" | "smtp" | "webhook";
   className?: string;
 }) {
-  if (provider === "slack" || provider === "discord" || provider === "telegram")
+  if (provider === "slack")
     return (
       <IntegrationProviderLogo provider={provider} className={className} />
     );

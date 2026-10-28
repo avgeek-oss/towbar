@@ -9,7 +9,7 @@ import {
 } from "./integration-catalog";
 import { ProviderPage } from "./integrations";
 
-type Provider = "discord" | "slack" | "smtp" | "telegram" | "webhook";
+type Provider = "slack" | "smtp" | "webhook";
 
 export function NotificationsSettings({
   notification,

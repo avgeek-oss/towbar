@@ -29,88 +29,41 @@ The schema below comes from the runtime input validator. Required fields, enum v
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "anyOf": [
-    {
-      "type": "object",
-      "properties": {
-        "repositoryOwner": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "repositoryName": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "discoveryBranch": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "provider": {
-          "default": "github",
-          "type": "string",
-          "const": "github"
-        },
-        "githubInstallationId": {
-          "type": "string",
-          "format": "uuid",
-          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-        }
-      },
-      "required": [
-        "repositoryOwner",
-        "repositoryName",
-        "discoveryBranch",
-        "githubInstallationId"
-      ],
-      "additionalProperties": false
+  "type": "object",
+  "properties": {
+    "repositoryOwner": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
     },
-    {
-      "type": "object",
-      "properties": {
-        "repositoryOwner": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "repositoryName": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "discoveryBranch": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 255
-        },
-        "provider": {
-          "type": "string",
-          "const": "gitlab"
-        },
-        "providerRepositoryId": {
-          "type": "string",
-          "pattern": "^[1-9]\\d{0,19}$"
-        },
-        "integration": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
-        }
-      },
-      "required": [
-        "repositoryOwner",
-        "repositoryName",
-        "discoveryBranch",
-        "provider",
-        "providerRepositoryId",
-        "integration"
-      ],
-      "additionalProperties": false
+    "repositoryName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "discoveryBranch": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "provider": {
+      "default": "github",
+      "type": "string",
+      "const": "github"
+    },
+    "githubInstallationId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
     }
-  ]
+  },
+  "required": [
+    "repositoryOwner",
+    "repositoryName",
+    "discoveryBranch",
+    "githubInstallationId"
+  ],
+  "additionalProperties": false
 }
 ```
 

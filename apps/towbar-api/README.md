@@ -17,7 +17,7 @@ pnpm --filter towbar-api typecheck
 pnpm exec turbo run build --filter=towbar-api
 ```
 
-Production uses separate runtime and migrator PostgreSQL credentials. Keep the internal HMAC secret and `TOWBAR_CREDENTIALS_KEY` outside PostgreSQL. Static integration and notification credentials come directly from the API process environment; the database stores only dynamic provider authorizations such as GitLab OAuth grants and GitHub installations.
+Production uses separate runtime and migrator PostgreSQL credentials. Keep the internal HMAC secret and `TOWBAR_CREDENTIALS_KEY` outside PostgreSQL. Static integration and notification credentials come directly from the API process environment; the database stores only GitHub installations.
 
 The production image includes `node dist/cli/migrate.js` and `node dist/cli/recover-admin.js --email=admin@example.com [--reset-mfa]`.
 

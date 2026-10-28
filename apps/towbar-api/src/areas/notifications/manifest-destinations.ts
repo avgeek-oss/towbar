@@ -59,15 +59,6 @@ export function manifestNotificationLabels(
     labels.set(routeId(appId, "smtp", row.address), row.address);
   for (const row of notifications?.slack ?? [])
     labels.set(routeId(appId, "slack", row.channelId), row.channelId);
-  for (const row of notifications?.discord ?? [])
-    labels.set(routeId(appId, "discord", row.webhookId), row.webhookId);
-  for (const row of notifications?.telegram ?? [])
-    labels.set(
-      routeId(appId, "telegram", `${row.chatId}:${row.messageThreadId ?? 0}`),
-      row.messageThreadId
-        ? `${row.chatId} · Topic ${row.messageThreadId}`
-        : row.chatId,
-    );
   return labels;
 }
 
@@ -92,40 +83,6 @@ export function manifestNotificationRoutes(
           provider: "slack" as const,
           categories: categories(row),
           config: { channelId: row.channelId },
-        }))
-      : []),
-    ...(notifications.discord ?? []).flatMap((row) => {
-      const credential = runtime.routes.find(
-        (route) =>
-          route.provider === "discord" &&
-          route.config.webhookId === row.webhookId,
-      );
-      return credential?.provider === "discord"
-        ? [
-            {
-              id: routeId(appId, "discord", row.webhookId),
-              provider: "discord" as const,
-              categories: categories(row),
-              config: credential.config,
-            },
-          ]
-        : [];
-    }),
-    ...(runtime.providers.telegram
-      ? (notifications.telegram ?? []).map((row) => ({
-          id: routeId(
-            appId,
-            "telegram",
-            `${row.chatId}:${row.messageThreadId ?? 0}`,
-          ),
-          provider: "telegram" as const,
-          categories: categories(row),
-          config: {
-            chatId: row.chatId,
-            ...(row.messageThreadId
-              ? { messageThreadId: row.messageThreadId }
-              : {}),
-          },
         }))
       : []),
   ];

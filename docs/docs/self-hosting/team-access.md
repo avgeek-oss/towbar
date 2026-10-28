@@ -14,7 +14,7 @@ Towbar v2 has one team per installation. The person completing setup becomes an 
 | Update declared secret values and shared-secret references                   | ✅    | ✅     | ❌           |
 | Configure Scout Agent and alert rules                                        | ✅    | ✅     | ❌           |
 | Deploy, operate workloads, prepare servers, back up or restore               | ✅    | ❌     | ❌           |
-| Authorize GitHub/GitLab connections and manage SSH keys                      | ✅    | ❌     | ❌           |
+| Authorize GitHub connections and manage SSH keys                             | ✅    | ❌     | ❌           |
 | Reveal stored workload secrets after recent authentication                   | ✅    | ❌     | ❌           |
 | Manage members, invitations, team settings and team API keys                 | ✅    | ❌     | ❌           |
 | Secure own account and manage own personal API keys                          | ✅    | ✅     | 🔑 Read-only |

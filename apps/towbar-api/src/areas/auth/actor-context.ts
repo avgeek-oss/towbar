@@ -16,7 +16,7 @@ export type QueuedActor = {
   workspaceId: string;
   userId?: string;
   keyId?: string;
-  source?: "github" | "gitlab" | "worker";
+  source?: "github" | "worker";
   grants?: string[];
 };
 const actorContext = new AsyncLocalStorage<AccessActor>();

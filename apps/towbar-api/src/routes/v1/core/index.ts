@@ -2,7 +2,6 @@ import { manifestLifecycleRoutes } from "./manifest-lifecycle.js";
 import { centralizedLogRoutes } from "./logs.js";
 import { analyticsRoutes } from "./analytics.js";
 import { integrationRoutes } from "./integrations.js";
-import { gitlabRoutes } from "./gitlab.js";
 import { serverTerminalRoutes } from "./server-terminal.js";
 import { requireDeclaredPolicy } from "../../../http/declared-policy.js";
 import { localizeJsonResponse } from "../../../http/localization.js";
@@ -47,7 +46,6 @@ controlPlaneRoutes.route("/", manifestLifecycleRoutes);
 controlPlaneRoutes.route("/", preferenceRoutes);
 
 controlPlaneRoutes.route("/integrations", integrationRoutes);
-controlPlaneRoutes.route("/gitlab", gitlabRoutes);
 controlPlaneRoutes.route("/team", teamRoutes);
 controlPlaneRoutes.route("/settings/api-keys", apiKeyRoutes);
 controlPlaneRoutes.route("/settings/private-keys", privateKeyRoutes);

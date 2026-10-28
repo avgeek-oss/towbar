@@ -285,7 +285,7 @@ export function SourceDetail() {
             href={item.repositoryUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${item.repositoryOwner}/${item.repositoryName} on ${item.provider === "github" ? "GitHub" : "GitLab"} (opens in a new tab)`}
+            aria-label={`${item.repositoryOwner}/${item.repositoryName} on GitHub (opens in a new tab)`}
             tooltip={`${item.repositoryOwner}/${item.repositoryName}`}
           >
             {item.repositoryName}

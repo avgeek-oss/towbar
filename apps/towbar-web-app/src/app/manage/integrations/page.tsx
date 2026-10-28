@@ -10,9 +10,7 @@ export default async function Page({
   const requested = (await searchParams).integration;
   if (
     requested &&
-    ["slack", "email", "discord", "telegram", "webhook", "deliveries"].includes(
-      requested,
-    )
+    ["slack", "email", "webhook", "deliveries"].includes(requested)
   )
     redirect(`/manage/notifications/${requested}`);
   redirect(

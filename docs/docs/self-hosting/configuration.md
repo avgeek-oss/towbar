@@ -78,12 +78,11 @@ Set secret values directly. Towbar does not support external file references. En
 
 ### Source control
 
-| Provider     | Required YAML settings                                                                                   | Optional settings                |
-| ------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| GitHub App   | `integrations.github.enabled`, `appId`, `appSlug`, `privateKeyBase64`                                    | `apiUrl`, `webhookSecret`        |
-| GitLab OAuth | `integrations.gitlab.enabled`, `oauthClientId`, `oauthClientSecret`, `oauthRedirectUri`, `webhookSecret` | `baseUrl`, `allowPrivateNetwork` |
+| Provider   | Required YAML settings                                                | Optional settings         |
+| ---------- | --------------------------------------------------------------------- | ------------------------- |
+| GitHub App | `integrations.github.enabled`, `appId`, `appSlug`, `privateKeyBase64` | `apiUrl`, `webhookSecret` |
 
-GitHub stores only the selected App installation and account metadata in PostgreSQL. GitLab stores only an encrypted, revocable OAuth grant and short-lived PKCE authorization attempts. App identity, OAuth client secrets, webhook secrets, and provider endpoints remain in the protected YAML file.
+GitHub stores only the selected App installation and account metadata in PostgreSQL. App identity, webhook secrets, and provider endpoints remain in the protected YAML file.
 
 When `integrations.github.webhookSecret` is set, Towbar requires a valid signature on GitHub webhooks. If omitted, GitHub webhook delivery remains available without signature verification.
 
@@ -104,7 +103,7 @@ Other supported fields include bucket, prefix, endpoint, addressing style, priva
 
 ### Notifications
 
-Set `notifications.enabled: true` and add provider credentials under `notifications.providers`. Manage Email, Slack, and Telegram destinations in the dashboard. Discord webhook credentials and webhook push endpoint URLs, headers, and signing secrets stay in YAML; their subscriptions are managed in the dashboard. Route IDs, Discord webhook IDs, and webhook endpoint IDs must be unique.
+Set `notifications.enabled: true` and add provider credentials under `notifications.providers`. Manage Email and Slack destinations in the dashboard. Webhook push endpoint URLs, headers, and signing secrets stay in YAML; their subscriptions are managed in the dashboard. Route IDs and webhook endpoint IDs must be unique.
 
 ```yaml title="/etc/towbar/config.yml"
 notifications:
@@ -117,11 +116,6 @@ notifications:
       secure: false
       username: towbar
       password: "..."
-    discord:
-      - webhookId: "123456789012345678"
-        webhookToken: "..."
-    telegram:
-      botToken: "123456:..."
     webhook:
       - id: operations
         label: Operations

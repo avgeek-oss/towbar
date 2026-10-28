@@ -126,10 +126,8 @@ test("email destinations are editable while provider credentials remain runtime-
       await fetch(`${baseUrl}/notifications/providers`)
     ).json();
     assert.deepEqual(providers.providers, {
-      discord: false,
       slack: false,
       smtp: true,
-      telegram: false,
       webhook: false,
     });
     assert.equal(providers.configurations.slack, null);
@@ -331,74 +329,6 @@ test("Slack channels cannot be changed without a bot token", async () => {
   }
 });
 
-test("Discord webhook subscriptions are editable without exposing tokens", async () => {
-  const server = createFixtureApiServer({ discordConfigured: true });
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const address = server.address();
-  assert(address && typeof address === "object");
-  const endpoint = `http://127.0.0.1:${address.port}/v1/core/notifications/discord/destinations`;
-  try {
-    const destinations = (await (await fetch(endpoint)).json()).destinations;
-    assert.equal(destinations.length, 2);
-    const initial = destinations[0];
-    assert.equal(initial.webhookId, "123456789012345678");
-    assert.equal(JSON.stringify(initial).includes("webhookToken"), false);
-    assert.equal("enabled" in initial, false);
-    const saved = await fetch(endpoint, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        destinations: [
-          {
-            ...initial,
-            deployments: false,
-            alertsAndIncidents: true,
-          },
-          destinations[1],
-        ],
-      }),
-    });
-    assert.equal(saved.status, 200);
-    assert.equal((await saved.json()).destinations[0].deployments, false);
-    const tested = await fetch(`${endpoint}/test`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ routeId: initial.routeId }),
-    });
-    assert.equal(tested.status, 200);
-    assert.equal((await tested.json()).status, "accepted");
-  } finally {
-    server.close();
-    await once(server, "close");
-  }
-});
-
-test("Discord subscriptions cannot be changed without a runtime webhook", async () => {
-  const server = createFixtureApiServer();
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const address = server.address();
-  assert(address && typeof address === "object");
-  const endpoint = `http://127.0.0.1:${address.port}/v1/core/notifications/discord/destinations`;
-  try {
-    assert.deepEqual((await (await fetch(endpoint)).json()).destinations, []);
-    assert.equal(
-      (
-        await fetch(endpoint, {
-          method: "PUT",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ destinations: [] }),
-        })
-      ).status,
-      400,
-    );
-  } finally {
-    server.close();
-    await once(server, "close");
-  }
-});
-
 test("webhook push exposes only endpoint identity and saves subscriptions", async () => {
   const server = createFixtureApiServer({ webhookConfigured: true });
   server.listen(0, "127.0.0.1");
@@ -432,78 +362,6 @@ test("webhook push exposes only endpoint identity and saves subscriptions", asyn
       body: JSON.stringify({ routeId: destinations[0].routeId }),
     });
     assert.equal(tested.status, 200);
-  } finally {
-    server.close();
-    await once(server, "close");
-  }
-});
-
-test("Telegram destinations support a main chat and multiple topics", async () => {
-  const server = createFixtureApiServer({ telegramConfigured: true });
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const address = server.address();
-  assert(address && typeof address === "object");
-  const endpoint = `http://127.0.0.1:${address.port}/v1/core/notifications/telegram/destinations`;
-  try {
-    const [main] = (await (await fetch(endpoint)).json()).destinations;
-    assert.equal(main.chatId, "-1001234567890");
-    assert.equal(main.messageThreadId, null);
-    const next = [
-      { ...main, deployments: false },
-      {
-        chatId: main.chatId,
-        messageThreadId: 42,
-        deployments: true,
-        deploymentFailures: false,
-        backupsAndRestores: false,
-        alertsAndIncidents: false,
-      },
-    ];
-    const saved = await fetch(endpoint, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destinations: next }),
-    });
-    assert.equal(saved.status, 200);
-    const destinations = (await saved.json()).destinations;
-    assert.equal(destinations.length, 2);
-    assert.equal(destinations[0].id, main.id);
-    assert.equal(destinations[1].messageThreadId, 42);
-    const tested = await fetch(`${endpoint}/test`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ chatId: main.chatId, messageThreadId: 42 }),
-    });
-    assert.equal(tested.status, 200);
-    assert.equal((await tested.json()).status, "accepted");
-    const duplicate = await fetch(endpoint, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destinations: [next[1], next[1]] }),
-    });
-    assert.equal(duplicate.status, 400);
-  } finally {
-    server.close();
-    await once(server, "close");
-  }
-});
-
-test("Telegram destinations cannot be changed without a bot token", async () => {
-  const server = createFixtureApiServer();
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const address = server.address();
-  assert(address && typeof address === "object");
-  const endpoint = `http://127.0.0.1:${address.port}/v1/core/notifications/telegram/destinations`;
-  try {
-    assert.deepEqual((await (await fetch(endpoint)).json()).destinations, []);
-    const saved = await fetch(endpoint, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ destinations: [] }),
-    });
-    assert.equal(saved.status, 400);
   } finally {
     server.close();
     await once(server, "close");
@@ -704,39 +562,6 @@ test("GitHub uses environment configuration and a dynamic installation", async (
     assert(disconnected.connection.suspendedAt);
     assert.equal(disconnected.connections.length, 1);
     assert.equal(disconnected.configuration.source, "environment");
-  } finally {
-    server.close();
-    await once(server, "close");
-  }
-});
-
-test("GitLab OAuth is the only mutable GitLab authorization", async () => {
-  const server = createFixtureApiServer();
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  const base = `http://127.0.0.1:${server.address().port}/v1/core`;
-  try {
-    const before = await (await fetch(`${base}/gitlab/connections`)).json();
-    assert.equal(before.connections.length, 1);
-    assert.equal(before.connections[0].verificationStatus, "verified");
-
-    const start = await fetch(`${base}/gitlab/oauth/start`, {
-      headers: { origin: "http://localhost:4021" },
-      method: "POST",
-    });
-    assert.equal(start.status, 200);
-    assert.equal(
-      new URL((await start.json()).authorizationUrl).pathname,
-      "/manage/integrations/gitlab",
-    );
-
-    assert.equal(
-      (await fetch(`${base}/gitlab/oauth/connection`, { method: "DELETE" }))
-        .status,
-      204,
-    );
-    const after = await (await fetch(`${base}/gitlab/connections`)).json();
-    assert.equal(after.connections.length, 0);
   } finally {
     server.close();
     await once(server, "close");

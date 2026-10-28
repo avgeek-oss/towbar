@@ -3,19 +3,17 @@ title: "Notifications"
 description: "Choose a provider, connect it, and inspect operational delivery."
 ---
 
-Towbar records provider-neutral events and sends each matching event to its subscribed destinations. Credentials live in `/etc/towbar/config.yml`. Email recipients, Slack channels, and Telegram chats are managed in **Manage → Notifications**. Discord webhook pairs and webhook push endpoints live in YAML; their event subscriptions are selected in the dashboard. The provider list remains visible even when a runtime connection is missing.
+Towbar records provider-neutral events and sends each matching event to its subscribed destinations. Credentials live in `/etc/towbar/config.yml`. Email recipients and Slack channels are managed in **Manage → Notifications**. Webhook push endpoints live in YAML; their event subscriptions are selected in the dashboard. The provider list remains visible even when a runtime connection is missing.
 
 | Provider     | What you configure                                | Setup guide                                              |
 | ------------ | ------------------------------------------------- | -------------------------------------------------------- |
 | Email        | SMTP connection and recipient addresses           | [Email (SMTP)](/docs/integrations/notifications/email)   |
 | Slack        | Bot token and channel IDs                         | [Slack](/docs/integrations/notifications/slack)          |
-| Discord      | Webhook ID and token pairs                        | [Discord](/docs/integrations/notifications/discord)      |
-| Telegram     | Bot token, chat IDs, and optional topics          | [Telegram](/docs/integrations/notifications/telegram)    |
 | Webhook push | HTTPS URLs, optional headers, and signing secrets | [Webhook push](/docs/integrations/notifications/webhook) |
 
 ## Decide who receives an event
 
-Workspace destinations receive matching events from all services and datastores. A service or datastore manifest can add read-only Email, Slack, Discord, or Telegram destinations for that entity. Webhook push remains workspace-only.
+Workspace destinations receive matching events from all services and datastores. A service or datastore manifest can add read-only Email or Slack destinations for that entity. Webhook push remains workspace-only.
 
 ### Route events for one workload
 
@@ -39,7 +37,7 @@ notifications:
 
 Each destination must enable at least one category. These subscriptions take effect after a successful environment sync; no deployment is needed. Keep provider credentials in `/etc/towbar/config.yml`. The workload's **Monitor → Notifications** page shows synced destinations and subscriptions without edit controls.
 
-For deployments, choose **All** to receive every deployment and preview event or **Failures only** to receive `deployment.failed` and `preview.failed`. Workspace destinations offer one choice at a time; clear the selection to turn deployment notifications off. In manifests, set `deploymentFailures: true` for failures only. If both `deployments` and `deploymentFailures` are true, **All** takes precedence. **Backup & Restore** and **Incidents** are independent subscriptions. Service health and Scout events follow Incidents. New runtime-managed Discord and webhook destinations start with no subscriptions, so select at least one category before expecting routine events.
+For deployments, choose **All** to receive every deployment and preview event or **Failures only** to receive `deployment.failed` and `preview.failed`. Workspace destinations offer one choice at a time; clear the selection to turn deployment notifications off. In manifests, set `deploymentFailures: true` for failures only. If both `deployments` and `deploymentFailures` are true, **All** takes precedence. **Backup & Restore** and **Incidents** are independent subscriptions. Service health and Scout events follow Incidents. New runtime-managed webhook destinations start with no subscriptions, so select at least one category before expecting routine events.
 
 ## Apply runtime changes
 

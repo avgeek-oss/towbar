@@ -5,14 +5,7 @@ import { QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { NotificationsSettings } from "@/components/notifications-settings";
 import { DashboardPage } from "@/components/page-parts";
 
-const notifications = [
-  "slack",
-  "email",
-  "discord",
-  "telegram",
-  "webhook",
-  "deliveries",
-];
+const notifications = ["slack", "email", "webhook", "deliveries"];
 
 export default async function Page({
   params,

@@ -11,7 +11,6 @@ import {
   gcsConnectionCredentialsSchema,
   githubConnectionConfigurationSchema,
   githubConnectionCredentialsSchema,
-  gitlabConnectionConfigurationSchema,
   infisicalConnectionConfigurationSchema,
   infisicalConnectionCredentialsSchema,
   registryConnectionConfigurationSchema,
@@ -85,19 +84,9 @@ export type GitHubRuntimeConfiguration = {
   webhookSecret?: string;
 };
 
-export type GitLabRuntimeConfiguration = {
-  allowPrivateNetwork: boolean;
-  baseUrl: string;
-  oauthClientId: string;
-  oauthClientSecret: string;
-  oauthRedirectUri: string;
-  webhookSecret: string;
-};
-
 type RuntimeIntegrations = {
   capabilities: IntegrationCapability[];
   github?: GitHubRuntimeConfiguration;
-  gitlab?: GitLabRuntimeConfiguration;
   providers: Partial<Record<IntegrationProvider, ProviderConnection>>;
 };
 
@@ -129,26 +118,12 @@ export function requireGitHubRuntimeConfiguration() {
   return configuration;
 }
 
-function getGitLabRuntimeConfiguration() {
-  return getRuntimeIntegrations().gitlab ?? null;
-}
-
-export function requireGitLabRuntimeConfiguration() {
-  const configuration = getGitLabRuntimeConfiguration();
-  if (!configuration)
-    throw new Error(
-      "The GitLab integration is not enabled in the Towbar environment",
-    );
-  return configuration;
-}
-
 export function parseRuntimeIntegrations(
   environment: Environment,
 ): RuntimeIntegrations {
   const providers: RuntimeIntegrations["providers"] = {};
   const capabilities: IntegrationCapability[] = [];
   let github: GitHubRuntimeConfiguration | undefined;
-  let gitlab: GitLabRuntimeConfiguration | undefined;
 
   if (isEnabled(environment, "GITHUB")) {
     const privateKey = decodeBase64(
@@ -183,35 +158,6 @@ export function parseRuntimeIntegrations(
       }),
     };
     capabilities.push({ category: "source-control", provider: "github" });
-  }
-
-  if (isEnabled(environment, "GITLAB")) {
-    const configuration = gitlabConnectionConfigurationSchema.parse({
-      allowPrivateNetwork: boolean(
-        environment,
-        "TOWBAR_GITLAB_ALLOW_PRIVATE_NETWORK",
-        false,
-      ),
-      baseUrl:
-        value(environment, "TOWBAR_GITLAB_BASE_URL") ?? "https://gitlab.com",
-    });
-    gitlab = {
-      ...configuration,
-      oauthClientId: required(environment, "TOWBAR_GITLAB_OAUTH_CLIENT_ID"),
-      oauthClientSecret: required(
-        environment,
-        "TOWBAR_GITLAB_OAUTH_CLIENT_SECRET",
-      ),
-      oauthRedirectUri: z
-        .string()
-        .url()
-        .parse(required(environment, "TOWBAR_GITLAB_OAUTH_REDIRECT_URI")),
-      webhookSecret: z
-        .string()
-        .min(16)
-        .parse(required(environment, "TOWBAR_GITLAB_WEBHOOK_SECRET")),
-    };
-    capabilities.push({ category: "source-control", provider: "gitlab" });
   }
 
   addProvider(environment, providers, capabilities, "registry", "registry", {
@@ -321,7 +267,7 @@ export function parseRuntimeIntegrations(
     capabilities.push({ category: "backup", provider: "aws" });
   }
 
-  return { capabilities, github, gitlab, providers };
+  return { capabilities, github, providers };
 }
 
 function addS3Provider(
@@ -361,9 +307,7 @@ function addS3Provider(
   });
 }
 
-function addProvider<
-  P extends Exclude<IntegrationProvider, "aws" | "github" | "gitlab">,
->(
+function addProvider<P extends Exclude<IntegrationProvider, "aws" | "github">>(
   environment: Environment,
   providers: RuntimeIntegrations["providers"],
   capabilities: IntegrationCapability[],

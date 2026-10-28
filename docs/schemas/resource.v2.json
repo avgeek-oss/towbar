@@ -127,53 +127,6 @@
             ],
             "additionalProperties": false
           }
-        },
-        "discord": {
-          "maxItems": 100,
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "deployments": { "type": "boolean" },
-              "deploymentFailures": { "type": "boolean" },
-              "backupsAndRestores": { "type": "boolean" },
-              "alertsAndIncidents": { "type": "boolean" },
-              "webhookId": { "type": "string", "pattern": "^\\d{1,20}$" }
-            },
-            "required": [
-              "deployments",
-              "backupsAndRestores",
-              "alertsAndIncidents",
-              "webhookId"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "telegram": {
-          "maxItems": 100,
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "deployments": { "type": "boolean" },
-              "deploymentFailures": { "type": "boolean" },
-              "backupsAndRestores": { "type": "boolean" },
-              "alertsAndIncidents": { "type": "boolean" },
-              "chatId": { "type": "string", "pattern": "^-?\\d{1,20}$" },
-              "messageThreadId": {
-                "type": "integer",
-                "exclusiveMinimum": 0,
-                "maximum": 2147483647
-              }
-            },
-            "required": [
-              "deployments",
-              "backupsAndRestores",
-              "alertsAndIncidents",
-              "chatId"
-            ],
-            "additionalProperties": false
-          }
         }
       },
       "additionalProperties": false
@@ -592,53 +545,6 @@
                     "backupsAndRestores",
                     "alertsAndIncidents",
                     "channelId"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "discord": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "deployments": { "type": "boolean" },
-                    "deploymentFailures": { "type": "boolean" },
-                    "backupsAndRestores": { "type": "boolean" },
-                    "alertsAndIncidents": { "type": "boolean" },
-                    "webhookId": { "type": "string", "pattern": "^\\d{1,20}$" }
-                  },
-                  "required": [
-                    "deployments",
-                    "backupsAndRestores",
-                    "alertsAndIncidents",
-                    "webhookId"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "telegram": {
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "deployments": { "type": "boolean" },
-                    "deploymentFailures": { "type": "boolean" },
-                    "backupsAndRestores": { "type": "boolean" },
-                    "alertsAndIncidents": { "type": "boolean" },
-                    "chatId": { "type": "string", "pattern": "^-?\\d{1,20}$" },
-                    "messageThreadId": {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 2147483647
-                    }
-                  },
-                  "required": [
-                    "deployments",
-                    "backupsAndRestores",
-                    "alertsAndIncidents",
-                    "chatId"
                   ],
                   "additionalProperties": false
                 }

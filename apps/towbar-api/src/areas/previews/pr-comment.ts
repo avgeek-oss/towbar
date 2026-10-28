@@ -11,7 +11,6 @@ import {
 import { getEnv } from "../../env.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { upsertGitHubPullRequestComment } from "../github/client.js";
-import { upsertGitLabMergeRequestComment } from "../gitlab/client.js";
 import { sourceProviderClient } from "../sources/repository-provider.js";
 import { type PreviewSkippedApp } from "./reporting-state.js";
 
@@ -145,26 +144,14 @@ async function publishCurrentPreviewPullRequestComment(input: {
     marker,
     sourceId: input.sourceId,
   });
-  const comment =
-    provider.provider === "github"
-      ? await upsertGitHubPullRequestComment({
-          body,
-          installationId: provider.installationId,
-          marker,
-          pullRequestNumber: input.pullRequestNumber,
-          repositoryName: source.repositoryName,
-          repositoryOwner: source.repositoryOwner,
-        })
-      : await upsertGitLabMergeRequestComment({
-          body,
-          connection: provider.connection,
-          marker,
-          projectId: provider.projectId,
-          pullRequestNumber: input.pullRequestNumber,
-          repositoryName: source.repositoryName,
-          repositoryOwner: source.repositoryOwner,
-        });
-  return comment;
+  return await upsertGitHubPullRequestComment({
+    body,
+    installationId: provider.installationId,
+    marker,
+    pullRequestNumber: input.pullRequestNumber,
+    repositoryName: source.repositoryName,
+    repositoryOwner: source.repositoryOwner,
+  });
 }
 
 export function combinePreviewPullRequestCommentEntries(

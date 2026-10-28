@@ -11,30 +11,16 @@ import { conflict } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { getGitHubRepository } from "../github/client.js";
 import { getGitHubInstallationForSource } from "../github/service.js";
-import { resolveIntegration } from "../integrations/service.js";
 import { fetchRepositoryEnvironmentSnapshot } from "./repository-provider.js";
 import { publicSourceSelection } from "./public-selections.js";
 import { requestEnvironmentSync } from "./environments.js";
 
-const repositoryProviderSchema = z.union([
-  z
-    .object({
-      provider: z.literal("github").default("github"),
-      githubInstallationId: z.string().uuid(),
-    })
-    .strict(),
-  z
-    .object({
-      provider: z.literal("gitlab"),
-      providerRepositoryId: z.string().regex(/^[1-9]\d{0,19}$/u),
-      integration: z
-        .string()
-        .min(1)
-        .max(64)
-        .regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u),
-    })
-    .strict(),
-]);
+const repositoryProviderSchema = z
+  .object({
+    provider: z.literal("github").default("github"),
+    githubInstallationId: z.string().uuid(),
+  })
+  .strict();
 const repositoryCommonSchema = z
   .object({
     repositoryOwner: z.string().trim().min(1).max(255),
@@ -44,30 +30,21 @@ const repositoryCommonSchema = z
 const sourceDiscoveryCommonSchema = repositoryCommonSchema.extend({
   discoveryBranch: sourceEnvironmentMappingSchema.shape.branch,
 });
-export const sourceDiscoverySchema = z.intersection(
-  sourceDiscoveryCommonSchema,
-  repositoryProviderSchema,
+export const sourceDiscoverySchema = sourceDiscoveryCommonSchema.extend(
+  repositoryProviderSchema.shape,
 );
-export const sourceConnectionSchema = z.intersection(
-  repositoryCommonSchema.extend({
-    environments: z
-      .array(sourceEnvironmentMappingSchema)
-      .min(1)
-      .refine(
-        (mappings) =>
-          new Set(mappings.map((mapping) => mapping.environment)).size ===
-          mappings.length,
-        "An environment can only be connected once",
-      ),
-  }),
-  repositoryProviderSchema,
-);
-
-export function sourceInstallationRecordId(
-  input: z.infer<typeof sourceConnectionSchema>,
-) {
-  return input.provider === "github" ? input.githubInstallationId : null;
-}
+export const sourceConnectionSchema = repositoryCommonSchema.extend({
+  ...repositoryProviderSchema.shape,
+  environments: z
+    .array(sourceEnvironmentMappingSchema)
+    .min(1)
+    .refine(
+      (mappings) =>
+        new Set(mappings.map((mapping) => mapping.environment)).size ===
+        mappings.length,
+      "An environment can only be connected once",
+    ),
+});
 
 export async function discoverSource(
   input: z.infer<typeof sourceDiscoverySchema> & { workspaceId: string },
@@ -101,10 +78,7 @@ export async function connectRepositorySource(
 ) {
   const actor = requireActor(input.workspaceId, ["repository.connect"]);
   const connection = await repositoryConnection(input);
-  const githubRepository =
-    connection.provider === "github"
-      ? await dependencies.repository(connection)
-      : null;
+  const githubRepository = await dependencies.repository(connection);
   const resolved: {
     environment: string;
     branch: string;
@@ -125,12 +99,11 @@ export async function connectRepositorySource(
     });
   }
   const result = await getTowbarDatabase().transaction(async (transaction) => {
-    const owner = githubRepository?.owner ?? input.repositoryOwner;
-    const name = githubRepository?.name ?? input.repositoryName;
-    if (githubRepository)
-      await transaction.execute(
-        sql`select pg_advisory_xact_lock(hashtextextended(${`${input.workspaceId}:github:id:${githubRepository.id}`}, 0))`,
-      );
+    const owner = githubRepository.owner;
+    const name = githubRepository.name;
+    await transaction.execute(
+      sql`select pg_advisory_xact_lock(hashtextextended(${`${input.workspaceId}:github:id:${githubRepository.id}`}, 0))`,
+    );
     const repositoryKey = `${input.workspaceId}:${connection.provider}:${owner.toLowerCase()}/${name.toLowerCase()}`;
     await transaction.execute(
       sql`select pg_advisory_xact_lock(hashtextextended(${repositoryKey}, 0))`,
@@ -143,9 +116,7 @@ export async function connectRepositorySource(
           eq(sources.workspaceId, input.workspaceId),
           eq(sources.provider, connection.provider),
           or(
-            githubRepository
-              ? eq(sources.providerRepositoryId, githubRepository.id)
-              : undefined,
+            eq(sources.providerRepositoryId, githubRepository.id),
             and(
               sql`lower(${sources.repositoryOwner}) = ${owner.toLowerCase()}`,
               sql`lower(${sources.repositoryName}) = ${name.toLowerCase()}`,
@@ -162,15 +133,11 @@ export async function connectRepositorySource(
     const values = {
       workspaceId: input.workspaceId,
       provider: connection.provider,
-      integrationInstallationId: sourceInstallationRecordId(input),
-      integrationAuthorizationId:
-        connection.provider === "gitlab" ? connection.connectionId : null,
-      providerRepositoryId:
-        connection.provider === "gitlab"
-          ? connection.projectId
-          : githubRepository!.id,
-      repositoryName: githubRepository?.name ?? input.repositoryName,
-      repositoryOwner: githubRepository?.owner ?? input.repositoryOwner,
+      integrationInstallationId: input.githubInstallationId,
+      integrationAuthorizationId: null,
+      providerRepositoryId: githubRepository.id,
+      repositoryName: githubRepository.name,
+      repositoryOwner: githubRepository.owner,
     };
     const [source] = existing
       ? await transaction
@@ -241,40 +208,21 @@ export async function connectRepositorySource(
   return { ...result, syncs };
 }
 
-async function repositoryConnection(
-  input: {
-    repositoryName: string;
-    repositoryOwner: string;
-    workspaceId: string;
-  } & (
-    | { provider: "github"; githubInstallationId: string }
-    | { provider: "gitlab"; integration: string; providerRepositoryId: string }
-  ),
-) {
-  if (input.provider === "github") {
-    const installation = await getGitHubInstallationForSource({
-      installationId: input.githubInstallationId,
-      workspaceId: input.workspaceId,
-    });
-    return {
-      provider: "github" as const,
-      installationId: installation.externalId,
-      repositoryName: input.repositoryName,
-      repositoryOwner: input.repositoryOwner,
-    };
-  }
-  const integration = await resolveIntegration({
-    providers: ["gitlab"],
-    slug: input.integration,
-    target: { kind: "workspace", purpose: "source" },
+async function repositoryConnection(input: {
+  repositoryName: string;
+  repositoryOwner: string;
+  workspaceId: string;
+  provider: "github";
+  githubInstallationId: string;
+}) {
+  const installation = await getGitHubInstallationForSource({
+    installationId: input.githubInstallationId,
     workspaceId: input.workspaceId,
   });
   return {
-    provider: "gitlab" as const,
-    connectionId: integration.connection.id,
-    projectId: input.providerRepositoryId,
+    provider: "github" as const,
+    installationId: installation.externalId,
     repositoryName: input.repositoryName,
     repositoryOwner: input.repositoryOwner,
-    workspaceId: input.workspaceId,
   };
 }

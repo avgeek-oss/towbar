@@ -53,10 +53,8 @@ export type ScoutRulesResponse = {
   }>;
   destinations: NotificationDestination[];
   providers: {
-    discord: boolean;
     slack: boolean;
     smtp: boolean;
-    telegram: boolean;
     webhook: boolean;
   };
 };

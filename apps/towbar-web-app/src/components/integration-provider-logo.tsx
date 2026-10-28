@@ -3,13 +3,10 @@ import { cn } from "@avgeek-oss/design-system/lib/utils";
 
 const providerLogos = {
   github: "/integration-logos/github.svg",
-  gitlab: "/integration-logos/gitlab.svg",
   registry: "/resource-logos/docker.webp",
   infisical: "/resource-logos/infisical.webp",
   doppler: "/integration-logos/doppler.svg",
   slack: "/integration-logos/slack.svg",
-  discord: "/integration-logos/discord.svg",
-  telegram: "/integration-logos/telegram.svg",
 } as const;
 
 const darkProviderLogos: Partial<Record<keyof typeof providerLogos, string>> =

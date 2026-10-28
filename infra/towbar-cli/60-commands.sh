@@ -82,7 +82,6 @@ Usage: towbar COMMAND [ARGUMENTS]
 Commands:
   install                Install the release bundled with this CLI
   upgrade [VERSION]      Upgrade to the latest or selected stable release
-  upgrade-service enable Enable host-managed upgrades in System Health
   restart                Validate and restart with the current configuration
   compose COMMAND        Run a Docker Compose command for this installation
   config path            Print the configuration path
@@ -107,7 +106,6 @@ case "${1:-help}" in
   restart) restart_release ;;
   status) status_command ;;
   upgrade | update) shift; upgrade_release "${1:-latest}" ;;
-  upgrade-service) shift; upgrade_service_command "$@" ;;
   version | --version | -v) version_command ;;
   *) fail "unknown command: $1; run towbar help" ;;
 esac

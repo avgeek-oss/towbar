@@ -1,4 +1,3 @@
-import { beginUpgradeLease, endUpgradeLease } from "../upgrades/admission.js";
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import type { Server } from "node:http";
 import { Client, type ClientChannel } from "ssh2";
@@ -52,7 +51,6 @@ export function attachServerTerminal(server: Server) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       const headers = new Headers({ cookie: request.headers.cookie ?? "" });
       const connectionId = randomUUID();
-      let leaseHeld = false;
       let ssh: Client | undefined;
       let channel: ClientChannel | undefined;
       let connection: Connection | undefined;
@@ -116,15 +114,6 @@ export function attachServerTerminal(server: Server) {
         channel?.destroy();
         ssh?.destroy();
         active.delete(ws);
-        if (leaseHeld) {
-          leaseHeld = false;
-          void endUpgradeLease(connectionId).catch(() =>
-            console.error(
-              "Terminal upgrade lease requires recovery",
-              connectionId,
-            ),
-          );
-        }
         send({ type: "closed", message: reason });
         ws.close(1000);
         const terminate = setTimeout(() => ws.terminate(), 1000);
@@ -177,13 +166,6 @@ export function attachServerTerminal(server: Server) {
               return close(
                 "The terminal session limit was reached. Disconnect another session first.",
               );
-            await beginUpgradeLease(connectionId, "server-terminal");
-            leaseHeld = true;
-            if (closed) {
-              await endUpgradeLease(connectionId);
-              leaseHeld = false;
-              return;
-            }
             active.set(ws, connection);
             authenticatedAt = Date.now();
             clearTimeout(timeout);

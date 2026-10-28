@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 
-const notifications = new Set([
-  "slack",
-  "email",
-  "discord",
-  "telegram",
-  "webhook",
-]);
+const notifications = new Set(["slack", "email", "webhook"]);
 
 export default async function Page({
   searchParams,

@@ -14,11 +14,7 @@ export default async function Page({
   params: Promise<{ integration: string }>;
 }) {
   const { integration } = await params;
-  if (
-    ["slack", "email", "discord", "telegram", "webhook", "deliveries"].includes(
-      integration,
-    )
-  )
+  if (["slack", "email", "webhook", "deliveries"].includes(integration))
     redirect(`/manage/notifications/${integration}`);
   if (!isIntegrationRoute(integration)) notFound();
   return (

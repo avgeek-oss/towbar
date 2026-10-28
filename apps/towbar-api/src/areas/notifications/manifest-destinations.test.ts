@@ -21,10 +21,6 @@ const runtime = getRuntimeNotifications({
         secure: false,
       },
       slack: { botToken: "xoxb-example-token-long-enough" },
-      discord: [
-        { webhookId: "123456789012345678", webhookToken: "runtime-token" },
-      ],
-      telegram: { botToken: "123456:abcdefghijklmnopqrstuvwxyz" },
     },
     routes: [],
   }),
@@ -72,35 +68,13 @@ void test("routes manifest destinations through runtime credentials", () => {
         alertsAndIncidents: false,
       },
     ],
-    discord: [
-      {
-        webhookId: "123456789012345678",
-        deployments: false,
-        backupsAndRestores: false,
-        alertsAndIncidents: true,
-      },
-    ],
-    telegram: [
-      {
-        chatId: "-1001234567890",
-        messageThreadId: 42,
-        deployments: true,
-        backupsAndRestores: false,
-        alertsAndIncidents: false,
-      },
-    ],
   };
   const routes = manifestNotificationRoutes(appId, notifications, runtime);
   assert.deepEqual(
     routes.map((route) => route.provider),
-    ["smtp", "slack", "discord", "telegram"],
+    ["smtp", "slack"],
   );
   assert.deepEqual(routes[1]?.categories, ["backups", "restores"]);
-  assert.deepEqual(routes[2]?.categories, ["health", "scout"]);
-  assert.deepEqual(routes[2]?.config, {
-    webhookId: "123456789012345678",
-    webhookToken: "runtime-token",
-  });
   assert.equal(
     routes[0]?.id,
     manifestNotificationRoutes(appId, notifications, runtime)[0]?.id,
@@ -125,6 +99,4 @@ void test("routes manifest destinations through runtime credentials", () => {
   const labels = manifestNotificationLabels(appId, notifications);
   assert.equal(labels.get(routes[0]!.id), "ops@example.com");
   assert.equal(labels.get(routes[1]!.id), "C12345678");
-  assert.equal(labels.get(routes[2]!.id), "123456789012345678");
-  assert.equal(labels.get(routes[3]!.id), "-1001234567890 · Topic 42");
 });

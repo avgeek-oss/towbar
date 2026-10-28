@@ -1,15 +1,7 @@
-const notificationRoutes = [
-  "slack",
-  "email",
-  "discord",
-  "telegram",
-  "webhook",
-  "deliveries",
-] as const;
+const notificationRoutes = ["slack", "email", "webhook", "deliveries"] as const;
 
 const platformIntegrationRoutes = [
   "github",
-  "gitlab",
   "registry",
   "aws",
   "gcp",

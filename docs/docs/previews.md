@@ -11,7 +11,7 @@ Preview environments let you review a service before merging a pull request. Eac
 
 ## Enable previews
 
-Enable previews for an environment and opt each service in. Previews support GitHub pull requests and GitLab merge requests from the same repository. The service needs a public domain and TLS configuration; datastores are not cloned.
+Enable previews for an environment and opt each service in. Previews support GitHub pull requests from the same repository. The service needs a public domain and TLS configuration; datastores are not cloned.
 
 <CodeGroup>
 
@@ -79,7 +79,7 @@ never removed. Reopening an eligible pull request recreates its Preview.
 ## Pull request eligibility
 
 Towbar reconciles `opened`, `reopened`, `synchronize`, `edited`, and `closed`
-webhooks against the pull request's current GitHub state. GitLab merge-request hooks use the same branch, identity, and cleanup rules. This makes duplicate,
+webhooks against the pull request's current GitHub state. This makes duplicate,
 delayed, and out-of-order deliveries safe and keeps branch renames under the
 same PR identity. Pull requests from forks and pull requests targeting another
 base branch are not deployed. When a Service configures `autoDeploy.inputs`,
@@ -114,10 +114,6 @@ secrets in Towbar, then use **Sync now** to deploy the pull request again withou
 a new commit.
 
 Temporary failures delivering GitHub statuses or comments are retried automatically in the background. Towbar publishes the latest Preview state, respects GitHub rate limits, and reuses existing deployments and comments. Reporting delays do not restart or stop a Preview. Delivery errors remain available through the GitHub integration API for diagnostics.
-
-## GitLab reporting
-
-GitLab previews publish a commit status with the preview URL and update one merge-request comment. A reporting delay does not change the running preview. Inspect provider access and webhook delivery if the status is missing.
 
 ## Separate secrets and trust
 

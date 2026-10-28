@@ -17,15 +17,10 @@ export function getNotificationProviderState(_workspaceId: string) {
     configurations: {
       slack: configured("slack") ? { source: "environment" as const } : null,
       smtp: configured("smtp") ? { source: "environment" as const } : null,
-      telegram: configured("telegram")
-        ? { source: "environment" as const }
-        : null,
     },
     providers: {
-      discord: configured("discord"),
       slack: configured("slack"),
       smtp: configured("smtp"),
-      telegram: configured("telegram"),
       webhook: configured("webhook"),
     },
   });

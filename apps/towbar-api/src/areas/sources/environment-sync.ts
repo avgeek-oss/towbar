@@ -97,16 +97,10 @@ export async function executeEnvironmentSync(
           ...(source as Extract<typeof source, { provider: "github" }>),
           commitSha: snapshot.commitSha,
         })
-      : source.provider === "github"
-        ? await fetchGitHubRepositoryTree({
-            ...source,
-            commitSha: snapshot.commitSha,
-          })
-        : "repositoryTree" in snapshot
-          ? (snapshot.repositoryTree as RepositoryTree)
-          : (() => {
-              throw new Error("GitLab repository snapshot omitted its tree");
-            })();
+      : await fetchGitHubRepositoryTree({
+          ...source,
+          commitSha: snapshot.commitSha,
+        });
     if (!tree.complete)
       throw conflict(
         "Repository tree is incomplete",

@@ -298,13 +298,6 @@ async function prepareScreenshot(browser, screenshot) {
       '[role="option"][data-key="US"]',
     );
   }
-  if (screenshot.upgradeState)
-    await clickControl(
-      browser,
-      ["ready", "blocked"].includes(screenshot.upgradeState)
-        ? "Review upgrade"
-        : "View upgrade",
-    );
   await waitForPage(browser);
 }
 
@@ -352,18 +345,6 @@ async function preparePageForCapture(browser) {
 }
 
 async function capture(browser, screenshot, theme) {
-  const fixtureResponse = await fetch(
-    new URL("/__fixture/upgrade", apiOrigin),
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ state: screenshot.upgradeState ?? "unsupported" }),
-    },
-  );
-  if (!fixtureResponse.ok)
-    throw new Error(
-      "Start the fixture with upgradeScenario enabled for screenshot capture",
-    );
   if (screenshot.name === "shared-secrets") {
     const response = await fetch(
       new URL("/v1/core/settings/secrets", apiOrigin),

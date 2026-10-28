@@ -148,10 +148,6 @@ export const documentationTopics = {
     "integrations/github",
     "Configure the GitHub App in the Towbar environment, install it on the intended account, and grant repository access.",
   ),
-  gitlab: guide(
-    "integrations/gitlab",
-    "Configure the GitLab OAuth application in the Towbar environment, then authorize the account Towbar should use.",
-  ),
   registry: guide(
     "integrations/oci-registry",
     "Configure one OCI registry in the Towbar environment for private images and build transfers.",
@@ -199,14 +195,6 @@ export const documentationTopics = {
   email: guide(
     "integrations/notifications/email",
     "Configure SMTP delivery in the Towbar runtime and recipient destinations in the dashboard.",
-  ),
-  discord: guide(
-    "integrations/notifications/discord",
-    "Configure Discord webhook ID and token pairs in the Towbar runtime, then choose categories in the dashboard.",
-  ),
-  telegram: guide(
-    "integrations/notifications/telegram",
-    "Configure a Telegram bot in the Towbar runtime, then add chat and optional topic destinations in the dashboard.",
   ),
   webhook: guide(
     "integrations/notifications/webhook",
@@ -267,18 +255,15 @@ type Topic = keyof typeof documentationTopics;
 const integrationDocumentationTopics: Record<string, Topic> = {
   aws: "aws",
   cloudflare: "cloudflare",
-  discord: "discord",
   doppler: "doppler",
   email: "email",
   gcp: "gcp",
   github: "github",
-  gitlab: "gitlab",
   infisical: "infisical",
   r2: "r2",
   registry: "registry",
   s3: "s3Compatible",
   slack: "slack",
-  telegram: "telegram",
   webhook: "webhook",
 };
 
@@ -331,9 +316,7 @@ export function documentationTopic(pathname: string): Topic | undefined {
   if (path === "/manage/shared-secrets") return "secrets";
   if (path.startsWith("/manage/notifications")) {
     const provider = path.split("/")[3];
-    return ["slack", "email", "discord", "telegram", "webhook"].includes(
-      provider ?? "",
-    )
+    return ["slack", "email", "webhook"].includes(provider ?? "")
       ? (provider as Topic)
       : "notifications";
   }

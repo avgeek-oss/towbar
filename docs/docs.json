@@ -213,10 +213,7 @@
             "pages": [
               {
                 "group": "Source control",
-                "pages": [
-                  "docs/integrations/github",
-                  "docs/integrations/gitlab"
-                ],
+                "pages": ["docs/integrations/github"],
                 "icon": "git-branch"
               },
               {
@@ -257,8 +254,6 @@
                   "docs/integrations/notifications",
                   "docs/integrations/notifications/email",
                   "docs/integrations/notifications/slack",
-                  "docs/integrations/notifications/discord",
-                  "docs/integrations/notifications/telegram",
                   "docs/integrations/notifications/webhook"
                 ],
                 "icon": "bell"
@@ -1096,15 +1091,6 @@
                       "api-reference/get_github_branches",
                       "api-reference/delete_github",
                       "api-reference/get_github_installation"
-                    ]
-                  },
-                  {
-                    "group": "GitLab",
-                    "pages": [
-                      "api-reference/get_gitlab_connections",
-                      "api-reference/get_gitlab_repositories",
-                      "api-reference/get_gitlab_groups",
-                      "api-reference/get_gitlab_branches"
                     ]
                   }
                 ]

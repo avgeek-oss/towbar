@@ -24,7 +24,7 @@ export type Source = {
   lastSyncedAt?: string | null;
   createdAt: string;
   id: string;
-  provider: "github" | "gitlab";
+  provider: "github";
   repositoryName: string;
   repositoryOwner: string;
   repositoryUrl?: string;
@@ -140,7 +140,7 @@ export type NotificationDestination = {
   createdAt: string;
   enabled: boolean;
   id: string;
-  provider: "slack" | "smtp" | "discord" | "telegram" | "webhook";
+  provider: "slack" | "smtp" | "webhook";
   sourceId: string | null;
   serverId?: string | null;
   updatedAt: string;

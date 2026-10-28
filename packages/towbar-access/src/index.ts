@@ -209,7 +209,7 @@ export type AccessActor =
   | {
       kind: "system";
       workspaceId: string;
-      source: "github" | "gitlab" | "worker";
+      source: "github" | "worker";
       grants: readonly Action[];
     };
 export function actorAllows(

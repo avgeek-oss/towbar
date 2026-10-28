@@ -1,8 +1,4 @@
 "use client";
-import { Spinner } from "@avgeek-oss/design-system/feedback/spinner";
-import { useState } from "react";
-import { HostUpgrade } from "./host-upgrade";
-import { upgradeIsActive, upgradeNeedsRecovery } from "./host-upgrade-state";
 import {
   AlertCircleIcon,
   ArrowRight01Icon,
@@ -23,8 +19,6 @@ import type {
   SystemHealth,
   SystemHealthCheck,
   SystemHealthStatus,
-  TowbarUpdateInfo,
-  TowbarUpgradeJob,
 } from "@workspace/towbar-web-client";
 import { ButtonLink } from "@avgeek-oss/design-system/buttons/button";
 import { Chip } from "@avgeek-oss/design-system/data-display/chip";
@@ -75,15 +69,10 @@ export function SystemHealthPage() {
     "/v1/core/observability/logs/status",
     15_000,
   );
-  const updateQuery = useApiQuery<TowbarUpdateInfo>(
-    "/v1/core/version",
-    15 * 60_000,
-  );
   if (query.error && !query.data) {
     return (
       <DashboardPage icon={HealthIcon} title="System health">
         <QueryError message={query.error} />
-        <HostUpgrade />
       </DashboardPage>
     );
   }
@@ -126,8 +115,6 @@ export function SystemHealthPage() {
         checks={health.checks}
         title="Control plane"
         version={health.version}
-        updates={updateQuery.data}
-        updateError={Boolean(updateQuery.error)}
       />
       <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         <StorageUsage kind="data" storage={health.databaseStorage} />
@@ -323,14 +310,10 @@ function HealthChecks({
   checks,
   version,
   title,
-  updates,
-  updateError,
 }: {
   checks: SystemHealthCheck[];
   version?: string;
   title: string;
-  updates?: TowbarUpdateInfo;
-  updateError: boolean;
 }) {
   return (
     <Widget>
@@ -383,7 +366,6 @@ function HealthChecks({
             </div>
           );
         })}
-        <TowbarUpdates updates={updates} error={updateError} />
       </Widget.Content>
       {version ? (
         <Widget.Footer>
@@ -396,89 +378,6 @@ function HealthChecks({
         </Widget.Footer>
       ) : null}
     </Widget>
-  );
-}
-
-function TowbarUpdates({
-  updates,
-  error,
-}: {
-  updates?: TowbarUpdateInfo;
-  error: boolean;
-}) {
-  const [job, setJob] = useState<TowbarUpgradeJob>();
-  const active = upgradeIsActive(job?.state);
-  const recovery = upgradeNeedsRecovery(job?.state);
-  const status = error ? "unavailable" : updates?.status;
-  const current = status === "current" && !active && !recovery;
-  const description =
-    active && job
-      ? `Towbar is upgrading from ${job.currentVersion} to ${job.targetVersion}.`
-      : status === "unavailable"
-        ? "The latest release could not be checked. Try again later."
-        : !updates
-          ? "Checking the latest published stable release."
-          : status === "available"
-            ? `You’re running Towbar v${updates.installedVersion}. An upgrade to v${updates.latestVersion} is available.`
-            : status === "current"
-              ? `This installation runs the latest stable release, v${updates.installedVersion}.`
-              : `This installation runs v${updates.installedVersion}, ahead of the latest stable release v${updates.latestVersion}.`;
-  return (
-    <div className="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-      <div className="flex min-w-0 items-start gap-3">
-        <HugeiconsIcon
-          aria-hidden="true"
-          className={cn(
-            "mt-0.5 size-5 shrink-0",
-            recovery
-              ? "text-danger-soft-foreground"
-              : current
-                ? "text-success-soft-foreground"
-                : "text-muted",
-          )}
-          icon={current ? CheckmarkCircle02Icon : ReloadIcon}
-        />
-        <div className="grid min-w-0 gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-medium">Towbar version</h3>
-            {recovery ? (
-              <Chip color="danger">
-                <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                  Recovery required
-                </Chip.Label>
-              </Chip>
-            ) : active ? (
-              <Chip color="warning">
-                <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                  <Spinner size="sm" color="current" />
-                  Upgrade in progress
-                </Chip.Label>
-              </Chip>
-            ) : status === "available" ? (
-              <Chip color="warning">
-                <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                  Update available
-                </Chip.Label>
-              </Chip>
-            ) : current ? (
-              <Chip color="success">
-                <Chip.Label className="whitespace-nowrap">Latest</Chip.Label>
-              </Chip>
-            ) : null}
-          </div>
-          <p className="text-sm text-muted">{description}</p>
-          {updates?.checkedAt ? (
-            <p className="text-xs text-muted">
-              Checked {formatDate(updates.checkedAt)}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      <HostUpgrade
-        targetVersion={status === "available" ? updates?.latestVersion : null}
-        onJobChange={setJob}
-      />
-    </div>
   );
 }
 

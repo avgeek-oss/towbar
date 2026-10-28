@@ -2,7 +2,7 @@ export type ManifestRepositoryClaim = {
   sourceId: string;
   sourceEnvironmentId: string;
   repository: string;
-  provider?: "github" | "gitlab";
+  provider?: "github";
   branch: string;
   commitSha: string;
   changedPaths: string[];
@@ -21,7 +21,7 @@ export type ManifestLifecycleItem = {
     kind: string;
     sourceId: string;
     repository: string;
-    provider?: "github" | "gitlab";
+    provider?: "github";
     serverId: string;
     serverIp: string;
     revision: string;

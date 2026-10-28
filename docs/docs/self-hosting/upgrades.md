@@ -3,8 +3,6 @@ title: "Upgrades and recovery"
 description: "Plan a release upgrade, protect control-plane state, and recover Admin access."
 ---
 
-import { Screenshot } from "/snippets/oss/screenshot.jsx";
-
 Upgrade the API, worker, and dashboard together from a reviewed release. Before changing versions, read the [changelog](https://github.com/avgeek-oss/towbar/releases) for migration requirements.
 
 ## Prepare an upgrade
@@ -121,7 +119,7 @@ Run installation and upgrade commands on the control-plane host. See the [CLI re
 
 ## Switch an older installation to GitHub Releases
 
-Older versions read a separate release host. Before the first upgrade to a GitHub-only release, refresh the CLI and the host upgrade service on the control-plane host. Finish any active upgrade and follow the preparation steps above first.
+Older versions read a separate release host. Before the first upgrade to a GitHub-only release, refresh the CLI on the control-plane host. Finish any active upgrade and follow the preparation steps above first.
 
 Download the CLI from the target GitHub release and verify its checksum:
 
@@ -136,105 +134,10 @@ sudo install -o root -g root -m 0755 "$release_dir/towbar" /usr/local/bin/towbar
 rm -rf "$release_dir"
 ```
 
-For an installation with host-managed upgrades enabled, prepare the verified target release, then replace the idle runner before starting the upgrade:
+Run `sudo towbar upgrade "$version"` after refreshing the CLI. The updated CLI stops and disables the retired host upgrade service and removes its Compose override before replacing the control plane. Finish any active upgrade before refreshing the CLI.
 
-```bash
-sudo towbar upgrade-service plan "$version"
-sudo systemctl stop towbar-upgrade
-sudo python3 "/opt/towbar/releases/$version/infra/upgrade-runner/install.py"
-sudo systemctl start towbar-upgrade
-sudo towbar upgrade "$version"
-```
+## Retired integrations
 
-If host-managed upgrades are disabled, run `sudo towbar upgrade "$version"` after refreshing the CLI. The configuration and database stay in place. After this transition, later CLI and System Health upgrades use GitHub Releases directly.
+Upgrades migrate protected runtime configuration to remove GitLab, Discord, and Telegram settings. Existing GitLab repositories are archived and their environment mappings are disconnected. Their deployed workloads and history remain available. Pending Discord and Telegram deliveries become failed with `PROVIDER_REMOVED`; completed delivery history is preserved.
 
-## Upgrade from System Health
-
-An Admin can upgrade from **System Health → Towbar version** after the installation operator enables in-app upgrades. Keep a recent database backup and a protected copy of the configuration before upgrading.
-
-1. Select **Review upgrade** when the yellow **Update available** badge appears.
-2. Review the version change and the readiness check. If deployments or operations are active, wait for them to finish, then select **Check again**.
-3. Select **Upgrade** to begin. New deployments and operations pause while Towbar applies the update.
-4. Keep the modal open to follow progress. It reconnects automatically if the dashboard loses contact during a restart.
-5. Check the final result in the same modal. A successful upgrade shows the installed version; a failed upgrade links to the recovery instructions below. You can reopen the modal with **View upgrade**.
-
-The screenshots use a local fixture to demonstrate upgrade states.
-
-<Tabs>
-  <Tab title="Ready">
-
-<Screenshot light="/assets/release-v2/upgrade-ready-light.jpg" dark="/assets/release-v2/upgrade-ready-dark.jpg" alt="Review the new version and the readiness check before upgrading." caption="Review the new version and the readiness check before upgrading." width={3200} height={1800} />
-  </Tab>
-  <Tab title="Work in progress">
-
-<Screenshot light="/assets/release-v2/upgrade-blocked-light.jpg" dark="/assets/release-v2/upgrade-blocked-dark.jpg" alt="Wait for active deployments and operations to finish, then check again." caption="Wait for active deployments and operations to finish, then check again." width={3200} height={1800} />
-  </Tab>
-  <Tab title="In progress">
-
-<Screenshot light="/assets/release-v2/upgrade-applying-light.jpg" dark="/assets/release-v2/upgrade-applying-dark.jpg" alt="The same modal follows the upgrade and reconnects during a restart." caption="The same modal follows the upgrade and reconnects during a restart." width={3200} height={1800} />
-  </Tab>
-  <Tab title="Successful">
-
-<Screenshot light="/assets/release-v2/upgrade-succeeded-light.jpg" dark="/assets/release-v2/upgrade-succeeded-dark.jpg" alt="The result confirms the installed version and that deployments and operations can resume." caption="The result confirms the installed version and that deployments and operations can resume." width={3200} height={1800} />
-  </Tab>
-  <Tab title="Failed">
-
-<Screenshot light="/assets/release-v2/upgrade-failed-light.jpg" dark="/assets/release-v2/upgrade-failed-dark.jpg" alt="A failed upgrade shows a safe reason and links to recovery help." caption="A failed upgrade shows a safe reason and links to recovery help." width={3200} height={1800} />
-  </Tab>
-</Tabs>
-
-### Enable in-app upgrades
-
-Standard CLI installs and upgrades enable the service automatically when supported. If an older CLI left it disabled:
-
-```bash
-sudo towbar upgrade-service enable
-sudo systemctl status towbar-upgrade
-```
-
-Requirements are Linux with systemd, Python 3, Docker Compose v2 and standard upstream paths (`/opt/towbar`, `/etc/towbar` and `/usr/local/bin/towbar`). Both releases must support admission protocol 2. Custom paths, forks, container-only and Kubernetes installations use manual upgrades. Major-version or protocol changes require a host maintenance window.
-
-Setup restarts the API with a private runner socket and dedicated group. The root-only `/etc/towbar/upgrade-group.json` records that group. Setup does not adopt an existing host group or add host users; startup rejects shared IDs or host membership. Only the API mounts the socket. It receives no Docker socket, root privileges or shell endpoint.
-
-To replace an older runner, wait for any upgrade to finish, stop the idle service with `sudo systemctl stop towbar-upgrade`, then run `sudo towbar upgrade-service enable`. Enabling refuses a running service and rotates its token at startup.
-
-Upgrade review requires a recently authenticated Admin. Preparation downloads and verifies the release; confirmation expires after 15 minutes. A changed installed version or target commit requires another review. Keep a tested database backup and protected configuration copy. The runner does not create backups.
-
-Queued or active deployments, source syncs, resource/server operations, scans, preview cleanup, worker activities and terminals block upgrades. Confirmation pauses new admissions and checks readiness again. A blocked attempt reopens admission without replacing services. Delayed worker tasks cannot perform effects while paused. Webhooks rejected during the pause need redelivery or source sync afterward.
-
-The runner invokes the CLI with the confirmed version and commit. Closing the modal or restarting the API does not stop the job; **View upgrade** reopens its status. After installation, the runner updates its code and unit, reopens admission, saves the result and restarts. Another upgrade remains blocked until the restart succeeds. A failure requires the host recovery steps below; inspect the saved result to determine whether admission is still paused.
-
-With the service enabled, `sudo towbar upgrade [VERSION]` uses the same readiness and job path. Only root on the host can acknowledge recovery.
-
-## Recover a host-managed attempt
-
-Attempts and private CLI output are stored in `/var/lib/towbar-upgrade`, outside containers. Read the latest job record and check service health on the control-plane host:
-
-```bash
-sudo systemctl status towbar-upgrade
-sudo journalctl -u towbar-upgrade
-sudo cat /var/lib/towbar-upgrade/job.json
-sudo towbar doctor
-sudo towbar logs migrate api worker
-```
-
-The job record's `id` identifies `/var/lib/towbar-upgrade/ATTEMPT-ID.log`. These root-only logs contain CLI output; the browser shows only the stage, exit code or safe failure reason. Keep logs protected and apply a retention policy.
-
-Check the running release and database compatibility. Restoring previous images does not reverse migrations; use a tested database and configuration backup when required. A reachable dashboard alone does not prove recovery.
-
-A runner restart marks unfinished attempts **interrupted** without retrying. Admission may remain paused or may have reopened before the result was saved. Inspect its state, services, database and pending work before resuming:
-
-```bash
-sudo towbar upgrade-service resume --acknowledge-recovery
-```
-
-Resume checks `towbar doctor`, refuses unresolved blockers, and only clears the pause belonging to the recorded attempt. Worker and terminal leases do not expire automatically: an interrupted SSH operation may still be changing a remote host. Inspect leases with:
-
-```bash
-sudo towbar compose exec -T postgres psql -U towbar -d towbar -c \
-  'SELECT id, kind, created_at FROM towbar_upgrade_leases ORDER BY created_at;'
-```
-
-Before clearing a lease, stop the worker, close terminals and verify that the remote operation ended. Resolve its deployment or operation record. A database administrator may delete that specific lease by ID; never truncate the table or use age alone. After resolving blockers, resume admission and restart the worker.
-
-If the API cannot reconnect, continue recovery over SSH. Repair the database or services with the host CLI; do not run the upgrade inside a container. Leave the runner state and admission record intact until you have established the outcome.
+Remove Discord and Telegram destinations from repository manifests before syncing them with this release. Configure Slack, email, or webhook push for future notifications. GitHub is the supported repository provider.

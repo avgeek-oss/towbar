@@ -5,13 +5,13 @@ description: "Connect a repository and keep its deployable inventory in sync wit
 
 import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
-A Repository connects a GitHub repository or GitLab project to Towbar. Its `towbar.yml` declares environments, and files under `.towbar/services` and `.towbar/datastores` define workloads. Each connected environment follows a branch selected in Towbar.
+A Repository connects a GitHub repository to Towbar. Its `towbar.yml` declares environments, and files under `.towbar/services` and `.towbar/datastores` define workloads. Each connected environment follows a branch selected in Towbar.
 
 Start with [connecting a repository](/docs/repositories/connect), then learn how to [map environment branches](/docs/repositories/environments), [review syncs and automation](/docs/repositories/sync), [handle conflicts and retirements](/docs/repositories/conflicts-and-retirements), and [remove a repository](/docs/repositories/delete). The [manifest guide](/docs/deployment-manifest) explains the Git files shared by services and datastores.
 
 ## Connect and sync
 
-1. Configure [GitHub](/docs/integrations/github) or [GitLab](/docs/integrations/gitlab) and grant repository access.
+1. Configure [GitHub](/docs/integrations/github) and grant repository access.
 2. Register the target [servers](/docs/servers) and commit a valid [manifest](/docs/deployment-manifest).
 3. Choose **Repositories → Add repository**, select environments, and map their branches.
 4. Inspect the initial sync. A successful sync imports configuration; deployment is a separate action.
@@ -60,7 +60,7 @@ Manual deployment is still a separate action. See [Deployments and releases](/do
 
 Use **Settings → Notifications** to choose destinations and event categories. Reusable values belong in **Team Settings → Security → Workspace Secrets** (`globals.`) or **Repository Settings → Repository Secrets** (`repo.`). Workload values belong to each Service or Datastore. SSH keys belong to servers; the Cloudflare provider token belongs in the control-plane runtime configuration.
 
-If a repository is missing or a webhook stops arriving, review the relevant [GitHub](/docs/integrations/github#maintain-the-connection) or [GitLab](/docs/integrations/gitlab) integration and its repository access.
+If a repository is missing or a webhook stops arriving, review the relevant [GitHub](/docs/integrations/github#maintain-the-connection) integration and its repository access.
 
 ## Remove a repository
 

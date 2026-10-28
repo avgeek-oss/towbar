@@ -36,8 +36,6 @@ import {
 const providerLabels = {
   slack: "Slack",
   smtp: "Email",
-  discord: "Discord",
-  telegram: "Telegram",
   webhook: "Webhook push",
 };
 const stateLabels = {
@@ -257,7 +255,7 @@ export function NotificationDeliveries() {
               provider={item.provider}
               className="size-3 shrink-0"
             />
-            {providerLabels[item.provider]}
+            {providerLabels[item.provider] ?? item.provider}
             {item.destinationDeleted ? " · Removed" : ""}
           </TableCellDescription>
         </TableCellStack>
@@ -382,7 +380,7 @@ export function NotificationDeliveries() {
               value={
                 <span className="inline-flex items-center gap-1.5">
                   <NotificationProviderIcon provider={selected.provider} />
-                  {providerLabels[selected.provider]}
+                  {providerLabels[selected.provider] ?? selected.provider}
                 </span>
               }
             />

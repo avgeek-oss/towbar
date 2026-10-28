@@ -27,8 +27,6 @@ export async function sourceRepository(sourceId: string, workspaceId: string) {
       repositoryOwner: sources.repositoryOwner,
       provider: sources.provider,
       installationId: integrationInstallations.externalId,
-      connectionId: sources.integrationAuthorizationId,
-      projectId: sources.providerRepositoryId,
     })
     .from(sources)
     .leftJoin(
@@ -51,16 +49,6 @@ export async function sourceRepository(sourceId: string, workspaceId: string) {
       installationId: source.installationId,
       repositoryName: source.repositoryName,
       repositoryOwner: source.repositoryOwner,
-    };
-  if (source.provider === "gitlab" && source.connectionId && source.projectId)
-    return {
-      id: source.id,
-      provider: "gitlab" as const,
-      connectionId: source.connectionId,
-      projectId: source.projectId,
-      repositoryName: source.repositoryName,
-      repositoryOwner: source.repositoryOwner,
-      workspaceId,
     };
   throw new Error("Repository provider connection is incomplete");
 }

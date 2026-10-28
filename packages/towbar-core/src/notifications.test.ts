@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  discordRoutingInputSchema,
   emailConnectionInputSchema,
   emailRoutingInputSchema,
   notificationCategoryForEvent,
@@ -10,8 +9,6 @@ import {
   notificationEventPayloadSchema,
   notificationMatchesSubscription,
   slackChannelRoutingInputSchema,
-  telegramConnectionInputSchema,
-  telegramTopicRoutingInputSchema,
   webhookRoutingInputSchema,
 } from "./notifications.js";
 
@@ -70,14 +67,6 @@ void test("accepts provider targets without provider credentials", () => {
 
   for (const destination of [
     {
-      config: { webhookId: "1", webhookToken: "token" },
-      provider: "discord",
-    },
-    {
-      config: { messageThreadId: 42 },
-      provider: "telegram",
-    },
-    {
       config: { url: "https://example.com/towbar" },
       provider: "webhook",
     },
@@ -93,38 +82,27 @@ void test("accepts provider targets without provider credentials", () => {
   }
 });
 
-void test("accepts category routes for URL and Telegram providers", () => {
-  assert.deepEqual(
-    discordRoutingInputSchema.parse({
-      routes: [
-        {
-          category: "scout",
-          webhookUrl: "https://discord.com/api/webhooks/1/token",
-        },
-        { category: "deployments" },
-      ],
-    }).routes[1],
-    { category: "deployments" },
-  );
+void test("accepts category routes for webhook providers", () => {
   assert.equal(
     webhookRoutingInputSchema.parse({
       routes: [{ category: "health", url: "https://example.com/towbar" }],
     }).routes[0]?.url,
     "https://example.com/towbar",
   );
-  assert.equal(
-    telegramConnectionInputSchema.parse({
-      botToken: "123456:abcdefghijklmnopqrstuvwxyz",
-      chatId: "-100123456",
-    }).chatId,
-    "-100123456",
-  );
-  assert.equal(
-    telegramTopicRoutingInputSchema.parse({
-      routes: [{ category: "deployments", messageThreadId: 23 }],
-    }).routes[0]?.messageThreadId,
-    23,
-  );
+});
+
+void test("rejects retired notification providers", () => {
+  for (const provider of ["discord", "telegram"]) {
+    assert.equal(
+      notificationDestinationInputSchema.safeParse({
+        provider,
+        config: {},
+        categories: ["deployments"],
+        enabled: true,
+      }).success,
+      false,
+    );
+  }
 });
 
 void test("accepts one Slack channel per notification category", () => {

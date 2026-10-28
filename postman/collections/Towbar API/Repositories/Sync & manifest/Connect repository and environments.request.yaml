@@ -14,13 +14,13 @@ body:
     {
       "repositoryOwner": "example-inc",
       "repositoryName": "example-app",
+      "provider": "github",
+      "githubInstallationId": "00000000-0000-4000-8000-000000000000",
       "environments": [
         {
           "environment": "production",
           "branch": "main"
         }
-      ],
-      "provider": "github",
-      "githubInstallationId": "00000000-0000-4000-8000-000000000000"
+      ]
     }
 order: 2000

@@ -61,7 +61,6 @@ const sectionOrder = [
   "Identity",
   "Connections",
   "GitHub",
-  "GitLab",
   "AWS",
   "GCP",
   "Lifecycle",

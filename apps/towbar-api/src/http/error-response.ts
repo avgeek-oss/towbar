@@ -9,20 +9,6 @@ export function normalizeError(error: Error): {
   message: string;
   status: HttpErrorStatus;
 } {
-  const databaseError = "cause" in error ? error.cause : error;
-  if (
-    databaseError &&
-    typeof databaseError === "object" &&
-    "code" in databaseError &&
-    databaseError.code === "TB001"
-  ) {
-    return {
-      code: "UPGRADE_PAUSED",
-      message:
-        "Towbar is upgrading. New deployments and operations are paused. Try again after the upgrade.",
-      status: 409,
-    };
-  }
   if (error instanceof HttpError) {
     return {
       code: error.code,
