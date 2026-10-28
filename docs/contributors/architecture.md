@@ -47,7 +47,7 @@ flowchart LR
 | `packages/towbar-access`                              | Roles and permissions                             |
 | `packages/towbar-web-client`                          | Typed browser API client                          |
 | `packages/towbar-web-ui`, `@avgeek-oss/design-system` | UI components and layouts                         |
-| `infra/towbar-cli`, `infra/upgrade-runner`            | Host installation and upgrades                    |
+| `infra/towbar-cli`                                    | Host installation and upgrades                    |
 
 Browser code imports `towbar-contracts`; it has no Node or server dependencies.
 
