@@ -64,7 +64,7 @@ Open **Account Settings → Passkeys** to add, rename, or remove a passkey. Use 
 
 Towbar requires device verification, such as a fingerprint, face scan, or PIN. Biometric data stays on the device. Sensitive actions use your passkey; accounts without a passkey confirm their password.
 
-Adding your first passkey shows ten recovery codes. Copy or download them and store them securely. Each code works once, together with your password, if your passkeys are unavailable. **Replace recovery codes** in the page menu invalidates the previous set. Existing passkey users can generate codes there too.
+Adding your first passkey shows ten recovery codes. Copy or download them and store them securely. Each code works once, together with your password, if your passkeys are unavailable. A recovery-code sign-in does not count as a passkey confirmation: actions that ask you to confirm your identity, such as adding a passkey, changing your email or password, replacing recovery codes or creating an API key with administrative access, still need a registered passkey. **Replace recovery codes** in the page menu invalidates the previous set. Existing passkey users can generate codes there too.
 
 Removing the last passkey returns the account to password sign-in and removes its recovery codes. Removing a passkey from Towbar does not delete its copy from your password manager.
 
@@ -82,4 +82,4 @@ The **MCP Guide** page shows the endpoint and client configuration for this Towb
 
 ## If you cannot sign in
 
-Use **Forgot password** when SMTP is available. If you lost your passkeys, sign in with your password and an unused recovery code. An installation operator can follow [admin account recovery](/docs/self-hosting/upgrades#admin-account-recovery) when the usual recovery methods are unavailable.
+Use **Forgot password** when SMTP is available. If you lost your passkeys, sign in with your password and an unused recovery code. To replace lost passkeys, ask an installation operator to remove them with the [account recovery commands](/docs/self-hosting/account-recovery); you can then sign in with your password and add a new passkey. An installation operator can follow [admin account recovery](/docs/self-hosting/upgrades#admin-account-recovery) when the usual recovery methods are unavailable.

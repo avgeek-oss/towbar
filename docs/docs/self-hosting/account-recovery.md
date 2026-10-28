@@ -3,7 +3,7 @@ title: "Account recovery"
 description: "Recover a password, change a lost Admin email address, or reset a user's passkeys from the Towbar host."
 ---
 
-Use **Forgot password** on the sign-in page when the account can receive email. An unused recovery code can replace a passkey once after a valid password. If both are unavailable, a trusted operator with shell access to the Towbar control-plane host can use the commands below.
+Use **Forgot password** on the sign-in page when the account can receive email. An unused recovery code signs a user in once after a valid password. It does not confirm identity for sensitive changes, so a user who lost every passkey needs an operator to remove them (see `--remove-passkeys` below) before adding a new one. If both are unavailable, a trusted operator with shell access to the Towbar control-plane host can use the commands below.
 
 These commands bypass the usual mailbox or passkey check. Verify the account owner's identity first. They are available only on the host, not through the dashboard, REST API, or MCP. They cannot create an account, promote a member, or recover a disabled account.
 

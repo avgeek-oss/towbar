@@ -3,6 +3,12 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- A sign-in with a recovery code no longer counts as a recent identity confirmation. Adding a passkey, changing the email address or password, replacing recovery codes and creating administrative API keys now ask for a passkey first. A user who lost every passkey asks an operator to remove them, then adds a new one after a password sign-in.
+
 ## 2.0.63 (2026-10-27)
 
 ### Fixed

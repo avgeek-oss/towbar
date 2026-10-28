@@ -222,6 +222,10 @@ export async function verifyPasskeySecurity({
     }),
   );
   assert.equal((await auth.findSession(cookies(completed)))!.user.id, adminId);
+  // A password-and-passkey sign-in counts as recent authentication.
+  await ok(
+    await request(endpoint + "/generate-register-options", cookies(completed)),
+  );
   // An account's credential cannot authenticate another user's existing session.
   const otherId = (await auth.findSession(memberHeaders))!.user.id;
   const otherChallenge = await options(
@@ -360,10 +364,75 @@ export async function verifyPasskeySecurity({
     request(endpoint + "/verify-recovery-code", recovery, { code: codes[0] }),
   ]);
   assert.equal(recovered.filter((result) => result.ok).length, 1);
+  const recoveredHeaders = cookies(recovered.find((result) => result.ok)!);
+  assert.equal((await auth.findSession(recoveredHeaders))?.user.id, adminId);
+  // A recovery code restores access, not proof for credential changes: each
+  // sensitive change needs a passkey confirmation first.
+  const requiresReauthentication = async (response: Response) => {
+    assert.equal(response.status, 403);
+    assert.match(await response.text(), /REAUTHENTICATION_REQUIRED/);
+  };
+  await requiresReauthentication(
+    await request(endpoint + "/generate-register-options", recoveredHeaders),
+  );
+  await requiresReauthentication(
+    await request("/v1/core/profile/email-change", recoveredHeaders, {
+      email: "recovered@settings.test",
+    }),
+  );
+  await requiresReauthentication(
+    await request(
+      "/v1/core/profile/passkeys/recovery-codes",
+      recoveredHeaders,
+      {},
+    ),
+  );
+  // Admin API keys and MCP admin grants use the same check. Their routes need
+  // HTTPS external access, which this suite's http origin does not enable.
+  const { requireRecentAuthentication } =
+    await import("../auth/recent-authentication.js");
+  const recoveredSession = (await auth.findSession(recoveredHeaders))!;
+  const [recoveredRow] = await database
+    .select({ authenticatedAt: schema.sessions.authenticatedAt })
+    .from(schema.sessions)
+    .where(eq(schema.sessions.id, recoveredSession.sessionId));
+  assert.equal(recoveredRow?.authenticatedAt.getTime(), 0);
+  await assert.rejects(
+    requireRecentAuthentication(adminId, recoveredSession.sessionId),
+    (error: { code?: string }) => error.code === "REAUTHENTICATION_REQUIRED",
+  );
+  // A browser that is already signed in cannot add a recovery sign-in.
+  const signedInRecovery = new Headers(recoveredHeaders);
+  signedInRecovery.set(
+    "cookie",
+    [
+      recoveredHeaders.get("cookie"),
+      (await passwordChallenge())
+        .get("cookie")!
+        .split("; ")
+        .find((value) => value.startsWith("towbar.two_factor=")),
+    ].join("; "),
+  );
   assert.equal(
-    (await auth.findSession(cookies(recovered.find((result) => result.ok)!)))
-      ?.user.id,
-    adminId,
+    (
+      await request(endpoint + "/verify-recovery-code", signedInRecovery, {
+        code: codes[1],
+      })
+    ).status,
+    401,
+  );
+  challenge = await options("/generate-authenticate-options", recoveredHeaders);
+  await ok(
+    await request(endpoint + "/verify-authentication", challenge.headers, {
+      response: authenticator.authentication(
+        challenge.data.challenge,
+        origin,
+        4,
+      ),
+    }),
+  );
+  await ok(
+    await request(endpoint + "/generate-register-options", recoveredHeaders),
   );
   assert.equal(
     (
@@ -401,7 +470,7 @@ export async function verifyPasskeySecurity({
           response: authenticator.authentication(
             expiringOptions.data.challenge,
             origin,
-            4,
+            5,
           ),
         },
       )

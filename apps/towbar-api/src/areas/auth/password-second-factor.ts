@@ -67,6 +67,10 @@ export function passwordSecondFactor(database: AuthDatabase): BetterAuthPlugin {
           body: z.object({ code: z.string().trim().min(1).max(100) }),
         },
         async (ctx) => {
+          if (await getSessionFromCtx(ctx))
+            throw new APIError("UNAUTHORIZED", {
+              message: "Sign in again to use a recovery code.",
+            });
           const pending = (await pendingPassword(ctx, database))!;
           const [user] = await database
             .select()
@@ -101,16 +105,25 @@ export function passwordSecondFactor(database: AuthDatabase): BetterAuthPlugin {
             })
             .where(eq(authRecoveryCodes.userId, user.id));
           expireCookie(ctx, factorCookie(ctx));
-          const session = await ctx.context.internalAdapter.createSession(
+          const created = await ctx.context.internalAdapter.createSession(
             user.id,
           );
           const identity = await ctx.context.internalAdapter.findUserById(
             user.id,
           );
-          if (!session || !identity)
+          if (!created || !identity)
             throw new APIError("UNAUTHORIZED", {
               message: "Sign in to continue.",
             });
+          // A recovery code restores access but is not proof for credential
+          // changes, so the session starts outside the recent-authentication
+          // window until the user confirms with a passkey.
+          const authenticatedAt = new Date(0);
+          await database
+            .update(sessions)
+            .set({ authenticatedAt })
+            .where(eq(sessions.id, created.id));
+          const session = { ...created, authenticatedAt };
           await setSessionCookie(ctx, { session, user: identity });
           return ctx.json({ session, user: identity });
         },
