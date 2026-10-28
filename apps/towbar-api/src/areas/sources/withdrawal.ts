@@ -20,9 +20,8 @@ import {
 } from "@workspace/towbar-database/schema";
 import { HttpError, conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { actorAllows } from "@workspace/towbar-access";
-import { auditAttribution, currentActor } from "../auth/actor-context.js";
+import { currentActor } from "../auth/actor-context.js";
 import { lockDomainClaims } from "../deployments/domain-claims.js";
 import {
   changedConfigurationPaths,
@@ -342,7 +341,6 @@ export async function withdrawRepository(
     environmentId?: string;
     expectedRevision?: string;
     expectedMappingRevision?: string;
-    actorUserId?: string | null;
   },
 ) {
   await lockDomainClaims(database, input.workspaceId);
@@ -448,22 +446,6 @@ export async function withdrawRepository(
           inArray(apps.id, transferredIds),
         ),
       );
-  await recordAuditEvent(database, {
-    workspaceId: input.workspaceId,
-    actorUserId: input.actorUserId,
-    action: input.environmentId
-      ? "source.environment.disconnected"
-      : "source.removed",
-    targetType: "source",
-    targetId: input.sourceId,
-    metadata: {
-      ...review.preview.summary,
-      ...(environment && input.environmentId
-        ? { environment: environment.name }
-        : {}),
-    },
-    ...auditAttribution(),
-  });
   return input.environmentId
     ? (
         await database

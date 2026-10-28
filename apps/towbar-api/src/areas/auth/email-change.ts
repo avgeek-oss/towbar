@@ -1,4 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import {
   createHash,
   randomBytes,
@@ -17,7 +16,6 @@ import { getEnv } from "../../env.js";
 import { HttpError, conflict, forbidden } from "../../http/errors.js";
 import type { AuthenticatedUser } from "../../http/types.js";
 import { enqueueIdentityEmail } from "../team/email-outbox.js";
-import { audit } from "../team/audit.js";
 import { incrementPersistentBucket } from "../../http/rate-limit.js";
 
 const digest = (value: string) =>
@@ -73,7 +71,6 @@ export async function requestEmailChange(
       expiresAt,
       actionUrl: `${new URL(getEnv().TOWBAR_APP_BASE_URL).origin}/confirm-email-change#${id}.${token}`,
     });
-    await audit(tx, user, "email.change-requested", user.id, {});
     return { email: newEmail, expiresAt: expiresAt.toISOString() };
   });
 }
@@ -157,15 +154,6 @@ export async function confirmEmailChange(id: string, token: string) {
           updatedAt: new Date(),
         })
         .where(eq(users.id, user.id));
-      await recordAuditEvent(tx, {
-        workspaceId: membership.workspaceId,
-        actorKind: "session",
-        actorUserId: user.id,
-        action: "email.changed",
-        targetType: "user",
-        targetId: user.id,
-        metadata: {},
-      });
       await tx.delete(emailChanges).where(eq(emailChanges.id, id));
       await tx.delete(sessions).where(eq(sessions.userId, user.id));
       await enqueueIdentityEmail(tx, {

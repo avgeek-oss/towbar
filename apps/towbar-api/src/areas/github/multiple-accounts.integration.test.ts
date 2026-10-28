@@ -7,10 +7,9 @@ import {
   randomUUID,
 } from "node:crypto";
 import test from "node:test";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import postgres from "postgres";
 import {
-  auditEvents,
   integrationInstallations,
   integrationWebhookDeliveries,
   sourceEnvironments,
@@ -400,16 +399,6 @@ void test(
         .where(eq(sourceEnvironments.id, environment.id));
       assert.equal(mapping?.branch, environment.branch);
       assert.notEqual(mapping?.mappingRevision, environment.mappingRevision);
-      const events = await database
-        .select()
-        .from(auditEvents)
-        .where(
-          and(
-            eq(auditEvents.workspaceId, workspaceId),
-            eq(auditEvents.action, "source.connection.changed"),
-          ),
-        );
-      assert.equal(events.length, 1);
       let queued = 0;
       const push = (id: number, owner: string, repositoryId = 1234) =>
         processGitHubPush(

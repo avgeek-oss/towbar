@@ -1,8 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import {
-  auditEventCatalog,
-  auditEventDefinitions,
-  auditEventMetadata,
   notificationEventTypes,
   notificationCategoryForEvent,
   notificationCategories,
@@ -12,54 +9,10 @@ import { fixtureJson } from "./fixture-localization.ts";
 
 export function eventHistoryFixture(
   getUser: () => TowbarUser | null | undefined,
-  baseUser: TowbarUser,
 ) {
-  const users = [
-    { id: baseUser.id, name: baseUser.name, email: baseUser.email },
-    {
-      id: "71111111-1111-4111-8111-000000000002",
-      name: "Towbar Member",
-      email: "member@example.com",
-    },
-  ];
   const now = Date.now();
   const id = (group: number, index: number) =>
     `e${group}111111-1111-4111-8111-${String(index + 1).padStart(12, "0")}`;
-  const audit = Array.from({ length: 64 }, (_, index) => {
-    const event = auditEventDefinitions[index % auditEventDefinitions.length]!;
-    const user = users[index % users.length]!;
-    const system = index % 7 === 0;
-    return {
-      id: id(1, index),
-      ...event,
-      targetType: event.slug.split(".")[0],
-      targetId: id(2, index),
-      actorKind: system
-        ? "system"
-        : index % 5 === 0
-          ? "personal-key"
-          : "session",
-      actorUserId: system ? null : user.id,
-      actorKeyId: index % 5 === 0 && !system ? id(3, index) : null,
-      actorName: system ? null : user.name,
-      actorEmail: system ? null : user.email,
-      metadata: auditEventMetadata(
-        event.slug,
-        Object.fromEntries(
-          auditEventCatalog[event.slug].metadata.map((key) => [
-            key,
-            key === "role"
-              ? "member"
-              : key.endsWith("Id")
-                ? id(2, index)
-                : "Local fixture",
-          ]),
-        ),
-      ),
-      requestId: id(4, index),
-      createdAt: new Date(now - index * 60_000).toISOString(),
-    };
-  });
   const providers = ["slack", "smtp", "discord", "telegram", "webhook"];
   const states = ["succeeded", "pending", "retrying", "failed", "delivering"];
   const targets = [
@@ -144,13 +97,7 @@ export function eventHistoryFixture(
     return true;
   }
   return (request: IncomingMessage, response: ServerResponse, url: URL) => {
-    if (
-      ![
-        "/v1/core/team/audit-logs",
-        "/v1/core/team/audit-logs/filters",
-        "/v1/core/notifications/deliveries",
-      ].includes(url.pathname)
-    )
+    if (!["/v1/core/notifications/deliveries"].includes(url.pathname))
       return false;
     if (!getUser() || getUser()?.workspaceRole !== "admin")
       return send(
@@ -160,8 +107,6 @@ export function eventHistoryFixture(
       );
     if (request.method !== "GET")
       return send(response, { error: { message: "Method not allowed" } }, 405);
-    if (url.pathname.endsWith("/filters"))
-      return send(response, { events: auditEventDefinitions, users });
     const q = url.searchParams,
       search = (q.get("search") ?? "").trim().toLowerCase();
     const limit = Number(q.get("limit") ?? 25);
@@ -182,44 +127,27 @@ export function eventHistoryFixture(
         { error: { message: "Invalid history query" } },
         400,
       );
-    const filtered = url.pathname.includes("audit-logs")
-      ? audit.filter(
-          (event) =>
-            (!q.get("event") || q.get("event") === event.slug) &&
-            (!q.get("userId") || q.get("userId") === event.actorUserId) &&
-            (!search ||
-              [
-                event.label,
-                event.slug,
-                event.actorName,
-                event.actorEmail,
-                event.targetId,
-                event.id,
-                event.targetType,
-                event.requestId,
-              ].some((value) => value?.toLowerCase().includes(search))),
-        )
-      : deliveries.filter(
-          (delivery) =>
-            (!q.get("entityId") || q.get("entityId") === delivery.targetId) &&
-            (!q.get("provider") || q.get("provider") === delivery.provider) &&
-            (!q.get("state") || q.get("state") === delivery.state) &&
-            (!q.get("category") ||
-              (q.get("category") === "backupsAndRestores"
-                ? delivery.category === "backups" ||
-                  delivery.category === "restores"
-                : q.get("category") === "deploymentFailures"
-                  ? delivery.type === "deployment.failed" ||
-                    delivery.type === "preview.failed"
-                  : q.get("category") === delivery.category)) &&
-            (!search ||
-              [
-                delivery.type,
-                delivery.title,
-                delivery.entityName,
-                delivery.id,
-              ].some((value) => value.toLowerCase().includes(search))),
-        );
+    const filtered = deliveries.filter(
+      (delivery) =>
+        (!q.get("entityId") || q.get("entityId") === delivery.targetId) &&
+        (!q.get("provider") || q.get("provider") === delivery.provider) &&
+        (!q.get("state") || q.get("state") === delivery.state) &&
+        (!q.get("category") ||
+          (q.get("category") === "backupsAndRestores"
+            ? delivery.category === "backups" ||
+              delivery.category === "restores"
+            : q.get("category") === "deploymentFailures"
+              ? delivery.type === "deployment.failed" ||
+                delivery.type === "preview.failed"
+              : q.get("category") === delivery.category)) &&
+        (!search ||
+          [
+            delivery.type,
+            delivery.title,
+            delivery.entityName,
+            delivery.id,
+          ].some((value) => value.toLowerCase().includes(search))),
+    );
     const rows = filtered.filter(
       (row) =>
         !q.get("before") ||

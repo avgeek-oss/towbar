@@ -451,7 +451,6 @@ resourceRoutes.post(
     return context.json({
       operation: await cancelResourceRestore({
         operationId: context.req.param("operationId"),
-        requestedBy: user.id,
         resourceId: context.req.param("resourceId"),
         workspaceId: user.workspaceId,
       }),

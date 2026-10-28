@@ -21,11 +21,8 @@ import {
   defaultDateTimePreferences,
   type DateTimePreferences,
 } from "@workspace/towbar-core/date-time";
-
 import { deploymentStates } from "@workspace/towbar-core/temporal";
 import type { LogTablePreferences } from "@workspace/towbar-core";
-import { deploymentEnvironments } from "@workspace/towbar-core/preview";
-
 import type {
   DeferredAutomaticDeployment,
   DomainHandoff,
@@ -49,6 +46,7 @@ import type {
   IntegrationScope,
   IntegrationProvider,
 } from "@workspace/towbar-core";
+import { deploymentEnvironments } from "@workspace/towbar-core/preview";
 
 export const workspaceRoleEnum = pgEnum("towbar_workspace_role", [
   "admin",
@@ -1376,6 +1374,7 @@ export const servers = pgTable(
     name: varchar("name", { length: 120 }),
     config: jsonb("config").$type<NormalizedServer>().notNull(),
     configDigest: varchar("config_digest", { length: 64 }).notNull(),
+    lastRemovedAt: timestamp("last_removed_at", { withTimezone: true }),
     preparedAt: timestamp("prepared_at", { withTimezone: true }),
     preparedConfigDigest: varchar("prepared_config_digest", { length: 64 }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
@@ -2361,59 +2360,6 @@ export const requestNonces = pgTable(
       name: "pk_towbar_request_nonces",
     }),
     index("idx_towbar_request_nonces_expires").on(table.expiresAt),
-  ],
-);
-
-export const auditEvents = pgTable(
-  "towbar_audit_events",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    workspaceId: uuid("workspace_id")
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
-    actorKind: text("actor_kind").$type<
-      "session" | "personal-key" | "team-key" | "system"
-    >(),
-    actorKeyId: uuid("actor_key_id").references(() => apiKeys.id, {
-      onDelete: "set null",
-    }),
-    actorUserId: uuid("actor_user_id").references(() => users.id, {
-      onDelete: "set null",
-    }),
-    action: varchar("action", { length: 160 }).notNull(),
-    targetType: varchar("target_type", { length: 80 }).notNull(),
-    targetId: varchar("target_id", { length: 255 }),
-    requestId: varchar("request_id", { length: 100 }),
-    metadata: jsonb("metadata")
-      .$type<Record<string, boolean | number | string | null>>()
-      .notNull()
-      .default({}),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    index("idx_towbar_audit_workspace_actor_cursor").on(
-      table.workspaceId,
-      table.actorUserId,
-      table.createdAt,
-      table.id,
-    ),
-    index("idx_towbar_audit_workspace_action_cursor").on(
-      table.workspaceId,
-      table.action,
-      table.createdAt,
-      table.id,
-    ),
-    index("idx_towbar_audit_workspace_cursor").on(
-      table.workspaceId,
-      table.createdAt,
-      table.id,
-    ),
-    index("idx_towbar_audit_workspace_created").on(
-      table.workspaceId,
-      table.createdAt,
-    ),
   ],
 );
 

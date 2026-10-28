@@ -2052,8 +2052,6 @@
     "team.ts:get:\"/invitations\"": {},
     "team.ts:post:\"/invitations\"": {},
     "team.ts:delete:\"/invitations/:invitationId\"": {},
-    "team.ts:get:\"/audit-logs/filters\"": {},
-    "team.ts:get:\"/audit-logs\"": {},
     "monitoring-overview.ts:get:\"/incidents\"": {
       "allOf": [
         { "$ref": "#/components/schemas/Response_75" },

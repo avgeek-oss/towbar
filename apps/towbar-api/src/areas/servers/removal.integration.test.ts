@@ -221,6 +221,12 @@ void test(
           const restored = await createServer({ config, workspaceId });
           assert.equal(restored.id, serverId);
           assert.equal(restored.setupStatus, "pending");
+          assert(
+            (
+              await db.select().from(servers).where(eq(servers.id, serverId))
+            )[0]!.lastRemovedAt,
+          );
+
           await db
             .update(apps)
             .set({ archivedAt: null })

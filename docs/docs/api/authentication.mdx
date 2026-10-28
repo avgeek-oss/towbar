@@ -26,7 +26,7 @@ Personal keys intersect saved grants with current active membership. Demotion pe
 Authorization: Bearer twb_YOUR_KEY
 ```
 
-Better Auth's API Key plugin generates and verifies opaque tokens. Towbar stores hashed verifiers and policy records; the token is not a JWT and contains no embedded role or credentials. Metadata and audit events never return a token or verifier. `GET /identity` identifies the current actor and team; team keys do not impersonate a human creator.
+Better Auth's API Key plugin generates and verifies opaque tokens. Towbar stores hashed verifiers and policy records; the token is not a JWT and contains no embedded role or credentials. Metadata never returns a token or verifier. `GET /identity` identifies the current actor and team; team keys do not impersonate a human creator.
 
 API and MCP require Bearer tokens and do not accept browser cookies. Browser sessions use cookies and origin validation. An `Origin` header must match the configured dashboard origin; CLI clients normally omit it. Use HTTPS outside local development, and keep tokens out of URLs, logs and committed files. API-key session emulation is disabled.
 

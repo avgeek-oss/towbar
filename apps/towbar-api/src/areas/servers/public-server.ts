@@ -33,7 +33,7 @@ export async function getLatestServerPreparations(serverIds: string[]) {
 }
 
 export function toPublicServer(
-  server: typeof servers.$inferSelect,
+  server: Omit<typeof servers.$inferSelect, "lastRemovedAt">,
   latestPreparation?: {
     configDigest: string;
     status: "queued" | "running" | "succeeded" | "failed";

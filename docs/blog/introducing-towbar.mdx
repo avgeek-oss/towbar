@@ -51,7 +51,7 @@ Static integration credentials are supplied through the Towbar runtime configura
 
 GitHub installation and GitLab OAuth authorization are interactive because their providers require an account authorization flow. The application identity and webhook secrets still belong to the Towbar runtime environment. Dynamic grants and the minimum account metadata needed to use them stay in the self-hosted control plane.
 
-Workload secrets are different. Service and Datastore manifests declare which keys are needed, but values never go into Git. Admins and members can save encrypted build, runtime, hook, environment, preview, or shared values in Towbar. A workload must refer to a shared value explicitly, so adding a secret to the workspace does not silently inject it everywhere. Towbar records the revision used for a deployment without copying plaintext into workflow history or audit events.
+Workload secrets are different. Service and Datastore manifests declare which keys are needed, but values never go into Git. Admins and members can save encrypted build, runtime, hook, environment, preview, or shared values in Towbar. A workload must refer to a shared value explicitly, so adding a secret to the workspace does not silently inject it everywhere. Towbar records the revision used for a deployment without copying plaintext into workflow history.
 
 This split keeps the repository reviewable, keeps platform credentials out of the browser, and still gives a team a practical way to manage the values an application needs.
 
@@ -125,7 +125,7 @@ Restores are designed to preserve a way back. Towbar verifies the backup, restor
 
 Towbar deploys to Ubuntu servers over SSH. Registering a server includes SSH host-key verification, credential verification, preparation, and a final readiness check. Preparation installs and configures the runtime dependencies Towbar needs without turning the machine into a proprietary target.
 
-The server view shows capacity, deployed Services and Datastores, credentials, preparation history, Scout status, and detected orphans. Orphan cleanup is explicit. An audited browser terminal is available for operational work, with idle and maximum-session limits, while Towbar avoids recording terminal contents.
+The server view shows capacity, deployed Services and Datastores, credentials, preparation history, Scout status, and detected orphans. Orphan cleanup is explicit. A browser terminal is available for operational work, with idle and maximum-session limits, while Towbar avoids recording terminal contents.
 
 Public HTTP services are routed through Caddy. Direct DNS and Cloudflare-backed DNS or tunnel workflows are supported, with TLS status kept visible. Private database access can bind to server loopback and travel through an SSH tunnel rather than becoming a public web route.
 
@@ -156,13 +156,11 @@ Operational notifications can go to Slack, email through SMTP, Discord, Telegram
 
 Runtime integrations also cover private OCI registries, backup storage, external secrets through Infisical or Doppler, and Cloudflare. Provider configuration is singular per Towbar installation and visible only when its complete environment configuration passes startup validation. This keeps the UI focused on what the current instance can actually use.
 
-## Teams, access, and an audit trail
+## Teams and access
 
 Towbar supports Admin, Member, and Viewer roles. Teams can invite members, add them directly when transactional email is unavailable, and manage personal or team API keys with scoped permissions and expiry.
 
 Accounts support password and passkey sign-in, with passkey verification required for accounts that have one registered. Recovery codes provide access after a valid password if a passkey is lost. Browser sessions can be reviewed and revoked. Sensitive recovery operations run locally on the Towbar host and revoke affected sessions instead of creating a permanent recovery backdoor.
-
-The audit log records who performed an operation, what it targeted, how the actor authenticated, and when it happened. It avoids recording secret values. Filters for event type and user, searchable targets, and stable event identifiers make it useful during an investigation rather than merely present for compliance.
 
 For automation, HTTPS installations expose a REST API and a task-oriented MCP interface. REST uses personal and team API keys; MCP requires OAuth sign-in and explicit consent. Access is restricted by both saved permissions and the actor's current role. Local HTTP installations keep REST, MCP, and API-key management unavailable by design.
 

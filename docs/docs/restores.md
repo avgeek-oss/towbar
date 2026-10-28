@@ -60,9 +60,9 @@ Cancellation is available while work is queued, downloading, verifying, or resto
 
 After a successful promotion, the previous volume is retained for seven days. An Admin can remove it early from the restore history table. The maintenance sweep queues automated cleanup after the retention deadline. Cleanup rechecks Towbar ownership labels and the active-volume pointer; an active, unowned, or missing volume is skipped rather than removed.
 
-## Audit and incident review
+## Restore and incident review
 
-The restore history records the actor, operator reason, backup ID and metadata, redacted phase commands, validation results, promotion or rollback outcome, and cleanup status. Secret values and restored data are never written to the audit trail. Restore, rollback, cancellation, and non-restorable backup transitions also dispatch notifications through configured channels.
+The restore history records the actor, operator reason, backup ID and metadata, redacted phase commands, validation results, promotion or rollback outcome, and cleanup status. Secret values and restored data are never written to restore history. Restore, rollback, cancellation, and non-restorable backup transitions also dispatch notifications through configured channels.
 
 If a restore fails, review the final phase and error message before retrying. Correct any missing object, incompatible engine version, insufficient disk, credential scope, or runtime health problem first. A candidate failure leaves the active runtime and volume untouched.
 

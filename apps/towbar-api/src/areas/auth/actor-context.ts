@@ -53,16 +53,6 @@ export function captureQueuedActor(
     requestedByKeyId: "keyId" in actor ? actor.keyId : null,
   };
 }
-export function auditAttribution() {
-  const actor = currentActor();
-  return actor
-    ? {
-        actorKind: actor.kind,
-        actorKeyId: "keyId" in actor ? actor.keyId : null,
-        actorUserId: "userId" in actor ? actor.userId : null,
-      }
-    : {};
-}
 async function resolveQueuedActor(
   reference: QueuedActor | null | undefined,
 ): Promise<AccessActor> {

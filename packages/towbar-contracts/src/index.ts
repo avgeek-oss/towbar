@@ -3,7 +3,6 @@ export * from "./monitoring.js";
 export * from "./temporal.js";
 export * from "./date-time.js";
 export * from "./date-time-range.js";
-export * from "./audit.js";
 export * from "./upgrades.js";
 export * from "./system-health.js";
 export * from "./server-hardware.js";

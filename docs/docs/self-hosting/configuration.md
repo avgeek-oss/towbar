@@ -131,7 +131,7 @@ notifications:
         signingSecret: "..."
 ```
 
-The dashboard shows the active providers and routes without returning credentials. Notification events, delivery attempts, provider outcomes, and thread identifiers remain persisted for reliable retries and audit history.
+The dashboard shows the active providers and routes without returning credentials. Notification events, delivery attempts, provider outcomes, and thread identifiers remain persisted for reliable retries and delivery history.
 
 ## Image vulnerability scanning
 

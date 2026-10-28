@@ -1,9 +1,7 @@
 "use client";
 import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { useUrlTablePagination } from "@/hooks/use-url-pagination";
-
 import { WorkspaceSecrets } from "./app-secrets";
-import { TeamAuditLogs } from "./team-audit-logs";
 import { canShowApiMcpSettings } from "@/lib/config";
 import {
   useEffect,
@@ -17,7 +15,7 @@ import {
   UserGroupIcon,
   Settings01Icon,
   Add01Icon,
-  FileSearchIcon,
+  Key01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   isWorkspaceRole,
@@ -26,7 +24,6 @@ import {
 } from "@workspace/towbar-access";
 import { CopyTextButton } from "./copy-text-button";
 import { ApiMcpSettings } from "./api-mcp-settings";
-import { Key01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@avgeek-oss/design-system/buttons/button";
 import { QueryError, QueryLoading } from "@workspace/towbar-web-ui/query-state";
 import { DashboardPage } from "./page-parts";
@@ -113,7 +110,7 @@ function teamChanged() {
   window.dispatchEvent(new Event("towbar:identity-changed"));
 }
 export type TeamSettingsPage =
-  "members" | "general" | "api-keys" | "audit-logs" | "workspace-secrets";
+  "members" | "general" | "api-keys" | "workspace-secrets";
 
 const teamSettingsPages: Record<
   TeamSettingsPage,
@@ -143,16 +140,11 @@ const teamSettingsPages: Record<
     label: "API Keys",
     permission: "team.read",
   },
-  "audit-logs": {
-    icon: FileSearchIcon,
-    label: "Audit Logs",
-    permission: "team.read",
-  },
 };
 
 const teamSettingsGroups = [
   { title: "Account", pages: ["general", "members"] },
-  { title: "Security", pages: ["workspace-secrets", "api-keys", "audit-logs"] },
+  { title: "Security", pages: ["workspace-secrets", "api-keys"] },
 ] as const satisfies Array<{
   title: string;
   pages: readonly TeamSettingsPage[];
@@ -211,14 +203,12 @@ export function TeamSettingsShell({
 export function TeamSettings({
   page,
 }: {
-  page: "members" | "general" | "api-keys" | "audit-logs" | "workspace-secrets";
+  page: "members" | "general" | "api-keys" | "workspace-secrets";
 }) {
   return (
     <TeamSettingsShell page={page}>
       {page === "workspace-secrets" ? (
         <WorkspaceSecrets />
-      ) : page === "audit-logs" ? (
-        <TeamAuditLogs />
       ) : page === "members" ? (
         <TeamMembers />
       ) : page === "api-keys" ? (

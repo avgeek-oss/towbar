@@ -1,4 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
@@ -180,21 +179,6 @@ async function recoverAccount(input: {
             personalKeys.map((key) => key.id),
           ),
         );
-    await recordAuditEvent(tx, {
-      workspaceId: user.workspaceId,
-      actorKind: "system",
-      action: input.adminOnly
-        ? "account.operator-recovery"
-        : "account.operator-mfa-reset",
-      targetType: "user",
-      targetId: user.id,
-      metadata: {
-        mfaReset: Boolean(input.resetMfa),
-        passkeysRemoved: Boolean(input.removePasskeys),
-        emailChanged,
-        personalKeysRevoked: personalKeys.length,
-      },
-    });
     const notice = { userId: user.id, email: user.email, name: user.name };
     if (input.password)
       await enqueueIdentityEmail(tx, {

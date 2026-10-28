@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
 import test from "node:test";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   type NormalizedDeployable,
   isNormalizedResource,
@@ -11,7 +11,6 @@ import {
 } from "@workspace/towbar-core";
 import {
   apps,
-  auditEvents,
   deployments,
   integrationInstallations,
   logCollectorRequests,
@@ -194,114 +193,93 @@ void test(
             .where(eq(logCollectors.serverId, serverId));
         },
       );
-      await t.test(
-        "concurrent retries preserve one generation and one audit event",
-        async () => {
-          const input = {
-            serverId,
-            workspaceId,
-            enabled: true,
+      await t.test("concurrent retries preserve one generation", async () => {
+        const input = {
+          serverId,
+          workspaceId,
+          enabled: true,
+          idempotencyKey: randomUUID(),
+        };
+        const outcomes = await Promise.all([
+          withActor(actor, () => admitLogCollection(input)),
+          withActor(actor, () => admitLogCollection(input)),
+        ]);
+        assert.equal(outcomes[0]!.generation, outcomes[1]!.generation);
+        const [server] = await db
+          .select()
+          .from(servers)
+          .where(eq(servers.id, serverId));
+        assert.equal(
+          server!.config.hostLogCollection ?? false,
+          false,
+          "native collection does not grant custom Services host-log access",
+        );
+        await assert.rejects(
+          getLogCollectorExecutionContext(serverId, outcomes[0]!.generation!),
+          /Configure.*SSH private key/,
+        );
+        assert.equal(outcomes.filter((row) => row.replayed).length, 1);
+        assert.equal(
+          (
+            await db
+              .select()
+              .from(logCollectorRequests)
+              .where(eq(logCollectorRequests.workspaceId, workspaceId))
+          ).length,
+          1,
+        );
+        await assert.rejects(
+          withActor(actor, () =>
+            admitLogCollection({ ...input, enabled: false }),
+          ),
+          { code: "IDEMPOTENCY_KEY_REUSED" },
+        );
+        await assert.rejects(
+          withActor(actor, () =>
+            admitLogCollection({ ...input, serverId: secondServer }),
+          ),
+          { code: "IDEMPOTENCY_KEY_REUSED" },
+        );
+        await finishLogCollectorOperation(
+          serverId,
+          outcomes[0]!.generation!,
+          true,
+        );
+        await finishLogCollectorOperation(
+          serverId,
+          outcomes[0]!.generation!,
+          false,
+        );
+        assert.equal(
+          (
+            await db
+              .select()
+              .from(logCollectors)
+              .where(eq(logCollectors.serverId, serverId))
+          )[0]!.status,
+          "waiting",
+        );
+        const disable = await withActor(actor, () =>
+          admitLogCollection({
+            ...input,
+            enabled: false,
             idempotencyKey: randomUUID(),
-          };
-          const outcomes = await Promise.all([
-            withActor(actor, () => admitLogCollection(input)),
-            withActor(actor, () => admitLogCollection(input)),
-          ]);
-          assert.equal(outcomes[0]!.generation, outcomes[1]!.generation);
-          const [server] = await db
-            .select()
-            .from(servers)
-            .where(eq(servers.id, serverId));
-          assert.equal(
-            server!.config.hostLogCollection ?? false,
-            false,
-            "native collection does not grant custom Services host-log access",
-          );
+          }),
+        );
+        await assert.rejects(
+          withActor(actor, () => admitLogCollection(input)),
+          { code: "LOGS_OPERATION_SUPERSEDED" },
+        );
+        assert.equal(disable.desiredState, "disabled");
+        await finishLogCollectorOperation(serverId, disable.generation!, true);
+        for (const role of ["viewer", "member"] as const)
           await assert.rejects(
-            getLogCollectorExecutionContext(serverId, outcomes[0]!.generation!),
-            /Configure.*SSH private key/,
-          );
-          assert.equal(outcomes.filter((row) => row.replayed).length, 1);
-          assert.equal(
-            (
-              await db
-                .select()
-                .from(logCollectorRequests)
-                .where(eq(logCollectorRequests.workspaceId, workspaceId))
-            ).length,
-            1,
-          );
-          assert.equal(
-            (
-              await db
-                .select()
-                .from(auditEvents)
-                .where(
-                  and(
-                    eq(auditEvents.workspaceId, workspaceId),
-                    eq(auditEvents.action, "logs.install_requested"),
-                  ),
-                )
-            ).length,
-            1,
-          );
-          await assert.rejects(
-            withActor(actor, () =>
-              admitLogCollection({ ...input, enabled: false }),
+            withActor({ ...actor, role }, () =>
+              admitLogCollection({ ...input, idempotencyKey: randomUUID() }),
             ),
-            { code: "IDEMPOTENCY_KEY_REUSED" },
+            { status: 403 },
           );
-          await assert.rejects(
-            withActor(actor, () =>
-              admitLogCollection({ ...input, serverId: secondServer }),
-            ),
-            { code: "IDEMPOTENCY_KEY_REUSED" },
-          );
-          await finishLogCollectorOperation(
-            serverId,
-            outcomes[0]!.generation!,
-            true,
-          );
-          await finishLogCollectorOperation(
-            serverId,
-            outcomes[0]!.generation!,
-            false,
-          );
-          assert.equal(
-            (
-              await db
-                .select()
-                .from(logCollectors)
-                .where(eq(logCollectors.serverId, serverId))
-            )[0]!.status,
-            "waiting",
-          );
-          const disable = await withActor(actor, () =>
-            admitLogCollection({
-              ...input,
-              enabled: false,
-              idempotencyKey: randomUUID(),
-            }),
-          );
-          await assert.rejects(
-            withActor(actor, () => admitLogCollection(input)),
-            { code: "LOGS_OPERATION_SUPERSEDED" },
-          );
-          assert.equal(disable.desiredState, "disabled");
-          await finishLogCollectorOperation(
-            serverId,
-            disable.generation!,
-            true,
-          );
-          for (const role of ["viewer", "member"] as const)
-            await assert.rejects(
-              withActor({ ...actor, role }, () =>
-                admitLogCollection({ ...input, idempotencyKey: randomUUID() }),
-              ),
-              { status: 403 },
-            );
-        },
-      );
+      });
       const [installation] = await db
         .insert(integrationInstallations)
         .values({

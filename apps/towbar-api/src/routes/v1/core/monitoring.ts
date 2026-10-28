@@ -53,7 +53,6 @@ monitoringSettingsRoutes.patch(
         ...body,
         serverId: context.req.param("serverId")!,
         workspaceId: user.workspaceId,
-        requestedBy: user.id,
       }),
     });
   },

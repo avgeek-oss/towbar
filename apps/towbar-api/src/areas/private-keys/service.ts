@@ -1,5 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import {
   type KeyObject,
   createPrivateKey,
@@ -8,7 +6,6 @@ import {
   randomUUID,
 } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
-
 import {
   decryptCredential,
   encryptCredential,
@@ -19,7 +16,6 @@ import {
   servers,
   workspacePrivateKeys,
 } from "@workspace/towbar-database/schema";
-
 import { getEnv } from "../../env.js";
 import { conflict, notFound, unprocessable } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
@@ -197,7 +193,6 @@ export async function createWorkspacePrivateKey(input: {
   name: string;
   privateKey?: string;
   publicKey?: string | null;
-  requestedBy: string;
   workspaceId: string;
 }) {
   await requireUniqueName(input.workspaceId, input.name);
@@ -231,15 +226,6 @@ export async function createWorkspacePrivateKey(input: {
     })
     .returning(publicSelection);
   if (!created) throw new Error("Unable to create private key");
-  await recordAuditEvent(getTowbarDatabase(), {
-    action: "private-key.created",
-    actorUserId: input.requestedBy,
-    metadata: { algorithm: material.algorithm, generated },
-    targetId: id,
-    targetType: "private-key",
-    workspaceId: input.workspaceId,
-    ...auditAttribution(),
-  });
   return { ...created, usageCount: 0 };
 }
 
@@ -311,7 +297,6 @@ export async function updateWorkspacePrivateKey(input: {
   name: string;
   privateKey?: string;
   publicKey?: string | null;
-  requestedBy: string;
   workspaceId: string;
 }) {
   const current = await getPrivateKeyRow(input.id, input.workspaceId);
@@ -348,21 +333,11 @@ export async function updateWorkspacePrivateKey(input: {
     .where(eq(workspacePrivateKeys.id, input.id))
     .returning(publicSelection);
   if (!updated) throw notFound("Private key");
-  await recordAuditEvent(getTowbarDatabase(), {
-    action: "private-key.updated",
-    actorUserId: input.requestedBy,
-    metadata: { keyMaterialChanged: Boolean(material) },
-    targetId: input.id,
-    targetType: "private-key",
-    workspaceId: input.workspaceId,
-    ...auditAttribution(),
-  });
   return updated;
 }
 
 export async function deleteWorkspacePrivateKey(input: {
   id: string;
-  requestedBy: string;
   workspaceId: string;
 }) {
   await getPrivateKeyRow(input.id, input.workspaceId);
@@ -376,15 +351,6 @@ export async function deleteWorkspacePrivateKey(input: {
           eq(workspacePrivateKeys.workspaceId, input.workspaceId),
         ),
       );
-    await recordAuditEvent(database, {
-      action: "private-key.deleted",
-      actorUserId: input.requestedBy,
-      metadata: {},
-      targetId: input.id,
-      targetType: "private-key",
-      workspaceId: input.workspaceId,
-      ...auditAttribution(),
-    });
   });
 }
 

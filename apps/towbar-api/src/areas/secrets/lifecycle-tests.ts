@@ -3,7 +3,6 @@ import { randomBytes } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import {
   apps,
-  auditEvents,
   deployments,
   managedSecrets,
   releases,
@@ -138,12 +137,6 @@ export async function testSecretLifecycle({
         })
         .where(eq(managedSecrets.id, row.id));
       await assert.rejects(readSecretValues(slot), /could not be unlocked/u);
-      const audit = await db
-        .select()
-        .from(auditEvents)
-        .where(eq(auditEvents.workspaceId, workspaceId));
-      assert(!JSON.stringify(audit).includes("global-value"));
-      assert(!JSON.stringify(audit).includes("test-slack-token"));
       await db.delete(releases).where(eq(releases.appId, appId));
       await db.delete(deployments).where(eq(deployments.appId, appId));
       await db.delete(apps).where(eq(apps.id, appId));

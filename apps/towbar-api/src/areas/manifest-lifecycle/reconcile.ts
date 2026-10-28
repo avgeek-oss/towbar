@@ -1,6 +1,4 @@
 import { repositoryTransferSecrets } from "./transfer-secrets.js";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import {
   apps,
@@ -323,20 +321,6 @@ async function reconcileIdentity(
     requiredSecrets: target.snapshot.manifest.requiredSecrets,
   });
 
-  if (transferring) {
-    await recordAuditEvent(database, {
-      workspaceId: input.workspaceId,
-      action: "workload.ownership.transferred",
-      targetType: "app",
-      targetId: existing.id,
-      metadata: {
-        previousSourceId: existing.sourceId,
-        sourceId: target.environment.sourceId,
-        manifestId: existing.manifestId,
-      },
-      ...auditAttribution(),
-    });
-  }
   if (
     shouldResumeAutomaticDeployment(
       existing,

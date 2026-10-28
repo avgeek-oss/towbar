@@ -6,12 +6,10 @@ import {
 import { assertOAuthDiscovery, assertSdkOAuthFlow } from "./sdk-test-helper.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import {
   apiKeyPolicies,
   apiKeys,
-  auditEvents,
   mcpOAuthClients,
   mcpOAuthRequests,
   users,
@@ -45,8 +43,6 @@ void test(
     const { createApp } = await import("../../app.js");
     const auth = await import("../auth/service.js");
     const keys = await import("../api-keys/service.js");
-    const { withActor } = await import("../auth/actor-context.js");
-    const { recordAuditEvent } = await import("../../infrastructure/audit.js");
     const db = getTowbarDatabase(),
       app = createApp(),
       origin = process.env.TOWBAR_API_BASE_URL,
@@ -394,34 +390,6 @@ void test(
           assert.equal(apiResponse.status, 401);
           const principal = await keys.findApiKey(issued.access_token);
           assert(principal);
-          await withActor(principal.actor, () =>
-            recordAuditEvent(db, {
-              workspaceId: user.workspaceId,
-              action: "scout.rule_created",
-              targetType: "repository",
-              targetId: randomUUID(),
-            }),
-          );
-          const events = await db
-            .select()
-            .from(auditEvents)
-            .where(eq(auditEvents.workspaceId, user.workspaceId));
-          assert(
-            events.some(
-              (event) =>
-                event.action === "api-key.created" &&
-                event.metadata.tokenType === "mcp-oauth" &&
-                event.metadata.oauthClientId === client.client_id,
-            ),
-          );
-          assert(
-            events.some(
-              (event) =>
-                event.action === "scout.rule_created" &&
-                event.metadata.oauthClientId === client.client_id,
-            ),
-          );
-          assert(!JSON.stringify(events).includes(issued.access_token));
           await keys.revokeApiKey(user, key.id);
           assert.equal(await keys.findApiKey(issued.access_token), null);
         },

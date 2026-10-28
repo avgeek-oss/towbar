@@ -1,5 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
 import {
   authorizeQueuedEffect,
   captureQueuedActor,
@@ -57,7 +55,6 @@ export async function updateMonitoringRetention(input: {
   serverId: string;
   workspaceId: string;
   retentionDays: number;
-  requestedBy: string | null;
 }) {
   await getServer(input.serverId, input.workspaceId);
   await getTowbarDatabase().transaction(async (tx) => {
@@ -75,15 +72,6 @@ export async function updateMonitoringRetention(input: {
         target: monitoringAgents.serverId,
         set: { retentionDays: input.retentionDays, updatedAt: new Date() },
       });
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.requestedBy,
-      action: "monitoring.retention_updated",
-      targetType: "server",
-      targetId: input.serverId,
-      metadata: { retentionDays: input.retentionDays },
-      ...auditAttribution(),
-    });
   });
   return getMonitoringAgent(input.serverId, input.workspaceId);
 }
@@ -162,18 +150,6 @@ export async function requestMonitoringAgent(input: {
       .insert(monitoringAgents)
       .values(values)
       .onConflictDoUpdate({ target: monitoringAgents.serverId, set: values });
-    await recordAuditEvent(tx, {
-      workspaceId: input.workspaceId,
-      actorUserId: input.requestedBy,
-      action:
-        input.desiredState === "enabled"
-          ? "monitoring.install_requested"
-          : "monitoring.uninstall_requested",
-      targetType: "server",
-      targetId: server.id,
-      metadata: { generation },
-      ...auditAttribution(),
-    });
   });
   try {
     await enqueueMonitoringAgent({ serverId: input.serverId, generation });

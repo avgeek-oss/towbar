@@ -178,13 +178,13 @@ export function environmentSecretRoutes(
       status: 200,
     }),
     async (context) => {
-      const { slot, actorUserId } = await revealSlot(context);
+      const slot = await revealSlot(context);
       const { key } = await readJson(
         context,
         z.object({ key: secretKeySchema }).strict(),
         2048,
       );
-      return context.json(await revealSecretValue(slot, key, actorUserId));
+      return context.json(await revealSecretValue(slot, key));
     },
   );
   routes.post(
@@ -205,9 +205,9 @@ export function environmentSecretRoutes(
       status: 200,
     }),
     async (context) => {
-      const { slot, actorUserId } = await revealSlot(context);
+      const slot = await revealSlot(context);
       await readJson(context, z.object({}).strict(), 2048);
-      return context.json(await revealSecretValues(slot, actorUserId));
+      return context.json(await revealSecretValues(slot));
     },
   );
   async function revealSlot(context: Context<TowbarHonoEnvironment>) {
@@ -236,10 +236,7 @@ export function environmentSecretRoutes(
         "Resources only support their environment runtime secrets",
       );
 
-    return {
-      slot: { ...owner, environment: selectedEnvironment, stage },
-      actorUserId: user.id,
-    };
+    return { ...owner, environment: selectedEnvironment, stage };
   }
   return routes;
 }

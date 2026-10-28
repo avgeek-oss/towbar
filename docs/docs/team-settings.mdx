@@ -7,7 +7,7 @@ import { Screenshot } from "/snippets/oss/screenshot.jsx";
 
 A Towbar installation has one team. The person who completes onboarding becomes its first Admin. Only Admins can open **Settings → Team Settings**.
 
-The sidebar groups **General** and **Members** under **Account**, followed by **API Keys** and **Audit Logs** under **Security**. Manage server keys separately in **Manage → SSH keys**.
+The sidebar groups **General** and **Members** under **Account**, followed by **Workspace Secrets** and **API Keys** under **Security**. Manage server keys separately in **Manage → SSH keys**.
 
 ## General
 
@@ -59,14 +59,6 @@ For individual REST API scripts, use [Personal API Keys](/docs/personal-settings
 A role change takes effect on subsequent requests. Personal key permissions are capped by both their saved grants and the owner's current role. Demotion narrows those grants; promotion does not restore them automatically.
 
 Towbar also checks permission before queued work starts. A removed member or revoked key can therefore cause pending work to stop. Revoking access cannot undo work that has already completed.
-
-## Audit logs
-
-Open **Security → Audit Logs** to browse captured activity across the team. Each row shows the event label and stable dot-notation slug, the acting user or system, the target, and the timestamp. Select the event name for IDs, request attribution, and event-specific metadata.
-
-Filter by event type or user, or search by event label, slug, user name, email, target ID, event ID, or request ID. Filters work together and reset the table to the first page. Use Previous and Next to browse older records. The first page refreshes automatically.
-
-Only Admins can read team-wide audit history. API keys and MCP cannot access this browser-only view. Audit records retain events for former team members, while credentials, tokens, and raw provider responses are excluded from the returned metadata. This page displays events captured by Towbar; it does not retroactively reconstruct actions that were not recorded.
 
 ## Workspace Secrets
 

@@ -1,4 +1,3 @@
-import { recordAuditEvent } from "../../infrastructure/audit.js";
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 import { roleAllows } from "@workspace/towbar-access";
@@ -176,21 +175,4 @@ export async function consumeTerminalTicket(value: string, headers: Headers) {
   await requireRecentAuthentication(ticket.userId, ticket.sessionId);
   const credentials = await resolveServerCredentials(ticket);
   return { ticket, server, privateKey: credentials.values.privateKey! };
-}
-
-export async function auditTerminal(
-  ticket: Ticket,
-  connectionId: string,
-  event: "opened" | "closed",
-  reason?: string,
-) {
-  await recordAuditEvent(getTowbarDatabase(), {
-    workspaceId: ticket.workspaceId,
-    actorUserId: ticket.userId,
-    actorKind: "session",
-    action: `server.terminal.${event}`,
-    targetType: "server",
-    targetId: ticket.serverId,
-    metadata: { connectionId, ...(reason ? { reason } : {}) },
-  });
 }

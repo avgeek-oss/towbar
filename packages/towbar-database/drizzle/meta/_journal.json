@@ -232,6 +232,13 @@
       "when": 1792328254810,
       "tag": "0033_repository_secrets",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793197965067,
+      "tag": "0034_remove_audit_logs",
+      "breakpoints": true
     }
   ]
 }

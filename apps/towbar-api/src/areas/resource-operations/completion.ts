@@ -2,29 +2,23 @@ import { finalizeRetirement } from "../manifest-lifecycle/removal.js";
 import { recordRetiredWorkloads } from "./cleanup-plan.js";
 import { lockDomainClaims } from "../deployments/domain-claims.js";
 import { serverCleanupResultSchema } from "@workspace/towbar-core";
-import { recordAuditEvent } from "../../infrastructure/audit.js";
-import { auditAttribution } from "../auth/actor-context.js";
-import { withActor } from "../auth/actor-context.js";
-import { and, eq, inArray, max } from "drizzle-orm";
-
 import {
   backupOperationResultSchema,
-  restoreCleanupResultSchema,
   restoreOperationResultSchema,
 } from "@workspace/towbar-core";
+import type { ResourceOperationResult } from "@workspace/towbar-core";
+import { withActor } from "../auth/actor-context.js";
+import { and, eq, inArray, max } from "drizzle-orm";
 import {
   deployableRuntimeStates,
   resourceOperationEvents,
   resourceOperations,
 } from "@workspace/towbar-database/schema";
-
 import { notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { emitResourceOperationNotification } from "../notifications/events.js";
 import { requestServerCheck } from "../servers/service.js";
 import { assureResourceBackup } from "./backup-assurance.js";
-
-import type { ResourceOperationResult } from "@workspace/towbar-core";
 
 type TerminalOperationInput =
   | { result: ResourceOperationResult; state: "succeeded" }
@@ -45,8 +39,8 @@ export async function finishResourceOperation(
     terminalInput,
   );
   // Temporal activity completion can be retried after the database commit.
-  // Keep terminal callbacks idempotent so a retry does not duplicate audit
-  // entries, notifications, server checks, or backup assurance work.
+  // Keep terminal callbacks idempotent so a retry does not duplicate
+  // notifications, server checks, or backup assurance work.
   if (!changed) return operation;
   await runTerminalSideEffects(operation, terminalInput.state);
   return operation;
@@ -234,9 +228,7 @@ async function runTerminalSideEffects(
     ).catch(() => undefined);
   }
   if (operation.type === "restore") await finishRestoreSideEffects(operation);
-  if (operation.type === "restore_cleanup") {
-    await auditRestoreCleanup(operation);
-  }
+
   if (operation.state === "succeeded" && operation.type === "backup") {
     await assureResourceBackup(operation.resourceId!).catch(() => undefined);
   }
@@ -247,20 +239,6 @@ async function finishRestoreSideEffects(
 ) {
   if (operation.state === "queued" || operation.state === "running") return;
   const restoreResult = restoreOutcome(operation.result);
-  await recordAuditEvent(getTowbarDatabase(), {
-    action: `resource.restore.${operation.state}`,
-    actorUserId: operation.requestedBy,
-    metadata: {
-      operationId: operation.id,
-      outcome: restoreResult.success ? restoreResult.data.outcome : null,
-      reason:
-        operation.request.type === "restore" ? operation.request.reason : null,
-    },
-    targetId: operation.resourceId,
-    targetType: "resource",
-    workspaceId: operation.workspaceId,
-    ...auditAttribution(),
-  });
   const event =
     restoreResult.success && restoreResult.data.outcome === "rolled_back"
       ? "restore.rolled_back"
@@ -276,32 +254,4 @@ async function finishRestoreSideEffects(
 
 function restoreOutcome(result: unknown) {
   return restoreOperationResultSchema.safeParse(result);
-}
-
-async function auditRestoreCleanup(
-  operation: typeof resourceOperations.$inferSelect,
-) {
-  if (operation.state === "queued" || operation.state === "running") return;
-  const cleanupResult = restoreCleanupResultSchema.safeParse(operation.result);
-  await recordAuditEvent(getTowbarDatabase(), {
-    action: `resource.restore_cleanup.${operation.state}`,
-    actorUserId: operation.requestedBy,
-    metadata: {
-      cleanedVolumes: cleanupResult.success
-        ? cleanupResult.data.cleanedVolumes.length
-        : null,
-      operationId: operation.id,
-      restoreId:
-        operation.request.type === "restore_cleanup"
-          ? operation.request.restoreId
-          : null,
-      skippedVolumes: cleanupResult.success
-        ? cleanupResult.data.skippedVolumes.length
-        : null,
-    },
-    targetId: operation.resourceId,
-    targetType: "resource",
-    workspaceId: operation.workspaceId,
-    ...auditAttribution(),
-  });
 }

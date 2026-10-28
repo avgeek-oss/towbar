@@ -25,9 +25,7 @@ export type HistoryResponse<T> = { items: T[]; nextCursor: HistoryCursor };
 export function useEventHistory<T>(path: string) {
   const { search, update } = usePageQuery();
   const pagination = useUrlCursorPagination();
-  const filterKeys = path.includes("audit-logs")
-    ? ["event", "userId", "search"]
-    : ["provider", "category", "state", "entityId", "search"];
+  const filterKeys = ["provider", "category", "state", "entityId", "search"];
   const filters: Record<string, string> = {};
   for (const key of filterKeys) {
     const value = search.get(key);

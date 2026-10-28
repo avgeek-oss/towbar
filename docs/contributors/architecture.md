@@ -100,7 +100,7 @@ The public listener serves browser sessions, API keys, REST, MCP and provider we
 
 PostgreSQL stores configuration, snapshots, history, observations and encrypted credentials. Git contains secret names; Towbar stores values encrypted with AES-256-GCM and bound to their workspace and owner.
 
-Workers resolve secrets at execution time. Plaintext stays out of snapshots, workflow history, audit events and deployment logs. Runtime configuration supplies provider clients and notification destinations; OAuth grants and GitHub installations are stored as workspace state.
+Workers resolve secrets at execution time. Plaintext stays out of snapshots, workflow history and deployment logs. Runtime configuration supplies provider clients and notification destinations; OAuth grants and GitHub installations are stored as workspace state.
 
 ## Deployment-server boundary
 

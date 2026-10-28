@@ -68,7 +68,6 @@ sourceEnvironmentRoutes.post(
       ...mapping,
       sourceId,
       workspaceId: user.workspaceId,
-      actorUserId: user.id,
     });
     const sync = await requestEnvironmentSync({
       sourceId,
@@ -107,7 +106,6 @@ sourceEnvironmentRoutes.patch(
       sourceId,
       environmentId,
       workspaceId: user.workspaceId,
-      actorUserId: user.id,
     });
     const sync = await requestEnvironmentSync({
       sourceId,
