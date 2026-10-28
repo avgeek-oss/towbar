@@ -3,8 +3,6 @@ import { and, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { hashPassword } from "better-auth/crypto";
 import {
-  apiKeyPolicies,
-  apiKeys,
   authAccounts,
   authPasskeys,
   authRecoveryCodes,
@@ -18,6 +16,7 @@ import {
 import { badRequest, conflict } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { enqueueIdentityEmail } from "../team/email-outbox.js";
+import { revokePersonalAccess } from "./credential-revocation.js";
 
 const emailSchema = z.string().trim().toLowerCase().email().max(320);
 
@@ -159,27 +158,7 @@ async function recoverAccount(input: {
           ]),
         ),
       );
-    const personalKeys = await tx
-      .update(apiKeyPolicies)
-      .set({ revokedAt: new Date() })
-      .where(
-        and(
-          eq(apiKeyPolicies.ownerUserId, user.id),
-          eq(apiKeyPolicies.scope, "personal"),
-          isNull(apiKeyPolicies.revokedAt),
-        ),
-      )
-      .returning({ id: apiKeyPolicies.keyId });
-    if (personalKeys.length)
-      await tx
-        .update(apiKeys)
-        .set({ enabled: false, updatedAt: new Date() })
-        .where(
-          inArray(
-            apiKeys.id,
-            personalKeys.map((key) => key.id),
-          ),
-        );
+    const personalKeysRevoked = await revokePersonalAccess(tx, user.id);
     await recordAuditEvent(tx, {
       workspaceId: user.workspaceId,
       actorKind: "system",
@@ -192,7 +171,7 @@ async function recoverAccount(input: {
         mfaReset: Boolean(input.resetMfa),
         passkeysRemoved: Boolean(input.removePasskeys),
         emailChanged,
-        personalKeysRevoked: personalKeys.length,
+        personalKeysRevoked,
       },
     });
     const notice = { userId: user.id, email: user.email, name: user.name };

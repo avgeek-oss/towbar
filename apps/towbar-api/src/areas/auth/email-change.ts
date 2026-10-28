@@ -19,6 +19,7 @@ import type { AuthenticatedUser } from "../../http/types.js";
 import { enqueueIdentityEmail } from "../team/email-outbox.js";
 import { audit } from "../team/audit.js";
 import { incrementPersistentBucket } from "../../http/rate-limit.js";
+import { revokePersonalAccess } from "./credential-revocation.js";
 
 const digest = (value: string) =>
   createHash("sha256").update(value).digest("hex");
@@ -168,6 +169,7 @@ export async function confirmEmailChange(id: string, token: string) {
       });
       await tx.delete(emailChanges).where(eq(emailChanges.id, id));
       await tx.delete(sessions).where(eq(sessions.userId, user.id));
+      await revokePersonalAccess(tx, user.id);
       await enqueueIdentityEmail(tx, {
         userId: user.id,
         email: change.previousEmail,

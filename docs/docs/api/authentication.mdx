@@ -18,7 +18,7 @@ Create personal keys in **Account Settings → API Keys**. Admins create team ke
 
 Read-only grants permitted operational reads, not credential reveal. Edit adds repository, secret-update and Scout operations allowed by the current role. Administrative permissions add supported deployment and infrastructure actions. Browser-only account management, key creation and credential reveal remain unavailable to API/MCP tokens.
 
-Personal keys intersect saved grants with current active membership. Demotion permanently narrows the key; subsequent promotion does not widen it. Removal revokes personal keys and sessions. Team keys are service identities with explicit team grants and survive their creator's departure. Missing or revoked policy records fail closed. Queued effects recheck authority before execution; revocation does not undo effects already performed.
+Personal keys intersect saved grants with current active membership. Demotion permanently narrows the key; subsequent promotion does not widen it. Removal revokes personal keys and sessions. Changing or resetting your password, or confirming a new email address, revokes your personal keys and MCP connections. Team keys are service identities with explicit team grants and survive their creator's departure. Missing or revoked policy records fail closed. Queued effects recheck authority before execution; revocation does not undo effects already performed.
 
 ## REST API authentication
 

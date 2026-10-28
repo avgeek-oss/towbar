@@ -52,7 +52,7 @@ Under **Account Settings**, use Profile for your display name, Email & Password 
 
 Passwords require 15–1,024 characters and are checked against known compromised passwords. If the check is unavailable, retry later. Operators of isolated installations can explicitly disable it with `security.passwordBreachCheck: false`.
 
-Forgot password sends a short-lived, single-use link when SMTP is configured. Responses do not disclose whether an email exists. A successful reset revokes sessions and requires normal sign-in. Use the [local recovery command](/docs/self-hosting/account-recovery) if email or passkeys are unavailable.
+Forgot password sends a short-lived, single-use link when SMTP is configured. Responses do not disclose whether an email exists. A successful reset revokes sessions, personal API keys and MCP connections, and requires normal sign-in. Use the [local recovery command](/docs/self-hosting/account-recovery) if email or passkeys are unavailable.
 
 ## Transactional email
 

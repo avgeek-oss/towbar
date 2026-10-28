@@ -24,6 +24,7 @@ import {
   identityProvisioning,
 } from "./identity.js";
 import { enqueueIdentityEmail } from "../team/email-outbox.js";
+import { revokePersonalAccess } from "./credential-revocation.js";
 
 export async function getInitialSetupStatus() {
   const [workspace] = await getTowbarDatabase()
@@ -293,6 +294,7 @@ export async function changePassword(input: {
       .update(users)
       .set({ mustChangePassword: false, updatedAt: new Date() })
       .where(eq(users.id, input.userId));
+    await revokePersonalAccess(tx, input.userId);
     const [user] = await tx
       .select()
       .from(users)

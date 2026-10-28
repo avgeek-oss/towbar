@@ -53,6 +53,7 @@ export function EmailPasswordSettings() {
       <div {...draft.formProps}>
         <PasswordChangeSettings
           requireCurrentPassword={!user?.twoFactorEnabled}
+          passwordDescription="Use at least 15 characters. A long, unique passphrase works well. Changing it revokes your personal API keys and MCP connections."
           onChangePassword={async (values) => {
             await api.put("/v1/core/profile/password", values);
             draft.markSaved();

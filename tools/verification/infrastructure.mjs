@@ -13,6 +13,7 @@ const databases = {
   TOWBAR_TEAM_TEST_DATABASE_URL: "team",
   TOWBAR_SETTINGS_TEST_DATABASE_URL: "settings",
   TOWBAR_RECOVERY_TEST_DATABASE_URL: "recovery",
+  TOWBAR_CREDENTIALS_TEST_DATABASE_URL: "credentials",
   TOWBAR_TERMINAL_TEST_DATABASE_URL: "terminal",
   TOWBAR_HISTORY_TEST_DATABASE_URL: "history",
   // recoverLogCollectorOperations() scans every collector in its database, so

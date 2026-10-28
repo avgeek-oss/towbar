@@ -34,6 +34,7 @@ import {
   completePasskeySecondFactor,
   passwordSecondFactor,
 } from "./password-second-factor.js";
+import { revokePersonalAccess } from "./credential-revocation.js";
 
 export const identityProvisioning = new AsyncLocalStorage<{
   workspaceId: string;
@@ -158,6 +159,7 @@ function identityOptions(database: AuthDatabase) {
           .update(users)
           .set({ mustChangePassword: false, updatedAt: new Date() })
           .where(eq(users.id, user.id));
+        await revokePersonalAccess(database, user.id);
         await enqueueIdentityEmail(database, {
           userId: user.id,
           email: user.email,

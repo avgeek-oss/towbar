@@ -3,6 +3,12 @@
 All notable changes to Towbar are documented in this file. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- Changing or resetting a password, or confirming a new email address, now revokes that user's personal API keys, MCP connections and unexchanged MCP authorization codes. Team API keys are unchanged. Create new keys and reconnect MCP clients after a credential change.
+
 ## 2.0.63 (2026-10-27)
 
 ### Fixed

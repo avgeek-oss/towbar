@@ -42,13 +42,13 @@ Open **Email & Password** for the separate email and password forms. Save each f
 2. Open the email sent to that address and follow the link within one hour.
 3. Sign in again with the new address after confirmation.
 
-Your current address stays active until you confirm. A newer request replaces the previous link. You can cancel a pending change from Email & Password. After confirmation, Towbar signs out your browser sessions and sends a notice to the old address.
+Your current address stays active until you confirm. A newer request replaces the previous link. You can cancel a pending change from Email & Password. After confirmation, Towbar signs out your browser sessions, revokes your personal API keys and MCP connections, and sends a notice to the old address.
 
 The Towbar operator must configure [SMTP](/docs/integrations/notifications/email) in the control-plane runtime before Towbar can send the confirmation. Admins cannot replace another member's email from the Members page; the account holder must complete this flow.
 
 ### Change your password
 
-Confirm with your passkey, then enter the new password twice. Accounts without a passkey also enter their current password. Use at least 15 characters. Password managers and paste are supported. Towbar checks new passwords against a list of known compromised passwords. If the check is unavailable, try again later.
+Confirm with your passkey, then enter the new password twice. Accounts without a passkey also enter their current password. Use at least 15 characters. Password managers and paste are supported. Towbar checks new passwords against a list of known compromised passwords. If the check is unavailable, try again later. A new password signs out your other browser sessions and revokes your personal API keys and MCP connections; create new keys and reconnect MCP clients afterwards.
 
 After host-based password recovery, replace the temporary password during sign-in before opening the dashboard.
 
