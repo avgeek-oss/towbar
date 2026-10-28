@@ -40,4 +40,4 @@ Use an isolated host and the recorded release, with deployment egress blocked so
 3. Start PostgreSQL and Temporal, inspect schema job results, then start the API and worker only after reviewing pending workflows and server access.
 4. Run `sudo towbar doctor`, inspect System health, and verify accounts, inventory, and encrypted credential access. Keep the isolated installation unable to execute production work.
 
-A backup is usable only after a recovery rehearsal succeeds. Review [Upgrades](/docs/self-hosting/upgrades) for migration and admission recovery, and [Account recovery](/docs/self-hosting/account-recovery) for a lost administrator login.
+A backup is usable only after a recovery rehearsal succeeds. Review [Upgrades](/docs/self-hosting/upgrades) for migration requirements, and [Account recovery](/docs/self-hosting/account-recovery) for a lost administrator login.
