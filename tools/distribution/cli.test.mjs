@@ -179,7 +179,7 @@ test("release workflow only promotes after the candidate installation job succee
   );
   assert.match(
     text,
-    /local-installation-smoke:\n\s+needs: \[prepare, manifest\][\s\S]+Install the candidate release locally[\s\S]+- name: Publish the verified GitHub release\n\s+env:/,
+    /local-installation-smoke:\n\s+needs: \[prepare, release-assets\][\s\S]+Install the candidate release locally[\s\S]+\n {2}publish:\n\s+needs: \[prepare, local-installation-smoke\][\s\S]+- name: Publish the verified GitHub release\n\s+env:/,
   );
   assert.match(text, /gh release download/);
   assert.match(text, /sha256sum --check SHA256SUMS/);

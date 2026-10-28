@@ -68,7 +68,10 @@ test("release builds use matching native runners and publish only after platform
   const {
     build,
     manifest,
+    "release-assets": assets,
     "local-installation-smoke": installation,
+    withdraw,
+    publish,
   } = workflow.jobs;
   assert.deepEqual(build.strategy.matrix.platform, ["amd64", "arm64"]);
   assert.equal(
@@ -83,12 +86,25 @@ test("release builds use matching native runners and publish only after platform
   );
   assert(!build.steps.some((step) => step.uses?.includes("setup-qemu")));
   assert.deepEqual(manifest.needs, ["prepare", "build"]);
-  assert.deepEqual(installation.needs, ["prepare", "manifest"]);
-  const step = (name) =>
-    installation.steps.findIndex((candidate) => candidate.name === name);
-  const promote = step("Publish the verified GitHub release");
-  assert(step("Install the candidate release locally") >= 0);
-  assert(promote > step("Install the candidate release locally"));
-  assert(promote > step("Prove restart reuses the running images"));
-  assert.equal(installation.steps[promote].if, undefined);
+  assert.deepEqual(assets.needs, ["prepare", "manifest"]);
+  assert.deepEqual(installation.needs, ["prepare", "release-assets"]);
+  const step = (job, name) =>
+    job.steps.findIndex((candidate) => candidate.name === name);
+  assert(step(installation, "Install the candidate release locally") >= 0);
+  assert(step(installation, "Prove restart reuses the running images") >= 0);
+  // Promotion is a separate job that runs only when the installation passed.
+  assert.deepEqual(publish.needs, ["prepare", "local-installation-smoke"]);
+  assert.equal(publish.if, undefined);
+  assert(step(publish, "Publish the verified GitHub release") >= 0);
+  assert.equal(
+    withdraw.if,
+    "always() && needs.local-installation-smoke.result == 'failure'",
+  );
+  // Write scopes stay out of the jobs that run third-party code.
+  assert.deepEqual(installation.permissions, { contents: "read" });
+  assert.deepEqual(manifest.permissions, {
+    contents: "read",
+    packages: "write",
+  });
+  assert.deepEqual(assets.permissions, { contents: "write" });
 });
