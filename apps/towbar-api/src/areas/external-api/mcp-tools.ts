@@ -377,9 +377,7 @@ export const mcpTools: McpTool[] = [
                   : {}),
           }),
         {
-          permissions: [
-            intent === "deploy" || intent === "rollback" ? "admin" : "admin",
-          ],
+          permissions: ["admin"],
           readOnly: false,
           destructive: intent !== "logs",
           idempotent: true,

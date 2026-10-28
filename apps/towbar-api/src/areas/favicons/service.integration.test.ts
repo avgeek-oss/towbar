@@ -219,8 +219,8 @@ void test(
       "discovery routes remain browser-only and require entity read permissions",
       () => {
         for (const [router, permission] of [
-          [appRoutes, "read"],
-          [deploymentRoutes, "read"],
+          [appRoutes, "viewer"],
+          [deploymentRoutes, "viewer"],
         ] as const) {
           const policy = router.routes
             .filter((route) => route.path.endsWith("/favicon"))

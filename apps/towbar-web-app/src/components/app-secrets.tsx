@@ -386,13 +386,7 @@ function SecretVariablesEditor({
   onUpdated: () => void;
 }) {
   const { can } = useAccess();
-  const canReveal = can(
-    endpoint.includes("/secrets") &&
-      !endpoint.includes("/apps/") &&
-      !endpoint.includes("/resources/")
-      ? "admin"
-      : "admin",
-  );
+  const canReveal = can("admin");
   const [busyAction, setBusyAction] = useState<"mode" | "save" | null>(null);
   const busy = busyAction !== null;
   const [replacements, setReplacements] = useState<Record<string, string>>({});

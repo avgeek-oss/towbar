@@ -232,10 +232,7 @@ export async function requestEnvironmentSync(
         sourceEnvironmentId: environment.id,
         mappingRevision: environment.mappingRevision,
         requestedBy: input.requestedBy,
-        ...captureQueuedActor(
-          input.workspaceId,
-          input.deployAfterSync ? ["admin"] : ["admin"],
-        ),
+        ...captureQueuedActor(input.workspaceId, ["admin"]),
         deployAfterSync: input.deployAfterSync,
       })
       .returning();

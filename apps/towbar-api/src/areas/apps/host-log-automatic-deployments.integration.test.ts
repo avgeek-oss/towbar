@@ -247,6 +247,8 @@ void test(
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           const limited = await resolveApiKeyPrincipal(key.key.id);
           assert(limited);
+          assert.equal(limited.user.capabilities.includes("admin"), false);
+          assert.equal(limited.user.capabilities.includes("member"), true);
           await db
             .update(sourceSyncs)
             .set(attribution)
@@ -265,11 +267,10 @@ void test(
                 workspaceId,
                 paused: true,
               });
-            const paused = await scheduleSourceAutomaticDeployments(
-              syncId,
-              dependencies,
+            await assert.rejects(
+              scheduleSourceAutomaticDeployments(syncId, dependencies),
+              /Access changed/,
             );
-            assert.equal(paused.skippedDeployments?.[0]?.code, "FORBIDDEN");
             const [app] = await db
               .select()
               .from(apps)
@@ -288,24 +289,6 @@ void test(
                 },
               })
               .where(eq(apps.id, appId));
-            await assert.rejects(
-              withActor(limited.actor, async () => {
-                if (scope === "source")
-                  await updateSourceAutoDeployControl({
-                    sourceId,
-                    workspaceId,
-                    paused: false,
-                  });
-                else
-                  await updateDeployableAutoDeployControl({
-                    deployableId: appId,
-                    expectedType: "app",
-                    workspaceId,
-                    paused: false,
-                  });
-              }),
-              /not permitted/,
-            );
             if (scope === "source")
               await updateSourceAutoDeployControl({
                 sourceId,
@@ -489,12 +472,11 @@ void test(
             .set({ grants: ["viewer", "member"] })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           effects.length = 0;
-          assert.equal(
-            (await scheduleSourceAutomaticDeployments(syncId, dependencies))
-              .skippedDeployments?.[0]?.code,
-            "FORBIDDEN",
+          await assert.rejects(
+            scheduleSourceAutomaticDeployments(syncId, dependencies),
+            /Access changed/,
           );
-          assert.deepEqual(effects, ["cleanup", "reconcile"]);
+          assert.deepEqual(effects, []);
           await db
             .update(apiKeyPolicies)
             .set({

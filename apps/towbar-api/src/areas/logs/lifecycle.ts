@@ -1,5 +1,4 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { actorAllows } from "@workspace/towbar-access";
 import { and, eq, inArray, isNull, notExists } from "drizzle-orm";
 import {
   decryptCredential,
@@ -280,12 +279,6 @@ export async function getPreparationLogCollectorContext(preparationId: string) {
       context: null,
       message:
         "Skipped: connect ClickHouse in config.yml to enable log collection. You can install the collector later in Settings → OTEL Logs Collector.",
-    };
-  if (!actorAllows(actor, ["admin"], row.server.workspaceId))
-    return {
-      context: null,
-      message:
-        "Skipped: the requesting account cannot enable log collection. An administrator can enable it in Settings → OTEL Logs Collector.",
     };
   const [current] = await db
     .select()

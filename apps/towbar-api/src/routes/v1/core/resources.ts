@@ -349,7 +349,7 @@ for (const action of ["backup", "restart", "start", "stop"] as const) {
   resourceRoutes.post(
     `/:resourceId/actions/${action}`,
     operation({
-      permissions: [action === "backup" ? "admin" : "admin"],
+      permissions: ["admin"],
       responseSchema: "resources.ts:post:`/:resourceId/actions/${action}`",
       summary: `${action.charAt(0).toUpperCase() + action.slice(1)} resource`,
       ...(action === "backup" ? {} : { body: runtimeActionSchema }),

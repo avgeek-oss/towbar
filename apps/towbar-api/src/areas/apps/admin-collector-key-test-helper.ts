@@ -98,12 +98,6 @@ export async function assertAdminCollectorKeyAccess({
       includeAdmin: true,
     });
     assert(key.token);
-    await db
-      .update(apiKeyPolicies)
-      .set({
-        grants: key.key.grants.filter((action) => action !== "admin"),
-      })
-      .where(eq(apiKeyPolicies.keyId, key.key.id));
     const principal = await findApiKey(key.token);
     assert(principal);
     const result = await withActor(principal.actor, () =>

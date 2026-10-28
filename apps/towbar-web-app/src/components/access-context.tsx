@@ -43,8 +43,7 @@ export function routePermission(pathname: string): Scope | null {
   const section = pathname.split("/").filter(Boolean).at(-1);
   if (section === "auto-deploy") return "admin";
   if (section === "notifications") return "admin";
-  if (section === "secrets")
-    return pathname.startsWith("/repositories/") ? "member" : "member";
+  if (section === "secrets") return "member";
   if (pathname.startsWith("/servers/")) {
     if (section === "logs-collection") return "admin";
     if (["credentials", "configuration"].includes(section ?? ""))

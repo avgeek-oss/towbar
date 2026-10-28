@@ -30,10 +30,7 @@ import { requestAppDeployment } from "./service.js";
 import { createDeferredAutomaticDeployment } from "../auto-deploy-controls/service.js";
 import { scheduleSourcePreviewReconciliations } from "../previews/reconciliation-scheduler.js";
 import { requestDisabledPreviewCleanups } from "../previews/cleanup.js";
-import {
-  hostLogDeploymentPermissions,
-  requireHostLogCollection,
-} from "./host-log-collection.js";
+import { requireHostLogCollection } from "./host-log-collection.js";
 
 const automaticDeploymentDependencies = {
   requestDeployment: requestAppDeployment,
@@ -394,13 +391,10 @@ async function scheduleEligibleAutomaticDeployments(input: {
           actor ??= await authorizeQueuedEffect(
             environment.requestedByActor,
             input.workspaceId,
-            hostLogDeploymentPermissions(candidate.config),
+            ["admin"],
           );
           withActor(actor, () =>
-            captureQueuedActor(
-              input.workspaceId,
-              hostLogDeploymentPermissions(candidate.config),
-            ),
+            captureQueuedActor(input.workspaceId, ["admin"]),
           );
         } catch (error) {
           if (

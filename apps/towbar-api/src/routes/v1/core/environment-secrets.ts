@@ -52,9 +52,7 @@ export function environmentSecretRoutes(
   routes.get(
     "/",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository" ? "member" : "member",
-      ],
+      permissions: ["member"],
       responseSchema: 'environment-secrets.ts:get:"/"',
       summary: "List environment secrets",
       query: z
@@ -124,9 +122,7 @@ export function environmentSecretRoutes(
   routes.patch(
     "/:environment/:stage",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository" ? "member" : "member",
-      ],
+      permissions: ["member"],
       responseSchema: 'environment-secrets.ts:patch:"/:environment/:stage"',
       summary: "Update environment secrets",
       body: secretMutationSchema,
@@ -159,9 +155,7 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository" ? "admin" : "admin",
-      ],
+      permissions: ["admin"],
       freshSession: true,
       browserOnly: true,
       responseSchema:
@@ -184,9 +178,7 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal-all",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository" ? "admin" : "admin",
-      ],
+      permissions: ["admin"],
       freshSession: true,
       browserOnly: true,
       responseSchema:

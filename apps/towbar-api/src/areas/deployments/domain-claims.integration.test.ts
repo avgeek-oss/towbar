@@ -246,7 +246,7 @@ void test(
         .set({
           requestedByActor: {
             ...authorizedSync.requestedByActor!,
-            grants: ["admin"],
+            grants: ["member"],
           },
         })
         .where(eq(sourceSyncs.id, authorizedSync.id));
