@@ -212,7 +212,7 @@ void test(
       await db
         .update(apiKeyPolicies)
         .set({
-          grants: ["admin", "admin", "admin"],
+          grants: ["admin"],
         })
         .where(eq(apiKeyPolicies.keyId, key.key.id));
       const principal = await resolveApiKeyPrincipal(key.key.id);
@@ -334,7 +334,7 @@ void test(
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: ["admin", "admin", "admin"],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           await db
@@ -378,7 +378,7 @@ void test(
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: ["admin", "admin", "admin"],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           await db
@@ -498,7 +498,7 @@ void test(
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: ["admin", "admin", "admin"],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           effects.length = 0;

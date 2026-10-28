@@ -167,7 +167,7 @@ export async function processGitHubPush(
           kind: "system",
           source: "github",
           workspaceId: source.workspaceId,
-          grants: ["admin", "admin", "admin", "admin"],
+          grants: ["admin"],
         },
         () =>
           enqueue({
