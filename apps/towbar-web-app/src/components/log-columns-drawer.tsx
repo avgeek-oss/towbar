@@ -99,7 +99,11 @@ export function LogColumnsDrawer({
                   aria-label="Add custom column"
                   onPress={() => setCreating(true)}
                 >
-                  <HugeiconsIcon icon={Add01Icon} size={18} />
+                  <HugeiconsIcon
+                    aria-hidden="true"
+                    icon={Add01Icon}
+                    size={18}
+                  />
                   <span className="hidden sm:inline">Add custom column</span>
                 </Button>
                 <Drawer.CloseTrigger
@@ -179,6 +183,7 @@ export function LogColumnsDrawer({
                           }}
                         >
                           <HugeiconsIcon
+                            aria-hidden="true"
                             icon={DragDropVerticalIcon}
                             size={16}
                           />

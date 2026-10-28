@@ -66,7 +66,7 @@ export function LogFilterDialog({
         <Modal.Dialog className="max-w-5xl">
           <Modal.Header>
             <Modal.Heading className="flex items-center gap-2">
-              <HugeiconsIcon icon={FunnelIcon} size={20} />
+              <HugeiconsIcon aria-hidden="true" icon={FunnelIcon} size={20} />
               Filters
             </Modal.Heading>
             <Modal.CloseTrigger aria-label="Close filters" />
@@ -214,7 +214,11 @@ export function LogFilterDialog({
                         setError(null);
                       }}
                     >
-                      <HugeiconsIcon icon={Delete02Icon} size={18} />
+                      <HugeiconsIcon
+                        aria-hidden="true"
+                        icon={Delete02Icon}
+                        size={18}
+                      />
                     </Button>
                   </div>
                 ))}
@@ -227,7 +231,7 @@ export function LogFilterDialog({
                   setDraft((current) => [...current, firstCondition()])
                 }
               >
-                <HugeiconsIcon icon={Add01Icon} size={18} />
+                <HugeiconsIcon aria-hidden="true" icon={Add01Icon} size={18} />
                 Add condition
               </Button>
             </form>

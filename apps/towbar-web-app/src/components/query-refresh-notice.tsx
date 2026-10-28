@@ -28,7 +28,11 @@ export function QueryRefreshNotice() {
             }
         }}
       >
-        <HugeiconsIcon icon={ReloadIcon} className="size-4" />
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={ReloadIcon}
+          className="size-4"
+        />
         Retry
       </Button>
     </Alert>

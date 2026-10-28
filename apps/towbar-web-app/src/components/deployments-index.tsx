@@ -266,7 +266,11 @@ export function DeploymentsIndex() {
                 window.history.pushState(null, "", pathname);
               }}
             >
-              <HugeiconsIcon icon={FilterResetIcon} className="size-4" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={FilterResetIcon}
+                className="size-4"
+              />
               Clear filters
             </Button>
           ) : null}

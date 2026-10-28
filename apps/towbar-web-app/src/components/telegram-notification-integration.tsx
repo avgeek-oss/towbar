@@ -110,7 +110,11 @@ export function TelegramNotificationIntegration() {
               setAdding(true);
             }}
           >
-            <HugeiconsIcon icon={Add01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Add01Icon}
+              className="size-4"
+            />
             Add destination
           </Button>
         ) : undefined
@@ -338,7 +342,11 @@ export function TelegramNotificationIntegration() {
               setTestDialogOpen(true);
             }}
           >
-            <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={TestTube01Icon}
+              className="size-4"
+            />
             Test
           </Button>
           <Button
@@ -346,7 +354,11 @@ export function TelegramNotificationIntegration() {
             isDisabled={saving}
             onPress={() => setRemoving(row)}
           >
-            <HugeiconsIcon icon={Delete02Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Delete02Icon}
+              className="size-4"
+            />
             Remove
           </Button>
         </div>
@@ -507,7 +519,11 @@ export function TelegramNotificationIntegration() {
                 Cancel
               </Button>
               <Button isDisabled={sendingTest} onPress={() => void sendTest()}>
-                <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={TestTube01Icon}
+                  className="size-4"
+                />
                 {sendingTest ? "Sending…" : "Send test notification"}
               </Button>
             </AlertDialog.Footer>

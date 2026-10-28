@@ -525,6 +525,7 @@ export function PrivateKeyStore({
               <Tooltip.Trigger>
                 <span
                   className="inline-flex"
+                  // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- The delete button is disabled while the key is in use; this wrapper takes focus so keyboard users can reach the tooltip that explains why.
                   tabIndex={key.usageCount > 0 ? 0 : undefined}
                 >
                   <ActionButton

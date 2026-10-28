@@ -58,7 +58,7 @@ export function AccountMenu({
   };
 
   const icon = (value: typeof UserAccountIcon) => (
-    <HugeiconsIcon icon={value} />
+    <HugeiconsIcon aria-hidden="true" icon={value} />
   );
   return (
     <SidebarAccountMenu

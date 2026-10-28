@@ -77,7 +77,11 @@ export function OverviewIncidents() {
                 {count}
               </InlineLink>
               <StatusBadge
-                icon={count ? <HugeiconsIcon icon={Alert02Icon} /> : undefined}
+                icon={
+                  count ? (
+                    <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />
+                  ) : undefined
+                }
                 status={count ? "critical" : "healthy"}
                 label={count ? "Attention" : "All clear"}
                 tooltip={

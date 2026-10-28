@@ -218,7 +218,11 @@ export function DiscordNotificationIntegration() {
               setTestDialogOpen(true);
             }}
           >
-            <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={TestTube01Icon}
+              className="size-4"
+            />
             Test
           </Button>
         </div>
@@ -294,7 +298,11 @@ export function DiscordNotificationIntegration() {
                 Cancel
               </Button>
               <Button isDisabled={sendingTest} onPress={() => void sendTest()}>
-                <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={TestTube01Icon}
+                  className="size-4"
+                />
                 {sendingTest ? "Sending…" : "Send test notification"}
               </Button>
             </AlertDialog.Footer>

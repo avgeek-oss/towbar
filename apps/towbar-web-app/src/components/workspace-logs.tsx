@@ -720,7 +720,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 variant="secondary"
                 onPress={() => setFilterOpen(true)}
               >
-                <HugeiconsIcon icon={FunnelIcon} size={18} />
+                <HugeiconsIcon aria-hidden="true" icon={FunnelIcon} size={18} />
                 {conditions.length ? (
                   <span
                     aria-hidden="true"
@@ -738,7 +738,11 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 variant="primary"
                 isDisabled={busy}
               >
-                <HugeiconsIcon icon={Search01Icon} size={18} />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={Search01Icon}
+                  size={18}
+                />
               </Button>
               <Button
                 type="button"
@@ -754,6 +758,7 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                 }}
               >
                 <HugeiconsIcon
+                  aria-hidden="true"
                   icon={following ? PauseIcon : PlayIcon}
                   size={18}
                 />
@@ -984,7 +989,11 @@ function LogExplorer({ retentionDays }: { retentionDays: number }) {
                   />
                 )}
               >
-                <HugeiconsIcon icon={Settings02Icon} size={16} />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={Settings02Icon}
+                  size={16}
+                />
               </Tooltip.Trigger>
               <Tooltip.Content placement="top">Edit columns</Tooltip.Content>
             </Tooltip>

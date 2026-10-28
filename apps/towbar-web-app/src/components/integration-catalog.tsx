@@ -72,7 +72,13 @@ export function getProviderIcon(value: string, className?: string) {
       />
     );
   if (value === "deliveries")
-    return <HugeiconsIcon icon={MailSend01Icon} className={className} />;
+    return (
+      <HugeiconsIcon
+        aria-hidden="true"
+        icon={MailSend01Icon}
+        className={className}
+      />
+    );
   if (value in cloudIconProviders)
     return (
       <CloudProviderLogo

@@ -97,7 +97,7 @@ function GitHubConnectionCard({
       redirectOnSuccess={(result) => result.url}
       success="Opening GitHub"
     >
-      <HugeiconsIcon icon={Add01Icon} className="size-4" />
+      <HugeiconsIcon aria-hidden="true" icon={Add01Icon} className="size-4" />
       Connect GitHub account
     </ActionButton>
   );
@@ -205,7 +205,11 @@ function GitHubConnectionCard({
                     redirectOnSuccess={(result) => result.url}
                     success="Opening GitHub"
                   >
-                    <HugeiconsIcon icon={ReloadIcon} className="size-4" />
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={ReloadIcon}
+                      className="size-4"
+                    />
                     Reconnect
                   </ActionButton>
                 ) : (
@@ -238,7 +242,11 @@ function GitHubConnectionCard({
                     success="GitHub account disconnected"
                     variant="danger"
                   >
-                    <HugeiconsIcon icon={Unlink01Icon} className="size-4" />
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={Unlink01Icon}
+                      className="size-4"
+                    />
                     Disconnect
                   </ActionButton>
                 ) : null}

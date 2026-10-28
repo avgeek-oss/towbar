@@ -249,7 +249,12 @@ function ServerCredentialForm({
             >
               <Chip size="sm" color="success">
                 <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                  {<HugeiconsIcon icon={CheckmarkCircle01Icon} />}
+                  {
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={CheckmarkCircle01Icon}
+                    />
+                  }
                   Host verified
                 </Chip.Label>
               </Chip>
@@ -261,7 +266,12 @@ function ServerCredentialForm({
             >
               <Chip size="sm" color="warning">
                 <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                  {<HugeiconsIcon icon={InformationCircleIcon} />}
+                  {
+                    <HugeiconsIcon
+                      aria-hidden="true"
+                      icon={InformationCircleIcon}
+                    />
+                  }
                   Host verification required
                 </Chip.Label>
               </Chip>

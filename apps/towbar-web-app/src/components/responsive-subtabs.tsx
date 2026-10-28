@@ -113,7 +113,10 @@ export function ResponsiveSubtabs({
           icon={
             active.icon ??
             (menuIcons[active.value] ? (
-              <HugeiconsIcon icon={menuIcons[active.value]!} />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={menuIcons[active.value]!}
+              />
             ) : undefined)
           }
           keepEntityName={!!detail.base}

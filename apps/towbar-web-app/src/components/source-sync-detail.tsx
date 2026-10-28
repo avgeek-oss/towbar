@@ -99,7 +99,9 @@ export function SourceSyncDetail() {
           {
             value: "overview",
             label: "Overview",
-            icon: <HugeiconsIcon icon={InformationSquareIcon} />,
+            icon: (
+              <HugeiconsIcon aria-hidden="true" icon={InformationSquareIcon} />
+            ),
             content: (
               <div className="content-grid">
                 {hasLegacyScope ? (
@@ -197,7 +199,7 @@ export function SourceSyncDetail() {
           {
             value: "changes",
             label: "Changes",
-            icon: <HugeiconsIcon icon={GitCompareIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={GitCompareIcon} />,
             indicator: changes.length
               ? { label: String(changes.length), variant: "secondary" }
               : undefined,
@@ -208,7 +210,7 @@ export function SourceSyncDetail() {
           {
             value: "issues",
             label: "Validation issues",
-            icon: <HugeiconsIcon icon={ValidationIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={ValidationIcon} />,
             indicator: issueCount
               ? { label: String(issueCount), variant: "destructive" }
               : undefined,
@@ -272,19 +274,19 @@ function SyncChanges({
     return (
       <Attributes columns={3} title="Imported inventory" variant="card">
         <Attributes.Item
-          icon={<HugeiconsIcon icon={DashboardCircleIcon} />}
+          icon={<HugeiconsIcon aria-hidden="true" icon={DashboardCircleIcon} />}
           label="Services"
         >
           {legacyCounts.apps}
         </Attributes.Item>
         <Attributes.Item
-          icon={<HugeiconsIcon icon={DatabaseIcon} />}
+          icon={<HugeiconsIcon aria-hidden="true" icon={DatabaseIcon} />}
           label="Datastores"
         >
           {legacyCounts.resources}
         </Attributes.Item>
         <Attributes.Item
-          icon={<HugeiconsIcon icon={ServerStack01Icon} />}
+          icon={<HugeiconsIcon aria-hidden="true" icon={ServerStack01Icon} />}
           label="Servers"
         >
           {legacyCounts.servers}

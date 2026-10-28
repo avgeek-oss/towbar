@@ -297,6 +297,7 @@ function PreparationStep({
           <p className="text-xs text-muted">Terminal output</p>
           <pre
             aria-label={`${step.title} terminal output`}
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- A scrollable region must be reachable by keyboard so its overflow can be scrolled (WCAG 2.1.1).
             tabIndex={0}
             className="max-h-80 overflow-auto rounded-lg bg-default p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-words text-foreground"
           >

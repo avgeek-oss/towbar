@@ -199,6 +199,7 @@ export function InventorySidebar({
       <PageSelectionTitle
         icon={
           <HugeiconsIcon
+            aria-hidden="true"
             icon={
               search.get("view") === "attention"
                 ? AlertCircleIcon
@@ -221,13 +222,13 @@ export function InventorySidebar({
             id: "all",
             label: `All ${kindLabel}`,
             badge: counts?.all?.toString(),
-            icon: <HugeiconsIcon icon={kindIcons[kind]} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={kindIcons[kind]} />,
           },
           {
             id: "attention",
             label: "Needs attention",
             badge: counts?.attention?.toString(),
-            icon: <HugeiconsIcon icon={AlertCircleIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={AlertCircleIcon} />,
           },
         ]}
       />
@@ -344,7 +345,11 @@ function InventorySearch({
               );
             }}
           >
-            <HugeiconsIcon icon={FilterResetIcon} className="size-3.5" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={FilterResetIcon}
+              className="size-3.5"
+            />
             Clear filters
           </Button>
         </div>

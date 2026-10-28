@@ -185,7 +185,7 @@ export function ResourceDetail() {
     {
       value: "overview",
       label: "Overview",
-      icon: <HugeiconsIcon icon={DatabaseIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={DatabaseIcon} />,
       content: (
         <div
           className={
@@ -248,7 +248,9 @@ export function ResourceDetail() {
               )}
             </Attributes.Item>
             <Attributes.Item
-              icon={<HugeiconsIcon icon={ServerStack01Icon} />}
+              icon={
+                <HugeiconsIcon aria-hidden="true" icon={ServerStack01Icon} />
+              }
               label="Server"
             >
               {item.serverIp}
@@ -267,7 +269,7 @@ export function ResourceDetail() {
               </InlineLink>
             </Attributes.Item>
             <Attributes.Item
-              icon={<HugeiconsIcon icon={GitBranchIcon} />}
+              icon={<HugeiconsIcon aria-hidden="true" icon={GitBranchIcon} />}
               label="Branch"
             >
               <span className="break-words font-mono">
@@ -307,7 +309,7 @@ export function ResourceDetail() {
       value: "logs",
       label: "Runtime Logs",
       group: "Monitor",
-      icon: <HugeiconsIcon icon={FileViewIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={FileViewIcon} />,
       content: (
         <RuntimeLogs
           active={
@@ -326,7 +328,7 @@ export function ResourceDetail() {
       label: "Performance",
       contentOwnsTitle: true,
       group: "Monitor",
-      icon: <HugeiconsIcon icon={SquareActivityIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={SquareActivityIcon} />,
       content: (
         <ScoutPerformance
           path={`/v1/core/resources/${resourceId}/metrics`}
@@ -340,7 +342,7 @@ export function ResourceDetail() {
       label: "Alerts",
       contentOwnsTitle: true,
       group: "Monitor",
-      icon: <HugeiconsIcon icon={Alert02Icon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />,
       content: (
         <ScoutAlertRules serverId={item.serverId} deployableId={resourceId} />
       ),
@@ -350,7 +352,7 @@ export function ResourceDetail() {
       label: "Incidents",
       contentOwnsTitle: true,
       group: "Monitor",
-      icon: <HugeiconsIcon icon={AlertCircleIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={AlertCircleIcon} />,
       content: (
         <ScoutIncidents serverId={item.serverId} deployableId={resourceId} />
       ),
@@ -359,14 +361,20 @@ export function ResourceDetail() {
       value: "vulnerabilities",
       label: "Vulnerabilities",
       group: "Monitor",
-      icon: <HugeiconsIcon icon={SecurityCheckIcon} className="size-4" />,
+      icon: (
+        <HugeiconsIcon
+          aria-hidden="true"
+          icon={SecurityCheckIcon}
+          className="size-4"
+        />
+      ),
       content: <DeployableVulnerabilities appId={resourceId} kind="resource" />,
     },
     {
       value: "deployments",
       label: "Deployments",
       group: "Ship",
-      icon: <HugeiconsIcon icon={Rocket01Icon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={Rocket01Icon} />,
       indicator: {
         label: String(orderedDeployments.length),
         variant: "secondary" as const,
@@ -384,7 +392,7 @@ export function ResourceDetail() {
       label: "Compare deployments",
       sidebarLabel: "Compare",
       group: "Ship",
-      icon: <HugeiconsIcon icon={GitCompareIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={GitCompareIcon} />,
       content: <ScoutCompareDeployments deployableId={resourceId} />,
     },
     ...[
@@ -392,7 +400,7 @@ export function ResourceDetail() {
         value: "backup",
         label: "Backup",
         group: "Operate",
-        icon: <HugeiconsIcon icon={ReloadIcon} />,
+        icon: <HugeiconsIcon aria-hidden="true" icon={ReloadIcon} />,
         indicator: missingBackupCredentials
           ? { dot: true, ariaLabel: "Needs credentials" }
           : undefined,
@@ -413,7 +421,7 @@ export function ResourceDetail() {
               value: "restore",
               label: "Restore",
               group: "Operate",
-              icon: <HugeiconsIcon icon={Undo02Icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={Undo02Icon} />,
               indicator: missingRestoreCredentials
                 ? { dot: true, ariaLabel: "Needs credentials" }
                 : undefined,
@@ -435,7 +443,7 @@ export function ResourceDetail() {
       value: "manifest",
       label: "Manifest",
       group: "Operate",
-      icon: <HugeiconsIcon icon={SourceCodeIcon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={SourceCodeIcon} />,
       content: (
         <SourceEnvironmentManifest sourceId={item.sourceId} deployable={item} />
       ),
@@ -443,7 +451,7 @@ export function ResourceDetail() {
     {
       value: "settings",
       label: "Settings",
-      icon: <HugeiconsIcon icon={Settings01Icon} />,
+      icon: <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />,
       content: <ResourceSettings item={item} resourceId={resourceId} />,
     },
   ];

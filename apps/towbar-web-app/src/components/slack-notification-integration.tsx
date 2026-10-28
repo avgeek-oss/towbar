@@ -94,7 +94,11 @@ export function SlackNotificationIntegration() {
               setAdding(true);
             }}
           >
-            <HugeiconsIcon icon={Add01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Add01Icon}
+              className="size-4"
+            />
             Add channel
           </Button>
         ) : undefined
@@ -288,7 +292,11 @@ export function SlackNotificationIntegration() {
               setTestDialogOpen(true);
             }}
           >
-            <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={TestTube01Icon}
+              className="size-4"
+            />
             Test
           </Button>
           <Button
@@ -296,7 +304,11 @@ export function SlackNotificationIntegration() {
             isDisabled={saving}
             onPress={() => setRemoving(row.channelId)}
           >
-            <HugeiconsIcon icon={Delete02Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Delete02Icon}
+              className="size-4"
+            />
             Remove
           </Button>
         </div>
@@ -433,7 +445,11 @@ export function SlackNotificationIntegration() {
                 Cancel
               </Button>
               <Button isDisabled={sendingTest} onPress={() => void sendTest()}>
-                <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={TestTube01Icon}
+                  className="size-4"
+                />
                 {sendingTest ? "Sending…" : "Send test notification"}
               </Button>
             </AlertDialog.Footer>

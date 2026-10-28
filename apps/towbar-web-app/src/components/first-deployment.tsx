@@ -67,7 +67,11 @@ export function FirstDeployment({
         ) : readiness.data.ready ? (
           <div className="flex w-full flex-wrap items-center gap-4">
             <span className="bg-success-soft text-success-soft-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
-              <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-5" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={CheckmarkCircle01Icon}
+                className="size-5"
+              />
             </span>
             <div className="min-w-48 flex-1">
               <p className="text-sm font-medium text-foreground">
@@ -108,7 +112,11 @@ export function FirstDeployment({
         ) : (
           <div className="flex w-full flex-wrap items-center gap-4">
             <span className="bg-warning-soft text-warning-soft-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
-              <HugeiconsIcon icon={AlertCircleIcon} className="size-5" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={AlertCircleIcon}
+                className="size-5"
+              />
             </span>
             <div className="min-w-48 flex-1">
               <p className="text-sm font-medium text-foreground">
