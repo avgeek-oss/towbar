@@ -9,7 +9,7 @@
     "@workspace/towbar-contracts": "workspace:*"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "oxlint -c ../../.oxlintrc.json --report-unused-disable-directives --deny-warnings",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
@@ -18,9 +18,7 @@
     "./types": "./src/types.ts"
   },
   "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "catalog:",
     "typescript": "catalog:"
   }
 }

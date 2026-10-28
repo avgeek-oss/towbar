@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "oxlint -c ../../.oxlintrc.json --type-aware --report-unused-disable-directives --deny-warnings",
     "test": "pnpm schemas:check && tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "schemas": "tsx scripts/export-manifest-schemas.ts",
@@ -43,9 +43,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "catalog:",
     "prettier": "catalog:",
     "tsx": "^4.23.15",
     "typescript": "catalog:"

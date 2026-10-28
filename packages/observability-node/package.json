@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "oxlint -c ../../.oxlintrc.json --type-aware --report-unused-disable-directives --deny-warnings",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -31,9 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "eslint": "catalog:",
     "hono": "4.13.12",
     "typescript": "catalog:"
   }
