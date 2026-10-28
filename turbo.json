@@ -71,5 +71,6 @@
       "passThroughEnv": ["NEXT_TELEMETRY_DISABLED"]
     }
   },
-  "globalEnv": ["NODE_ENV"]
+  "globalEnv": ["NODE_ENV"],
+  "globalPassThroughEnv": ["AGENT_*", "ANTHROPIC_API_KEY"]
 }

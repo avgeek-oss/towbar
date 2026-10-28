@@ -44,7 +44,9 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "recharts": "^3.10.1",
-    "yaml": "catalog:"
+    "yaml": "catalog:",
+    "@avgeek-oss/agent-react": "0.1.1",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@simplewebauthn/server": "13.3.2",

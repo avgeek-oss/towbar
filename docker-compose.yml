@@ -132,6 +132,15 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *backend-environment
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AGENT_API_KEY: ${AGENT_API_KEY:-}
+      AGENT_AUTH_TOKEN: ${AGENT_AUTH_TOKEN:-}
+      AGENT_BASE_URL: ${AGENT_BASE_URL:-}
+      AGENT_MODEL: ${AGENT_MODEL:-}
+      AGENT_PROFILE: ${AGENT_PROFILE:-}
+      AGENT_EFFORT: ${AGENT_EFFORT:-}
+      AGENT_MAX_TOKENS: ${AGENT_MAX_TOKENS:-}
+      AGENT_HEADERS: ${AGENT_HEADERS:-}
       DATABASE_TOWBAR_URL: postgres://towbar_app:${TOWBAR_DATABASE_RUNTIME_PASSWORD:?set TOWBAR_DATABASE_RUNTIME_PASSWORD}@postgres:5432/towbar
       TOWBAR_APP_BASE_URL: ${TOWBAR_APP_BASE_URL:-http://localhost:4021}
       TOWBAR_API_BASE_URL: ${TOWBAR_API_BASE_URL:-http://localhost:4020}

@@ -1,4 +1,5 @@
 import { installationSetupSecret } from "./areas/auth/setup-secret.js";
+import { closeAssistant } from "./areas/assistant/service.js";
 import { getInitialSetupStatus } from "./areas/auth/service.js";
 import { attachServerTerminal } from "./areas/servers/terminal-transport.js";
 import { runTemporalHealthCheck } from "./areas/system-health/service.js";
@@ -83,6 +84,7 @@ async function shutdown() {
   server.close();
   internalServer.close();
   await closeTemporalClient();
+  await closeAssistant();
   await closeDatabase();
 }
 

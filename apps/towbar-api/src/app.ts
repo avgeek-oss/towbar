@@ -1,4 +1,5 @@
 import { mcpOAuthRoutes } from "./routes/mcp-oauth.js";
+import { assistantRoutes } from "./routes/v1/assistant.js";
 import { faviconRoutes } from "./routes/favicon.js";
 import { auditRequestContext } from "./infrastructure/audit-context.js";
 import { randomUUID } from "node:crypto";
@@ -71,6 +72,11 @@ function createRoutedApp(routeScope: "internal" | "public") {
     }
   });
 
+  if (routeScope === "public")
+    app.route(
+      "/v1/agent",
+      assistantRoutes(async (request) => app.fetch(request)),
+    );
   app.route("/v1", routeScope === "internal" ? internalV1 : publicV1);
   app.notFound((context) =>
     context.json(

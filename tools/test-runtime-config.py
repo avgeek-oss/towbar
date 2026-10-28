@@ -27,6 +27,17 @@ TOWBAR_APP_BASE_URL=http://localhost:4021
 
 
 class RuntimeConfigTests(unittest.TestCase):
+    def test_optional_assistant_settings_render_provider_configuration(self):
+        values = config_tool.to_env({"version": 1, "assistant": {
+            "apiKey": "local-provider-fixture", "model": "fixture-model",
+            "baseUrl": "http://127.0.0.1:9000", "profile": "compatible",
+            "maxTokens": 512, "headers": {"x-fixture": "true"},
+        }})
+        self.assertEqual(values["AGENT_API_KEY"], "local-provider-fixture")
+        self.assertEqual(values["AGENT_MAX_TOKENS"], "512")
+        self.assertEqual(json.loads(values["AGENT_HEADERS"]), {"x-fixture": "true"})
+        self.assertNotIn("AGENT_API_KEY", config_tool.to_env({"version": 1}))
+
     def test_documented_runtime_yaml_examples(self):
         checked = 0
         for path in (ROOT / "docs" / "docs").rglob("*"):

@@ -29,6 +29,15 @@ def field(path, kind="string"):
 
 
 FIELDS = {
+    "ANTHROPIC_API_KEY": field("assistant.anthropicApiKey"),
+    "AGENT_API_KEY": field("assistant.apiKey"),
+    "AGENT_AUTH_TOKEN": field("assistant.authToken"),
+    "AGENT_BASE_URL": field("assistant.baseUrl"),
+    "AGENT_MODEL": field("assistant.model"),
+    "AGENT_PROFILE": field("assistant.profile"),
+    "AGENT_EFFORT": field("assistant.effort"),
+    "AGENT_MAX_TOKENS": field("assistant.maxTokens", "integer"),
+    "AGENT_HEADERS": field("assistant.headers", "json-object"),
     "TOWBAR_LOGS_CONFIG_JSON": field("observability.logs", "json-object"),
     "TOWBAR_INSTALL_MODE": field("installation.mode"),
     "TOWBAR_BIND_ADDRESS": field("installation.bindAddress"),

@@ -17,7 +17,14 @@ import {
 } from "@/hooks/use-api-query";
 import { SecondarySidebarLayout } from "./secondary-sidebar";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { usePathname } from "next/navigation";
@@ -54,9 +61,15 @@ import {
 import { RelativeTimeProvider } from "./last-synced-time";
 import { getActiveDeploymentStates } from "@/lib/inventory-status";
 import { NotificationCenter } from "@/components/notification-center";
+
+import { AgentChatTrigger } from "@avgeek-oss/design-system/patterns/agent-chat/agent-chat-trigger";
 import { AccountMenu } from "@/components/account-menu";
 import { HeadingHelpContext } from "@avgeek-oss/design-system/overlays/heading-help";
 import { headingDocumentation } from "@/lib/documentation";
+
+const Assistant = lazy(() =>
+  import("./assistant").then((module) => ({ default: module.Assistant })),
+);
 
 export function ApplicationFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -143,6 +156,12 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
     [router],
   );
   const [user, setUser] = useState<TowbarUser | null>();
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const assistant = useApiQuery<{ enabled: boolean }>(
+    user && !user.mustChangePassword && !isPublicDemo
+      ? "/v1/agent/status"
+      : null,
+  );
   const [sessionUnavailable, setSessionUnavailable] = useState(false);
   const [isSignOutConfirming, setIsSignOutConfirming] = useState(false);
   const apps = useApiQuery<{ apps: App[] }>(
@@ -341,11 +360,52 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
         <AppShell contentWidth="full" policy={applicationPolicy}>
           <AppLayout
             navigate={navigate}
+            {...(assistant.data?.enabled
+              ? {
+                  aside: (
+                    <Suspense
+                      fallback={<span role="status">Loading assistant…</span>}
+                    >
+                      <Assistant
+                        key={`${user.id}:${user.workspaceId}:${user.workspaceRole}`}
+                        workspaceName={user.teamName}
+                        entityNames={Object.fromEntries([
+                          ...(apps.data?.apps ?? []).map((item) => [
+                            item.id,
+                            item.name,
+                          ]),
+                          ...(resources.data?.resources ?? []).map((item) => [
+                            item.id,
+                            item.name,
+                          ]),
+                          ...(servers.data?.servers ?? []).map((item) => [
+                            item.id,
+                            item.name ?? item.canonicalIp,
+                          ]),
+                          ...(sources.data?.sources ?? []).map((item) => [
+                            item.id,
+                            `${item.repositoryOwner}/${item.repositoryName}`,
+                          ]),
+                        ])}
+                        onClose={() => setAssistantOpen(false)}
+                      />
+                    </Suspense>
+                  ),
+                  asideOpen: assistantOpen,
+                  onAsideOpenChange: setAssistantOpen,
+                }
+              : {})}
             navbar={
               <ApplicationNavbar
                 actions={
                   <div className="flex items-center gap-2">
                     <NotificationCenter />
+                    {assistant.data?.enabled && (
+                      <AgentChatTrigger
+                        isOpen={assistantOpen}
+                        onOpenChange={setAssistantOpen}
+                      />
+                    )}
                     <div className="flex items-center gap-1">
                       <ThemeSwitcher />
                     </div>

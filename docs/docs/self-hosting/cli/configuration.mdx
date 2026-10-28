@@ -49,3 +49,22 @@ Restart reuses installed images. To change versions, use [Install and upgrade](/
   key to recover encrypted credentials. Editing a database password in YAML does
   not rotate the password inside an existing PostgreSQL volume.
 </Warning>
+
+## In-app assistant
+
+For CLI installations, add an `assistant` section to `/etc/towbar/config.yml` and apply the configuration:
+
+```yaml title="/etc/towbar/config.yml"
+assistant:
+  anthropicApiKey: replace-with-provider-key
+```
+
+Gateway configuration uses `apiKey` or `authToken`, `baseUrl`, `model` and `profile`. Optional settings are `effort`, `maxTokens` and a `headers` mapping. These settings render only into the API environment.
+
+The assistant is optional. Set `ANTHROPIC_API_KEY` on the API for the Claude API, or configure `AGENT_API_KEY` or `AGENT_AUTH_TOKEN` with `AGENT_BASE_URL` and `AGENT_MODEL` for a Messages-compatible provider. Use one credential type. Keep these values out of the web runtime. Without a provider credential, the app hides the assistant and ordinary workflows continue to work.
+
+`AGENT_PROFILE` accepts `anthropic` or `compatible`. `AGENT_EFFORT` accepts `low`, `medium`, `high`, `xhigh`, `max` or `none`; `AGENT_MAX_TOKENS` sets the output limit. `AGENT_HEADERS` is an optional JSON object of provider headers. Provider errors do not expose credentials to the browser.
+
+The panel supports streamed replies, Stop, conversation history and deletion. Conversations belong to the signed-in person and current workspace. The assistant uses the app's existing MCP tools and permissions; API keys and OAuth clients cannot open the in-app panel. Each change waits for approval, and current permissions are checked again when it runs. Switching workspace starts a separate conversation context.
+
+Conversation tables are added by the normal forward migration and included in database backups. Apply migrations before starting the updated API. The provider receives submitted messages and results from permitted tools.

@@ -66,6 +66,9 @@ catalog:
   zod: ^4.6.7
 
 minimumReleaseAgeExclude:
+  - "@avgeek-oss/agent-core@0.1.1"
+  - "@avgeek-oss/agent-react@0.1.1"
+  - "@avgeek-oss/agent-protocol@0.1.1"
   - "@avgeek-oss/design-system"
   - "@avgeek-oss/mintlify-docs@0.1.6"
 

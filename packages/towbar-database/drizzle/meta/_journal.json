@@ -232,6 +232,13 @@
       "when": 1792328254810,
       "tag": "0033_repository_secrets",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793167571329,
+      "tag": "0034_assistant",
+      "breakpoints": true
     }
   ]
 }

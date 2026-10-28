@@ -3112,3 +3112,56 @@ export const repositoryManifests = pgTable(
     index("idx_towbar_repository_manifests_workspace").on(table.workspaceId),
   ],
 );
+
+export const agentConversations = pgTable(
+  "agent_conversations",
+  {
+    id: uuid("id").primaryKey(),
+    ownerId: text("owner_id").notNull(),
+    userId: uuid("user_id")
+      .generatedAlwaysAs(sql`split_part(owner_id, ':', 1)::uuid`)
+      .references(() => users.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .generatedAlwaysAs(sql`split_part(owner_id, ':', 2)::uuid`)
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    version: integer("version").default(0).notNull(),
+    pending: jsonb("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("agent_conversations_owner_updated_idx").on(
+      table.ownerId,
+      table.updatedAt,
+    ),
+  ],
+);
+export const agentMessages = pgTable(
+  "agent_messages",
+  {
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => agentConversations.id, { onDelete: "cascade" }),
+    seq: integer("seq").notNull(),
+    role: text("role").notNull(),
+    content: jsonb("content").notNull(),
+    model: text("model"),
+    usage: jsonb("usage"),
+    meta: jsonb("meta"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.seq] }),
+    check(
+      "agent_messages_role_check",
+      sql`${table.role} in ('user','assistant')`,
+    ),
+  ],
+);
