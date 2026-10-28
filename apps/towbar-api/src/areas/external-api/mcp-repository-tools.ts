@@ -49,42 +49,17 @@ export const repositoryTools: McpTool[] = [
   ),
   tool(
     "repository_search",
-    "Find available GitHub or GitLab repositories",
-    "Find a repository connection and provider-specific identifier for towbar_source_connect. GitHub returns a githubInstallationId for each repository and supports an optional connectionId account filter; GitLab uses its workspace provider configuration and supports cloud or self-managed instances. For GitLab, supply integration and omit connectionId; omit integration for GitHub.",
+    "Find available GitHub repositories",
+    "Find a GitHub repository connection for towbar_source_connect. Each repository includes its githubInstallationId. Use connectionId to filter by connected account.",
     z
       .object({
-        provider: z.enum(["github", "gitlab"]).default("github"),
-        integration: z.string().trim().min(1).max(80).optional(),
+        provider: z.literal("github").default("github"),
         connectionId: id("GitHub connection").optional(),
         search: z.string().max(255).default(""),
         ...page,
       })
-      .strict()
-      .refine(
-        (a) =>
-          a.provider === "gitlab"
-            ? Boolean(a.integration) && !a.connectionId
-            : !a.integration,
-        "integration is required for GitLab and must be omitted for GitHub; connectionId is only supported for GitHub.",
-      ),
+      .strict(),
     async (a, c) => {
-      if (a.provider === "gitlab") {
-        const repositories = await c.call({
-          method: "GET",
-          route: "/gitlab/repositories",
-          query: {
-            integration: a.integration,
-            search: a.search,
-            page: Math.floor(a.offset / a.limit) + 1,
-            perPage: a.limit,
-          },
-        });
-        return {
-          provider: "gitlab",
-          integration: a.integration,
-          ...repositories,
-        };
-      }
       const github = await c.call({
         method: "GET",
         route: "/github/installation",

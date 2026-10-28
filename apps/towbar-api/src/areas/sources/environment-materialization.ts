@@ -1,8 +1,9 @@
 import { assertAppStorageServer } from "../apps/storage.js";
-import { and, eq, isNull, ne } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import {
   type IntegrationProvider,
   type IntegrationPurpose,
+  type IntegrationScope,
   type NormalizedDeployable,
   digestValue,
   integrationScopeAllows,
@@ -13,7 +14,6 @@ import type {
 } from "@workspace/towbar-database/schema";
 import {
   apps,
-  integrationAuthorizations,
   logPolicies,
   sourceEntities,
 } from "@workspace/towbar-database/schema";
@@ -48,10 +48,7 @@ export async function materializeEnvironment(
   },
 ) {
   const { reconciliation, environment, workspaceId, tree, serverByIp } = input;
-  const availableIntegrations = await integrationDescriptors(
-    transaction,
-    workspaceId,
-  );
+  const availableIntegrations = integrationDescriptors();
   for (const action of [
     ...reconciliation.apps,
     ...reconciliation.compose,
@@ -235,39 +232,20 @@ type IntegrationReference = {
   slug: string;
 };
 
-async function integrationDescriptors(
-  transaction: Pick<Transaction, "select">,
-  workspaceId: string,
-) {
-  const connections = await transaction
-    .select()
-    .from(integrationAuthorizations)
-    .where(
-      and(
-        eq(integrationAuthorizations.workspaceId, workspaceId),
-        isNull(integrationAuthorizations.disconnectedAt),
-      ),
-    );
-  return [
-    ...connections.map(({ provider, scopes, slug }) => ({
-      provider,
-      scopes,
-      slug,
-    })),
-    ...Object.keys(getRuntimeIntegrations().providers).map((provider) => {
-      const typedProvider = provider as IntegrationProvider;
-      return {
-        provider: typedProvider,
-        scopes: [
-          {
-            kind: "workspace" as const,
-            purpose: purposeByProvider[typedProvider],
-          },
-        ],
-        slug: typedProvider,
-      };
-    }),
-  ] satisfies IntegrationDescriptor[];
+function integrationDescriptors() {
+  return Object.keys(getRuntimeIntegrations().providers).map((provider) => {
+    const typedProvider = provider as IntegrationProvider;
+    return {
+      provider: typedProvider,
+      scopes: [
+        {
+          kind: "workspace" as const,
+          purpose: purposeByProvider[typedProvider],
+        },
+      ],
+      slug: typedProvider,
+    };
+  }) satisfies IntegrationDescriptor[];
 }
 
 export async function validateWithdrawalTarget(
@@ -282,7 +260,7 @@ export async function validateWithdrawalTarget(
   },
 ) {
   validateIntegrationReferences(input.config, {
-    connections: await integrationDescriptors(transaction, input.workspaceId),
+    connections: integrationDescriptors(),
     environment: input.environment,
     sourceId: input.sourceId,
   });
@@ -296,10 +274,11 @@ export async function validateWithdrawalTarget(
     await assertAppStorageServer(transaction, input.appId, server.id);
 }
 
-type IntegrationDescriptor = Pick<
-  typeof integrationAuthorizations.$inferSelect,
-  "provider" | "scopes" | "slug"
->;
+type IntegrationDescriptor = {
+  provider: IntegrationProvider;
+  scopes: IntegrationScope[];
+  slug: string;
+};
 
 const purposeByProvider: Record<IntegrationProvider, IntegrationPurpose> = {
   aws: "backup",
@@ -307,7 +286,6 @@ const purposeByProvider: Record<IntegrationProvider, IntegrationPurpose> = {
   doppler: "secret",
   gcs: "backup",
   github: "source",
-  gitlab: "source",
   infisical: "secret",
   r2: "backup",
   registry: "image",

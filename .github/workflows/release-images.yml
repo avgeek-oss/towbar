@@ -352,13 +352,6 @@ jobs:
           sudo towbar status | tee "$evidence/status.log"
           sudo towbar doctor | tee "$evidence/doctor.log"
 
-      - name: Verify upgrades from System Health are enabled
-        run: |
-          sudo systemctl is-active --quiet towbar-upgrade.service
-          sudo towbar compose exec -T api node --input-type=module --eval \
-            'const { getUpgradeStatus } = await import("./dist/areas/upgrades/runner.js");
-             if (!(await getUpgradeStatus()).supported) process.exit(1);'
-
       - name: Prove restart reuses the running images
         run: |
           set -euo pipefail

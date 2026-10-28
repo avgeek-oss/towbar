@@ -160,8 +160,6 @@ export const runtimeDriftStateEnum = pgEnum("towbar_runtime_drift_state", [
 export const notificationProviderEnum = pgEnum("towbar_notification_provider", [
   "slack",
   "smtp",
-  "discord",
-  "telegram",
   "webhook",
 ]);
 export const notificationDeliveryStateEnum = pgEnum(
@@ -680,7 +678,7 @@ export const sources = pgTable(
       { onDelete: "restrict" },
     ),
     provider: varchar("provider", { length: 16 })
-      .$type<"github" | "gitlab">()
+      .$type<"github">()
       .default("github")
       .notNull(),
     providerRepositoryId: varchar("provider_repository_id", { length: 128 }),
@@ -706,7 +704,7 @@ export const sources = pgTable(
     ),
     check(
       "towbar_source_provider_connection",
-      sql`(${table.provider} = 'github' AND ${table.integrationInstallationId} IS NOT NULL AND ${table.integrationAuthorizationId} IS NULL) OR (${table.provider} = 'gitlab' AND ${table.integrationInstallationId} IS NULL AND ${table.integrationAuthorizationId} IS NOT NULL AND ${table.providerRepositoryId} IS NOT NULL)`,
+      sql`${table.status} = 'archived' OR (${table.provider} = 'github' AND ${table.integrationInstallationId} IS NOT NULL AND ${table.integrationAuthorizationId} IS NULL)`,
     ),
     index("idx_towbar_sources_workspace").on(table.workspaceId),
   ],
@@ -839,39 +837,6 @@ export const integrationAuthorizations = pgTable(
       "towbar_integration_slug",
       sql`${table.slug} ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'`,
     ),
-  ],
-);
-
-export const integrationAuthorizationAttempts = pgTable(
-  "towbar_integration_authorization_attempts",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    workspaceId: uuid("workspace_id")
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
-    requestedBy: uuid("requested_by").references(() => users.id, {
-      onDelete: "cascade",
-    }),
-    provider: varchar("provider", { length: 64 })
-      .$type<IntegrationProvider>()
-      .notNull(),
-    stateDigest: varchar("state_digest", { length: 64 }).notNull(),
-    encryptedPayload: jsonb("encrypted_payload")
-      .$type<EncryptedCredential>()
-      .notNull(),
-    redirectUri: varchar("redirect_uri", { length: 2048 }).notNull(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    consumedAt: timestamp("consumed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex("uq_towbar_integration_authorization_state").on(
-      table.provider,
-      table.stateDigest,
-    ),
-    index("idx_towbar_integration_authorization_expiry").on(table.expiresAt),
   ],
 );
 
@@ -1076,31 +1041,6 @@ export const notificationSlackDestinations = pgTable(
   ],
 );
 
-export const notificationDiscordRouteSettings = pgTable(
-  "towbar_notification_discord_route_settings",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    workspaceId: uuid("workspace_id")
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
-    routeId: varchar("route_id", { length: 255 }).notNull(),
-    deployments: boolean("deployments").default(false).notNull(),
-    deploymentFailures: boolean("deployment_failures").default(false).notNull(),
-    backupsAndRestores: boolean("backups_and_restores")
-      .default(false)
-      .notNull(),
-    alertsAndIncidents: boolean("alerts_and_incidents")
-      .default(false)
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex("uq_towbar_notification_discord_route_setting").on(
-      table.workspaceId,
-      table.routeId,
-    ),
-  ],
-);
-
 export const notificationWebhookRouteSettings = pgTable(
   "towbar_notification_webhook_route_settings",
   {
@@ -1122,53 +1062,6 @@ export const notificationWebhookRouteSettings = pgTable(
     uniqueIndex("uq_towbar_notification_webhook_route_setting").on(
       table.workspaceId,
       table.routeId,
-    ),
-  ],
-);
-
-export const notificationTelegramRouting = pgTable(
-  "towbar_notification_telegram_routing",
-  {
-    workspaceId: uuid("workspace_id")
-      .primaryKey()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
-    migratedAt: timestamp("migrated_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-);
-
-export const notificationTelegramDestinations = pgTable(
-  "towbar_notification_telegram_destinations",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    workspaceId: uuid("workspace_id")
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
-    chatId: varchar("chat_id", { length: 21 }).notNull(),
-    // Zero represents the main chat so the unique index also covers destinations without a topic.
-    messageThreadId: integer("message_thread_id").default(0).notNull(),
-    legacyRouteIds: jsonb("legacy_route_ids")
-      .$type<string[]>()
-      .default([])
-      .notNull(),
-    deployments: boolean("deployments").default(false).notNull(),
-    deploymentFailures: boolean("deployment_failures").default(false).notNull(),
-    backupsAndRestores: boolean("backups_and_restores")
-      .default(false)
-      .notNull(),
-    alertsAndIncidents: boolean("alerts_and_incidents")
-      .default(false)
-      .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex("uq_towbar_notification_telegram_destination").on(
-      table.workspaceId,
-      table.chatId,
-      table.messageThreadId,
     ),
   ],
 );
@@ -1266,7 +1159,7 @@ export const sourceSyncs = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -1428,7 +1321,7 @@ export const serverChecks = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -1476,7 +1369,7 @@ export const serverCredentialVerifications = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -1521,7 +1414,7 @@ export const serverPreparations = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -1692,7 +1585,7 @@ export const previewEnvironments = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     cleanupStartedAt: timestamp("cleanup_started_at", { withTimezone: true }),
@@ -1857,7 +1750,7 @@ export const deployments = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -2175,7 +2068,7 @@ export const resourceOperations = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -2519,7 +2412,7 @@ export const monitoringAgents = pgTable(
       workspaceId: string;
       userId?: string;
       keyId?: string;
-      source?: "github" | "gitlab" | "worker";
+      source?: "github" | "worker";
       grants?: string[];
     }>(),
     requestedBy: uuid("requested_by").references(() => users.id, {
@@ -2844,26 +2737,6 @@ export const analyticsRefresh = pgTable(
     check("towbar_analytics_refresh_singleton", sql`${table.id} = 1`),
   ],
 );
-
-// Host-managed upgrades fail closed until the host runner releases admission.
-export const upgradeAdmission = pgTable(
-  "towbar_upgrade_admission",
-  {
-    id: integer("id").primaryKey().default(1),
-    jobId: uuid("job_id"),
-  },
-  (table) => [
-    check("towbar_upgrade_admission_singleton", sql`${table.id} = 1`),
-  ],
-);
-
-export const upgradeLeases = pgTable("towbar_upgrade_leases", {
-  id: uuid("id").primaryKey(),
-  kind: varchar("kind", { length: 120 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
 
 export const domainClaims = pgTable(
   "towbar_domain_claims",

@@ -64,7 +64,7 @@ Create `towbar.yml` and one entity file per Service or Datastore. Run schema val
 
 ## 3. Recreate credentials and integrations
 
-Configure GitHub or GitLab, registries, backup storage, notifications, Cloudflare, and external-secret providers in Towbar's protected YAML configuration. Check platform providers under **Manage → Integrations**, and notification providers under Manage → Notifications.
+Configure GitHub, registries, backup storage, notifications, Cloudflare, and external-secret providers in Towbar's protected YAML configuration. Check platform providers under **Manage → Integrations**, and notification providers under Manage → Notifications.
 
 Save application values in [Towbar](/docs/secrets/towbar) or load them from a supported [external provider](/docs/secrets/external). Use shared secrets when several workloads need the same value. Do not copy Coolify's encrypted database rows or encryption key into Towbar. Rotate long-lived credentials where practical, and update OAuth callback URLs, provider webhooks, CI secrets, and allowlists for the new Towbar origin.
 

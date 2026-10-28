@@ -334,23 +334,6 @@ void test("sync resolves per-entity notification destinations without credential
         alertsAndIncidents: false,
       },
     ],
-    discord: [
-      {
-        webhookId: "123456789",
-        deployments: true,
-        backupsAndRestores: false,
-        alertsAndIncidents: false,
-      },
-    ],
-    telegram: [
-      {
-        chatId: "-1001234567890",
-        messageThreadId: 42,
-        deployments: false,
-        backupsAndRestores: false,
-        alertsAndIncidents: true,
-      },
-    ],
   };
   const resource = {
     id: "database",
@@ -373,7 +356,7 @@ void test("sync resolves per-entity notification destinations without credential
     resolve({
       ...app,
       notifications: {
-        discord: [{ ...notifications.discord[0], webhookToken: "secret" }],
+        discord: [{ webhookId: "123456789", webhookToken: "secret" }],
       },
     }),
   );

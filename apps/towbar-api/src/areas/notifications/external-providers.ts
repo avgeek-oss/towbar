@@ -6,75 +6,10 @@ import type {
   NotificationEventType,
 } from "@workspace/towbar-core";
 import { createHmac } from "node:crypto";
-import { discordWebhookCredentialsSchema } from "@workspace/towbar-core";
 
 import { NotificationProviderError } from "./provider-error.js";
 
 const providerTimeoutMs = 10_000;
-
-export async function sendDiscordNotification(
-  input: {
-    config: { webhookId: string; webhookToken: string };
-    eventId: string;
-    payload: NotificationEventPayload;
-  },
-  request: typeof fetch = fetch,
-) {
-  if (!discordWebhookCredentialsSchema.safeParse(input.config).success)
-    throw new NotificationProviderError(
-      "INVALID_DISCORD_WEBHOOK",
-      "Enter a valid Discord webhook ID and token",
-      false,
-    );
-  const url = new URL(
-    `https://discord.com/api/webhooks/${input.config.webhookId}/${input.config.webhookToken}`,
-  );
-  url.searchParams.set("wait", "true");
-  const response = await providerRequest(
-    "Discord",
-    url.toString(),
-    {
-      body: JSON.stringify({
-        content: renderPlainText(input.payload, input.eventId).slice(0, 2_000),
-      }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    },
-    request,
-  );
-  return { providerStatus: response.status.toString() };
-}
-
-export async function sendTelegramNotification(
-  input: {
-    config: {
-      botToken: string;
-      chatId: string;
-      messageThreadId?: number;
-    };
-    eventId: string;
-    payload: NotificationEventPayload;
-  },
-  request: typeof fetch = fetch,
-) {
-  const response = await providerRequest(
-    "Telegram",
-    `https://api.telegram.org/bot${encodeURIComponent(input.config.botToken)}/sendMessage`,
-    {
-      body: JSON.stringify({
-        chat_id: input.config.chatId,
-        ...(input.config.messageThreadId === undefined
-          ? {}
-          : { message_thread_id: input.config.messageThreadId }),
-        text: renderPlainText(input.payload, input.eventId).slice(0, 4_096),
-      }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    },
-    request,
-  );
-  return { providerStatus: response.status.toString() };
-}
 
 export async function sendWebhookNotification(
   input: {
@@ -196,26 +131,6 @@ export async function requirePublicHttpsUrl(value: string) {
   return url.toString();
 }
 
-function renderPlainText(payload: NotificationEventPayload, eventId: string) {
-  const details = Object.entries(payload.details)
-    .map(([key, value]) => `${key}: ${String(value)}`)
-    .join("\n");
-  return [
-    payload.title,
-    "",
-    payload.message,
-    "",
-    ...(payload.source ? [`Source: ${payload.source.name}`] : []),
-    `${capitalize(payload.entity.kind)}: ${payload.entity.name}`,
-    ...(details ? [details] : []),
-    "",
-    `Towbar event: ${eventId}`,
-    `Occurred: ${payload.occurredAt}`,
-  ]
-    .join("\n")
-    .slice(0, 20_000);
-}
-
 function isUnsafeAddress(address: string) {
   const version = isIP(address);
   if (version === 4) return isUnsafeIpv4(address);
@@ -274,8 +189,4 @@ function isUnsafeIpv6(address: string) {
       (prefix) => address.startsWith(prefix),
     )
   );
-}
-
-function capitalize(value: string) {
-  return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 }

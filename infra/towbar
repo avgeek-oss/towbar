@@ -576,10 +576,6 @@ generate_config() {
 compose_for() {
   local release_dir="$1" commit="$2" env_file="$3" compose_profiles
   local api_image worker_image web_app_image
-  local -a upgrade_override=()
-  if [[ -f "$TOWBAR_CONFIG_DIR/upgrade-compose.yml" ]]; then
-    upgrade_override=(--file "$TOWBAR_CONFIG_DIR/upgrade-compose.yml")
-  fi
   shift 3
   compose_profiles="$(env_value "$env_file" COMPOSE_PROFILES)"
   api_image="$(metadata_value "$release_dir" API_IMAGE)"
@@ -595,7 +591,6 @@ compose_for() {
       --env-file "$env_file" \
       --project-directory "$release_dir" \
       --file "$release_dir/docker-compose.yml" \
-      "${upgrade_override[@]}" \
       "$@"
 }
 
@@ -868,14 +863,19 @@ cleanup_installation_artifacts() {
   cleanup_old_releases "$current_release" "$previous_release"
 }
 
+retire_host_upgrade_service() {
+  if [[ -f /etc/systemd/system/towbar-upgrade.service ]]; then
+    systemctl disable --now towbar-upgrade.service
+    rm -f -- /etc/systemd/system/towbar-upgrade.service
+    systemctl daemon-reload
+  fi
+  rm -f -- "$TOWBAR_CONFIG_DIR/upgrade-compose.yml"
+}
+
 upgrade_release() {
   local requested_version="${1:-latest}" version commit release_dir
   require_root upgrade
   [[ ! -f /.dockerenv && ! -f /run/.containerenv ]] || fail "run upgrades on the host"
-  if [[ -f "$TOWBAR_CONFIG_DIR/upgrade-compose.yml" && -z "${TOWBAR_UPGRADE_JOB:-}" ]]; then
-    python3 /usr/local/lib/towbar-upgrade/runner.py --upgrade "$requested_version"
-    return
-  fi
   local previous_release="" previous_commit="" containers_changed=false
   local config_path_migrated=false had_legacy_config=false
 
@@ -901,9 +901,6 @@ upgrade_release() {
   fi
   verify_release "$version"
   commit="$(resolve_release_commit "$version")"
-  if [[ -n "${TOWBAR_UPGRADE_JOB:-}" ]]; then
-    [[ "$commit" == "${TOWBAR_UPGRADE_COMMIT:-}" ]] || fail "the release commit changed after confirmation"
-  fi
   ui_step "Verified $version at immutable commit ${commit:0:12}"
   release_dir="$(download_release "$version" "$commit")"
   if [[ -f "$TOWBAR_LEGACY_YAML_FILE" && ! -e "$TOWBAR_YAML_FILE" ]]; then
@@ -979,6 +976,7 @@ upgrade_release() {
   compose_for "$release_dir" "$commit" "$TOWBAR_ENV_FILE" \
     pull --quiet api worker web-app
   ui_step "Downloaded the control-plane images"
+  retire_host_upgrade_service
   set_current_release "$release_dir"
   containers_changed=true
   ui_pending_step "Applying the database schema and starting $version"
@@ -1008,9 +1006,6 @@ upgrade_release() {
   cleanup_installation_artifacts \
     "$release_dir" "$commit" "$previous_release" "$previous_commit"
   log "$version is healthy at $commit"
-  trap 'ui_failure_step "Towbar upgraded, but in-app upgrades could not be enabled"; exit 1' ERR
-  enable_host_upgrades_after_upgrade "$release_dir"
-  trap - ERR
 }
 
 current_release_dir() {
@@ -1131,70 +1126,6 @@ config_command() {
       log "Configuration is valid"
       ;;
     *) fail "usage: towbar config {path|validate}" ;;
-  esac
-}
-
-host_upgrades_supported() {
-  local release_dir="$1"
-  [[ "$TOWBAR_ROOT" == /opt/towbar && "$TOWBAR_CONFIG_DIR" == /etc/towbar && "$TOWBAR_BIN" == /usr/local/bin/towbar && "$TOWBAR_REPOSITORY" == "$TOWBAR_UPSTREAM_REPOSITORY" ]] || return 1
-  [[ -f "$release_dir/infra/upgrade-runner/protocol" && "$(cat "$release_dir/infra/upgrade-runner/protocol")" == 2 ]] || return 1
-  command -v python3 >/dev/null && command -v systemctl >/dev/null || return 1
-  systemctl list-units --no-legend >/dev/null 2>&1
-}
-
-install_host_upgrade_service() {
-  local release_dir="$1"
-  python3 "$release_dir/infra/upgrade-runner/install.py" || return 1
-  systemctl enable --now towbar-upgrade.service || return 1
-}
-
-enable_host_upgrades_after_upgrade() {
-  local release_dir="$1"
-  [[ -z "${TOWBAR_UPGRADE_JOB:-}" && ! -f "$TOWBAR_CONFIG_DIR/upgrade-compose.yml" ]] || return 0
-  host_upgrades_supported "$release_dir" || return 0
-  ui_pending_step "Enabling upgrades from System Health"
-  install_host_upgrade_service "$release_dir" || return 1
-  restart_release_locked
-  ui_step "Upgrades from System Health are enabled"
-}
-
-upgrade_service_command() {
-  require_root upgrade-service
-  require_linux
-  require_runtime_tools
-  [[ "$TOWBAR_ROOT" == /opt/towbar && "$TOWBAR_CONFIG_DIR" == /etc/towbar && "$TOWBAR_BIN" == /usr/local/bin/towbar && "$TOWBAR_REPOSITORY" == "$TOWBAR_UPSTREAM_REPOSITORY" ]] ||
-    fail "host upgrades require the standard upstream CLI installation paths"
-  local release_dir version commit
-  release_dir="$(current_release_dir)"
-  case "${1:-}" in
-    enable)
-      [[ -f "$release_dir/infra/upgrade-runner/protocol" ]] || fail "upgrade this installation using the CLI before enabling host upgrades"
-      command -v systemctl >/dev/null || fail "systemd is required"
-      command -v python3 >/dev/null || fail "Python 3 is required"
-      [[ ! -f /.dockerenv && ! -f /run/.containerenv ]] || fail "run this command on the host"
-      acquire_lock
-      if systemctl is-active --quiet towbar-upgrade.service; then
-        fail "wait for any upgrade to finish, then stop towbar-upgrade.service before re-enabling it"
-      fi
-      install_host_upgrade_service "$release_dir"
-      restart_release_locked
-      ;;
-    plan)
-      version="${2:-}"
-      validate_version "$version"
-      acquire_lock
-      verify_release "$version"
-      commit="$(resolve_release_commit "$version")"
-      release_dir="$(download_release "$version" "$commit")"
-      [[ "$(cat "$release_dir/infra/upgrade-runner/protocol" 2>/dev/null)" == 2 ]] || fail "this release requires a manual host upgrade"
-      jq -n --arg version "$version" --arg commit "$commit" '{version:$version,commit:$commit}'
-      ;;
-    resume)
-      shift
-      [[ $# -eq 1 && "$1" == --acknowledge-recovery ]] || fail "inspect sudo towbar doctor and the host upgrade log, then run sudo towbar upgrade-service resume --acknowledge-recovery"
-      python3 /usr/local/lib/towbar-upgrade/runner.py --resume
-      ;;
-    *) fail "usage: towbar upgrade-service enable | resume --acknowledge-recovery" ;;
   esac
 }
 
@@ -1691,7 +1622,6 @@ Usage: towbar COMMAND [ARGUMENTS]
 Commands:
   install                Install the release bundled with this CLI
   upgrade [VERSION]      Upgrade to the latest or selected stable release
-  upgrade-service enable Enable host-managed upgrades in System Health
   restart                Validate and restart with the current configuration
   compose COMMAND        Run a Docker Compose command for this installation
   config path            Print the configuration path
@@ -1716,7 +1646,6 @@ case "${1:-help}" in
   restart) restart_release ;;
   status) status_command ;;
   upgrade | update) shift; upgrade_release "${1:-latest}" ;;
-  upgrade-service) shift; upgrade_service_command "$@" ;;
   version | --version | -v) version_command ;;
   *) fail "unknown command: $1; run towbar help" ;;
 esac

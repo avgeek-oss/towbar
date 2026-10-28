@@ -299,25 +299,6 @@
       ]
     },
     {
-      "name": "discord-notifications",
-      "route": "/manage/notifications/discord",
-      "guides": ["docs/docs/integrations/notifications/discord.mdx"],
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/discord-notifications-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/discord-notifications-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
       "name": "doppler-setup",
       "route": "/manage/integrations/doppler",
       "guides": ["docs/docs/integrations/doppler.mdx"],
@@ -407,25 +388,6 @@
         {
           "theme": "dark",
           "file": "docs/assets/release-v2/github-setup-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "gitlab-setup",
-      "route": "/manage/integrations/gitlab",
-      "guides": ["docs/docs/integrations/gitlab.mdx"],
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/gitlab-setup-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/gitlab-setup-dark.jpg",
           "width": 3200,
           "height": 1800
         }
@@ -923,125 +885,6 @@
         {
           "theme": "dark",
           "file": "docs/assets/release-v2/team-members-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "telegram-notifications",
-      "route": "/manage/notifications/telegram",
-      "guides": ["docs/docs/integrations/notifications/telegram.mdx"],
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/telegram-notifications-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/telegram-notifications-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "upgrade-applying",
-      "route": "/system-health",
-      "guides": ["docs/docs/self-hosting/upgrades.md"],
-      "upgradeState": "applying",
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/upgrade-applying-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/upgrade-applying-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "upgrade-blocked",
-      "route": "/system-health",
-      "guides": ["docs/docs/self-hosting/upgrades.md"],
-      "upgradeState": "blocked",
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/upgrade-blocked-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/upgrade-blocked-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "upgrade-failed",
-      "route": "/system-health",
-      "guides": ["docs/docs/self-hosting/upgrades.md"],
-      "upgradeState": "failed",
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/upgrade-failed-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/upgrade-failed-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "upgrade-ready",
-      "route": "/system-health",
-      "guides": ["docs/docs/self-hosting/upgrades.md"],
-      "upgradeState": "ready",
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/upgrade-ready-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/upgrade-ready-dark.jpg",
-          "width": 3200,
-          "height": 1800
-        }
-      ]
-    },
-    {
-      "name": "upgrade-succeeded",
-      "route": "/system-health",
-      "guides": ["docs/docs/self-hosting/upgrades.md"],
-      "upgradeState": "succeeded",
-      "themes": [
-        {
-          "theme": "light",
-          "file": "docs/assets/release-v2/upgrade-succeeded-light.jpg",
-          "width": 3200,
-          "height": 1800
-        },
-        {
-          "theme": "dark",
-          "file": "docs/assets/release-v2/upgrade-succeeded-dark.jpg",
           "width": 3200,
           "height": 1800
         }

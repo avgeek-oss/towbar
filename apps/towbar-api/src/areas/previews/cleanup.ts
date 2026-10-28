@@ -40,7 +40,7 @@ import {
   publishPreviewPullRequestCommentForEnvironment,
 } from "./pr-comment.js";
 
-function automaticCleanupAuthority(source: "github" | "gitlab" | "worker") {
+function automaticCleanupAuthority(source: "github" | "worker") {
   return sql<QueuedActor>`jsonb_build_object('kind', 'system', 'source', ${source}::text, 'workspaceId', ${previewEnvironments.workspaceId}, 'grants', jsonb_build_array('workload.operate'))`;
 }
 

@@ -13,7 +13,7 @@ export function eventHistoryFixture(
   const now = Date.now();
   const id = (group: number, index: number) =>
     `e${group}111111-1111-4111-8111-${String(index + 1).padStart(12, "0")}`;
-  const providers = ["slack", "smtp", "discord", "telegram", "webhook"];
+  const providers = ["slack", "smtp", "webhook"];
   const states = ["succeeded", "pending", "retrying", "failed", "delivering"];
   const targets = [
     {
@@ -55,11 +55,7 @@ export function eventHistoryFixture(
           ? "CTOWBARALERTS"
           : provider === "smtp"
             ? "operations@example.com"
-            : provider === "telegram"
-              ? "-100123456789 / Topic 2"
-              : provider === "discord"
-                ? "discord.com"
-                : "hooks.example.com",
+            : "hooks.example.com",
       destinationDeleted: index === 9 ? createdAt : null,
       type,
       category: notificationCategoryForEvent(type),

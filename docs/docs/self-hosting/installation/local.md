@@ -59,4 +59,4 @@ Do not delete PostgreSQL volumes to repair startup. Follow [Troubleshooting](/do
 
 ## Continue setup
 
-Review [Configuration](/docs/self-hosting/configuration), connect [GitHub](/docs/integrations/github) or [GitLab](/docs/integrations/gitlab), register a [server](/docs/servers/register), then follow [Your first deployment](/docs/getting-started). Set up [backups](/docs/self-hosting/backup) before changing versions.
+Review [Configuration](/docs/self-hosting/configuration), connect [GitHub](/docs/integrations/github), register a [server](/docs/servers/register), then follow [Your first deployment](/docs/getting-started). Set up [backups](/docs/self-hosting/backup) before changing versions.

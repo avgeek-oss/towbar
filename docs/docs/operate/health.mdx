@@ -13,7 +13,7 @@ description: "Check Towbar, a server, or a workload using the right observation.
 
 Open **Settings → System health** and choose **Run checks**. Inspect API/database, Temporal, and worker status. Towbar checks Temporal at startup and every five minutes; old results are marked stale.
 
-**Towbar version** shows the installed release and update availability. Choose **Review upgrade** for readiness checks and confirmation. If in-app upgrades are unavailable, use [`towbar upgrade`](/docs/self-hosting/cli/install-upgrade#towbar-upgrade). See [Upgrade recovery](/docs/self-hosting/upgrades#upgrade-from-system-health) for failures.
+System health shows the installed release. Run [`towbar upgrade`](/docs/self-hosting/cli/install-upgrade#towbar-upgrade) on the control-plane host to update it. See [Upgrades and recovery](/docs/self-hosting/upgrades) for backups and migration requirements.
 
 **Data Storage** and **Log Storage** show PostgreSQL and ClickHouse usage. They record readings every two hours, retain 90 days, and show missing data as gaps. See [Storage measurements](/docs/monitoring#data-and-log-storage) for permissions and scope.
 

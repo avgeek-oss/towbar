@@ -1,12 +1,6 @@
 import { z } from "zod";
 
-export const notificationProviders = [
-  "slack",
-  "smtp",
-  "discord",
-  "telegram",
-  "webhook",
-] as const;
+export const notificationProviders = ["slack", "smtp", "webhook"] as const;
 export const notificationProviderSchema = z.enum(notificationProviders);
 export type NotificationProvider = z.infer<typeof notificationProviderSchema>;
 
@@ -139,60 +133,6 @@ export const smtpNotificationConfigSchema = z
   })
   .strict();
 
-export const discordWebhookCredentialsSchema = z
-  .object({
-    webhookId: z
-      .string()
-      .trim()
-      .regex(/^\d{1,20}$/u, "Enter a Discord webhook ID"),
-    webhookToken: z
-      .string()
-      .trim()
-      .min(1)
-      .max(512)
-      .regex(/^[A-Za-z0-9_-]+$/u, "Enter a Discord webhook token"),
-  })
-  .strict();
-
-const legacyDiscordWebhookUrlSchema = z
-  .string()
-  .url()
-  .max(2_048)
-  .refine((value) => {
-    const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      ["discord.com", "discordapp.com"].includes(url.hostname) &&
-      /^\/api\/webhooks\/\d{1,20}\/[A-Za-z0-9_-]+$/u.test(url.pathname) &&
-      !url.search &&
-      !url.hash
-    );
-  }, "Enter a Discord webhook URL");
-
-export const discordNotificationConfigSchema = z.union([
-  discordWebhookCredentialsSchema,
-  z
-    .object({ webhookUrl: legacyDiscordWebhookUrlSchema })
-    .strict()
-    .transform(({ webhookUrl }) => {
-      const [, , , webhookId, webhookToken] = new URL(
-        webhookUrl,
-      ).pathname.split("/");
-      return discordWebhookCredentialsSchema.parse({ webhookId, webhookToken });
-    }),
-]);
-
-export const telegramNotificationConfigSchema = z
-  .object({
-    chatId: z
-      .string()
-      .trim()
-      .regex(/^-?\d{1,20}$/u, "Enter a Telegram chat ID")
-      .optional(),
-    messageThreadId: z.number().int().positive().max(2_147_483_647).optional(),
-  })
-  .strict();
-
 const manifestSubscriptionSchema = z
   .object({
     deployments: z.boolean(),
@@ -237,40 +177,6 @@ export const manifestNotificationsSchema = z
         "Each Slack channel can appear only once",
       )
       .optional(),
-    discord: z
-      .array(
-        manifestSubscriptionSchema
-          .safeExtend({
-            webhookId: discordWebhookCredentialsSchema.shape.webhookId,
-          })
-          .strict(),
-      )
-      .max(100)
-      .refine(
-        (rows) => uniqueDestinations(rows, (row) => row.webhookId),
-        "Each Discord webhook ID can appear only once",
-      )
-      .optional(),
-    telegram: z
-      .array(
-        manifestSubscriptionSchema
-          .safeExtend({
-            chatId: telegramNotificationConfigSchema.shape.chatId.unwrap(),
-            messageThreadId:
-              telegramNotificationConfigSchema.shape.messageThreadId.optional(),
-          })
-          .strict(),
-      )
-      .max(100)
-      .refine(
-        (rows) =>
-          uniqueDestinations(
-            rows,
-            (row) => `${row.chatId}:${row.messageThreadId ?? 0}`,
-          ),
-        "Each Telegram chat and topic can appear only once",
-      )
-      .optional(),
   })
   .strict()
   .refine(
@@ -300,22 +206,6 @@ export function normalizeManifestNotifications(
       ? {
           slack: [...value.slack].sort((a, b) =>
             a.channelId.localeCompare(b.channelId),
-          ),
-        }
-      : {}),
-    ...(value.discord?.length
-      ? {
-          discord: [...value.discord].sort((a, b) =>
-            a.webhookId.localeCompare(b.webhookId),
-          ),
-        }
-      : {}),
-    ...(value.telegram?.length
-      ? {
-          telegram: [...value.telegram].sort(
-            (a, b) =>
-              a.chatId.localeCompare(b.chatId) ||
-              (a.messageThreadId ?? 0) - (b.messageThreadId ?? 0),
           ),
         }
       : {}),
@@ -376,18 +266,6 @@ export const notificationDestinationInputSchema = z.discriminatedUnion(
       .extend({
         config: smtpNotificationConfigSchema,
         provider: z.literal("smtp"),
-      })
-      .strict(),
-    notificationDestinationBaseSchema
-      .extend({
-        config: discordNotificationConfigSchema,
-        provider: z.literal("discord"),
-      })
-      .strict(),
-    notificationDestinationBaseSchema
-      .extend({
-        config: telegramNotificationConfigSchema,
-        provider: z.literal("telegram"),
       })
       .strict(),
     notificationDestinationBaseSchema
@@ -465,19 +343,6 @@ export const emailRoutingInputSchema = z
 
 const webhookUrlSchema = webhookNotificationConfigSchema.shape.url;
 
-export const discordRoutingInputSchema = z
-  .object({
-    routes: uniqueCategoryRoutes(
-      z
-        .object({
-          category: notificationCategorySchema,
-          webhookUrl: legacyDiscordWebhookUrlSchema.optional(),
-        })
-        .strict(),
-    ),
-  })
-  .strict();
-
 export const webhookRoutingInputSchema = z
   .object({
     routes: uniqueCategoryRoutes(
@@ -488,43 +353,6 @@ export const webhookRoutingInputSchema = z
         })
         .strict(),
     ),
-  })
-  .strict();
-
-export const telegramConnectionInputSchema = z
-  .object({
-    botToken: z
-      .string()
-      .trim()
-      .max(256)
-      .regex(/^\d{5,20}:[A-Za-z0-9_-]{20,}$/u, "Enter a Telegram bot token")
-      .optional(),
-    chatId: z
-      .string()
-      .trim()
-      .regex(/^-?\d{1,20}$/u, "Enter a Telegram chat ID")
-      .optional(),
-  })
-  .strict();
-
-export const telegramTopicRoutingInputSchema = z
-  .object({
-    routes: z
-      .array(
-        z
-          .object({
-            category: notificationCategorySchema,
-            messageThreadId:
-              telegramNotificationConfigSchema.shape.messageThreadId.unwrap(),
-          })
-          .strict(),
-      )
-      .max(notificationCategories.length)
-      .refine(
-        (routes) =>
-          new Set(routes.map((route) => route.category)).size === routes.length,
-        "Configure each notification category once",
-      ),
   })
   .strict();
 
@@ -544,13 +372,6 @@ function uniqueCategoryRoutes<
 export type SlackConnectionInput = z.infer<typeof slackConnectionInputSchema>;
 export type EmailConnectionInput = z.infer<typeof emailConnectionInputSchema>;
 export type EmailRoutingInput = z.infer<typeof emailRoutingInputSchema>;
-export type DiscordRoutingInput = z.infer<typeof discordRoutingInputSchema>;
-export type TelegramConnectionInput = z.infer<
-  typeof telegramConnectionInputSchema
->;
-export type TelegramTopicRoutingInput = z.infer<
-  typeof telegramTopicRoutingInputSchema
->;
 export type WebhookRoutingInput = z.infer<typeof webhookRoutingInputSchema>;
 
 export function notificationCategoryForEvent(

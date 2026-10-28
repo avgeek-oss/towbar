@@ -239,6 +239,13 @@
       "when": 1793197965067,
       "tag": "0034_remove_audit_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793197965068,
+      "tag": "0035_retire_upgrades_and_providers",
+      "breakpoints": true
     }
   ]
 }

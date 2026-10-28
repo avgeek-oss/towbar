@@ -1,14 +1,6 @@
 export type SystemHealthStatus =
   "healthy" | "attention" | "critical" | "unknown";
 
-export type TowbarUpdateInfo = {
-  checkedAt: string;
-  installedVersion: string;
-  latestVersion: string | null;
-  releaseUrl: string | null;
-  status: "available" | "current" | "ahead" | "unavailable";
-};
-
 export type SystemHealthCheck = {
   checkedAt: string | null;
   description: string;

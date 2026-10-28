@@ -40,23 +40,4 @@ On success, Towbar keeps the current and previous release directories and applic
 
 Older `/etc/towbar/towbar.yml` configuration is renamed to `config.yml` with contents and permissions preserved. If both exist, resolve the conflict before retrying. If an older CLI starts the upgrade, run `sudo towbar restart` afterward to complete the rename.
 
-Compatible standard installations enable System Health upgrades automatically. Custom installations use the manual CLI path. Use `upgrade`, rather than `install`, for an existing installation.
-
-## `towbar upgrade-service`
-
-Enable System Health upgrades if an older CLI left them disabled:
-
-```bash
-sudo towbar upgrade-service enable
-```
-
-This requires the standard upstream Linux/systemd installation and a release supporting the host admission protocol. Setup restarts the API with a private runner socket. Once enabled, CLI upgrades also use the runner's readiness checks and job record.
-
-After a failed or interrupted attempt, inspect host logs, the database and service health before acknowledging recovery:
-
-```bash
-sudo towbar doctor
-sudo towbar upgrade-service resume --acknowledge-recovery
-```
-
-Recovery refuses active jobs or unresolved work. See [Upgrades and recovery](/docs/self-hosting/upgrades) for backups, migration limits, admission checks and stale leases.
+Run upgrades on the control-plane host with `sudo towbar upgrade`. The dashboard shows the installed version in System health.

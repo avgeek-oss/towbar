@@ -21,7 +21,6 @@ import {
   createGitHubPreviewDeployment,
   updateGitHubPreviewDeployment,
 } from "../github/client.js";
-import { publishGitLabCommitStatus } from "../gitlab/client.js";
 import { sourceProviderClient } from "../sources/repository-provider.js";
 import { publishPreviewPullRequestCommentForDeployment } from "../previews/pr-comment.js";
 import { emitPreviewNotification } from "../notifications/events.js";
@@ -203,20 +202,6 @@ async function publishCurrentPreviewDeploymentStatus(deploymentId: string) {
   const state =
     deployment.environmentStatus === "deleted" ? "inactive" : deployment.state;
   const provider = await sourceProviderClient(deployment.sourceId);
-  if (provider.provider === "gitlab") {
-    await publishGitLabCommitStatus({
-      appName: deployment.app.name,
-      commitSha: deployment.commitSha,
-      connection: provider.connection,
-      description: `Towbar preview is ${state.replaceAll("_", " ")}`,
-      environmentUrl: `https://${deployment.hostname}`,
-      projectId: provider.projectId,
-      repositoryName: deployment.repositoryName,
-      repositoryOwner: deployment.repositoryOwner,
-      state: previewGitLabDeploymentState(state),
-    });
-    return;
-  }
   const githubState =
     state === "inactive" ? "inactive" : previewGitHubDeploymentState(state);
   let githubDeploymentId = deployment.githubDeploymentId;
@@ -259,18 +244,6 @@ async function publishCurrentPreviewDeploymentStatus(deploymentId: string) {
         .where(eq(deployments.id, deploymentId));
     }
   }
-}
-
-function previewGitLabDeploymentState(
-  state: DeploymentState | "inactive",
-): "canceled" | "failed" | "pending" | "running" | "success" {
-  if (state === "inactive" || state === "cancelled" || state === "skipped")
-    return "canceled";
-  if (state === "failed") return "failed";
-  if (state === "queued" || state === "waiting_for_server") return "pending";
-  if (state === "succeeded" || state === "succeeded_with_warnings")
-    return "success";
-  return "running";
 }
 
 function previewGitHubDeploymentState(state: DeploymentState) {

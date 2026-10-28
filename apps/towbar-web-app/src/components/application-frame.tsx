@@ -30,7 +30,6 @@ import type {
   Server,
   Source,
   TowbarUser,
-  TowbarUpdateInfo,
 } from "@workspace/towbar-web-client";
 import { AppLayout } from "@avgeek-oss/design-system/navigation/app-layout";
 import {
@@ -176,7 +175,7 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
     user && !user.mustChangePassword ? "/v1/core/monitoring/summary" : null,
     30_000,
   );
-  const version = useApiQuery<TowbarUpdateInfo>(
+  const version = useApiQuery<{ installedVersion: string }>(
     user && !user.mustChangePassword ? "/v1/core/version" : null,
     15 * 60_000,
   );
@@ -321,11 +320,6 @@ function AuthenticatedFrame({ children }: { children: React.ReactNode }) {
       ),
     })),
     ...(version.data ? { brandVersion: version.data.installedVersion } : {}),
-    brandUpdateHref: "/system-health",
-    brandUpdateVersion:
-      !version.error && version.data?.status === "available"
-        ? (version.data.latestVersion ?? undefined)
-        : undefined,
     footerContent: (
       <AccountMenu
         user={user}

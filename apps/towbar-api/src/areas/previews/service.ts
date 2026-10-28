@@ -24,7 +24,6 @@ import {
   fetchRepositoryPullRequest,
   fetchRepositoryPullRequestChangedPaths,
   fetchRepositoryTree,
-  repositoryProviderClient,
 } from "../sources/repository-provider.js";
 import { withPreviewLifecycleLock } from "./lifecycle-lock.js";
 import {
@@ -35,7 +34,6 @@ import { selectObsoletePreviewApps } from "./cleanup-selection.js";
 import { resolvePreviewConfiguration } from "./configuration.js";
 import { assertRequiredInstanceSecrets } from "../apps/secrets.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { requireGitLabRuntimeConfiguration } from "../../infrastructure/runtime-integrations.js";
 import { enqueueDeployment } from "../../infrastructure/temporal.js";
 import {
   propagatePreviewDeploymentState,
@@ -87,7 +85,6 @@ export async function listPreviewEnvironments(input: {
       pullRequestNumber: previewEnvironments.pullRequestNumber,
       repositoryName: sources.repositoryName,
       repositoryOwner: sources.repositoryOwner,
-      repositoryProvider: sources.provider,
       sourceId: previewEnvironments.sourceId,
       status: previewEnvironments.status,
       updatedAt: previewEnvironments.updatedAt,
@@ -106,30 +103,17 @@ export async function listPreviewEnvironments(input: {
       ),
     )
     .orderBy(desc(previewEnvironments.updatedAt));
-  return rows.map(
-    ({ repositoryName, repositoryOwner, repositoryProvider, ...preview }) => {
-      const repositoryPath = [repositoryOwner, repositoryName]
-        .flatMap((part) => part.split("/"))
-        .map(encodeURIComponent)
-        .join("/");
-      const repositoryUrl =
-        repositoryProvider === "github"
-          ? `https://github.com/${repositoryPath}`
-          : new URL(
-              repositoryPath,
-              `${requireGitLabRuntimeConfiguration().baseUrl.replace(/\/$/u, "")}/`,
-            )
-              .toString()
-              .replace(/\/$/u, "");
-      return {
-        ...preview,
-        pullRequestUrl:
-          repositoryProvider === "github"
-            ? `${repositoryUrl}/pull/${preview.pullRequestNumber}`
-            : `${repositoryUrl}/-/merge_requests/${preview.pullRequestNumber}`,
-      };
-    },
-  );
+  return rows.map(({ repositoryName, repositoryOwner, ...preview }) => {
+    const repositoryPath = [repositoryOwner, repositoryName]
+      .flatMap((part) => part.split("/"))
+      .map(encodeURIComponent)
+      .join("/");
+    const repositoryUrl = `https://github.com/${repositoryPath}`;
+    return {
+      ...preview,
+      pullRequestUrl: `${repositoryUrl}/pull/${preview.pullRequestNumber}`,
+    };
+  });
 }
 
 export async function processPreviewPullRequestEvent(
@@ -146,9 +130,6 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
   const [source] = await database
     .select({
       installationId: integrationInstallations.externalId,
-      connectionId: sources.integrationAuthorizationId,
-      projectId: sources.providerRepositoryId,
-      provider: sources.provider,
       repositoryName: sources.repositoryName,
       repositoryOwner: sources.repositoryOwner,
       status: sources.status,
@@ -165,31 +146,14 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
   if (!source || source.status !== "active") {
     return { cleanupIds: [], deploymentIds: [], retry: false };
   }
-  const providerConnection = await repositoryProviderClient(
-    source.provider === "github"
-      ? source.installationId
-        ? {
-            installationId: source.installationId,
-            provider: "github",
-            repositoryName: source.repositoryName,
-            repositoryOwner: source.repositoryOwner,
-          }
-        : (() => {
-            throw new Error("GitHub source is missing its installation");
-          })()
-      : source.connectionId && source.projectId
-        ? {
-            connectionId: source.connectionId,
-            projectId: source.projectId,
-            provider: "gitlab",
-            repositoryName: source.repositoryName,
-            repositoryOwner: source.repositoryOwner,
-            workspaceId: source.workspaceId,
-          }
-        : (() => {
-            throw new Error("GitLab source is missing its integration");
-          })(),
-  );
+  if (!source.installationId)
+    throw new Error("GitHub source is missing its installation");
+  const providerConnection = {
+    provider: "github" as const,
+    installationId: source.installationId,
+    repositoryName: source.repositoryName,
+    repositoryOwner: source.repositoryOwner,
+  };
   const pullRequest = await fetchRepositoryPullRequest(
     providerConnection,
     event.pullRequestNumber,
@@ -434,7 +398,7 @@ async function reconcilePreviewPullRequest(event: PreviewPullRequestEvent) {
     const admission = await withActor(
       {
         kind: "system",
-        source: source.provider,
+        source: "github",
         workspaceId: source.workspaceId,
         grants: ["deployment.create"],
       },

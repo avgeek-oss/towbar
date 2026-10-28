@@ -5,10 +5,6 @@ import { createServerCleanupFixture } from "./server-cleanup-fixture.ts";
 import packageManifest from "../../../package.json" with { type: "json" };
 import { repositoryUrl } from "@workspace/towbar-core/repository-identity";
 import {
-  createUpgradeFixture,
-  type UpgradeScenario,
-} from "./upgrade-fixture.ts";
-import {
   type NormalizedApp,
   appDeploymentSchema,
   rolloutStrategySchema,
@@ -81,7 +77,6 @@ import type {
   SourceSync,
   SystemHealth,
   TowbarUser,
-  TowbarUpdateInfo,
   TrustedHostKey,
   UserSession,
   VulnerabilityFinding,
@@ -166,10 +161,10 @@ const sources: Source[] = [
   {
     ...source,
     id: fixtureIds.docsSource,
-    provider: "gitlab",
+    provider: "github",
     repositoryName: "documentation",
-    repositoryOwner: "example-inc/docs",
-    repositoryUrl: "https://gitlab.example.com/example-inc/docs/documentation",
+    repositoryOwner: "example-inc",
+    repositoryUrl: "https://github.com/example-inc/documentation",
   },
   {
     ...source,
@@ -330,25 +325,6 @@ apps[1]!.config.notifications = {
       deploymentFailures: false,
       backupsAndRestores: false,
       alertsAndIncidents: true,
-    },
-  ],
-  discord: [
-    {
-      webhookId: "123456789012345678",
-      deployments: false,
-      deploymentFailures: true,
-      backupsAndRestores: false,
-      alertsAndIncidents: true,
-    },
-  ],
-  telegram: [
-    {
-      chatId: "-1001234567890",
-      messageThreadId: 42,
-      deployments: true,
-      deploymentFailures: false,
-      backupsAndRestores: false,
-      alertsAndIncidents: false,
     },
   ],
 };
@@ -1712,13 +1688,7 @@ function fixtureSystemHealth(): SystemHealth {
   };
 }
 
-const towbarUpdates: TowbarUpdateInfo = {
-  checkedAt: systemHealthFixtureNow,
-  installedVersion: packageManifest.version,
-  latestVersion: packageManifest.version,
-  releaseUrl: `${repositoryUrl}/releases/tag/v${packageManifest.version}`,
-  status: "current",
-};
+const towbarVersion = { installedVersion: packageManifest.version };
 
 const runtimeCapacity: RuntimeCapacity[] = [
   {
@@ -2204,7 +2174,6 @@ const workflowStates: DeploymentState[] = [
 ];
 
 export function createFixtureApiServer({
-  upgradeScenario,
   publicDemo = false,
   githubAppConnected = false,
   githubConnections,
@@ -2212,15 +2181,12 @@ export function createFixtureApiServer({
   notificationProvidersConfigured = false,
   smtpConfigured = notificationProvidersConfigured,
   slackConfigured = notificationProvidersConfigured,
-  discordConfigured = notificationProvidersConfigured,
-  telegramConfigured = notificationProvidersConfigured,
   webhookConfigured = notificationProvidersConfigured,
   role,
   authState,
   smtpAvailable,
   emailVerified,
 }: TeamFixtureOptions & {
-  upgradeScenario?: UpgradeScenario;
   publicDemo?: boolean;
   githubAppConnected?: boolean;
   githubConnections?: GitHubConnection[];
@@ -2228,8 +2194,6 @@ export function createFixtureApiServer({
   notificationProvidersConfigured?: boolean;
   smtpConfigured?: boolean;
   slackConfigured?: boolean;
-  discordConfigured?: boolean;
-  telegramConfigured?: boolean;
   webhookConfigured?: boolean;
 } = {}) {
   if (publicDemo) {
@@ -2273,10 +2237,8 @@ export function createFixtureApiServer({
   const githubAppConfiguration = fixtureGitHubConfiguration;
   const githubInstallationState = "fixture-github-installation-state";
   const notificationProviderState = {
-    discord: discordConfigured,
     slack: slackConfigured,
     smtp: smtpConfigured,
-    telegram: telegramConfigured,
     webhook: webhookConfigured,
   };
   const connections = createSourceConnectionFixture({
@@ -2382,123 +2344,6 @@ export function createFixtureApiServer({
   const terminal = terminalFixture(
     () => teamAccess.getUser()?.workspaceRole === "admin",
   );
-  const integrationFixture = (
-    provider: string,
-    slug: string,
-    name: string,
-    configuration: Record<string, unknown>,
-    purpose: string,
-  ) => ({
-    id: crypto.randomUUID(),
-    slug,
-    name,
-    description: `${name} local fixture`,
-    provider,
-    configuration,
-    credentialValues:
-      provider === "registry"
-        ? { username: "towbar-fixture" }
-        : provider === "gitlab"
-          ? { oauthClientId: "towbar-fixture-client" }
-          : provider === "s3" || provider === "r2"
-            ? { accessKeyId: "FIXTUREACCESSKEY" }
-            : provider === "infisical"
-              ? { clientId: "fixture-client-id" }
-              : {},
-    scopes: [
-      purpose === "identity" || purpose === "backup"
-        ? { kind: "control-plane", purpose }
-        : { kind: "workspace", purpose },
-    ],
-    revision: 1,
-    credentialHint: "fixture",
-    verificationStatus: "verified",
-    verificationMessage: "Connection verified by the local fixture.",
-    verifiedAt: fixtureNow,
-    disconnectedAt: null as string | null,
-    createdAt: fixtureNow,
-    updatedAt: fixtureNow,
-  });
-  const namedIntegrations = [
-    integrationFixture(
-      "gitlab",
-      "gitlab-main",
-      "GitLab",
-      { baseUrl: "https://gitlab.com", allowPrivateNetwork: false },
-      "source",
-    ),
-    integrationFixture(
-      "registry",
-      "registry-main",
-      "OCI registry",
-      { registry: "registry.example.com", allowPrivateNetwork: false },
-      "image",
-    ),
-    integrationFixture(
-      "s3",
-      "s3-production",
-      "Production S3",
-      {
-        region: "ap-south-1",
-        bucket: "towbar-fixture-backups",
-        prefix: "control-plane",
-        addressingStyle: "auto",
-        allowPrivateNetwork: false,
-      },
-      "backup",
-    ),
-    integrationFixture(
-      "r2",
-      "r2-archive",
-      "Cloudflare R2",
-      {
-        endpoint: "https://fixture.r2.cloudflarestorage.com",
-        region: "auto",
-        bucket: "towbar-fixture-r2",
-        prefix: "towbar",
-        addressingStyle: "auto",
-        allowPrivateNetwork: false,
-      },
-      "backup",
-    ),
-    integrationFixture(
-      "gcs",
-      "gcs-production",
-      "Google Cloud Storage",
-      {
-        projectId: "towbar-fixture",
-        bucket: "towbar-fixture-gcs-backups",
-        prefix: "towbar",
-      },
-      "backup",
-    ),
-    integrationFixture(
-      "infisical",
-      "infisical-production",
-      "Infisical",
-      { baseUrl: "https://app.infisical.com", allowPrivateNetwork: false },
-      "secret",
-    ),
-    integrationFixture(
-      "doppler",
-      "doppler-production",
-      "Doppler",
-      {},
-      "secret",
-    ),
-    integrationFixture(
-      "cloudflare",
-      "cloudflare-production",
-      "Cloudflare",
-      {
-        accountId: "fixture-account",
-        zoneId: "fixture-zone",
-        cloudflaredImage:
-          "cloudflare/cloudflared@sha256:b269e8abd07a5bf6f3f4be65d5050b2174eca89c56a0241a8ff32a16aec454e4",
-      },
-      "ingress",
-    ),
-  ];
   const eventHistory = eventHistoryFixture(teamAccess.getUser);
   let emailDestinations = [
     {
@@ -2519,26 +2364,6 @@ export function createFixtureApiServer({
           deploymentFailures: false,
           backupsAndRestores: true,
           scout: true,
-        },
-      ]
-    : [];
-  let discordDestinations = discordConfigured
-    ? [
-        {
-          routeId: "discord-123456789012345678",
-          webhookId: "123456789012345678",
-          deployments: true,
-          deploymentFailures: false,
-          backupsAndRestores: false,
-          alertsAndIncidents: true,
-        },
-        {
-          routeId: "discord-223456789012345678",
-          webhookId: "223456789012345678",
-          deployments: false,
-          deploymentFailures: true,
-          backupsAndRestores: true,
-          alertsAndIncidents: false,
         },
       ]
     : [];
@@ -2564,23 +2389,6 @@ export function createFixtureApiServer({
         },
       ]
     : [];
-  let telegramDestinations = telegramConfigured
-    ? [
-        {
-          id: "a3333333-3333-4333-8333-333333333333",
-          chatId: "-1001234567890",
-          messageThreadId: null as number | null,
-          deployments: true,
-          deploymentFailures: false,
-          backupsAndRestores: false,
-          alertsAndIncidents: true,
-        },
-      ]
-    : [];
-  const upgradeFixture = createUpgradeFixture(
-    publicDemo ? undefined : upgradeScenario,
-    fixtureSystemHealth,
-  );
   const notificationReadAt = new Map<string, string>();
   const manifestLifecycle = createManifestLifecycleFixture(
     fixtureIds.source,
@@ -2707,11 +2515,6 @@ export function createFixtureApiServer({
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
     const path = requestUrl.pathname;
     if (eventHistory(request, response, requestUrl)) return;
-    if (
-      path === "/v1/public/auth/state" &&
-      (await upgradeFixture(request, response, path))
-    )
-      return;
     if (await teamAccess.handle(request, response, requestUrl)) return;
     if (path === "/v1/core/manifest-lifecycle" && request.method === "GET") {
       writeJson(response, 200, manifestLifecycle.list(requestUrl.searchParams));
@@ -2794,137 +2597,6 @@ export function createFixtureApiServer({
             : null,
       });
       return;
-    }
-    if (await upgradeFixture(request, response, path)) return;
-    if (
-      path === "/v1/core/notifications/telegram/destinations/test" &&
-      request.method === "POST"
-    ) {
-      if (!notificationProviderState.telegram)
-        return writeJson(response, 400, {
-          error: { message: "Configure Telegram before testing destinations" },
-        });
-      const body = (await readRequestJson(request)) as {
-        chatId?: string;
-        messageThreadId?: number | null;
-      };
-      if (
-        !telegramDestinations.some(
-          (row) =>
-            row.chatId === body.chatId &&
-            row.messageThreadId === body.messageThreadId,
-        )
-      )
-        return writeJson(response, 404, {
-          error: { message: "Telegram destination was not found" },
-        });
-      return writeJson(response, 200, { status: "accepted" });
-    }
-    if (path === "/v1/core/notifications/telegram/destinations") {
-      if (request.method === "GET")
-        return writeJson(response, 200, { destinations: telegramDestinations });
-      if (request.method === "PUT") {
-        if (!notificationProviderState.telegram)
-          return writeJson(response, 400, {
-            error: { message: "Configure Telegram before saving destinations" },
-          });
-        const body = (await readRequestJson(request)) as {
-          destinations?: typeof telegramDestinations;
-        };
-        if (
-          !Array.isArray(body.destinations) ||
-          body.destinations.some(
-            (row) =>
-              !/^-?\d{1,20}$/.test(row.chatId) ||
-              (row.messageThreadId !== null &&
-                (!Number.isInteger(row.messageThreadId) ||
-                  row.messageThreadId < 1 ||
-                  row.messageThreadId > 2_147_483_647)) ||
-              typeof row.deployments !== "boolean" ||
-              typeof row.deploymentFailures !== "boolean" ||
-              (row.deployments && row.deploymentFailures) ||
-              typeof row.backupsAndRestores !== "boolean" ||
-              typeof row.alertsAndIncidents !== "boolean",
-          ) ||
-          new Set(
-            body.destinations.map(
-              (row) => `${row.chatId}:${row.messageThreadId ?? 0}`,
-            ),
-          ).size !== body.destinations.length
-        )
-          return writeJson(response, 400, {
-            error: { message: "Invalid Telegram destinations" },
-          });
-        const existingIds = new Map(
-          telegramDestinations.map((row) => [
-            `${row.chatId}:${row.messageThreadId ?? 0}`,
-            row.id,
-          ]),
-        );
-        telegramDestinations = body.destinations.map((row) => ({
-          ...row,
-          id:
-            existingIds.get(`${row.chatId}:${row.messageThreadId ?? 0}`) ??
-            randomUUID(),
-        }));
-        return writeJson(response, 200, { destinations: telegramDestinations });
-      }
-    }
-    if (
-      path === "/v1/core/notifications/discord/destinations/test" &&
-      request.method === "POST"
-    ) {
-      if (!notificationProviderState.discord)
-        return writeJson(response, 400, {
-          error: { message: "Configure Discord before testing routes" },
-        });
-      const body = (await readRequestJson(request)) as { routeId?: string };
-      if (!discordDestinations.some((row) => row.routeId === body.routeId))
-        return writeJson(response, 404, {
-          error: { message: "Discord destination was not found" },
-        });
-      return writeJson(response, 200, { status: "accepted" });
-    }
-    if (path === "/v1/core/notifications/discord/destinations") {
-      if (request.method === "GET")
-        return writeJson(response, 200, { destinations: discordDestinations });
-      if (request.method === "PUT") {
-        if (!notificationProviderState.discord)
-          return writeJson(response, 400, {
-            error: { message: "Configure Discord before saving destinations" },
-          });
-        const body = (await readRequestJson(request)) as {
-          destinations?: typeof discordDestinations;
-        };
-        if (
-          !Array.isArray(body.destinations) ||
-          body.destinations.some(
-            (row) =>
-              !discordDestinations.some(
-                (existing) =>
-                  existing.routeId === row.routeId &&
-                  existing.webhookId === row.webhookId,
-              ) ||
-              typeof row.deployments !== "boolean" ||
-              typeof row.deploymentFailures !== "boolean" ||
-              (row.deployments && row.deploymentFailures) ||
-              typeof row.backupsAndRestores !== "boolean" ||
-              typeof row.alertsAndIncidents !== "boolean",
-          ) ||
-          new Set(body.destinations.map((row) => row.routeId)).size !==
-            body.destinations.length
-        )
-          return writeJson(response, 400, {
-            error: { message: "Invalid Discord destinations" },
-          });
-        const updates = new Map(
-          body.destinations.map((row) => [row.routeId, row]),
-        );
-        discordDestinations = discordDestinations.map(
-          (row) => updates.get(row.routeId) ?? row,
-        );
-        return writeJson(response, 200, { destinations: discordDestinations });
-      }
     }
     if (
       path === "/v1/core/notifications/webhook/destinations/test" &&
@@ -3096,7 +2768,6 @@ export function createFixtureApiServer({
       return writeJson(response, 200, {
         integrations: [
           { category: "source-control", provider: "github", details: [] },
-          { category: "source-control", provider: "gitlab", details: [] },
           {
             category: "registry",
             provider: "registry",
@@ -3153,67 +2824,6 @@ export function createFixtureApiServer({
         ],
       });
     }
-    if (path === "/v1/core/gitlab/connections" && request.method === "GET")
-      return writeJson(response, 200, {
-        connections: namedIntegrations
-          .filter(
-            (connection) =>
-              connection.provider === "gitlab" && !connection.disconnectedAt,
-          )
-          .map((connection) => ({
-            id: connection.id,
-            slug: connection.slug,
-            name: connection.name,
-            description: "towbar-fixture",
-            verificationStatus: connection.verificationStatus,
-          })),
-      });
-    if (path === "/v1/core/gitlab/oauth/start" && request.method === "POST")
-      return writeJson(response, 200, {
-        authorizationUrl: publicDemo
-          ? "/manage/integrations/gitlab?connected=true"
-          : "http://localhost:4021/manage/integrations/gitlab?connected=true",
-        expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
-      });
-    if (
-      path === "/v1/core/gitlab/oauth/connection" &&
-      request.method === "DELETE"
-    ) {
-      const connection = namedIntegrations.find(
-        (item) => item.provider === "gitlab" && !item.disconnectedAt,
-      );
-      if (connection) connection.disconnectedAt = new Date().toISOString();
-      response.writeHead(204);
-      response.end();
-      return;
-    }
-    if (path === "/v1/core/gitlab/repositories" && request.method === "GET")
-      return writeJson(response, 200, {
-        repositories: [
-          {
-            id: 1001,
-            owner: "towbar-fixture",
-            name: "platform",
-            defaultBranch: "main",
-            visibility: "private",
-            webUrl: "https://gitlab.com/towbar-fixture/platform",
-          },
-        ],
-        nextPage: null,
-      });
-    if (path === "/v1/core/gitlab/groups" && request.method === "GET")
-      return writeJson(response, 200, {
-        groups: [
-          {
-            id: 100,
-            name: "Towbar fixture",
-            fullPath: "towbar-fixture",
-          },
-        ],
-        nextPage: null,
-      });
-    if (path === "/v1/core/gitlab/branches" && request.method === "GET")
-      return writeJson(response, 200, { branches: ["main", "develop"] });
     const terminalMatch = path.match(
       /^\/v1\/core\/servers\/([^/]+)\/terminal$/,
     );
@@ -4961,10 +4571,8 @@ function getFixturePayload(
   path: string,
   searchParams: URLSearchParams,
   notificationProviderState: {
-    discord: boolean;
     slack: boolean;
     smtp: boolean;
-    telegram: boolean;
     webhook: boolean;
   },
 ): unknown {
@@ -5225,9 +4833,6 @@ function getFixturePayload(
           smtp: notificationProviderState.smtp
             ? { source: "environment" }
             : null,
-          telegram: notificationProviderState.telegram
-            ? { source: "environment" }
-            : null,
         },
         providers: notificationProviderState,
       },
@@ -5280,7 +4885,7 @@ function getFixturePayload(
     ["/v1/core/resources", { resources }],
     ["/v1/core/servers", { servers }],
     ["/v1/core/system-health", fixtureSystemHealth()],
-    ["/v1/core/version", towbarUpdates],
+    ["/v1/core/version", towbarVersion],
     [
       "/v1/core/deployments",
       {
@@ -6610,10 +6215,6 @@ if (
   const requestedRole = process.env.TOWBAR_FIXTURE_ROLE;
   const requestedState = process.env.TOWBAR_FIXTURE_AUTH_STATE;
   createFixtureApiServer({
-    upgradeScenario:
-      process.env.TOWBAR_FIXTURE_UPGRADE_ENABLED === "true"
-        ? "unsupported"
-        : undefined,
     role: isWorkspaceRole(requestedRole) ? requestedRole : "admin",
     authState:
       requestedState === "new-instance" ||
@@ -6629,12 +6230,6 @@ if (
     smtpConfigured: process.env.TOWBAR_FIXTURE_SMTP_CONFIGURED !== "false",
     slackConfigured:
       process.env.TOWBAR_FIXTURE_SLACK_CONFIGURED === "true" ||
-      process.env.TOWBAR_FIXTURE_NOTIFICATION_PROVIDERS_CONFIGURED === "true",
-    discordConfigured:
-      process.env.TOWBAR_FIXTURE_DISCORD_CONFIGURED === "true" ||
-      process.env.TOWBAR_FIXTURE_NOTIFICATION_PROVIDERS_CONFIGURED === "true",
-    telegramConfigured:
-      process.env.TOWBAR_FIXTURE_TELEGRAM_CONFIGURED === "true" ||
       process.env.TOWBAR_FIXTURE_NOTIFICATION_PROVIDERS_CONFIGURED === "true",
     webhookConfigured:
       process.env.TOWBAR_FIXTURE_WEBHOOK_CONFIGURED === "true" ||

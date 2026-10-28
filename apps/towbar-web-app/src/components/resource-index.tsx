@@ -2,10 +2,7 @@
 import { useAccess } from "./access-context";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
 import { useState } from "react";
-import {
-  configuredRepositoryProviders,
-  SourceCreateModal,
-} from "./source-create";
+import { SourceCreateModal } from "./source-create";
 import {
   InventorySidebar,
   useInventoryQuery,
@@ -70,19 +67,11 @@ export function SourceIndex() {
   const github = useApiQuery<{
     connections: { suspendedAt: string | null }[];
   }>("/v1/core/github/installation", 30_000);
-  const gitlab = useApiQuery<{ connections: unknown[] }>(
-    "/v1/core/gitlab/connections",
-    30_000,
+  const providerAvailabilityLoaded = Boolean(github.data);
+  const hasConfiguredProvider = Boolean(
+    github.data?.connections.some((item) => !item.suspendedAt),
   );
-  const providerAvailabilityLoaded = Boolean(github.data && gitlab.data);
-  const hasConfiguredProvider =
-    configuredRepositoryProviders({
-      githubConnected: Boolean(
-        github.data?.connections.some((item) => !item.suspendedAt),
-      ),
-      gitlabConnected: Boolean(gitlab.data?.connections.length),
-    }).length > 0;
-  const providerAvailabilityFailed = Boolean(github.error || gitlab.error);
+  const providerAvailabilityFailed = Boolean(github.error);
   const noConfiguredProvider =
     providerAvailabilityLoaded && !hasConfiguredProvider;
   const addRepositoryDisabled =

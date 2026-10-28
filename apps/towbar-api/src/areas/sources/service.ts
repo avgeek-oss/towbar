@@ -12,7 +12,6 @@ import {
 import { executeEnvironmentSync } from "./environment-sync.js";
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-import { requireGitLabRuntimeConfiguration } from "../../infrastructure/runtime-integrations.js";
 import {
   publicSourceSelection,
   publicSourceSyncSelection,
@@ -86,13 +85,7 @@ export async function getSource(sourceId: string, workspaceId: string) {
     .join("/");
   return {
     ...metadata,
-    repositoryUrl:
-      metadata.provider === "github"
-        ? `https://github.com/${path}`
-        : new URL(
-            path,
-            `${requireGitLabRuntimeConfiguration().baseUrl.replace(/\/$/u, "")}/`,
-          ).toString(),
+    repositoryUrl: `https://github.com/${path}`,
   };
 }
 

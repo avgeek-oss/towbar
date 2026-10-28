@@ -54,7 +54,6 @@ const files = execFileSync("git", ["ls-files", "-z"], { cwd: root })
   .filter(Boolean);
 const generated = new Set([
   "packages/towbar-contracts/src/repository-identity.ts",
-  "infra/upgrade-runner/repository_identity.py",
   "infra/towbar-cli/00-version.sh",
   "infra/towbar",
   "install.sh",

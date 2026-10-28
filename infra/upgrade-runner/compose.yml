@@ -1,8 +1,0 @@
-services:
-  api:
-    group_add:
-      - "@TOWBAR_UPGRADE_GID@"
-    environment:
-      TOWBAR_HOST_UPGRADES: "1"
-    volumes:
-      - /run/towbar-upgrade:/run/towbar-upgrade:ro

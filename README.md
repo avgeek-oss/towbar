@@ -32,16 +32,16 @@ external log storage run on infrastructure you manage.
 
 ## What's included
 
-| Area          | What you get                                                                                               |
-| ------------- | ---------------------------------------------------------------------------------------------------------- |
-| Services      | Deploy from a Dockerfile, static site, buildpack, container image, or Docker Compose file                  |
-| Datastores    | PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse                               |
-| Git workflows | GitHub and GitLab connections, branch-based environments, automatic deployments, and pull-request previews |
-| Domains       | Custom domains and automatic HTTPS                                                                         |
-| Operations    | Logs, server and container monitoring, alerts, incidents, scheduled jobs, and vulnerability scans          |
-| Backups       | Scheduled backups, restores, retention rules, and common cloud-storage destinations                        |
-| Team access   | Admin, Member, and Viewer roles, invitations, passkeys, sessions, API keys, and audit history              |
-| Automation    | REST API keys and OAuth-authorized MCP access for HTTPS installations                                      |
+| Area          | What you get                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| Services      | Deploy from a Dockerfile, static site, buildpack, container image, or Docker Compose file         |
+| Datastores    | PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Dragonfly, KeyDB, and ClickHouse                      |
+| Git workflows | GitHub connections, branch-based environments, automatic deployments, and pull-request previews   |
+| Domains       | Custom domains and automatic HTTPS                                                                |
+| Operations    | Logs, server and container monitoring, alerts, incidents, scheduled jobs, and vulnerability scans |
+| Backups       | Scheduled backups, restores, retention rules, and common cloud-storage destinations               |
+| Team access   | Admin, Member, and Viewer roles, invitations, passkeys, sessions, API keys, and audit history     |
+| Automation    | REST API keys and OAuth-authorized MCP access for HTTPS installations                             |
 
 ## Install Towbar
 
@@ -57,7 +57,7 @@ curl -fsSL https://github.com/avgeek-oss/towbar/releases/latest/download/install
 
 The installer prepares the server, downloads Towbar, creates the required
 configuration, and starts it. When it finishes, open the URL it prints, create
-your Admin account, connect GitHub or GitLab, and add a deployment server.
+your Admin account, connect GitHub, and add a deployment server.
 
 Read [Install Towbar](https://www.towbar.dev/docs/self-hosting/installation) for
 server requirements, DNS, HTTPS, configuration, and recovery. The

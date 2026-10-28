@@ -19,8 +19,6 @@ void test("detail routes keep help scoped to the feature being viewed", () => {
     ["/servers/server/settings/danger", "removal"],
     ["/servers/server/settings/monitoring", "scout"],
     ["/servers/server/preparation", "preparation"],
-    ["/manage/integrations/telegram", "telegram"],
-    ["/manage/integrations/gitlab", "gitlab"],
     ["/manage/integrations/registry", "registry"],
     ["/manage/integrations/infisical", "infisical"],
     ["/manage/integrations/doppler", "doppler"],

@@ -3,14 +3,8 @@ import {
   manifestNotificationAppId,
   manifestNotificationRoute,
 } from "./manifest-destinations.js";
-import { discordNotificationRoute } from "./discord-destinations.js";
 import { webhookNotificationRoute } from "./webhook-destinations.js";
 import { emailNotificationRoute } from "./email-destinations.js";
-import {
-  legacyTelegramNotificationRoute,
-  telegramNotificationRoute,
-  telegramRoutingMigrated,
-} from "./telegram-destinations.js";
 import {
   legacySlackNotificationRoute,
   slackNotificationRoute,
@@ -23,22 +17,10 @@ export async function resolveNotificationDeliveryRoute(
 ) {
   if (manifestNotificationAppId(destinationId))
     return manifestNotificationRoute(workspaceId, destinationId);
-  if (provider === "discord")
-    return discordNotificationRoute(workspaceId, destinationId);
   if (provider === "webhook")
     return webhookNotificationRoute(workspaceId, destinationId);
   if (destinationId.startsWith("email-"))
     return emailNotificationRoute(workspaceId, destinationId);
-  if (provider === "telegram") {
-    const workspaceRoute = await telegramNotificationRoute(
-      workspaceId,
-      destinationId,
-    );
-    if (workspaceRoute) return workspaceRoute;
-    return (await telegramRoutingMigrated(workspaceId))
-      ? legacyTelegramNotificationRoute(workspaceId, destinationId)
-      : getRuntimeNotificationRoute(destinationId);
-  }
   if (destinationId.startsWith("slack-"))
     return (
       (await slackNotificationRoute(workspaceId, destinationId)) ??

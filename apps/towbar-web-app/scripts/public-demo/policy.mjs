@@ -17,8 +17,7 @@ const readRoutes = [
   /^\/v1\/core\/team(?:\/(members|invitations))?$/,
   /^\/v1\/core\/settings\/(secrets|private-keys)$/,
   /^\/v1\/core\/github(?:\/(installation|repositories|branches))?$/,
-  /^\/v1\/core\/gitlab\/(connections|repositories|groups|branches)$/,
-  /^\/v1\/core\/notifications(?:\/(providers|destinations|deliveries|(?:slack|discord|telegram|webhook|email)\/destinations))?$/,
+  /^\/v1\/core\/notifications(?:\/(providers|destinations|deliveries|(?:slack|webhook|email)\/destinations))?$/,
   /^\/v1\/core\/monitoring\/(summary|incidents|vulnerabilities)$/,
   new RegExp(
     `^/v1/core/(apps|resources|servers|sources|deployments)(?:/${id})?$`,
@@ -66,8 +65,6 @@ const writes = [
     /^\/v1\/core\/github\/actions\/(installation-url|complete-installation|retry-preview-reporting)$/,
   ],
   ["DELETE", /^\/v1\/core\/github$/],
-  ["POST", /^\/v1\/core\/gitlab\/oauth\/start$/],
-  ["DELETE", /^\/v1\/core\/gitlab\/oauth\/connection$/],
   ["POST", /^\/v1\/core\/notifications\/read-all$/],
   ["PATCH", /^\/v1\/core\/(team|profile)$/],
   ["POST", /^\/v1\/core\/team\/(members|invitations)$/],
@@ -109,13 +106,10 @@ const writes = [
     method,
     new RegExp(`^/v1/core/servers/${id}/scout-alerts/rules/${id}$`),
   ]),
-  [
-    "PUT",
-    /^\/v1\/core\/notifications\/(slack|discord|telegram|webhook|email)\/destinations$/,
-  ],
+  ["PUT", /^\/v1\/core\/notifications\/(slack|webhook|email)\/destinations$/],
   [
     "POST",
-    /^\/v1\/core\/notifications\/(slack|discord|telegram|webhook|email)\/destinations\/test$/,
+    /^\/v1\/core\/notifications\/(slack|webhook|email)\/destinations\/test$/,
   ],
   ["POST", new RegExp(`^/v1/core/apps/${id}/actions/run-job$`)],
   [

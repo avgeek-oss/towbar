@@ -51,7 +51,6 @@ import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { cancelDeploymentWorkflow } from "../../infrastructure/temporal.js";
 import { createInstallationToken } from "../github/client.js";
-import { resolveIntegrationById } from "../integrations/service.js";
 import { emitDeploymentNotification } from "../notifications/events.js";
 import { publicDeploymentSelection } from "../deployment-selection.js";
 import { isVulnerabilityScanningEnabled } from "../vulnerability-scans/admission.js";
@@ -232,9 +231,6 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
       environment: deployments.environment,
       gitRef: deployments.gitRef,
       installationId: integrationInstallations.externalId,
-      provider: sources.provider,
-      integrationAuthorizationId: sources.integrationAuthorizationId,
-      providerRepositoryId: sources.providerRepositoryId,
       kind: deployments.kind,
       repositoryName: sources.repositoryName,
       repositoryOwner: sources.repositoryOwner,
@@ -336,9 +332,6 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
     buildServerId,
     currentServerConfig: _currentServerConfig,
     installationId: _installationId,
-    integrationAuthorizationId: _integrationConnectionId,
-    providerRepositoryId: _providerRepositoryId,
-    provider: _provider,
     requestedByActor: _actor,
     state: _state,
     targetEnvironment: _target,
@@ -349,31 +342,15 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
     (isNormalizedResource(context.app) &&
       !context.app.container.configFiles?.length)
       ? null
-      : context.provider === "github"
-        ? context.installationId
-          ? {
-              apiUrl: "https://api.github.com",
-              provider: "github" as const,
-              token: await createInstallationToken(context.installationId),
-            }
-          : (() => {
-              throw new Error("GitHub source is missing its installation");
-            })()
-        : context.integrationAuthorizationId
-          ? await resolveGitLabSourceCredential({
-              connectionId: context.integrationAuthorizationId,
-              environment: context.targetEnvironment.name,
-              sourceId: context.sourceId,
-              projectId:
-                context.providerRepositoryId ??
-                (() => {
-                  throw new Error("GitLab source is missing its project ID");
-                })(),
-              workspaceId: context.workspaceId,
-            })
-          : (() => {
-              throw new Error("GitLab source is missing its integration");
-            })();
+      : context.installationId
+        ? {
+            apiUrl: "https://api.github.com",
+            provider: "github" as const,
+            token: await createInstallationToken(context.installationId),
+          }
+        : (() => {
+            throw new Error("GitHub source is missing its installation");
+          })();
   const runtimeSources = await getRuntimeSourceIds(
     getTowbarDatabase(),
     context.workspaceId,
@@ -421,36 +398,6 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
           },
         }
       : {}),
-  };
-}
-
-async function resolveGitLabSourceCredential(input: {
-  connectionId: string;
-  environment: string;
-  sourceId: string;
-  projectId: string;
-  workspaceId: string;
-}) {
-  const resolved = await resolveIntegrationById({
-    id: input.connectionId,
-    providers: ["gitlab"],
-    target: {
-      kind: "repository",
-      purpose: "source",
-      repositoryId: input.sourceId,
-      environment: input.environment,
-    },
-    workspaceId: input.workspaceId,
-  });
-  if (resolved.connectionInput.provider !== "gitlab")
-    throw new Error("GitLab source resolved an incompatible integration");
-  return {
-    allowPrivateNetwork:
-      resolved.connectionInput.configuration.allowPrivateNetwork,
-    baseUrl: resolved.connectionInput.configuration.baseUrl,
-    projectId: input.projectId,
-    provider: "gitlab" as const,
-    token: resolved.connectionInput.credentials.token,
   };
 }
 

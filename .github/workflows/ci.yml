@@ -78,8 +78,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - run: python3 -m unittest discover -s infra/upgrade-runner -v
-      - run: bash tools/test-host-upgrade-cli.sh
       - run: node tools/build-towbar-cli.mjs --check
       - run: node --test tools/build-towbar-cli.test.mjs
       - run: bash -n install.sh infra/towbar

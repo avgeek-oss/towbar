@@ -20,13 +20,13 @@ test("fixture deliveries preserve status metadata and paginate", async () => {
     assert.equal(all.items.length, 25);
     assert(all.nextCursor);
     const failed = await (
-      await request("notifications/deliveries?provider=discord&state=failed")
+      await request("notifications/deliveries?provider=webhook&state=failed")
     ).json();
     assert(failed.items.length > 0);
     assert(
       failed.items.every(
         (item) =>
-          item.provider === "discord" &&
+          item.provider === "webhook" &&
           item.state === "failed" &&
           item.errorCode,
       ),
@@ -52,14 +52,14 @@ test("fixture deliveries preserve status metadata and paginate", async () => {
     );
     const combined = await (
       await request(
-        "notifications/deliveries?category=backupsAndRestores&provider=discord&state=failed",
+        "notifications/deliveries?category=backupsAndRestores&provider=webhook&state=failed",
       )
     ).json();
     assert(combined.items.length > 0);
     assert(
       combined.items.every(
         (item) =>
-          item.provider === "discord" &&
+          item.provider === "webhook" &&
           item.state === "failed" &&
           ["backups", "restores"].includes(item.category),
       ),

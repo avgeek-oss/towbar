@@ -7,35 +7,6 @@ void test("keeps notifications absent unless explicitly enabled", () => {
   assert.deepEqual(getRuntimeNotifications({}), { providers: {}, routes: [] });
 });
 
-void test("accepts a Telegram bot token without a runtime chat and keeps legacy routes", () => {
-  const botToken = "123456:abcdefghijklmnopqrstuvwxyz";
-  const tokenOnly = getRuntimeNotifications({
-    TOWBAR_NOTIFICATIONS_ENABLED: "true",
-    TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
-      providers: { telegram: { botToken } },
-    }),
-  });
-  assert.equal(tokenOnly.providers.telegram?.provider, "telegram");
-  assert.deepEqual(tokenOnly.routes, []);
-
-  const legacy = getRuntimeNotifications({
-    TOWBAR_NOTIFICATIONS_ENABLED: "true",
-    TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
-      providers: { telegram: { botToken, chatId: "-100123456" } },
-      routes: [
-        {
-          id: "telegram-operations",
-          provider: "telegram",
-          enabled: true,
-          categories: ["deployments"],
-          config: { messageThreadId: 42 },
-        },
-      ],
-    }),
-  });
-  assert.equal(legacy.routes[0]?.id, "telegram-operations");
-});
-
 void test("loads provider credentials and enabled routes from one environment document", () => {
   const runtime = getRuntimeNotifications({
     TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
@@ -132,71 +103,6 @@ void test("health and Scout routes share Incidents subscriptions", () => {
   assert.deepEqual(runtime.routes[0]?.categories, ["health", "scout"]);
 });
 
-void test("creates one Discord route per configured webhook pair", () => {
-  const runtime = getRuntimeNotifications({
-    TOWBAR_NOTIFICATIONS_ENABLED: "true",
-    TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
-      providers: {
-        discord: [
-          { webhookId: "123456789012345678", webhookToken: "first-token" },
-          { webhookId: "223456789012345678", webhookToken: "second-token" },
-        ],
-      },
-    }),
-  });
-  assert.deepEqual(
-    runtime.routes.map((route) => route.id),
-    ["discord-123456789012345678", "discord-223456789012345678"],
-  );
-  assert.equal(runtime.providers.discord?.provider, "discord");
-  assert.deepEqual(runtime.routes[0]?.categories, []);
-});
-
-void test("rejects repeated Discord webhook IDs and incomplete pairs", () => {
-  for (const discord of [
-    [
-      { webhookId: "123456789012345678", webhookToken: "first-token" },
-      { webhookId: "123456789012345678", webhookToken: "second-token" },
-    ],
-    [{ webhookId: "123456789012345678" }],
-  ])
-    assert.throws(() =>
-      getRuntimeNotifications({
-        TOWBAR_NOTIFICATIONS_ENABLED: "true",
-        TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
-          providers: { discord },
-          routes: [],
-        }),
-      }),
-    );
-});
-
-void test("legacy Discord URL routes keep their IDs", () => {
-  const runtime = getRuntimeNotifications({
-    TOWBAR_NOTIFICATIONS_ENABLED: "true",
-    TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify({
-      providers: {},
-      routes: [
-        {
-          id: "operations-discord",
-          provider: "discord",
-          enabled: true,
-          categories: ["deployments"],
-          config: {
-            webhookUrl:
-              "https://discord.com/api/webhooks/123456789012345678/old-token",
-          },
-        },
-      ],
-    }),
-  });
-  assert.equal(runtime.routes[0]?.id, "operations-discord");
-  assert.deepEqual(runtime.routes[0]?.config, {
-    webhookId: "123456789012345678",
-    webhookToken: "old-token",
-  });
-});
-
 void test("creates signed webhook endpoints with runtime-only headers", () => {
   const runtime = getRuntimeNotifications({
     TOWBAR_NOTIFICATIONS_ENABLED: "true",
@@ -252,4 +158,31 @@ void test("rejects duplicate webhook IDs and reserved header overrides", () => {
         }),
       }),
     );
+});
+
+void test("rejects retired providers in runtime configuration and routes", () => {
+  for (const provider of ["discord", "telegram"]) {
+    for (const configuration of [
+      { providers: { [provider]: {} }, routes: [] },
+      {
+        providers: {},
+        routes: [
+          {
+            id: "retired-provider",
+            provider,
+            config: {},
+            categories: ["deployments"],
+            enabled: true,
+          },
+        ],
+      },
+    ]) {
+      assert.throws(() =>
+        getRuntimeNotifications({
+          TOWBAR_NOTIFICATIONS_ENABLED: "true",
+          TOWBAR_NOTIFICATION_CONFIG_JSON: JSON.stringify(configuration),
+        }),
+      );
+    }
+  }
 });

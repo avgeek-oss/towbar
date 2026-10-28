@@ -10,7 +10,7 @@ Towbar connects the configuration in Git to the services running on your servers
 | Concept          | What it represents                                                  | Where you configure it                                   |
 | ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
 | Team / workspace | The boundary for members, servers, shared secrets, and integrations | Towbar                                                   |
-| Repository       | A connected GitHub repository or GitLab project                     | Towbar                                                   |
+| Repository       | A connected GitHub repository                                       | Towbar                                                   |
 | Environment      | A named deployment target, such as production or staging            | Declare in `towbar.yml`; map its branch in Towbar        |
 | Server           | One Ubuntu host identified by its IP address                        | Towbar                                                   |
 | Service          | A source build, prebuilt OCI image, or Compose workload             | `.towbar/services/**/*.service.yml` or `*.compose.yml`   |
@@ -43,7 +43,7 @@ flowchart LR
 
 **Towbar stores workspace state and workload secrets.** Environment-to-branch mappings, SSH credentials and trust, concurrency, and encrypted workload secret values belong in Towbar. Saving a secret does not deploy it.
 
-**The host configuration controls Towbar and its integrations.** Database credentials, public origins, internal authentication, provider credentials, and notification routes live in `/etc/towbar/config.yml` on the control-plane host. The dashboard lists only integrations whose complete configuration passed startup validation. GitHub installations and GitLab OAuth grants remain workspace state because they are created by provider authorization flows.
+**The host configuration controls Towbar and its integrations.** Database credentials, public origins, internal authentication, provider credentials, and notification routes live in `/etc/towbar/config.yml` on the control-plane host. The dashboard lists only integrations whose complete configuration passed startup validation. GitHub installations remain workspace state because they are created by provider authorization flows.
 
 ## A sync is different from a deployment
 

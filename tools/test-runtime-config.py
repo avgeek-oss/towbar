@@ -185,10 +185,7 @@ class RuntimeConfigTests(unittest.TestCase):
             self.assertEqual(values["TOWBAR_GATEWAY_DOMAIN"], "towbar.example.com")
             self.assertEqual(values["TOWBAR_GATEWAY_API_DOMAIN"], "towbar-api.example.com")
             self.assertEqual(values["TOWBAR_API_BASE_URL"], "https://towbar-api.example.com")
-            self.assertEqual(
-                values["TOWBAR_GITLAB_OAUTH_REDIRECT_URI"],
-                "https://towbar-api.example.com/v1/core/gitlab/oauth/callback",
-            )
+            self.assertFalse(any("GITLAB" in key for key in values))
             config = config_tool.read_yaml(yml)
             config["installation"]["apiBaseUrl"] = config["installation"]["appUrl"]
             with self.assertRaisesRegex(config_tool.ConfigError, "separate HTTPS origin"):
@@ -228,7 +225,7 @@ class RuntimeConfigTests(unittest.TestCase):
             config_tool.render(yml, env)
             self.assertNotIn("TOWBAR_TRUSTED_PROXY_HOPS", env.read_text())
 
-    def test_existing_public_yaml_migrates_api_origin_and_gitlab_redirect(self):
+    def test_existing_public_yaml_migrates_api_origin_and_retires_gitlab(self):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             yml = root / "config.yml"
@@ -243,10 +240,7 @@ class RuntimeConfigTests(unittest.TestCase):
             config_tool.migrate(env, yml, False)
             config = config_tool.read_yaml(yml)
             self.assertEqual(config["installation"]["apiBaseUrl"], "https://towbar-api.example.com")
-            self.assertEqual(
-                config["integrations"]["gitlab"]["oauthRedirectUri"],
-                "https://towbar-api.example.com/v1/core/gitlab/oauth/callback",
-            )
+            self.assertNotIn("gitlab", config["integrations"])
             self.assertNotIn("gatewayDomain", yml.read_text())
             self.assertEqual(config_tool.to_env(config)["TOWBAR_GATEWAY_DOMAIN"], "towbar.example.com")
             config_tool.render(yml, env)
@@ -260,10 +254,24 @@ class RuntimeConfigTests(unittest.TestCase):
                 "TOWBAR_GITLAB_OAUTH_REDIRECT_URI=https://towbar.example.com/v1/core/gitlab/oauth/callback\n"
             )
             config_tool.migrate(legacy, migrated, False)
-            self.assertEqual(
-                config_tool.read_yaml(migrated)["integrations"]["gitlab"]["oauthRedirectUri"],
-                "https://towbar-api.example.com/v1/core/gitlab/oauth/callback",
-            )
+            self.assertNotIn("gitlab", config_tool.read_yaml(migrated).get("integrations", {}))
+
+    def test_migration_removes_retired_notification_providers_and_keeps_supported_routes(self):
+        for legacy_env in (False, True):
+            with tempfile.TemporaryDirectory() as directory:
+                root = pathlib.Path(directory)
+                yml, env = root / "config.yml", root / "towbar.env"
+                notifications = {"enabled": True, "providers": {"discord": [{"webhookId": "123", "webhookToken": "secret"}], "telegram": {"botToken": "secret"}, "slack": {"botToken": "keep"}}, "routes": [{"id": "discord-old", "provider": "discord"}, {"id": "telegram-old", "provider": "telegram"}, {"id": "slack-keep", "provider": "slack"}]}
+                if legacy_env:
+                    env.write_text("TOWBAR_NOTIFICATIONS_ENABLED=true\nTOWBAR_NOTIFICATION_CONFIG_JSON='" + json.dumps({key: value for key, value in notifications.items() if key != "enabled"}) + "'\n")
+                else:
+                    yml.write_text(config_tool.yaml.safe_dump({"version": 1, "notifications": notifications}))
+                config_tool.migrate(env, yml, False)
+                result = config_tool.read_yaml(yml)["notifications"]
+                self.assertEqual(result["providers"], {"slack": {"botToken": "keep"}})
+                self.assertEqual(result["routes"], [{"id": "slack-keep", "provider": "slack"}])
+                config_tool.render(yml, env)
+                config_tool.compare(yml, env)
 
 
 if __name__ == "__main__":

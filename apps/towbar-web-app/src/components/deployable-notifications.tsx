@@ -17,7 +17,7 @@ type Subscription = {
   backupsAndRestores: boolean;
   alertsAndIncidents: boolean;
 };
-type Provider = "smtp" | "slack" | "discord" | "telegram";
+type Provider = "smtp" | "slack";
 type Destination = Subscription & {
   label: string;
   key: string;
@@ -27,8 +27,6 @@ type Destination = Subscription & {
 const providerLabels: Record<Provider, string> = {
   smtp: "Email",
   slack: "Slack",
-  discord: "Discord",
-  telegram: "Telegram",
 };
 
 const subscriptionColumns = [
@@ -109,20 +107,6 @@ export function DeployableNotifications({
       key: `slack:${row.channelId}`,
       label: row.channelId,
       provider: "slack" as const,
-    })),
-    ...(notifications?.discord ?? []).map((row) => ({
-      ...row,
-      key: `discord:${row.webhookId}`,
-      label: row.webhookId,
-      provider: "discord" as const,
-    })),
-    ...(notifications?.telegram ?? []).map((row) => ({
-      ...row,
-      key: `telegram:${row.chatId}:${row.messageThreadId ?? 0}`,
-      label: row.messageThreadId
-        ? `${row.chatId} · Topic ${row.messageThreadId}`
-        : row.chatId,
-      provider: "telegram" as const,
     })),
   ];
 

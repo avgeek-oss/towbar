@@ -10,7 +10,6 @@ export type {
   SystemHealth,
   SystemHealthCheck,
   SystemHealthStatus,
-  TowbarUpdateInfo,
 } from "@workspace/towbar-contracts";
 export type {
   MonitoringAgentStatus,
@@ -37,12 +36,6 @@ export { deploymentStates } from "@workspace/towbar-contracts/temporal";
 export type {
   AnalyticsReport,
   AnalyticsFilter,
-} from "@workspace/towbar-contracts";
-
-export type {
-  TowbarUpgradeJob,
-  TowbarUpgradePlan,
-  TowbarUpgradeStatus,
 } from "@workspace/towbar-contracts";
 
 export {

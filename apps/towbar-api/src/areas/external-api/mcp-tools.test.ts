@@ -535,3 +535,24 @@ void test("repository withdrawal tools preserve review revisions and use shared 
     }).success,
   );
 });
+
+void test("retired provider and upgrade routes return not found", async () => {
+  const { controlPlaneRoutes } = await import("../../routes/v1/core/index.js");
+  for (const [method, path] of [
+    ["GET", "/system-health/upgrade"],
+    ["POST", "/system-health/upgrade/plan"],
+    ["POST", "/system-health/upgrade/jobs"],
+    ["GET", "/gitlab/connections"],
+    ["POST", "/gitlab/oauth/start"],
+    ["GET", "/gitlab/repositories"],
+    ...["discord", "telegram"].flatMap((provider) => [
+      ["GET", `/notifications/${provider}/destinations`],
+      ["PUT", `/notifications/${provider}/destinations`],
+      ["POST", `/notifications/${provider}/destinations/test`],
+      ["GET", `/sources/${uuid}/notifications/${provider}/destinations`],
+    ]),
+  ]) {
+    const response = await controlPlaneRoutes.request(path!, { method });
+    assert.equal(response.status, 404, `${method} ${path}`);
+  }
+});

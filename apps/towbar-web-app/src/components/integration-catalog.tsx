@@ -6,14 +6,11 @@ import { Attributes } from "@avgeek-oss/design-system/data-display/attributes";
 
 import { CloudProviderLogo } from "./cloud-provider-logo";
 import { GitHubSettings } from "./github-settings";
-import { GitLabSettings } from "./gitlab-settings";
 import { IntegrationProviderLogo } from "./integration-provider-logo";
 import { NotificationDeliveries } from "./notification-deliveries";
 import { WebhookNotificationIntegration } from "./webhook-notification-integration";
 import { EmailNotificationIntegration } from "./email-notification-integration";
 import { SlackNotificationIntegration } from "./slack-notification-integration";
-import { DiscordNotificationIntegration } from "./discord-notification-integration";
-import { TelegramNotificationIntegration } from "./telegram-notification-integration";
 import { NotificationProviderIcon } from "./notification-provider-icon";
 import { FormCard } from "./page-parts";
 import { documentationTopics } from "@/lib/documentation";
@@ -38,8 +35,6 @@ export type ProviderGroup = {
 const notificationIconProviders = {
   slack: "slack",
   email: "smtp",
-  discord: "discord",
-  telegram: "telegram",
   webhook: "webhook",
 } as const;
 
@@ -53,7 +48,6 @@ const cloudIconProviders = {
 
 const brandedIconProviders = {
   github: "github",
-  gitlab: "gitlab",
   registry: "registry",
   infisical: "infisical",
   doppler: "doppler",
@@ -206,12 +200,6 @@ export const integrationGroups = [
         label: "GitHub",
         content: <GitHubSettings />,
       },
-      {
-        value: "gitlab",
-        provider: "gitlab",
-        label: "GitLab",
-        content: <GitLabSettings />,
-      },
     ],
   },
   {
@@ -258,20 +246,6 @@ export const notificationProviders = [
     label: "Email",
     contentOwnsTitle: true,
     content: <EmailNotificationIntegration />,
-  },
-  {
-    value: "discord",
-    provider: "discord",
-    label: "Discord",
-    contentOwnsTitle: true,
-    content: <DiscordNotificationIntegration />,
-  },
-  {
-    value: "telegram",
-    provider: "telegram",
-    label: "Telegram",
-    contentOwnsTitle: true,
-    content: <TelegramNotificationIntegration />,
   },
   {
     value: "webhook",

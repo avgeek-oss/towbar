@@ -9,8 +9,6 @@ import { badRequest } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
 import { getRuntimeNotifications } from "../../infrastructure/runtime-notifications.js";
 import { slackNotificationRoutes } from "./slack-destinations.js";
-import { discordNotificationRoutes } from "./discord-destinations.js";
-import { telegramNotificationRoutes } from "./telegram-destinations.js";
 import { webhookNotificationRoutes } from "./webhook-destinations.js";
 import {
   deploymentSubscriptionCategories,
@@ -187,14 +185,10 @@ export async function notificationRoutesForWorkspace(workspaceId: string) {
       (route) =>
         route.provider !== "smtp" &&
         route.provider !== "slack" &&
-        route.provider !== "discord" &&
-        route.provider !== "telegram" &&
         route.provider !== "webhook",
     ),
     ...(await emailNotificationRoutes(workspaceId)),
     ...(await slackNotificationRoutes(workspaceId)),
-    ...(await discordNotificationRoutes(workspaceId)),
-    ...(await telegramNotificationRoutes(workspaceId)),
     ...(await webhookNotificationRoutes(workspaceId)),
   ];
 }

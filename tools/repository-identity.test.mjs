@@ -126,7 +126,6 @@ test("generation only updates declared outputs and leaves documentation untouche
   await save();
   for (const path of [
     "packages/towbar-contracts/src",
-    "infra/upgrade-runner",
     "apps/towbar-monitoring-agent",
   ])
     await mkdir(join(root, path), { recursive: true });

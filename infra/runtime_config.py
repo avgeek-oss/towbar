@@ -70,7 +70,6 @@ FIELDS = {
 
 PROVIDER_FIELDS = {
     "github": "ENABLED APP_ID APP_SLUG PRIVATE_KEY_BASE64 WEBHOOK_SECRET API_URL",
-    "gitlab": "ENABLED BASE_URL ALLOW_PRIVATE_NETWORK OAUTH_CLIENT_ID OAUTH_CLIENT_SECRET OAUTH_REDIRECT_URI WEBHOOK_SECRET",
     "registry": "ENABLED HOST USERNAME PASSWORD ALLOW_PRIVATE_NETWORK",
     "aws": "ENABLED REGION ACCESS_KEY_ID SECRET_ACCESS_KEY",
     "s3": "ENABLED ENDPOINT REGION BUCKET PREFIX ADDRESSING_STYLE ALLOW_PRIVATE_NETWORK CUSTOM_CA_BASE64 ACCESS_KEY_ID SECRET_ACCESS_KEY",
@@ -108,7 +107,7 @@ def parse_env(path, remove_legacy_proxy=False):
         if not match:
             raise ConfigError(f"unsupported environment syntax on line {line_number}")
         key, raw = match.groups()
-        if remove_legacy_proxy and key == "TOWBAR_TRUSTED_PROXY_HOPS":
+        if remove_legacy_proxy and (key == "TOWBAR_TRUSTED_PROXY_HOPS" or key.startswith("TOWBAR_GITLAB_")):
             continue
         if key in values:
             raise ConfigError(f"duplicate environment key: {key}")
@@ -131,6 +130,10 @@ def parse_env(path, remove_legacy_proxy=False):
             value = re.split(r"\s+#", raw, maxsplit=1)[0].strip()
             if "$" in value:
                 raise ConfigError(f"interpolated value for {key} needs manual migration")
+        if remove_legacy_proxy and key == "TOWBAR_NOTIFICATION_CONFIG_JSON":
+            notification_config = {"notifications": parse_value(key, value, "json-object")}
+            remove_retired_providers(notification_config)
+            value = json.dumps(notification_config["notifications"])
         values[key] = value
     return values
 
@@ -166,6 +169,29 @@ def nested_set(root, path, value, key):
     current[path[-1]] = value
 
 
+def remove_retired_providers(config):
+    changed = False
+    integrations = config.get("integrations")
+    if isinstance(integrations, dict) and "gitlab" in integrations:
+        del integrations["gitlab"]
+        changed = True
+    notifications = config.get("notifications")
+    if isinstance(notifications, dict):
+        providers = notifications.get("providers")
+        if isinstance(providers, dict):
+            for provider in ("discord", "telegram"):
+                if provider in providers:
+                    del providers[provider]
+                    changed = True
+        routes = notifications.get("routes")
+        if isinstance(routes, list):
+            remaining = [route for route in routes if not isinstance(route, dict) or route.get("provider") not in ("discord", "telegram")]
+            if len(remaining) != len(routes):
+                notifications["routes"] = remaining
+                changed = True
+    return changed
+
+
 def from_env(values):
     config = {"version": 1}
     mode = values.get("TOWBAR_INSTALL_MODE", "local")
@@ -189,10 +215,7 @@ def from_env(values):
         if values["TOWBAR_GATEWAY_DOMAIN"] != expected_domain:
             raise ConfigError("TOWBAR_GATEWAY_DOMAIN must match installation.appUrl")
     installation.setdefault("apiBaseUrl", default_api_base_url(installation.get("appUrl", "http://localhost:4021")))
-    gitlab = config.get("integrations", {}).get("gitlab", {})
-    old_redirect = f"{installation.get('appUrl', 'http://localhost:4021')}/v1/core/gitlab/oauth/callback"
-    if gitlab.get("oauthRedirectUri") == old_redirect:
-        gitlab["oauthRedirectUri"] = f"{installation['apiBaseUrl']}/v1/core/gitlab/oauth/callback"
+    remove_retired_providers(config)
     return config
 
 
@@ -385,7 +408,7 @@ def read_yaml(path, remove_legacy_proxy=False):
                 raise ConfigError("legacy installation.gatewayDomain must match installation.appUrl")
             gateway_removed = True
     if remove_legacy_proxy and isinstance(config, dict):
-        changed = gateway_removed
+        changed = remove_retired_providers(config) or gateway_removed
         security = config.get("security")
         if isinstance(security, dict) and "trustedProxyHops" in security:
             del security["trustedProxyHops"]
@@ -394,13 +417,6 @@ def read_yaml(path, remove_legacy_proxy=False):
         if isinstance(installation, dict) and "apiBaseUrl" not in installation:
             installation["apiBaseUrl"] = default_api_base_url(installation.get("appUrl", "http://localhost:4021"))
             changed = True
-        if isinstance(installation, dict):
-            integrations = config.get("integrations")
-            gitlab = integrations.get("gitlab", {}) if isinstance(integrations, dict) else {}
-            old_redirect = f"{installation.get('appUrl', 'http://localhost:4021')}/v1/core/gitlab/oauth/callback"
-            if isinstance(gitlab, dict) and gitlab.get("oauthRedirectUri") == old_redirect:
-                gitlab["oauthRedirectUri"] = f"{installation['apiBaseUrl']}/v1/core/gitlab/oauth/callback"
-                changed = True
         if changed:
             to_env(config)
             atomic_write(path, yaml.safe_dump(config, sort_keys=False, allow_unicode=True))
@@ -469,11 +485,6 @@ def migrate(env_path, yaml_path, preserve_legacy):
     for key, value in values.items():
         if key in ("COMPOSE_PROFILES", "TOWBAR_GATEWAY_DOMAIN", "TOWBAR_GATEWAY_API_DOMAIN"):
             continue
-        if (
-            key == "TOWBAR_GITLAB_OAUTH_REDIRECT_URI"
-            and value == f"{values.get('TOWBAR_APP_BASE_URL', 'http://localhost:4021')}/v1/core/gitlab/oauth/callback"
-        ):
-            continue
         kind = FIELDS[key][1]
         if parse_value(key, value, kind) != parse_value(key, rendered[key], kind):
             raise ConfigError(f"conversion mismatch for {key}")
@@ -530,9 +541,6 @@ def set_installation(yaml_path, mode, app_url, api_base_url):
             "bindAddress": "127.0.0.1",
         }
     )
-    config.setdefault("integrations", {}).setdefault("gitlab", {})[
-        "oauthRedirectUri"
-    ] = f"{api_base_url}/v1/core/gitlab/oauth/callback"
     to_env(config)
     atomic_write(yaml_path, yaml.safe_dump(config, sort_keys=False, allow_unicode=True))
 

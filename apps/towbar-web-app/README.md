@@ -92,11 +92,6 @@ API to review the missing-credentials empty state instead.
 Set `TOWBAR_FIXTURE_SLACK_CONFIGURED=true` to review Slack channel destinations,
 subscriptions, and the test confirmation. With the flag unset, Slack shows the
 missing-credentials empty state.
-Set `TOWBAR_FIXTURE_DISCORD_CONFIGURED=true` to review a configured Discord
-route with editable subscriptions and a test confirmation. With the flag unset,
-Discord shows the missing-configuration widget.
-Set `TOWBAR_FIXTURE_TELEGRAM_CONFIGURED=true` to review Telegram chat and topic destinations, subscriptions, and the test confirmation. Without it, Telegram shows the missing-credentials widget.
-
 To test passkey sign-in, start the fixture with `TOWBAR_FIXTURE_AUTH_STATE=signed-out` and open `/login`. Use `2fa-both@example.com` with password `Towbar fixture passphrase 2026`. Password sign-in requires the seeded passkey; `fixture-recovery-one` provides a one-use recovery path. These credentials work only in the local fixture.
 
 The seeded passkey belongs to a virtual authenticator, not your device. Tests can import the public test material from `scripts/dual-factor-fixture.ts` for RP ID `localhost`. The fixture verifies WebAuthn signatures. To test your device, sign in with a recovery code and register a passkey under **My Settings → Passkeys**.
@@ -106,7 +101,7 @@ Set `TOWBAR_FIXTURE_AUTH_STATE=passkey-user` to review the passkey table and rec
 ## Documentation screenshots
 
 Start the fixture API with `TOWBAR_FIXTURE_NOTIFICATION_PROVIDERS_CONFIGURED=true`
-and `TOWBAR_FIXTURE_UPGRADE_ENABLED=true`, then start the web app as above. Run
+then start the web app as above. Run
 `pnpm docs:screenshots` from the repository root to refresh the light and dark
 captures listed in `tools/release-screenshots.json`. Pass screenshot names to
 refresh only those views. The upgrade flag enables local scenario controls;

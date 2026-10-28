@@ -6,7 +6,6 @@ export const integrationProviders = [
   "r2",
   "gcs",
   "github",
-  "gitlab",
   "registry",
   "infisical",
   "doppler",
@@ -55,34 +54,6 @@ const httpsUrlSchema = z
   .url()
   .max(2_048)
   .refine((value) => new URL(value).protocol === "https:", "HTTPS is required");
-const gitlabBaseUrlSchema = z
-  .url()
-  .max(2_048)
-  .superRefine((value, context) => {
-    const url = new URL(value);
-    if (url.protocol !== "https:")
-      context.addIssue({ code: "custom", message: "HTTPS is required" });
-    if (url.username || url.password)
-      context.addIssue({
-        code: "custom",
-        message: "GitLab URL cannot contain credentials",
-      });
-    if (url.search || url.hash)
-      context.addIssue({
-        code: "custom",
-        message: "GitLab URL cannot contain a query or fragment",
-      });
-    if (url.pathname.includes("//"))
-      context.addIssue({
-        code: "custom",
-        message: "GitLab URL contains an invalid path",
-      });
-  })
-  .transform((value) => {
-    const url = new URL(value);
-    const path = url.pathname.replace(/\/+$/u, "");
-    return `${url.origin}${path === "/" ? "" : path}`;
-  });
 const credentialText = z.string().min(1).max(8_192);
 const objectStorageEndpointSchema = z
   .url()
@@ -177,42 +148,6 @@ export const githubConnectionCredentialsSchema = z
   .object({
     appId: z.string().trim().min(1).max(64),
     privateKey: credentialText,
-  })
-  .strict();
-
-export const gitlabConnectionConfigurationSchema = z
-  .object({
-    baseUrl: gitlabBaseUrlSchema.default("https://gitlab.com"),
-    allowPrivateNetwork: z.boolean().default(false),
-  })
-  .strict();
-export const gitlabConnectionCredentialsSchema = z
-  .object({
-    token: credentialText,
-    refreshToken: credentialText.optional(),
-    oauthClientId: credentialText.optional(),
-    oauthClientSecret: credentialText.optional(),
-    oauthRedirectUri: httpsUrlSchema.optional(),
-    tokenExpiresAt: z.iso.datetime({ offset: true }).optional(),
-    webhookSecret: z.string().min(16).max(256),
-  })
-  .superRefine((credentials, context) => {
-    const oauthValues = [
-      credentials.refreshToken,
-      credentials.oauthClientId,
-      credentials.oauthClientSecret,
-      credentials.oauthRedirectUri,
-      credentials.tokenExpiresAt,
-    ];
-    if (
-      oauthValues.some((value) => value !== undefined) &&
-      oauthValues.some((value) => value === undefined)
-    )
-      context.addIssue({
-        code: "custom",
-        message:
-          "OAuth token refresh requires the refresh token, client ID, client secret, redirect URI, and access-token expiry",
-      });
   })
   .strict();
 
@@ -329,13 +264,6 @@ const providerConnectionSchemas = [
       provider: z.literal("github"),
       configuration: githubConnectionConfigurationSchema,
       credentials: githubConnectionCredentialsSchema,
-    })
-    .strict(),
-  z
-    .object({
-      provider: z.literal("gitlab"),
-      configuration: gitlabConnectionConfigurationSchema,
-      credentials: gitlabConnectionCredentialsSchema,
     })
     .strict(),
   z
