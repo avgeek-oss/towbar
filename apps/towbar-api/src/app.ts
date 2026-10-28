@@ -1,5 +1,4 @@
 import { mcpOAuthRoutes } from "./routes/mcp-oauth.js";
-import { assistantRoutes } from "./routes/v1/assistant.js";
 import { faviconRoutes } from "./routes/favicon.js";
 import { auditRequestContext } from "./infrastructure/audit-context.js";
 import { randomUUID } from "node:crypto";
@@ -16,6 +15,7 @@ import { pingDatabase } from "./infrastructure/database.js";
 import { internalV1, publicV1 } from "./routes/v1/index.js";
 
 import type { TowbarHonoEnvironment } from "./http/types.js";
+import { assistantRoutes } from "./routes/v1/assistant.js";
 
 function createRoutedApp(routeScope: "internal" | "public") {
   const app = new Hono<TowbarHonoEnvironment>();
