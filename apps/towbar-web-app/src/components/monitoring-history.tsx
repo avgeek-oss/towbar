@@ -266,7 +266,7 @@ function PerformancePageTitle({
     <PageSelectionTitle
       actions={actions}
       badge={agent ? <MonitoringStatus agent={agent} /> : undefined}
-      icon={<HugeiconsIcon icon={Activity01Icon} />}
+      icon={<HugeiconsIcon aria-hidden="true" icon={Activity01Icon} />}
       keepEntityName
       label="Performance"
     />

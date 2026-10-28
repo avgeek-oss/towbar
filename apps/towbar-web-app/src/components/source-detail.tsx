@@ -301,7 +301,7 @@ export function SourceDetail() {
           {
             value: "environments",
             label: "Environments",
-            icon: <HugeiconsIcon icon={CloudIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={CloudIcon} />,
             content: (
               <SourceEnvironments
                 sourceId={sourceId}
@@ -313,7 +313,9 @@ export function SourceDetail() {
           {
             value: "services",
             label: "Services",
-            icon: <HugeiconsIcon icon={DashboardCircleIcon} />,
+            icon: (
+              <HugeiconsIcon aria-hidden="true" icon={DashboardCircleIcon} />
+            ),
             indicator: apps.data
               ? {
                   label: String(
@@ -340,7 +342,7 @@ export function SourceDetail() {
           {
             value: "datastores",
             label: "Datastores",
-            icon: <HugeiconsIcon icon={DatabaseIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={DatabaseIcon} />,
             indicator: resources.data
               ? {
                   label: String(
@@ -368,14 +370,14 @@ export function SourceDetail() {
             value: "manifest",
             label: "Manifest",
             group: "Repository information",
-            icon: <HugeiconsIcon icon={SourceCodeIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={SourceCodeIcon} />,
             content: <SourceEnvironmentManifest sourceId={sourceId} />,
           },
           {
             value: "sync-history",
             label: "Sync history",
             group: "Repository information",
-            icon: <HugeiconsIcon icon={ReloadIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={ReloadIcon} />,
             content: (
               <SourceSyncHistory
                 columns={syncColumns}
@@ -388,7 +390,7 @@ export function SourceDetail() {
           {
             value: "settings",
             label: "Settings",
-            icon: <HugeiconsIcon icon={Settings01Icon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />,
             content: (
               <SourceSettings
                 canManage={source.data.canManageSource}

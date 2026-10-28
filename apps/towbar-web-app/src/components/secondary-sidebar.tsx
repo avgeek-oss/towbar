@@ -63,7 +63,10 @@ export function SecondaryItems({
       items={items.map((item) => ({
         ...item,
         icon: item.icon ?? (
-          <HugeiconsIcon icon={menuIcons[item.id] ?? DashboardCircleIcon} />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={menuIcons[item.id] ?? DashboardCircleIcon}
+          />
         ),
       }))}
     />

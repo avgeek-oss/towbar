@@ -205,6 +205,7 @@ export function DeploymentTriggerChip({
         <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
           {
             <HugeiconsIcon
+              aria-hidden="true"
               icon={
                 trigger === "auto_deploy"
                   ? GitBranchIcon

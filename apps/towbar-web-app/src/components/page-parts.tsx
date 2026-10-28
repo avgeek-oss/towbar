@@ -181,7 +181,7 @@ export function DashboardPage({
         {selection?.keepEntityName ? (
           <SecondaryEntityHeader
             title={title}
-            icon={titleIcon ?? <HugeiconsIcon icon={icon} />}
+            icon={titleIcon ?? <HugeiconsIcon aria-hidden="true" icon={icon} />}
           >
             {titleContent ?? title}
           </SecondaryEntityHeader>

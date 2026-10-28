@@ -89,7 +89,11 @@ export function EmailNotificationIntegration() {
               setAdding(true);
             }}
           >
-            <HugeiconsIcon icon={Add01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Add01Icon}
+              className="size-4"
+            />
             Add email
           </Button>
         ) : undefined
@@ -279,7 +283,11 @@ export function EmailNotificationIntegration() {
               setTestDialogOpen(true);
             }}
           >
-            <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={TestTube01Icon}
+              className="size-4"
+            />
             Test
           </Button>
           <Button
@@ -287,7 +295,11 @@ export function EmailNotificationIntegration() {
             isDisabled={saving}
             onPress={() => setRemoving(row.email)}
           >
-            <HugeiconsIcon icon={Delete02Icon} className="size-4" />
+            <HugeiconsIcon
+              aria-hidden="true"
+              icon={Delete02Icon}
+              className="size-4"
+            />
             Remove
           </Button>
         </div>
@@ -420,7 +432,11 @@ export function EmailNotificationIntegration() {
                 Cancel
               </Button>
               <Button isDisabled={sendingTest} onPress={() => void sendTest()}>
-                <HugeiconsIcon icon={TestTube01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={TestTube01Icon}
+                  className="size-4"
+                />
                 {sendingTest ? "Sending…" : "Send test email"}
               </Button>
             </AlertDialog.Footer>

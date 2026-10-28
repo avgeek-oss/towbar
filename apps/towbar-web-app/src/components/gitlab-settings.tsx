@@ -69,7 +69,11 @@ export function GitLabSettings() {
                 success="GitLab disconnected"
                 variant="danger"
               >
-                <HugeiconsIcon icon={Unlink01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={Unlink01Icon}
+                  className="size-4"
+                />
                 Disconnect GitLab
               </ActionButton>
             </div>
@@ -90,7 +94,11 @@ export function GitLabSettings() {
                 redirectOnSuccess={(result) => result.authorizationUrl}
                 success="Opening GitLab"
               >
-                <HugeiconsIcon icon={Add01Icon} className="size-4" />
+                <HugeiconsIcon
+                  aria-hidden="true"
+                  icon={Add01Icon}
+                  className="size-4"
+                />
                 Connect GitLab
               </ActionButton>
             </EmptyState.Content>

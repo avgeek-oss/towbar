@@ -198,7 +198,7 @@ export function TeamSettingsShell({
               id: item.id,
               href: `/team-settings/${item.id}`,
               label: item.label,
-              icon: <HugeiconsIcon icon={item.icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={item.icon} />,
             }))}
           />
         ) : null;

@@ -77,7 +77,11 @@ const columns: ResourceTableColumn<Destination>[] = [
     cell: (row: Destination) =>
       row[key] ? (
         <span className="inline-flex items-center gap-1.5 text-success">
-          <HugeiconsIcon icon={CheckmarkCircle01Icon} className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={CheckmarkCircle01Icon}
+            className="size-4"
+          />
           <span className="sr-only">Enabled</span>
         </span>
       ) : (

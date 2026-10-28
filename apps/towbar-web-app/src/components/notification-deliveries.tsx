@@ -172,7 +172,11 @@ export function NotificationDeliveries() {
             size={16}
           />
         ) : (
-          <HugeiconsIcon icon={ServerStack01Icon} className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={ServerStack01Icon}
+            className="size-4"
+          />
         ),
       })),
     ],
@@ -307,6 +311,7 @@ export function NotificationDeliveries() {
               label: category.label,
               icon: (
                 <HugeiconsIcon
+                  aria-hidden="true"
                   icon={category.icon}
                   className="size-4 shrink-0"
                 />

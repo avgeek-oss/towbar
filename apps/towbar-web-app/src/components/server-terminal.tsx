@@ -245,7 +245,11 @@ export function ServerTerminal({
               variant="danger"
               onPress={() => setIsConfirmingDisconnect(true)}
             >
-              <HugeiconsIcon icon={Unlink01Icon} className="size-4" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={Unlink01Icon}
+                className="size-4"
+              />
               Disconnect
             </Button>
           ) : (
@@ -254,7 +258,11 @@ export function ServerTerminal({
               isDisabled={!loaded || credentialsPending}
               onPress={() => void connect()}
             >
-              <HugeiconsIcon icon={Link01Icon} className="size-4" />
+              <HugeiconsIcon
+                aria-hidden="true"
+                icon={Link01Icon}
+                className="size-4"
+              />
               Connect
             </Button>
           )}

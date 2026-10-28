@@ -83,7 +83,7 @@ export function ScoutAlerts({
     view === "incidents" ? (
       <PageSelectionTitle
         label="Incidents"
-        icon={<HugeiconsIcon icon={AlertCircleIcon} />}
+        icon={<HugeiconsIcon aria-hidden="true" icon={AlertCircleIcon} />}
         keepEntityName
         actions={
           <div className="w-44">
@@ -111,7 +111,7 @@ export function ScoutAlerts({
         {view === "alerts" ? (
           <PageSelectionTitle
             label="Alerts"
-            icon={<HugeiconsIcon icon={Alert02Icon} />}
+            icon={<HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />}
             keepEntityName
           />
         ) : null}
@@ -364,7 +364,7 @@ export function ScoutAlerts({
         <section className="grid min-w-0 gap-4" aria-label="Alert rules">
           <PageSelectionTitle
             label="Alerts"
-            icon={<HugeiconsIcon icon={Alert02Icon} />}
+            icon={<HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />}
             keepEntityName
             actions={
               data.canManage ? (

@@ -168,7 +168,12 @@ export function SourceEnvironments({
                 >
                   <Chip color="success">
                     <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
-                      {<HugeiconsIcon icon={GitPullRequestIcon} />}
+                      {
+                        <HugeiconsIcon
+                          aria-hidden="true"
+                          icon={GitPullRequestIcon}
+                        />
+                      }
                       Enabled
                     </Chip.Label>
                   </Chip>

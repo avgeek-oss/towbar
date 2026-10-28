@@ -77,7 +77,7 @@ export function AccountSettings({ page }: { page: AccountSettingsPage }) {
             id,
             href: `/settings/${id}`,
             label: titles[id],
-            icon: <HugeiconsIcon icon={icons[id]} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={icons[id]} />,
           }))}
         />
       ))}

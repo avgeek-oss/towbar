@@ -252,6 +252,7 @@ export function DeploymentDetail() {
               help={false}
               icon={
                 <HugeiconsIcon
+                  aria-hidden="true"
                   icon={
                     item.state === "succeeded_with_warnings"
                       ? Alert02Icon
@@ -326,7 +327,9 @@ export function DeploymentDetail() {
           {
             value: "overview",
             label: "Overview",
-            icon: <HugeiconsIcon icon={InformationSquareIcon} />,
+            icon: (
+              <HugeiconsIcon aria-hidden="true" icon={InformationSquareIcon} />
+            ),
             content: (
               <div className="content-grid">
                 <div className="content-grid lg:grid-cols-2">
@@ -365,6 +368,7 @@ export function DeploymentDetail() {
                     <Attributes.Item
                       icon={
                         <HugeiconsIcon
+                          aria-hidden="true"
                           icon={
                             item.deployableKind === "app" ||
                             item.deployableKind === "compose"
@@ -394,7 +398,12 @@ export function DeploymentDetail() {
                       </InlineLink>
                     </Attributes.Item>
                     <Attributes.Item
-                      icon={<HugeiconsIcon icon={ServerStack01Icon} />}
+                      icon={
+                        <HugeiconsIcon
+                          aria-hidden="true"
+                          icon={ServerStack01Icon}
+                        />
+                      }
                       label="Server"
                     >
                       <InlineLink href={`/servers/${item.serverId}`}>
@@ -501,7 +510,10 @@ export function DeploymentDetail() {
                         >
                           <Chip.Label className="inline-flex items-center gap-1.5 whitespace-nowrap [&_svg]:size-3.5">
                             {revision.data.pullRequest.merged ? (
-                              <HugeiconsIcon icon={GitMergeIcon} />
+                              <HugeiconsIcon
+                                aria-hidden="true"
+                                icon={GitMergeIcon}
+                              />
                             ) : undefined}
                             {revision.data.pullRequest.merged
                               ? "Merged"
@@ -515,7 +527,12 @@ export function DeploymentDetail() {
                       </TooltipText>
                     </Attributes.Item>
                     <Attributes.Item
-                      icon={<HugeiconsIcon icon={GitBranchIcon} />}
+                      icon={
+                        <HugeiconsIcon
+                          aria-hidden="true"
+                          icon={GitBranchIcon}
+                        />
+                      }
                       label="Branches"
                     >
                       <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -549,7 +566,7 @@ export function DeploymentDetail() {
           {
             value: "progress",
             label: "Progress",
-            icon: <HugeiconsIcon icon={Activity01Icon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={Activity01Icon} />,
             content: (
               <div className="content-grid min-w-0">
                 {terminal.has(item.state) && progressSteps.length < 2 ? (
@@ -583,7 +600,7 @@ export function DeploymentDetail() {
           {
             value: "logs",
             label: "Logs",
-            icon: <HugeiconsIcon icon={FileViewIcon} />,
+            icon: <HugeiconsIcon aria-hidden="true" icon={FileViewIcon} />,
             content: stream.logs.length ? (
               <CodePanel ariaLabel="Deployment logs" language="text">
                 {stream.logs
@@ -617,6 +634,7 @@ export function DeploymentDetail() {
                   label: "Vulnerabilities",
                   icon: (
                     <HugeiconsIcon
+                      aria-hidden="true"
                       icon={SecurityCheckIcon}
                       className="size-4"
                     />

@@ -86,7 +86,11 @@ export function ApiMcpSettings({ section }: { section: KeyStoreSection }) {
     () =>
       section === "private-keys" ? (
         <Button onPress={() => setCreatingPrivateKey(true)}>
-          <HugeiconsIcon icon={Add01Icon} className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={Add01Icon}
+            className="size-4"
+          />
           Add private key
         </Button>
       ) : isKeyPage ? (
@@ -96,7 +100,11 @@ export function ApiMcpSettings({ section }: { section: KeyStoreSection }) {
             setCreating(true);
           }}
         >
-          <HugeiconsIcon icon={Add01Icon} className="size-4" />
+          <HugeiconsIcon
+            aria-hidden="true"
+            icon={Add01Icon}
+            className="size-4"
+          />
           Create API key
         </Button>
       ) : undefined,

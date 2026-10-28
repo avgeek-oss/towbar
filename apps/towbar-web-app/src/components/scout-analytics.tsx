@@ -210,7 +210,9 @@ export function ScoutAnalytics({
       <>
         <PageSelectionTitle
           label="Analytics"
-          icon={<HugeiconsIcon icon={ChartNoAxesColumnIcon} />}
+          icon={
+            <HugeiconsIcon aria-hidden="true" icon={ChartNoAxesColumnIcon} />
+          }
           keepEntityName
         />
         <EmptyState>
@@ -229,7 +231,7 @@ export function ScoutAnalytics({
     <>
       <PageSelectionTitle
         label="Analytics"
-        icon={<HugeiconsIcon icon={ChartNoAxesColumnIcon} />}
+        icon={<HugeiconsIcon aria-hidden="true" icon={ChartNoAxesColumnIcon} />}
         keepEntityName
         actions={
           <div>
@@ -1160,6 +1162,7 @@ function AnalyticsRowLabel({
             onPress={() => onFilter(value)}
           >
             <HugeiconsIcon
+              aria-hidden="true"
               icon={filtered ? FilterRemoveIcon : FilterIcon}
               className={`size-3.5 ${filtered ? "text-danger" : ""}`}
             />

@@ -54,6 +54,7 @@ export function CodePanel({
             )}
             data-language="json"
             data-slot="code-block-code"
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- A scrollable region must be reachable by keyboard so its overflow can be scrolled (WCAG 2.1.1).
             tabIndex={0}
           >
             <Highlight code={children} language="json" theme={jsonTheme}>

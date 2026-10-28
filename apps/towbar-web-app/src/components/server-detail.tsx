@@ -413,7 +413,9 @@ export function ServerDetail() {
             {
               value: "overview",
               label: "Overview",
-              icon: <HugeiconsIcon icon={ServerStack01Icon} />,
+              icon: (
+                <HugeiconsIcon aria-hidden="true" icon={ServerStack01Icon} />
+              ),
               content: (
                 <div className="content-grid">
                   <ServerPreparationOverview {...preparationProps} />
@@ -505,7 +507,7 @@ export function ServerDetail() {
                     <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />
                   </span>
                 ) : undefined,
-              icon: <HugeiconsIcon icon={Settings01Icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />,
               content: (
                 <ServerPreparationChecklist
                   {...preparationProps}
@@ -518,7 +520,12 @@ export function ServerDetail() {
                   {
                     value: "terminal",
                     label: "Terminal",
-                    icon: <HugeiconsIcon icon={CommandLineIcon} />,
+                    icon: (
+                      <HugeiconsIcon
+                        aria-hidden="true"
+                        icon={CommandLineIcon}
+                      />
+                    ),
                     content: (
                       <ServerTerminal
                         serverId={serverId}
@@ -534,7 +541,9 @@ export function ServerDetail() {
               label: "Performance",
               contentOwnsTitle: true,
               group: "Monitor",
-              icon: <HugeiconsIcon icon={SquareActivityIcon} />,
+              icon: (
+                <HugeiconsIcon aria-hidden="true" icon={SquareActivityIcon} />
+              ),
               content: (
                 <ScoutPerformance
                   path={`/v1/core/servers/${serverId}/metrics`}
@@ -547,7 +556,7 @@ export function ServerDetail() {
               label: "Alerts",
               contentOwnsTitle: true,
               group: "Monitor",
-              icon: <HugeiconsIcon icon={Alert02Icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={Alert02Icon} />,
               content: <ScoutAlertRules serverId={serverId} />,
             },
             {
@@ -555,7 +564,7 @@ export function ServerDetail() {
               label: "Incidents",
               contentOwnsTitle: true,
               group: "Monitor",
-              icon: <HugeiconsIcon icon={AlertCircleIcon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={AlertCircleIcon} />,
               content: <ScoutIncidents serverId={serverId} />,
             },
             {
@@ -565,7 +574,9 @@ export function ServerDetail() {
                 appCount !== undefined ? (
                   <span className="text-muted">{appCount}</span>
                 ) : undefined,
-              icon: <HugeiconsIcon icon={DashboardCircleIcon} />,
+              icon: (
+                <HugeiconsIcon aria-hidden="true" icon={DashboardCircleIcon} />
+              ),
               content: (
                 <ServerDeployableTable
                   capacity={capacity.data.capacity}
@@ -580,7 +591,7 @@ export function ServerDetail() {
                 resourceCount !== undefined ? (
                   <span className="text-muted">{resourceCount}</span>
                 ) : undefined,
-              icon: <HugeiconsIcon icon={DatabaseIcon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={DatabaseIcon} />,
               content: (
                 <ServerDeployableTable
                   capacity={capacity.data.capacity}
@@ -591,7 +602,7 @@ export function ServerDetail() {
             {
               value: "checks",
               label: "Checks",
-              icon: <HugeiconsIcon icon={Activity01Icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={Activity01Icon} />,
               content: (
                 <ServerCheckHistory
                   columns={checkColumns}
@@ -604,7 +615,7 @@ export function ServerDetail() {
             {
               value: "settings",
               label: "Settings",
-              icon: <HugeiconsIcon icon={Settings01Icon} />,
+              icon: <HugeiconsIcon aria-hidden="true" icon={Settings01Icon} />,
               indicator: orphanItems.length
                 ? { label: String(orphanItems.length), variant: "warning" }
                 : undefined,
@@ -750,7 +761,12 @@ export function ServerDetail() {
                             label: "Remove server",
                             destructive: true,
                             group: "Danger zone",
-                            icon: <HugeiconsIcon icon={ServerOffIcon} />,
+                            icon: (
+                              <HugeiconsIcon
+                                aria-hidden="true"
+                                icon={ServerOffIcon}
+                              />
+                            ),
                             content: (
                               <FormCard help={false} title="Danger zone">
                                 <div className="content-grid">
