@@ -1,8 +1,8 @@
 $kind: http-request
 id: e70cf833-3913-546a-aa9e-54c48c4fbfa6
 description:
-  "Required permissions: server.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/orphans"
 method: GET
 headers:

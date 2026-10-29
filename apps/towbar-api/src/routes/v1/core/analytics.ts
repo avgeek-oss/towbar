@@ -15,7 +15,7 @@ export const analyticsRoutes = new Hono<TowbarHonoEnvironment>();
 analyticsRoutes.get(
   "/apps/:appId/analytics/filter-options",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'analytics.ts:get:"/apps/:appId/analytics/filter-options"',
     query: analyticsFilterOptionsQuerySchema,
     summary: "Find analytics filter values",
@@ -35,7 +35,7 @@ analyticsRoutes.get(
 analyticsRoutes.get(
   "/apps/:appId/analytics",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'analytics.ts:get:"/apps/:appId/analytics"',
     query: analyticsQuerySchema,
     summary: "Read service analytics",

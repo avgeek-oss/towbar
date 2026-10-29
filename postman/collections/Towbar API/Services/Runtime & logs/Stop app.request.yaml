@@ -1,8 +1,8 @@
 $kind: http-request
 id: 79f5a3e4-64b7-5b3f-a0c1-e48ce9724f51
 description:
-  "Required permissions: workload.operate. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/apps/:appId/actions/stop"
 method: POST
 headers:

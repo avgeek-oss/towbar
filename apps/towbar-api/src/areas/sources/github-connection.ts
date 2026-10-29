@@ -37,7 +37,7 @@ export async function changeSourceGitHubConnection(
   },
   dependencies = defaultDependencies,
 ) {
-  requireActor(input.workspaceId, ["repository.update"]);
+  requireActor(input.workspaceId, ["admin"]);
   const database = getTowbarDatabase();
   const [source] = await database
     .select()

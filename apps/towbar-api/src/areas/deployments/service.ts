@@ -6,10 +6,7 @@ import {
 /* eslint-disable max-lines -- Deployment admission, snapshotting, and lifecycle transitions share one transactional service contract. */
 import { assertAppStorageServer } from "../apps/storage.js";
 import { getRuntimeSourceIds } from "../manifest-lifecycle/runtime-ownership.js";
-import {
-  hostLogDeploymentPermissions,
-  hostLogExecutionDeployables,
-} from "../apps/host-log-collection.js";
+import { hostLogExecutionApp } from "../apps/host-log-collection.js";
 import { requireActiveAutomation } from "../auth/automation-authority.js";
 import { authorizeQueuedEffect } from "../auth/actor-context.js";
 import {
@@ -257,8 +254,7 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
     .where(eq(deployments.id, deploymentId))
     .limit(1);
   if (!context) throw notFound("Deployment");
-  const execution = await hostLogExecutionDeployables(context);
-  context.app = execution.app;
+  context.app = await hostLogExecutionApp(context);
   if (!isNormalizedResource(context.app))
     await assertAppStorageServer(
       getTowbarDatabase(),
@@ -269,7 +265,7 @@ export async function getDeploymentExecutionContext(deploymentId: string) {
     const actor = await authorizeQueuedEffect(
       context.requestedByActor,
       context.workspaceId,
-      hostLogDeploymentPermissions(...execution.deployables),
+      ["admin"],
     );
     if (actor.kind === "system")
       await requireActiveAutomation({

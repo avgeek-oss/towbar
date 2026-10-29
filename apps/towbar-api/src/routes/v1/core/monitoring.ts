@@ -19,7 +19,7 @@ export const monitoringSettingsRoutes = new Hono<TowbarHonoEnvironment>();
 monitoringSettingsRoutes.get(
   "/",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring.ts:get:"/"',
     summary: "Get Scout Agent status",
     response:
@@ -37,7 +37,7 @@ monitoringSettingsRoutes.get(
 monitoringSettingsRoutes.patch(
   "/",
   operation({
-    permissions: ["scout.configure"],
+    permissions: ["member"],
     responseSchema: 'monitoring.ts:patch:"/"',
     summary: "Set monitoring retention",
     body: monitoringSettingsSchema,
@@ -60,7 +60,7 @@ monitoringSettingsRoutes.patch(
 monitoringSettingsRoutes.post(
   "/actions/install",
   operation({
-    permissions: ["scout.configure"],
+    permissions: ["member"],
     responseSchema: 'monitoring.ts:post:"/actions/install"',
     summary: "Install or update Scout Agent",
     body: monitoringInstallSchema,
@@ -88,7 +88,7 @@ monitoringSettingsRoutes.post(
 monitoringSettingsRoutes.post(
   "/actions/uninstall",
   operation({
-    permissions: ["scout.configure"],
+    permissions: ["member"],
     responseSchema: 'monitoring.ts:post:"/actions/uninstall"',
     summary: "Uninstall Scout Agent",
     response:
@@ -115,7 +115,7 @@ export const monitoringHistoryRoutes = new Hono<TowbarHonoEnvironment>();
 monitoringHistoryRoutes.get(
   "/servers/:serverId/metrics",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring.ts:get:"/servers/:serverId/metrics"',
     summary: "Read server metrics history",
     query: monitoringQuerySchema,
@@ -135,7 +135,7 @@ monitoringHistoryRoutes.get(
 monitoringHistoryRoutes.get(
   "/apps/:appId/metrics",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring.ts:get:"/apps/:appId/metrics"',
     summary: "Read app metrics history",
     query: monitoringQuerySchema,
@@ -156,7 +156,7 @@ monitoringHistoryRoutes.get(
 monitoringHistoryRoutes.get(
   "/resources/:resourceId/metrics",
   operation({
-    permissions: ["scout.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring.ts:get:"/resources/:resourceId/metrics"',
     summary: "Read resource metrics history",
     query: monitoringQuerySchema,

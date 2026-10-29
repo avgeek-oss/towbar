@@ -1,8 +1,8 @@
 $kind: http-request
 id: da4ed0a2-2c59-5360-ba2e-9f18f5a8f8a8
 description:
-  "Required permissions: identity.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/identity"
 method: GET
 headers:

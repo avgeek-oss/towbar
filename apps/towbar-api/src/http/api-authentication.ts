@@ -63,7 +63,7 @@ function requireExternalToken(
       context.header(
         "WWW-Authenticate",
         surface === "mcp"
-          ? `Bearer resource_metadata="${resourceMetadataUrl()}", scope="mcp:read"${match ? ', error="invalid_token"' : ""}`
+          ? `Bearer resource_metadata="${resourceMetadataUrl()}", scope="read"${match ? ', error="invalid_token"' : ""}`
           : 'Bearer realm="Towbar"',
       );
       throw unauthorized(

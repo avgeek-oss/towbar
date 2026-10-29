@@ -1,8 +1,8 @@
 $kind: http-request
 id: e950fec9-17e8-5f46-88b1-2baf404e01b5
 description:
-  "Required permissions: repository.update. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId/actions/change-github-connection"
 method: POST
 headers:

@@ -1,8 +1,8 @@
 $kind: http-request
 id: c6198883-d12a-5829-a3f6-5c4b242531e6
 description:
-  "Required permissions: workload.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/apps/:appId/jobs"
 method: GET
 headers:

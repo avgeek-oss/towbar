@@ -103,7 +103,7 @@ export async function issueTerminalTicket(
   sessionId: string,
   serverId: string,
 ) {
-  if (!roleAllows(user.workspaceRole, "server.terminal"))
+  if (!roleAllows(user.workspaceRole, "admin"))
     throw forbidden("Only admins can open a server terminal");
   await requireRecentAuthentication(user.id, sessionId);
   const bucket = await incrementPersistentBucket(
@@ -154,7 +154,7 @@ export async function authorizeTerminal(ticket: Ticket, headers: Headers) {
     identity.user.id !== ticket.userId ||
     identity.user.workspaceId !== ticket.workspaceId ||
     identity.user.mustChangePassword ||
-    !roleAllows(identity.user.workspaceRole, "server.terminal")
+    !roleAllows(identity.user.workspaceRole, "admin")
   )
     throw forbidden("Your terminal access has ended. Sign in again.");
   const current = await target(ticket.serverId, ticket.workspaceId);

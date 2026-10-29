@@ -35,7 +35,7 @@ export const notificationRoutes = new Hono<TowbarHonoEnvironment>();
 notificationRoutes.get(
   "/webhook/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:get:"/webhook/destinations"',
     summary: "List webhook push destinations",
@@ -56,7 +56,7 @@ notificationRoutes.get(
 notificationRoutes.put(
   "/webhook/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:put:"/webhook/destinations"',
     body: webhookDestinationsSchema,
@@ -83,7 +83,7 @@ const testWebhookDestinationSchema = z
 notificationRoutes.post(
   "/webhook/destinations/test",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:post:"/webhook/destinations/test"',
     body: testWebhookDestinationSchema,
@@ -100,7 +100,7 @@ notificationRoutes.post(
 notificationRoutes.get(
   "/slack/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:get:"/slack/destinations"',
     summary: "List Slack notification destinations",
@@ -120,7 +120,7 @@ notificationRoutes.get(
 notificationRoutes.put(
   "/slack/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:put:"/slack/destinations"',
     body: slackDestinationsSchema,
@@ -147,7 +147,7 @@ const testSlackDestinationSchema = z
 notificationRoutes.post(
   "/slack/destinations/test",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:post:"/slack/destinations/test"',
     body: testSlackDestinationSchema,
@@ -169,7 +169,7 @@ notificationRoutes.post(
 notificationRoutes.get(
   "/email/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:get:"/email/destinations"',
     summary: "List email notification destinations",
@@ -189,7 +189,7 @@ notificationRoutes.get(
 notificationRoutes.put(
   "/email/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:put:"/email/destinations"',
     body: emailDestinationsSchema,
@@ -216,7 +216,7 @@ const testEmailDestinationSchema = z
 notificationRoutes.post(
   "/email/destinations/test",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:post:"/email/destinations/test"',
     body: testEmailDestinationSchema,
@@ -239,7 +239,7 @@ notificationRoutes.post(
 notificationRoutes.get(
   "/destinations",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'notifications.ts:get:"/destinations"',
     summary: "List environment-configured notification routes",
@@ -263,7 +263,7 @@ notificationRoutes.get(
 notificationRoutes.get(
   "/deliveries",
   operation({
-    permissions: ["notification.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     query: deliveriesQuery,
     summary: "List notification deliveries",

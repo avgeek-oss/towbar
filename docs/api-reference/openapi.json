@@ -1958,10 +1958,10 @@
             "type": "array",
             "items": {
               "anyOf": [
-                { "type": "string", "const": "scout" },
                 { "type": "string", "const": "deployments" },
                 { "type": "string", "const": "deploymentFailures" },
                 { "type": "string", "const": "health" },
+                { "type": "string", "const": "scout" },
                 { "type": "string", "const": "backups" },
                 { "type": "string", "const": "restores" }
               ]
@@ -2915,9 +2915,9 @@
           "workspaceId": { "type": "string" },
           "workspaceRole": {
             "anyOf": [
-              { "type": "string", "const": "admin" },
+              { "type": "string", "const": "viewer" },
               { "type": "string", "const": "member" },
-              { "type": "string", "const": "viewer" }
+              { "type": "string", "const": "admin" }
             ]
           },
           "teamName": { "type": "string" },
@@ -2929,65 +2929,9 @@
             "type": "array",
             "items": {
               "anyOf": [
-                { "type": "string", "const": "identity.read" },
-                { "type": "string", "const": "server.read" },
-                { "type": "string", "const": "server.prepare" },
-                { "type": "string", "const": "server.update" },
-                { "type": "string", "const": "server.credentials" },
-                { "type": "string", "const": "server.remove" },
-                { "type": "string", "const": "server.terminal" },
-                { "type": "string", "const": "server.collectLogs" },
-                { "type": "string", "const": "invitation.read" },
-                { "type": "string", "const": "invitation.create" },
-                { "type": "string", "const": "invitation.cancel" },
-                { "type": "string", "const": "member.read" },
-                { "type": "string", "const": "member.create" },
-                { "type": "string", "const": "member.update" },
-                { "type": "string", "const": "member.delete" },
-                { "type": "string", "const": "deployment.read" },
-                { "type": "string", "const": "deployment.create" },
-                { "type": "string", "const": "deployment.cancel" },
-                { "type": "string", "const": "secret.update" },
-                { "type": "string", "const": "secret.list" },
-                { "type": "string", "const": "secret.reveal" },
-                { "type": "string", "const": "organization.update" },
-                { "type": "string", "const": "organization.delete" },
-                { "type": "string", "const": "personal.manage" },
-                { "type": "string", "const": "team.read" },
-                { "type": "string", "const": "team.update" },
-                { "type": "string", "const": "apikey.read" },
-                { "type": "string", "const": "apikey.create" },
-                { "type": "string", "const": "apikey.update" },
-                { "type": "string", "const": "apikey.delete" },
-                { "type": "string", "const": "repository.connect" },
-                { "type": "string", "const": "repository.read" },
-                { "type": "string", "const": "repository.disconnect" },
-                { "type": "string", "const": "repository.update" },
-                { "type": "string", "const": "repository.sync" },
-                { "type": "string", "const": "workload.read" },
-                { "type": "string", "const": "workload.operate" },
-                { "type": "string", "const": "resource.read" },
-                { "type": "string", "const": "resource.backup" },
-                { "type": "string", "const": "resource.restore" },
-                { "type": "string", "const": "sharedSecret.update" },
-                { "type": "string", "const": "sharedSecret.list" },
-                { "type": "string", "const": "sharedSecret.reveal" },
-                { "type": "string", "const": "sharedSecret.reference" },
-                { "type": "string", "const": "logs.read" },
-                { "type": "string", "const": "logs.readAdmin" },
-                { "type": "string", "const": "scout.read" },
-                { "type": "string", "const": "scout.configure" },
-                { "type": "string", "const": "alert.read" },
-                { "type": "string", "const": "alert.configure" },
-                { "type": "string", "const": "integration.manage" },
-                { "type": "string", "const": "githubInstallation.read" },
-                { "type": "string", "const": "notification.manage" },
-                { "type": "string", "const": "inbox.read" },
-                { "type": "string", "const": "inbox.update" },
-                { "type": "string", "const": "privateKey.reveal" },
-                { "type": "string", "const": "privateKey.manage" },
-                { "type": "string", "const": "system.read" },
-                { "type": "string", "const": "system.manage" }
+                { "type": "string", "const": "viewer" },
+                { "type": "string", "const": "member" },
+                { "type": "string", "const": "admin" }
               ]
             }
           }
@@ -3007,9 +2951,9 @@
           "workspaceId": { "type": "string" },
           "workspaceRole": {
             "anyOf": [
-              { "type": "string", "const": "admin" },
+              { "type": "string", "const": "viewer" },
               { "type": "string", "const": "member" },
-              { "type": "string", "const": "viewer" }
+              { "type": "string", "const": "admin" }
             ]
           },
           "email": { "type": "string" },
@@ -3031,9 +2975,9 @@
           "actor": {
             "anyOf": [
               { "type": "string", "const": "session" },
-              { "type": "string", "const": "system" },
               { "type": "string", "const": "personal-key" },
-              { "type": "string", "const": "team-key" }
+              { "type": "string", "const": "team-key" },
+              { "type": "string", "const": "system" }
             ]
           },
           "workspaceId": { "type": "string" },
@@ -3041,65 +2985,9 @@
             "type": "array",
             "items": {
               "anyOf": [
-                { "type": "string", "const": "identity.read" },
-                { "type": "string", "const": "server.read" },
-                { "type": "string", "const": "server.prepare" },
-                { "type": "string", "const": "server.update" },
-                { "type": "string", "const": "server.credentials" },
-                { "type": "string", "const": "server.remove" },
-                { "type": "string", "const": "server.terminal" },
-                { "type": "string", "const": "server.collectLogs" },
-                { "type": "string", "const": "invitation.read" },
-                { "type": "string", "const": "invitation.create" },
-                { "type": "string", "const": "invitation.cancel" },
-                { "type": "string", "const": "member.read" },
-                { "type": "string", "const": "member.create" },
-                { "type": "string", "const": "member.update" },
-                { "type": "string", "const": "member.delete" },
-                { "type": "string", "const": "deployment.read" },
-                { "type": "string", "const": "deployment.create" },
-                { "type": "string", "const": "deployment.cancel" },
-                { "type": "string", "const": "secret.update" },
-                { "type": "string", "const": "secret.list" },
-                { "type": "string", "const": "secret.reveal" },
-                { "type": "string", "const": "organization.update" },
-                { "type": "string", "const": "organization.delete" },
-                { "type": "string", "const": "personal.manage" },
-                { "type": "string", "const": "team.read" },
-                { "type": "string", "const": "team.update" },
-                { "type": "string", "const": "apikey.read" },
-                { "type": "string", "const": "apikey.create" },
-                { "type": "string", "const": "apikey.update" },
-                { "type": "string", "const": "apikey.delete" },
-                { "type": "string", "const": "repository.connect" },
-                { "type": "string", "const": "repository.read" },
-                { "type": "string", "const": "repository.disconnect" },
-                { "type": "string", "const": "repository.update" },
-                { "type": "string", "const": "repository.sync" },
-                { "type": "string", "const": "workload.read" },
-                { "type": "string", "const": "workload.operate" },
-                { "type": "string", "const": "resource.read" },
-                { "type": "string", "const": "resource.backup" },
-                { "type": "string", "const": "resource.restore" },
-                { "type": "string", "const": "sharedSecret.update" },
-                { "type": "string", "const": "sharedSecret.list" },
-                { "type": "string", "const": "sharedSecret.reveal" },
-                { "type": "string", "const": "sharedSecret.reference" },
-                { "type": "string", "const": "logs.read" },
-                { "type": "string", "const": "logs.readAdmin" },
-                { "type": "string", "const": "scout.read" },
-                { "type": "string", "const": "scout.configure" },
-                { "type": "string", "const": "alert.read" },
-                { "type": "string", "const": "alert.configure" },
-                { "type": "string", "const": "integration.manage" },
-                { "type": "string", "const": "githubInstallation.read" },
-                { "type": "string", "const": "notification.manage" },
-                { "type": "string", "const": "inbox.read" },
-                { "type": "string", "const": "inbox.update" },
-                { "type": "string", "const": "privateKey.reveal" },
-                { "type": "string", "const": "privateKey.manage" },
-                { "type": "string", "const": "system.read" },
-                { "type": "string", "const": "system.manage" }
+                { "type": "string", "const": "viewer" },
+                { "type": "string", "const": "member" },
+                { "type": "string", "const": "admin" }
               ]
             }
           }
@@ -4539,8 +4427,8 @@
           },
           "runtime": {
             "anyOf": [
-              { "type": "string", "const": "workload" },
-              { "type": "string", "const": "ingress" }
+              { "type": "string", "const": "ingress" },
+              { "type": "string", "const": "workload" }
             ]
           },
           "service": { "type": "string" },
@@ -4752,11 +4640,11 @@
           "kind": {
             "anyOf": [
               { "type": "string", "const": "image" },
-              { "type": "string", "const": "workload" },
               { "type": "string", "const": "container" },
               { "type": "string", "const": "network" },
               { "type": "string", "const": "route" },
-              { "type": "string", "const": "volume" }
+              { "type": "string", "const": "volume" },
+              { "type": "string", "const": "workload" }
             ]
           }
         },
@@ -4783,11 +4671,11 @@
           "kind": {
             "anyOf": [
               { "type": "string", "const": "image" },
-              { "type": "string", "const": "workload" },
               { "type": "string", "const": "container" },
               { "type": "string", "const": "network" },
               { "type": "string", "const": "route" },
-              { "type": "string", "const": "volume" }
+              { "type": "string", "const": "volume" },
+              { "type": "string", "const": "workload" }
             ]
           }
         },
@@ -6680,65 +6568,9 @@
             "type": "array",
             "items": {
               "anyOf": [
-                { "type": "string", "const": "identity.read" },
-                { "type": "string", "const": "server.read" },
-                { "type": "string", "const": "server.prepare" },
-                { "type": "string", "const": "server.update" },
-                { "type": "string", "const": "server.credentials" },
-                { "type": "string", "const": "server.remove" },
-                { "type": "string", "const": "server.terminal" },
-                { "type": "string", "const": "server.collectLogs" },
-                { "type": "string", "const": "invitation.read" },
-                { "type": "string", "const": "invitation.create" },
-                { "type": "string", "const": "invitation.cancel" },
-                { "type": "string", "const": "member.read" },
-                { "type": "string", "const": "member.create" },
-                { "type": "string", "const": "member.update" },
-                { "type": "string", "const": "member.delete" },
-                { "type": "string", "const": "deployment.read" },
-                { "type": "string", "const": "deployment.create" },
-                { "type": "string", "const": "deployment.cancel" },
-                { "type": "string", "const": "secret.update" },
-                { "type": "string", "const": "secret.list" },
-                { "type": "string", "const": "secret.reveal" },
-                { "type": "string", "const": "organization.update" },
-                { "type": "string", "const": "organization.delete" },
-                { "type": "string", "const": "personal.manage" },
-                { "type": "string", "const": "team.read" },
-                { "type": "string", "const": "team.update" },
-                { "type": "string", "const": "apikey.read" },
-                { "type": "string", "const": "apikey.create" },
-                { "type": "string", "const": "apikey.update" },
-                { "type": "string", "const": "apikey.delete" },
-                { "type": "string", "const": "repository.connect" },
-                { "type": "string", "const": "repository.read" },
-                { "type": "string", "const": "repository.disconnect" },
-                { "type": "string", "const": "repository.update" },
-                { "type": "string", "const": "repository.sync" },
-                { "type": "string", "const": "workload.read" },
-                { "type": "string", "const": "workload.operate" },
-                { "type": "string", "const": "resource.read" },
-                { "type": "string", "const": "resource.backup" },
-                { "type": "string", "const": "resource.restore" },
-                { "type": "string", "const": "sharedSecret.update" },
-                { "type": "string", "const": "sharedSecret.list" },
-                { "type": "string", "const": "sharedSecret.reveal" },
-                { "type": "string", "const": "sharedSecret.reference" },
-                { "type": "string", "const": "logs.read" },
-                { "type": "string", "const": "logs.readAdmin" },
-                { "type": "string", "const": "scout.read" },
-                { "type": "string", "const": "scout.configure" },
-                { "type": "string", "const": "alert.read" },
-                { "type": "string", "const": "alert.configure" },
-                { "type": "string", "const": "integration.manage" },
-                { "type": "string", "const": "githubInstallation.read" },
-                { "type": "string", "const": "notification.manage" },
-                { "type": "string", "const": "inbox.read" },
-                { "type": "string", "const": "inbox.update" },
-                { "type": "string", "const": "privateKey.reveal" },
-                { "type": "string", "const": "privateKey.manage" },
-                { "type": "string", "const": "system.read" },
-                { "type": "string", "const": "system.manage" }
+                { "type": "string", "const": "viewer" },
+                { "type": "string", "const": "member" },
+                { "type": "string", "const": "admin" }
               ]
             }
           }
@@ -8776,8 +8608,8 @@
             "anyOf": [
               { "type": "string", "const": "create" },
               { "type": "string", "const": "update" },
-              { "type": "string", "const": "restore" },
               { "type": "string", "const": "archive" },
+              { "type": "string", "const": "restore" },
               { "type": "string", "const": "unchanged" }
             ]
           },
@@ -8814,8 +8646,8 @@
             "anyOf": [
               { "type": "string", "const": "create" },
               { "type": "string", "const": "update" },
-              { "type": "string", "const": "restore" },
               { "type": "string", "const": "archive" },
+              { "type": "string", "const": "restore" },
               { "type": "string", "const": "unchanged" }
             ]
           },
@@ -8852,8 +8684,8 @@
             "anyOf": [
               { "type": "string", "const": "create" },
               { "type": "string", "const": "update" },
-              { "type": "string", "const": "restore" },
               { "type": "string", "const": "archive" },
+              { "type": "string", "const": "restore" },
               { "type": "string", "const": "unchanged" }
             ]
           },
@@ -9212,10 +9044,10 @@
             "type": "array",
             "items": {
               "anyOf": [
-                { "type": "string", "const": "scout" },
                 { "type": "string", "const": "deployments" },
                 { "type": "string", "const": "deploymentFailures" },
                 { "type": "string", "const": "health" },
+                { "type": "string", "const": "scout" },
                 { "type": "string", "const": "backups" },
                 { "type": "string", "const": "restores" }
               ]
@@ -9318,10 +9150,10 @@
           "category": {
             "anyOf": [
               { "type": "string", "const": "test" },
-              { "type": "string", "const": "scout" },
               { "type": "string", "const": "deployments" },
               { "type": "string", "const": "deploymentFailures" },
               { "type": "string", "const": "health" },
+              { "type": "string", "const": "scout" },
               { "type": "string", "const": "backups" },
               { "type": "string", "const": "restores" }
             ]
@@ -9441,11 +9273,11 @@
               { "type": "string", "const": "preview" },
               { "type": "string", "const": "deployment" },
               { "type": "string", "const": "resource" },
-              { "type": "string", "const": "notification" },
+              { "type": "string", "const": "source" },
+              { "type": "string", "const": "app" },
               { "type": "string", "const": "backup" },
               { "type": "string", "const": "restore" },
-              { "type": "string", "const": "source" },
-              { "type": "string", "const": "app" }
+              { "type": "string", "const": "notification" }
             ]
           },
           "name": { "type": "string" }
@@ -9521,10 +9353,10 @@
           "category": {
             "anyOf": [
               { "type": "string", "const": "test" },
-              { "type": "string", "const": "scout" },
               { "type": "string", "const": "deployments" },
               { "type": "string", "const": "deploymentFailures" },
               { "type": "string", "const": "health" },
+              { "type": "string", "const": "scout" },
               { "type": "string", "const": "backups" },
               { "type": "string", "const": "restores" }
             ]
@@ -9643,7 +9475,7 @@
         "operationId": "get_observability_logs_status",
         "summary": "Inspect centralized log storage",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -9749,7 +9581,7 @@
         "operationId": "post_observability_logs_actions_verify",
         "summary": "Verify log storage",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: server.collectLogs. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -9849,7 +9681,7 @@
         "operationId": "get_servers_by_id_log_collection",
         "summary": "Inspect server log collection",
         "tags": ["Servers / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -9959,7 +9791,7 @@
         "operationId": "put_servers_by_id_log_collection",
         "summary": "Enable or disable server log collection",
         "tags": ["Servers / Centralized logs"],
-        "description": "Required permissions: server.collectLogs. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -10170,7 +10002,7 @@
         "operationId": "post_servers_by_id_log_collection_actions_update",
         "summary": "Update server log collector",
         "tags": ["Servers / Centralized logs"],
-        "description": "Required permissions: server.collectLogs. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -10367,7 +10199,7 @@
         "operationId": "post_logs_query",
         "summary": "Search centralized logs",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -10688,7 +10520,7 @@
         "operationId": "post_logs_summary",
         "summary": "Summarize centralized logs",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -10981,7 +10813,7 @@
         "operationId": "post_logs_context",
         "summary": "Read surrounding log records",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -11113,7 +10945,7 @@
         "operationId": "post_logs_follow",
         "summary": "Poll newly accepted centralized logs",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -11423,7 +11255,7 @@
         "operationId": "post_logs_tail",
         "summary": "Follow centralized logs",
         "tags": ["Workspace / Centralized logs"],
-        "description": "Required permissions: logs.read. Personal keys are capped by the current member role; team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID. MCP returns a finite snapshot; call again to poll.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID. MCP returns a finite snapshot; call again to poll.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -11667,7 +11499,7 @@
         "operationId": "get_manifest_lifecycle",
         "summary": "List manifest conflicts and retirements",
         "tags": ["Repositories / Lifecycle"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -11804,7 +11636,7 @@
         "operationId": "post_retirements_by_id_actions_remove",
         "summary": "Permanently remove a retired workload",
         "tags": ["Repositories / Lifecycle"],
-        "description": "Required permissions: server.remove. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12031,7 +11863,7 @@
         "operationId": "get_integrations",
         "summary": "List environment-configured integrations",
         "tags": ["Integrations / Connections"],
-        "description": "Required permissions: integration.manage. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -12131,7 +11963,7 @@
         "operationId": "get_github",
         "summary": "Get GitHub integration",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: integration.manage. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -12229,7 +12061,7 @@
         "operationId": "delete_github",
         "summary": "Disconnect GitHub account",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: integration.manage. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12262,7 +12094,7 @@
         "operationId": "post_github_actions_retry_preview_reporting",
         "summary": "Retry failed preview reporting",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: integration.manage. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -12362,7 +12194,7 @@
         "operationId": "get_github_repositories",
         "summary": "Get workspace GitHub repositories",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: githubInstallation.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12473,7 +12305,7 @@
         "operationId": "get_github_branches",
         "summary": "List repository branches",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: githubInstallation.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12596,7 +12428,7 @@
         "operationId": "get_github_installation",
         "summary": "Get connected GitHub installation",
         "tags": ["Integrations / GitHub"],
-        "description": "Required permissions: githubInstallation.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -12696,7 +12528,7 @@
         "operationId": "get_settings_secrets",
         "summary": "List environment secrets",
         "tags": ["Workspace / Shared secrets"],
-        "description": "Required permissions: sharedSecret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12807,7 +12639,7 @@
         "operationId": "patch_settings_secrets_by_environment_by_stage",
         "summary": "Update environment secrets",
         "tags": ["Workspace / Shared secrets"],
-        "description": "Required permissions: sharedSecret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -12966,7 +12798,7 @@
         "operationId": "get_sources_by_id_secrets",
         "summary": "List environment secrets",
         "tags": ["Repositories / Secrets"],
-        "description": "Required permissions: sharedSecret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13088,7 +12920,7 @@
         "operationId": "patch_sources_by_id_secrets_by_environment_by_stage",
         "summary": "Update environment secrets",
         "tags": ["Repositories / Secrets"],
-        "description": "Required permissions: sharedSecret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13258,7 +13090,7 @@
         "operationId": "get_apps_by_id_secrets",
         "summary": "List environment secrets",
         "tags": ["Services / Secrets"],
-        "description": "Required permissions: secret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13380,7 +13212,7 @@
         "operationId": "get_apps_by_id_secrets_readiness",
         "summary": "Get deployment secret readiness",
         "tags": ["Services / Secrets"],
-        "description": "Required permissions: secret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13492,7 +13324,7 @@
         "operationId": "patch_apps_by_id_secrets_by_environment_by_stage",
         "summary": "Update environment secrets",
         "tags": ["Services / Secrets"],
-        "description": "Required permissions: secret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13662,7 +13494,7 @@
         "operationId": "get_resources_by_id_secrets",
         "summary": "List environment secrets",
         "tags": ["Datastores / Secrets"],
-        "description": "Required permissions: secret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13784,7 +13616,7 @@
         "operationId": "get_resources_by_id_secrets_readiness",
         "summary": "Get deployment secret readiness",
         "tags": ["Datastores / Secrets"],
-        "description": "Required permissions: secret.list. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -13896,7 +13728,7 @@
         "operationId": "patch_resources_by_id_secrets_by_environment_by_stage",
         "summary": "Update environment secrets",
         "tags": ["Datastores / Secrets"],
-        "description": "Required permissions: secret.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14066,7 +13898,7 @@
         "operationId": "get_servers_by_id_credentials",
         "summary": "Get server credential metadata",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14176,7 +14008,7 @@
         "operationId": "patch_servers_by_id_credentials",
         "summary": "Update server credentials",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14325,7 +14157,7 @@
         "operationId": "post_servers_by_id_credentials_actions_verify_private_key",
         "summary": "Verify and save an SSH private key",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14467,7 +14299,7 @@
         "operationId": "get_servers_by_id_credentials_verifications_by_id",
         "summary": "Get SSH private key verification",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14590,7 +14422,7 @@
         "operationId": "get_servers_by_id_monitoring",
         "summary": "Get Scout Agent status",
         "tags": ["Servers / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14700,7 +14532,7 @@
         "operationId": "patch_servers_by_id_monitoring",
         "summary": "Set monitoring retention",
         "tags": ["Servers / Scout Agent"],
-        "description": "Required permissions: scout.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14835,7 +14667,7 @@
         "operationId": "post_servers_by_id_monitoring_actions_install",
         "summary": "Install or update Scout Agent",
         "tags": ["Servers / Scout Agent"],
-        "description": "Required permissions: scout.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -14971,7 +14803,7 @@
         "operationId": "post_servers_by_id_monitoring_actions_uninstall",
         "summary": "Uninstall Scout Agent",
         "tags": ["Servers / Scout Agent"],
-        "description": "Required permissions: scout.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15083,7 +14915,7 @@
         "operationId": "get_monitoring_incidents",
         "summary": "List workspace Scout incidents",
         "tags": ["Workspace / Monitoring"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15235,7 +15067,7 @@
         "operationId": "get_monitoring_vulnerabilities",
         "summary": "List workspace vulnerability findings",
         "tags": ["Workspace / Monitoring"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15378,7 +15210,7 @@
         "operationId": "get_servers_by_id_metrics",
         "summary": "Read server metrics history",
         "tags": ["Servers / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15533,7 +15365,7 @@
         "operationId": "get_apps_by_id_metrics",
         "summary": "Read app metrics history",
         "tags": ["Services / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15688,7 +15520,7 @@
         "operationId": "get_resources_by_id_metrics",
         "summary": "Read resource metrics history",
         "tags": ["Datastores / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -15843,7 +15675,7 @@
         "operationId": "get_apps_by_id_analytics_filter_options",
         "summary": "Find analytics filter values",
         "tags": ["Services / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16001,7 +15833,7 @@
         "operationId": "get_apps_by_id_analytics",
         "summary": "Read service analytics",
         "tags": ["Services / Scout Agent"],
-        "description": "Required permissions: scout.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16145,7 +15977,7 @@
         "operationId": "get_servers_by_id_scout_alerts",
         "summary": "Inspect Scout alert rules",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16272,7 +16104,7 @@
         "operationId": "post_servers_by_id_scout_alerts_rules",
         "summary": "Create Scout alert rule",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16536,7 +16368,7 @@
         "operationId": "put_servers_by_id_scout_alerts_rules_by_id",
         "summary": "Update Scout alert rule",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16809,7 +16641,7 @@
         "operationId": "delete_servers_by_id_scout_alerts_rules_by_id",
         "summary": "Delete Scout alert rule",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.configure. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: member. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -16856,7 +16688,7 @@
         "operationId": "get_servers_by_id_scout_alerts_incidents",
         "summary": "List Scout incidents",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -17034,7 +16866,7 @@
         "operationId": "get_servers_by_id_scout_alerts_incidents_by_id",
         "summary": "Inspect Scout incident",
         "tags": ["Servers / Scout Alerts"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -17157,7 +16989,7 @@
         "operationId": "get_workloads_by_id_comparison_deployments",
         "summary": "List deployments available for comparison",
         "tags": ["Deployments / Performance comparisons"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -17269,7 +17101,7 @@
         "operationId": "get_workloads_by_id_deployment_comparison",
         "summary": "Compare deployment performance",
         "tags": ["Deployments / Performance comparisons"],
-        "description": "Required permissions: alert.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -17477,7 +17309,7 @@
         "operationId": "post_sources_discover",
         "summary": "Discover repository environments",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.connect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -17622,7 +17454,7 @@
         "operationId": "post_sources_connect",
         "summary": "Connect repository and environments",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.connect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -17782,7 +17614,7 @@
         "operationId": "get_sources_by_id_environments",
         "summary": "List source environments",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -17892,7 +17724,7 @@
         "operationId": "post_sources_by_id_environments",
         "summary": "Connect source environment",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.connect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18028,7 +17860,7 @@
         "operationId": "patch_sources_by_id_environments_by_id",
         "summary": "Change environment branch",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18174,7 +18006,7 @@
         "operationId": "delete_sources_by_id_environments_by_id",
         "summary": "Disconnect environment",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.disconnect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18321,7 +18153,7 @@
         "operationId": "post_sources_by_id_environments_by_id_syncs",
         "summary": "Sync environment",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.sync. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18444,7 +18276,7 @@
         "operationId": "post_sources_by_id_environments_syncs",
         "summary": "Sync all connected environments",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.sync. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18556,7 +18388,7 @@
         "operationId": "get_sources_by_id_environments_by_id_manifest",
         "summary": "Read an environment manifest snapshot",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18679,7 +18511,7 @@
         "operationId": "patch_sources_by_id_environments_by_id_auto_deploy_control",
         "summary": "Update environment runtime automation",
         "tags": ["Repositories / Environments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18745,7 +18577,7 @@
         "operationId": "get_sources",
         "summary": "List sources",
         "tags": ["Repositories / Overview"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18877,7 +18709,7 @@
         "operationId": "get_sources_by_id",
         "summary": "Get source",
         "tags": ["Repositories / Overview"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -18987,7 +18819,7 @@
         "operationId": "delete_sources_by_id",
         "summary": "Remove repository connection",
         "tags": ["Repositories / Overview"],
-        "description": "Required permissions: repository.disconnect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19041,7 +18873,7 @@
         "operationId": "get_sources_by_id_branches",
         "summary": "List repository branches",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19153,7 +18985,7 @@
         "operationId": "get_sources_by_id_auto_deploy_control",
         "summary": "Get source auto deploy control",
         "tags": ["Repositories / Auto-deploy"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19263,7 +19095,7 @@
         "operationId": "patch_sources_by_id_auto_deploy_control",
         "summary": "Update source auto deploy control",
         "tags": ["Repositories / Auto-deploy"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19389,7 +19221,7 @@
         "operationId": "get_sources_by_id_apps",
         "summary": "List source apps",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19501,7 +19333,7 @@
         "operationId": "get_sources_by_id_resources",
         "summary": "List source resources",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19613,7 +19445,7 @@
         "operationId": "get_sources_by_id_capacity",
         "summary": "List source capacity",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19725,7 +19557,7 @@
         "operationId": "get_sources_by_id_deployments",
         "summary": "List source deployments",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19837,7 +19669,7 @@
         "operationId": "get_sources_by_id_backups",
         "summary": "List source backups",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -19949,7 +19781,7 @@
         "operationId": "get_sources_by_id_previews",
         "summary": "List source previews",
         "tags": ["Repositories / Inventory"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20061,7 +19893,7 @@
         "operationId": "get_sources_by_id_removal_preview",
         "summary": "Review repository removal",
         "tags": ["Repositories / Lifecycle"],
-        "description": "Required permissions: repository.disconnect. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20183,7 +20015,7 @@
         "operationId": "get_sources_by_id_syncs",
         "summary": "List source syncs",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20295,7 +20127,7 @@
         "operationId": "get_sources_by_id_syncs_by_id",
         "summary": "Get source sync",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20418,7 +20250,7 @@
         "operationId": "post_sources_by_id_actions_change_github_connection",
         "summary": "Change GitHub repository connection",
         "tags": ["Repositories / Sync & manifest"],
-        "description": "Required permissions: repository.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20564,7 +20396,7 @@
         "operationId": "get_apps",
         "summary": "List apps",
         "tags": ["Services / Overview"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20739,7 +20571,7 @@
         "operationId": "get_apps_by_id",
         "summary": "Get app",
         "tags": ["Services / Overview"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20851,7 +20683,7 @@
         "operationId": "get_apps_by_id_jobs",
         "summary": "List scheduled app jobs",
         "tags": ["Services / Scheduled jobs"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -20963,7 +20795,7 @@
         "operationId": "post_apps_by_id_actions_run_job",
         "summary": "Run a manifest-defined app job",
         "tags": ["Services / Scheduled jobs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21179,7 +21011,7 @@
         "operationId": "get_apps_by_id_storage",
         "summary": "Get app persistent storage",
         "tags": ["Services / Storage"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21291,7 +21123,7 @@
         "operationId": "get_apps_by_id_auto_deploy_control",
         "summary": "Get app auto-deploy settings",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21401,7 +21233,7 @@
         "operationId": "patch_apps_by_id_auto_deploy_control",
         "summary": "Update app auto-deploy settings",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21527,7 +21359,7 @@
         "operationId": "get_apps_by_id_deployments",
         "summary": "List app deployments",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21645,7 +21477,7 @@
         "operationId": "get_apps_by_id_releases",
         "summary": "List app releases",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21757,7 +21589,7 @@
         "operationId": "get_apps_by_id_previews",
         "summary": "List preview environments",
         "tags": ["Services / Previews"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21869,7 +21701,7 @@
         "operationId": "get_apps_by_id_operations",
         "summary": "List app operations",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -21981,7 +21813,7 @@
         "operationId": "get_apps_by_id_operations_by_id_events",
         "summary": "List app operation progress",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -22104,7 +21936,7 @@
         "operationId": "post_apps_by_id_actions_deploy",
         "summary": "Request app deployment",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -22301,7 +22133,7 @@
         "operationId": "post_apps_by_id_actions_refresh_external_secrets",
         "summary": "Redeploy an app with current external secrets",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -22498,7 +22330,7 @@
         "operationId": "post_apps_by_id_actions_rollback",
         "summary": "Request app rollback",
         "tags": ["Services / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -22714,7 +22546,7 @@
         "operationId": "post_apps_by_id_actions_restart",
         "summary": "Restart app",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -22930,7 +22762,7 @@
         "operationId": "post_apps_by_id_actions_start",
         "summary": "Start app",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23146,7 +22978,7 @@
         "operationId": "post_apps_by_id_actions_stop",
         "summary": "Stop app",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23362,7 +23194,7 @@
         "operationId": "post_apps_by_id_actions_logs",
         "summary": "Request app operation",
         "tags": ["Services / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23585,7 +23417,7 @@
         "operationId": "get_resources",
         "summary": "List resources",
         "tags": ["Datastores / Overview"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23760,7 +23592,7 @@
         "operationId": "get_resources_by_id",
         "summary": "Get resource",
         "tags": ["Datastores / Overview"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23872,7 +23704,7 @@
         "operationId": "get_resources_by_id_auto_deploy_control",
         "summary": "Get resource auto-deploy settings",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -23982,7 +23814,7 @@
         "operationId": "patch_resources_by_id_auto_deploy_control",
         "summary": "Update resource auto-deploy settings",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24108,7 +23940,7 @@
         "operationId": "get_resources_by_id_deployments",
         "summary": "List resource deployments",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24220,7 +24052,7 @@
         "operationId": "get_resources_by_id_releases",
         "summary": "List resource releases",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24332,7 +24164,7 @@
         "operationId": "get_resources_by_id_operations",
         "summary": "List resource operations",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24444,7 +24276,7 @@
         "operationId": "get_resources_by_id_backup_assurance",
         "summary": "Get resource backup assurance",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24556,7 +24388,7 @@
         "operationId": "get_resources_by_id_operations_by_id_events",
         "summary": "List operation events",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24679,7 +24511,7 @@
         "operationId": "post_resources_by_id_actions_deploy",
         "summary": "Request resource deployment",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -24876,7 +24708,7 @@
         "operationId": "post_resources_by_id_actions_refresh_external_secrets",
         "summary": "Redeploy a resource with current external secrets",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -25073,7 +24905,7 @@
         "operationId": "post_resources_by_id_actions_rollback",
         "summary": "Request resource rollback",
         "tags": ["Datastores / Deployments"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -25289,7 +25121,7 @@
         "operationId": "post_resources_by_id_actions_backup",
         "summary": "Backup resource",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.backup. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -25486,7 +25318,7 @@
         "operationId": "post_resources_by_id_actions_restart",
         "summary": "Restart resource",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -25702,7 +25534,7 @@
         "operationId": "post_resources_by_id_actions_start",
         "summary": "Start resource",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -25918,7 +25750,7 @@
         "operationId": "post_resources_by_id_actions_stop",
         "summary": "Stop resource",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -26134,7 +25966,7 @@
         "operationId": "post_resources_by_id_actions_restore",
         "summary": "Request resource restore",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.restore. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -26361,7 +26193,7 @@
         "operationId": "post_resources_by_id_actions_restore_cleanup",
         "summary": "Request restore cleanup",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.restore. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -26578,7 +26410,7 @@
         "operationId": "post_resources_by_id_operations_by_id_actions_cancel",
         "summary": "Cancel resource restore",
         "tags": ["Datastores / Backups & restores"],
-        "description": "Required permissions: resource.restore. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -26701,7 +26533,7 @@
         "operationId": "post_resources_by_id_actions_logs",
         "summary": "Request resource operation",
         "tags": ["Datastores / Runtime & logs"],
-        "description": "Required permissions: workload.operate. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -26924,7 +26756,7 @@
         "operationId": "post_previews_by_id_actions_delete",
         "summary": "Request preview environment cleanup",
         "tags": ["Previews / Lifecycle"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27115,7 +26947,7 @@
         "operationId": "post_previews_by_id_actions_deploy",
         "summary": "Request preview deployment",
         "tags": ["Previews / Lifecycle"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27227,7 +27059,7 @@
         "operationId": "get_servers",
         "summary": "List servers",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27378,7 +27210,7 @@
         "operationId": "post_servers",
         "summary": "Create server",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "requestBody": {
@@ -27522,7 +27354,7 @@
         "operationId": "get_servers_by_id",
         "summary": "Get server",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27632,7 +27464,7 @@
         "operationId": "patch_servers_by_id",
         "summary": "Update server",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27786,7 +27618,7 @@
         "operationId": "delete_servers_by_id",
         "summary": "Remove server",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.remove. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27825,7 +27657,7 @@
         "operationId": "patch_servers_by_id_name",
         "summary": "Update server name",
         "tags": ["Servers / Overview"],
-        "description": "Required permissions: server.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -27958,7 +27790,7 @@
         "operationId": "get_servers_by_id_apps",
         "summary": "List server apps",
         "tags": ["Servers / Inventory"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28070,7 +27902,7 @@
         "operationId": "get_servers_by_id_resources",
         "summary": "List server resources",
         "tags": ["Servers / Inventory"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28182,7 +28014,7 @@
         "operationId": "get_servers_by_id_deployments",
         "summary": "List server deployments",
         "tags": ["Servers / Inventory"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28294,7 +28126,7 @@
         "operationId": "get_servers_by_id_cleanup",
         "summary": "Get server cleanup history",
         "tags": ["Servers / Cleanup"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28428,7 +28260,7 @@
         "operationId": "get_servers_by_id_capacity",
         "summary": "Get server capacity",
         "tags": ["Servers / Capacity"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28540,7 +28372,7 @@
         "operationId": "get_servers_by_id_checks",
         "summary": "List server checks",
         "tags": ["Servers / Checks & preparation"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28674,7 +28506,7 @@
         "operationId": "get_servers_by_id_preparations",
         "summary": "List server preparations",
         "tags": ["Servers / Checks & preparation"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28786,7 +28618,7 @@
         "operationId": "get_servers_by_id_orphans",
         "summary": "Get server orphans",
         "tags": ["Servers / Cleanup"],
-        "description": "Required permissions: server.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -28898,7 +28730,7 @@
         "operationId": "get_servers_by_id_host_keys",
         "summary": "List trusted host keys",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29010,7 +28842,7 @@
         "operationId": "post_servers_by_id_actions_check",
         "summary": "Request server check",
         "tags": ["Servers / Checks & preparation"],
-        "description": "Required permissions: server.update. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29122,7 +28954,7 @@
         "operationId": "post_servers_by_id_actions_prepare",
         "summary": "Request server preparation",
         "tags": ["Servers / Checks & preparation"],
-        "description": "Required permissions: server.prepare. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29234,7 +29066,7 @@
         "operationId": "post_servers_by_id_actions_cleanup_orphans",
         "summary": "Request orphan cleanup",
         "tags": ["Servers / Cleanup"],
-        "description": "Required permissions: server.remove. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29466,7 +29298,7 @@
         "operationId": "post_servers_by_id_host_keys_actions_trust",
         "summary": "Trust server host key",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29609,7 +29441,7 @@
         "operationId": "delete_servers_by_id_host_keys_by_id",
         "summary": "Revoke server host key",
         "tags": ["Servers / Credentials & trust"],
-        "description": "Required permissions: server.credentials. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29654,7 +29486,7 @@
         "operationId": "get_deployments",
         "summary": "List deployments",
         "tags": ["Deployments / Overview"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -29754,7 +29586,7 @@
         "operationId": "get_deployments_history",
         "summary": "List deployment history",
         "tags": ["Deployments / Overview"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -29957,7 +29789,7 @@
         "operationId": "get_deployments_by_id",
         "summary": "Get deployment",
         "tags": ["Deployments / Overview"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30069,7 +29901,7 @@
         "operationId": "get_deployments_by_id_steps",
         "summary": "List deployment steps",
         "tags": ["Deployments / Progress & logs"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30181,7 +30013,7 @@
         "operationId": "get_deployments_by_id_logs",
         "summary": "List deployment logs",
         "tags": ["Deployments / Progress & logs"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30303,7 +30135,7 @@
         "operationId": "get_deployments_by_id_vulnerability_scan_findings",
         "summary": "List deployment vulnerability findings",
         "tags": ["Deployments / Security scans"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30415,7 +30247,7 @@
         "operationId": "get_deployments_by_id_events",
         "summary": "Watch deployment events",
         "tags": ["Deployments / Progress & logs"],
-        "description": "Required permissions: deployment.read. Personal keys are capped by the current member role; team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID. MCP returns a finite snapshot; call again to poll.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants. SSE deployment events containing deployment, logs, steps, and server-rendered localization labels. Reconnect after the bounded stream ends using Last-Event-ID. MCP returns a finite snapshot; call again to poll.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30621,7 +30453,7 @@
         "operationId": "post_deployments_by_id_actions_cancel",
         "summary": "Cancel deployment",
         "tags": ["Deployments / Actions"],
-        "description": "Required permissions: deployment.cancel. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30733,7 +30565,7 @@
         "operationId": "post_deployments_by_id_actions_retry",
         "summary": "Request deployment retry",
         "tags": ["Deployments / Actions"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -30930,7 +30762,7 @@
         "operationId": "post_deployments_by_id_vulnerability_scan_actions_rescan",
         "summary": "Request deployment vulnerability scan",
         "tags": ["Deployments / Security scans"],
-        "description": "Required permissions: deployment.create. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
@@ -31047,7 +30879,7 @@
         "operationId": "get_system_health",
         "summary": "Get system health",
         "tags": ["Workspace / System health"],
-        "description": "Required permissions: system.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -31147,7 +30979,7 @@
         "operationId": "post_system_health_actions_check",
         "summary": "Run system health checks",
         "tags": ["Workspace / System health"],
-        "description": "Required permissions: system.manage. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: admin. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -31247,7 +31079,7 @@
         "operationId": "get_version",
         "summary": "Get installed Towbar version",
         "tags": ["Workspace / System health"],
-        "description": "Required permissions: identity.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {
@@ -31347,7 +31179,7 @@
         "operationId": "get_identity",
         "summary": "Get current actor and team",
         "tags": ["Workspace / Identity"],
-        "description": "Required permissions: identity.read. Personal keys are capped by the current member role; team keys use explicit grants.",
+        "description": "Required permissions: viewer. Personal keys are capped by the current member role; team keys use explicit grants.",
         "security": [{ "bearerAuth": [] }],
         "parameters": [],
         "responses": {

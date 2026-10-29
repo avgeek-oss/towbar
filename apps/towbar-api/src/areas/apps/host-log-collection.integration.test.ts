@@ -75,7 +75,7 @@ void test(
     const { requestAppRollback } = await import("./service.js");
     const { captureQueuedActor, withActor } =
       await import("../auth/actor-context.js");
-    const { hostLogDeploymentPermissions, requireHostLogCollection } =
+    const { requireHostLogCollection } =
       await import("./host-log-collection.js");
     const db = getTowbarDatabase();
     const workspaceId = randomUUID(),
@@ -123,7 +123,7 @@ void test(
       kind: "session" as const,
       workspaceId,
       userId,
-      grants: ["deployment.create", "server.collectLogs"],
+      grants: ["admin"],
     };
     try {
       await seedEnvironmentTeam({ workspaceId, userId, sourceId });
@@ -202,53 +202,41 @@ void test(
           imageTag: "collector:retained",
         },
       });
-      await t.test(
-        "admission needs server consent and scoped authority",
-        () => {
-          assert.throws(
-            () => requireHostLogCollection(disabled, config),
-            /Admin must allow/,
-          );
-          assert.doesNotThrow(() => requireHostLogCollection(disabled, plain));
-          const key = {
-            kind: "team-key" as const,
-            workspaceId,
-            keyId: randomUUID(),
-            policy: {
-              scope: "team" as const,
-              access: "edit" as const,
-              includeAdmin: true,
-              grants: ["deployment.create" as const],
-            },
-          };
-          assert.throws(
-            () =>
-              withActor(key, () =>
-                captureQueuedActor(
-                  workspaceId,
-                  hostLogDeploymentPermissions(config),
-                ),
-              ),
-            /not permitted/,
-          );
-          assert.doesNotThrow(() =>
-            withActor(
-              {
-                ...key,
-                policy: {
-                  ...key.policy,
-                  grants: hostLogDeploymentPermissions(config),
-                },
+      await t.test("admission needs server consent and Admin authority", () => {
+        assert.throws(
+          () => requireHostLogCollection(disabled, config),
+          /Admin must allow/,
+        );
+        assert.doesNotThrow(() => requireHostLogCollection(disabled, plain));
+        const key = {
+          kind: "team-key" as const,
+          workspaceId,
+          keyId: randomUUID(),
+          policy: {
+            scope: "team" as const,
+            access: "edit" as const,
+            includeAdmin: true,
+            grants: ["member" as const],
+          },
+        };
+        assert.throws(
+          () =>
+            withActor(key, () => captureQueuedActor(workspaceId, ["admin"])),
+          /not permitted/,
+        );
+        assert.doesNotThrow(() =>
+          withActor(
+            {
+              ...key,
+              policy: {
+                ...key.policy,
+                grants: ["admin"],
               },
-              () =>
-                captureQueuedActor(
-                  workspaceId,
-                  hostLogDeploymentPermissions(config),
-                ),
-            ),
-          );
-        },
-      );
+            },
+            () => captureQueuedActor(workspaceId, ["admin"]),
+          ),
+        );
+      });
       await t.test(
         "authorized collector returns its execution context",
         async () => {
@@ -372,14 +360,14 @@ void test(
         },
       );
       await t.test(
-        "old deployment grants and a demoted Admin cannot acquire access",
+        "Member grants and a demoted Admin cannot acquire access",
         async () => {
           await db
             .update(deployments)
             .set({
               requestedByActor: {
                 ...attribution,
-                grants: ["deployment.create"],
+                grants: ["member"],
               },
             })
             .where(eq(deployments.id, queuedId));
@@ -463,7 +451,7 @@ void test(
             .set({
               requestedByActor: {
                 ...attribution,
-                grants: ["deployment.create"],
+                grants: ["member"],
               },
             })
             .where(eq(deployments.id, queuedId));
@@ -474,7 +462,7 @@ void test(
         },
       );
       await t.test(
-        "old full admin keys admit collectors and revalidate captured permissions, expiry and revocation",
+        "Admin keys admit collectors and revalidate captured permissions, expiry and revocation",
         () =>
           assertAdminCollectorKeyAccess({ appId, workspaceId, userId, config }),
       );

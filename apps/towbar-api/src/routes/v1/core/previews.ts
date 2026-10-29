@@ -13,7 +13,7 @@ export const previewRoutes = new Hono<TowbarHonoEnvironment>();
 previewRoutes.post(
   "/:previewEnvironmentId/actions/delete",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'previews.ts:post:"/:previewEnvironmentId/actions/delete"',
     summary: "Request preview environment cleanup",
     response: "The preview cleanup operation and its status.",
@@ -35,7 +35,7 @@ previewRoutes.post(
 previewRoutes.post(
   "/:previewEnvironmentId/actions/deploy",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'previews.ts:post:"/:previewEnvironmentId/actions/deploy"',
     summary: "Request preview deployment",
     response: "The preview deployment and whether the request was replayed.",

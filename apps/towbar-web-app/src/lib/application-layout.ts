@@ -1,4 +1,4 @@
-import type { Action } from "@workspace/towbar-access";
+import type { Scope } from "@workspace/towbar-access";
 import type { TowbarUser } from "@workspace/towbar-web-client";
 import {
   AlignLeftIcon,
@@ -260,24 +260,24 @@ export function createApplicationSidebar(
           .map((item) =>
             item.id === "team-settings" &&
             user &&
-            !user.capabilities?.includes("team.read")
+            !user.capabilities?.includes("admin")
               ? { ...item, href: "/team-settings/workspace-secrets" }
               : item,
           )
           .filter((item) => {
             if (item.id === "conflicts" || item.id === "retirements")
               return (counts[item.id] ?? 0) > 0;
-            const permissions: Record<string, Action> = {
-              health: "system.read",
-              integrations: "integration.manage",
-              notifications: "notification.manage",
-              "ssh-keys": "privateKey.manage",
+            const permissions: Record<string, Scope> = {
+              health: "admin",
+              integrations: "admin",
+              notifications: "admin",
+              "ssh-keys": "admin",
             };
             if (item.id === "team-settings")
               return (
                 !user ||
-                user.capabilities?.includes("team.read") ||
-                user.capabilities?.includes("sharedSecret.list")
+                user.capabilities?.includes("admin") ||
+                user.capabilities?.includes("member")
               );
             return (
               !user ||

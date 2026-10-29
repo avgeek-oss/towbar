@@ -1,63 +1,59 @@
 "use client";
 import { createContext, useContext } from "react";
 import type { TowbarUser } from "@workspace/towbar-web-client";
-import type { Action } from "@workspace/towbar-access";
+import type { Scope } from "@workspace/towbar-access";
 export const AccessContext = createContext<TowbarUser | null>(null);
 export function useAccess() {
   const user = useContext(AccessContext);
   return {
     user,
-    can: (permission: Action) =>
+    can: (permission: Scope) =>
       user?.capabilities?.includes(permission) === true,
   };
 }
-export function routePermission(pathname: string): Action | null {
-  if (["/conflicts", "/retirements"].includes(pathname)) return "workload.read";
-  if (pathname === "/monitoring/logs") return "logs.read";
-  if (pathname === "/servers/new") return "server.update";
+export function routePermission(pathname: string): Scope | null {
+  if (["/conflicts", "/retirements"].includes(pathname)) return "viewer";
+  if (pathname === "/monitoring/logs") return "viewer";
+  if (pathname === "/servers/new") return "admin";
   if (
     pathname.startsWith("/manage/integrations") ||
     pathname.startsWith("/team-settings/integrations")
   )
-    return "integration.manage";
+    return "admin";
   if (
     pathname.startsWith("/manage/ssh-keys") ||
     pathname.startsWith("/team-settings/ssh-keys")
   )
-    return "privateKey.manage";
+    return "admin";
   if (
     pathname.startsWith("/manage/shared-secrets") ||
     pathname.startsWith("/team-settings/shared-secrets") ||
     pathname.startsWith("/team-settings/workspace-secrets")
   )
-    return "sharedSecret.list";
-  if (pathname.startsWith("/team-settings")) return "team.read";
-  if (pathname.startsWith("/manage/notifications"))
-    return "notification.manage";
-  if (pathname.startsWith("/system-health")) return "system.read";
+    return "member";
+  if (pathname.startsWith("/team-settings")) return "admin";
+  if (pathname.startsWith("/manage/notifications")) return "admin";
+  if (pathname.startsWith("/system-health")) return "admin";
   if (
     pathname.startsWith("/manage/private-keys") ||
     pathname.startsWith("/manage/api-mcp/private-keys")
   )
-    return "privateKey.manage";
-  if (pathname.startsWith("/manage/api-mcp/team-keys")) return "apikey.read";
+    return "admin";
+  if (pathname.startsWith("/manage/api-mcp/team-keys")) return "admin";
   const section = pathname.split("/").filter(Boolean).at(-1);
-  if (section === "auto-deploy") return "deployment.create";
-  if (section === "notifications") return "notification.manage";
-  if (section === "secrets")
-    return pathname.startsWith("/repositories/")
-      ? "sharedSecret.list"
-      : "secret.list";
+  if (section === "auto-deploy") return "admin";
+  if (section === "notifications") return "admin";
+  if (section === "secrets") return "member";
   if (pathname.startsWith("/servers/")) {
-    if (section === "logs-collection") return "server.collectLogs";
+    if (section === "logs-collection") return "admin";
     if (["credentials", "configuration"].includes(section ?? ""))
-      return "server.credentials";
+      return "admin";
     if (["cleanup", "danger", "danger-zone"].includes(section ?? ""))
-      return "server.remove";
+      return "admin";
   }
   if (pathname.startsWith("/repositories/") && section === "danger")
-    return "repository.disconnect";
+    return "admin";
   if (pathname.startsWith("/datastores/") && section === "restore")
-    return "resource.restore";
+    return "admin";
   return null;
 }

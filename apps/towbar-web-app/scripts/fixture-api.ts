@@ -18,7 +18,7 @@ import {
   type TeamFixtureOptions,
 } from "./team-access-fixture.ts";
 import { fixtureJson, useFixtureLocalization } from "./fixture-localization.ts";
-import { roleActions, isWorkspaceRole } from "@workspace/towbar-access";
+import { roleScopes, isWorkspaceRole } from "@workspace/towbar-access";
 import { createDeclaredSecretsFixture } from "./declared-secrets-fixture.ts";
 import {
   createSourceConnectionFixture,
@@ -137,7 +137,7 @@ const user: TowbarUser = {
   workspaceId: "81111111-1111-4111-8111-111111111111",
   workspaceRole: "admin",
   teamName: "Towbar team",
-  capabilities: roleActions("admin"),
+  capabilities: roleScopes("admin"),
   mustChangePassword: false,
   passwordSetupRequired: false,
   emailVerified: true,

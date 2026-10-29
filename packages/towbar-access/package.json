@@ -1,6 +1,6 @@
 {
   "name": "@workspace/towbar-access",
-  "description": "Shared Towbar team roles and operation permissions.",
+  "description": "Shared Towbar roles and read, write, and admin scopes.",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
@@ -11,9 +11,6 @@
     "build": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/*.test.ts"
-  },
-  "dependencies": {
-    "better-auth": "1.7.7"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,8 +1,8 @@
 $kind: http-request
 id: bfb4e07d-ae56-5bc3-835f-5e60270f286c
 description:
-  "Required permissions: server.read. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: viewer. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/preparations"
 method: GET
 headers:

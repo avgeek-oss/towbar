@@ -10,7 +10,7 @@ export const integrationRoutes = new Hono<TowbarHonoEnvironment>();
 integrationRoutes.get(
   "/",
   operation({
-    permissions: ["integration.manage"],
+    permissions: ["admin"],
     summary: "List environment-configured integrations",
     responseSchema: 'integrations.ts:get:"/"',
     response:

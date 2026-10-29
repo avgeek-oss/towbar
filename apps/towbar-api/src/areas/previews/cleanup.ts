@@ -41,7 +41,7 @@ import {
 } from "./pr-comment.js";
 
 function automaticCleanupAuthority(source: "github" | "worker") {
-  return sql<QueuedActor>`jsonb_build_object('kind', 'system', 'source', ${source}::text, 'workspaceId', ${previewEnvironments.workspaceId}, 'grants', jsonb_build_array('workload.operate'))`;
+  return sql<QueuedActor>`jsonb_build_object('kind', 'system', 'source', ${source}::text, 'workspaceId', ${previewEnvironments.workspaceId}, 'grants', jsonb_build_array('admin'))`;
 }
 
 function repositoryCleanupAuthority() {
@@ -49,7 +49,7 @@ function repositoryCleanupAuthority() {
     'kind', 'system',
     'source', (select ${sources.provider} from ${sources} where ${sources.id} = ${previewEnvironments.sourceId}),
     'workspaceId', ${previewEnvironments.workspaceId},
-    'grants', jsonb_build_array('workload.operate')
+    'grants', jsonb_build_array('admin')
   )`;
 }
 
@@ -154,9 +154,8 @@ export async function requestPreviewEnvironmentCleanup(input: {
   const environments = await getTowbarDatabase()
     .update(previewEnvironments)
     .set({
-      cleanupRequestedByActor: captureQueuedActor(input.workspaceId, [
-        "workload.operate",
-      ]).requestedByActor,
+      cleanupRequestedByActor: captureQueuedActor(input.workspaceId, ["admin"])
+        .requestedByActor,
       cleanupStartedAt: null,
       cleanupAttempts: sql`${previewEnvironments.cleanupAttempts} + 1`,
       lastCleanupAttemptAt: now,
@@ -427,7 +426,7 @@ export async function getPreviewCleanupContext(previewEnvironmentId: string) {
     await authorizeQueuedEffect(
       environment.cleanupRequestedByActor,
       environment.workspaceId,
-      ["workload.operate"],
+      ["admin"],
     );
     await getTowbarDatabase()
       .update(previewEnvironments)

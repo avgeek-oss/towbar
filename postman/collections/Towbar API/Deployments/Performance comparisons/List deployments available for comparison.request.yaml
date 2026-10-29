@@ -1,7 +1,7 @@
 $kind: http-request
 id: 557626fb-da08-590d-8d1c-77449301f6d3
 description:
-  "Required permissions: alert.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url: "{{baseUrl}}/workloads/:deployableId/comparison-deployments"
 method: GET

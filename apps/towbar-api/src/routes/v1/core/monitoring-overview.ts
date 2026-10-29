@@ -15,7 +15,7 @@ export const monitoringOverviewRoutes = new Hono<TowbarHonoEnvironment>();
 monitoringOverviewRoutes.get(
   "/incidents",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring-overview.ts:get:"/incidents"',
     summary: "List workspace Scout incidents",
     query: monitoringOverviewQuery,
@@ -35,7 +35,7 @@ monitoringOverviewRoutes.get(
 monitoringOverviewRoutes.get(
   "/vulnerabilities",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring-overview.ts:get:"/vulnerabilities"',
     summary: "List workspace vulnerability findings",
     query: vulnerabilityFindingsQuery,
@@ -55,7 +55,7 @@ monitoringOverviewRoutes.get(
 monitoringOverviewRoutes.get(
   "/summary",
   operation({
-    permissions: ["alert.read"],
+    permissions: ["viewer"],
     responseSchema: 'monitoring-overview.ts:get:"/summary"',
     summary: "Read workspace monitoring counts",
     browserOnly: true,

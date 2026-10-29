@@ -1,8 +1,8 @@
 $kind: http-request
 id: e56c98fc-7b66-54e7-9314-efbc79a44eeb
 description:
-  "Required permissions: server.credentials. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/credentials/actions/verify-private-key"
 method: POST
 headers:

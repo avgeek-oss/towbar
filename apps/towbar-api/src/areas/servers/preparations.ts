@@ -122,7 +122,7 @@ export async function requestServerPreparation(input: {
       .values({
         configDigest: server.configDigest,
         requestedBy: input.requestedBy,
-        ...captureQueuedActor(input.workspaceId, ["server.prepare"]),
+        ...captureQueuedActor(input.workspaceId, ["admin"]),
         serverId: server.id,
         steps: createServerPreparationSteps(),
       })
@@ -190,7 +190,7 @@ export async function getServerPreparationExecutionContext(
   if (!context) throw notFound("Server preparation");
   if (context.status === "queued")
     await authorizeQueuedEffect(context.requestedByActor, context.workspaceId, [
-      "server.prepare",
+      "admin",
     ]);
   if (context.currentConfigDigest !== context.preparationConfigDigest) {
     throw conflict(
@@ -357,7 +357,7 @@ export async function updateServerPreparation(
             .values({
               requestedBy: current.requestedBy,
               requestedByActor: {
-                grants: ["server.credentials"],
+                grants: ["admin"],
                 kind: "system",
                 source: "worker",
                 workspaceId: current.workspaceId,

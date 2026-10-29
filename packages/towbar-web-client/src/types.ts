@@ -1,4 +1,4 @@
-import type { Action, WorkspaceRole } from "@workspace/towbar-access";
+import type { Scope, WorkspaceRole } from "@workspace/towbar-access";
 import type {
   NormalizedApp,
   NormalizedComposeWorkload,
@@ -13,7 +13,7 @@ export type TowbarUser = {
   workspaceId: string;
   workspaceRole: WorkspaceRole;
   teamName: string;
-  capabilities: Action[];
+  capabilities: Scope[];
   mustChangePassword: boolean;
   passwordSetupRequired: boolean;
   emailVerified: boolean;

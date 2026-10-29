@@ -194,7 +194,7 @@ export function ResourceDetail() {
         >
           {!latestDeployment && item.serverReady ? (
             <FirstDeployment
-              canDeploy={can("deployment.create")}
+              canDeploy={can("admin")}
               deployableId={resourceId}
               type="resource"
             />
@@ -415,7 +415,7 @@ export function ResourceDetail() {
           />
         ),
       },
-      ...(can("resource.restore")
+      ...(can("admin")
         ? [
             {
               value: "restore",
@@ -469,7 +469,7 @@ export function ResourceDetail() {
         Boolean(latestDeployment) &&
         !item.archivedAt &&
         (!item.manifestState || item.manifestState === "active") &&
-        can("deployment.create") ? (
+        can("admin") ? (
           <div className="flex flex-wrap justify-end gap-2">
             {Object.keys(item.config.externalSecrets ?? {}).length > 0 ? (
               <ActionButton

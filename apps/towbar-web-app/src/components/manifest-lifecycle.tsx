@@ -211,7 +211,7 @@ export function ManifestLifecycle({
             />
             Details
           </Button>
-          {item.state !== "conflict" && can("server.remove") ? (
+          {item.state !== "conflict" && can("admin") ? (
             <Button
               size="sm"
               variant="danger-soft"

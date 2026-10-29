@@ -35,7 +35,7 @@ export const mcpTools: McpTool[] = [
     "List integrations enabled by the Towbar runtime environment. Configuration and secret values are never returned.",
     z.object({}).strict(),
     async (_, c) => c.call({ method: "GET", route: "/integrations" }),
-    { permissions: ["integration.manage"] },
+    { permissions: ["admin"] },
   ),
   tool(
     "workspace_inspect",
@@ -45,7 +45,7 @@ export const mcpTools: McpTool[] = [
     async (_, c) => ({
       identity: await c.call({ method: "GET", route: "/identity" }),
     }),
-    { permissions: ["identity.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "inventory_search",
@@ -91,12 +91,7 @@ export const mcpTools: McpTool[] = [
       return { kind: a.kind, ...pageItems(items, a.offset, a.limit) };
     },
     {
-      permissions: [
-        "repository.read",
-        "workload.read",
-        "resource.read",
-        "server.read",
-      ],
+      permissions: ["viewer"],
     },
   ),
   tool(
@@ -143,7 +138,7 @@ export const mcpTools: McpTool[] = [
           }
         : {}),
     }),
-    { permissions: ["repository.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "source_connect",
@@ -153,7 +148,7 @@ export const mcpTools: McpTool[] = [
     async (a, c) =>
       await c.call({ method: "POST", route: "/sources/connect", body: a }),
     {
-      permissions: ["repository.connect"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: false,
       idempotent: false,
@@ -178,7 +173,7 @@ export const mcpTools: McpTool[] = [
           ...(args.environmentId ? { environmentId: args.environmentId } : {}),
         },
       }),
-    { permissions: ["repository.disconnect"] },
+    { permissions: ["admin"] },
   ),
   action(
     "source_disconnect",
@@ -204,7 +199,7 @@ export const mcpTools: McpTool[] = [
     async (a, c) =>
       await c.call({ method: "POST", route: "/sources/discover", body: a }),
     {
-      permissions: ["repository.connect"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: false,
       idempotent: true,
@@ -229,7 +224,7 @@ export const mcpTools: McpTool[] = [
         },
       }),
     {
-      permissions: ["repository.sync"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: true,
       idempotent: false,
@@ -254,7 +249,7 @@ export const mcpTools: McpTool[] = [
       });
       return pageItems(records(result.syncs), a.offset, a.limit);
     },
-    { permissions: ["repository.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "workload_inspect",
@@ -298,7 +293,7 @@ export const mcpTools: McpTool[] = [
         });
       return result;
     },
-    { permissions: ["workload.read", "resource.read"] },
+    { permissions: ["viewer"] },
   ),
   ...(["deploy", "rollback", "restart", "start", "stop", "logs"] as const).map(
     (intent) => {
@@ -382,11 +377,7 @@ export const mcpTools: McpTool[] = [
                   : {}),
           }),
         {
-          permissions: [
-            intent === "deploy" || intent === "rollback"
-              ? "deployment.create"
-              : "workload.operate",
-          ],
+          permissions: ["admin"],
           readOnly: false,
           destructive: intent !== "logs",
           idempotent: true,
@@ -412,7 +403,7 @@ export const mcpTools: McpTool[] = [
         idempotencyKey: a.idempotencyKey,
       }),
     {
-      permissions: ["deployment.create"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: true,
       idempotent: true,
@@ -437,7 +428,7 @@ export const mcpTools: McpTool[] = [
         body: { paused: a.paused },
       }),
     {
-      permissions: ["deployment.create"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: true,
       idempotent: true,
@@ -455,7 +446,7 @@ export const mcpTools: McpTool[] = [
       .strict(),
     async (a, c) =>
       await c.call({ method: "GET", route: "/deployments/history", query: a }),
-    { permissions: ["deployment.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "deployment_inspect",
@@ -512,7 +503,7 @@ export const mcpTools: McpTool[] = [
           : {}),
       };
     },
-    { permissions: ["deployment.read"] },
+    { permissions: ["viewer"] },
   ),
   action(
     "deployment_cancel",

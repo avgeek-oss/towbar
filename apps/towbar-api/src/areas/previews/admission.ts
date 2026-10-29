@@ -298,7 +298,7 @@ export async function admitPreviewDeployment(input: {
         manifestDigest: input.manifestDigest,
         previewEnvironmentId: environment.id,
         requestedBy: input.requestedBy ?? null,
-        ...captureQueuedActor(input.workspaceId, ["deployment.create"]),
+        ...captureQueuedActor(input.workspaceId, ["admin"]),
         serverId: input.serverId,
         serverSnapshot: input.server,
         buildServerId: buildServer?.id,

@@ -1,5 +1,4 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { actorAllows } from "@workspace/towbar-access";
 import { and, eq, inArray, isNull, notExists } from "drizzle-orm";
 import {
   decryptCredential,
@@ -98,9 +97,7 @@ async function admitCollector(
   input: Parameters<typeof admitLogCollection>[0],
   preparationId?: string,
 ) {
-  const { requestedByActor } = captureQueuedActor(input.workspaceId, [
-    "server.collectLogs",
-  ]);
+  const { requestedByActor } = captureQueuedActor(input.workspaceId, ["admin"]);
   const key = input.idempotencyKey.trim();
   if (!key || key.length > 255)
     throw badRequest(
@@ -275,19 +272,13 @@ export async function getPreparationLogCollectorContext(preparationId: string) {
   const actor = await authorizeQueuedEffect(
     row.preparation.requestedByActor,
     row.server.workspaceId,
-    ["server.prepare"],
+    ["admin"],
   );
   if (!getLogConfiguration())
     return {
       context: null,
       message:
         "Skipped: connect ClickHouse in config.yml to enable log collection. You can install the collector later in Settings → OTEL Logs Collector.",
-    };
-  if (!actorAllows(actor, ["server.collectLogs"], row.server.workspaceId))
-    return {
-      context: null,
-      message:
-        "Skipped: the requesting account cannot enable log collection. An administrator can enable it in Settings → OTEL Logs Collector.",
     };
   const [current] = await db
     .select()
@@ -350,7 +341,7 @@ export async function getLogCollectorExecutionContext(
   await authorizeQueuedEffect(
     row.collector.requestedByActor,
     row.server.workspaceId,
-    ["server.collectLogs"],
+    ["admin"],
   );
   if (row.collector.desiredState === "enabled") requireLogConfiguration();
   const credentials = await resolveServerCredentials({
@@ -476,7 +467,7 @@ export async function recoverLogCollectorOperations() {
             kind: "system",
             workspaceId: collector.workspaceId,
             source: "worker",
-            grants: ["server.collectLogs"],
+            grants: ["admin"],
           },
         })
         .where(eq(logCollectors.serverId, collector.serverId));

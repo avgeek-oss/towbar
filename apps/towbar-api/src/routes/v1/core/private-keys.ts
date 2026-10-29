@@ -60,7 +60,7 @@ export const privateKeyRoutes = new Hono<TowbarHonoEnvironment>();
 privateKeyRoutes.get(
   "/",
   operation({
-    permissions: ["privateKey.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'private-keys.ts:get:"/"',
     summary: "List stored SSH private keys",
@@ -80,7 +80,7 @@ privateKeyRoutes.get(
 privateKeyRoutes.post(
   "/",
   operation({
-    permissions: ["privateKey.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'private-keys.ts:post:"/"',
     summary: "Create or generate an SSH private key",
@@ -107,7 +107,7 @@ privateKeyRoutes.post(
 privateKeyRoutes.patch(
   "/:privateKeyId",
   operation({
-    permissions: ["privateKey.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'private-keys.ts:patch:"/:privateKeyId"',
     summary: "Update a stored SSH private key",
@@ -134,7 +134,7 @@ privateKeyRoutes.patch(
 privateKeyRoutes.get(
   "/:privateKeyId/reveal",
   operation({
-    permissions: ["privateKey.reveal"],
+    permissions: ["admin"],
     freshSession: true,
     browserOnly: true,
     responseSchema: 'private-keys.ts:get:"/:privateKeyId/reveal"',
@@ -158,7 +158,7 @@ privateKeyRoutes.get(
 privateKeyRoutes.delete(
   "/:privateKeyId",
   operation({
-    permissions: ["privateKey.manage"],
+    permissions: ["admin"],
     browserOnly: true,
     responseSchema: 'private-keys.ts:delete:"/:privateKeyId"',
     summary: "Delete a stored SSH private key",

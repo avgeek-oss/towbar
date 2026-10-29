@@ -47,7 +47,6 @@ import { resolveBuildServerAdmission } from "./build-server-admission.js";
 import { admitApplicationImage } from "../deployments/image-admission.js";
 import { cloudflareDnsCredential } from "../deployments/cloudflare-readiness.js";
 import {
-  hostLogDeploymentPermissions,
   requireHostLogCollection,
   rollbackHostLogConfiguration,
 } from "./host-log-collection.js";
@@ -268,10 +267,7 @@ export async function requestAppDeployment(input: {
         imageDigest: imageAdmission.imageDigest,
         imageSourceReference: imageAdmission.imageSourceReference,
         requestedBy: request.requestedBy,
-        ...captureQueuedActor(
-          request.workspaceId,
-          hostLogDeploymentPermissions(target.config),
-        ),
+        ...captureQueuedActor(request.workspaceId, ["admin"]),
         serverId: target.serverId,
         serverSnapshot: target.serverConfig,
         buildServerId: buildServer?.id,
@@ -471,10 +467,7 @@ export async function requestAppRollback(input: {
             ? original.manifestDigest
             : (app.manifestDigest ?? original.manifestDigest),
           requestedBy: request.requestedBy,
-          ...captureQueuedActor(
-            request.workspaceId,
-            hostLogDeploymentPermissions(app.config, original.appSnapshot),
-          ),
+          ...captureQueuedActor(request.workspaceId, ["admin"]),
           rollbackReleaseSnapshot: {
             commitSha: release.commitSha,
             containerName: release.containerName,

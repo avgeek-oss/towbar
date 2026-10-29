@@ -1,8 +1,8 @@
 $kind: http-request
 id: f622e8d3-4863-5a2a-aa3e-e5f8a3e92b55
 description:
-  "Required permissions: repository.disconnect. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId"
 method: DELETE
 headers:

@@ -325,7 +325,7 @@ export async function assertDeploymentSecretSnapshot({
           kind: "session",
           userId,
           workspaceId,
-          grants: ["workload.operate"],
+          grants: ["admin"],
         },
       })
       .where(eq(previewEnvironments.id, previewId));

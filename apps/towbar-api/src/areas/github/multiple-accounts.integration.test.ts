@@ -286,7 +286,7 @@ void test(
         kind: "system" as const,
         workspaceId,
         source: "worker" as const,
-        grants: ["repository.update"] as const,
+        grants: ["admin"] as const,
       };
       const input = {
         sourceId,

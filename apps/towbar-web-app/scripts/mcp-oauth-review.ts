@@ -17,7 +17,7 @@ const baseKey = {
   scope: "personal",
   access: "read",
   includeAdmin: false,
-  grants: ["read"],
+  grants: ["viewer"],
   prefix: "twb_review",
   ownerUserId: "review-user",
   createdAt,
@@ -123,10 +123,10 @@ const server = createServer((req, res) => {
         state === "admin-member" ||
         state === "admin-viewer" ||
         state === "admin-passkey"
-          ? "mcp:read mcp:write mcp:admin"
+          ? "viewer member admin"
           : state === "edit" || state === "viewer"
-            ? "mcp:read mcp:write"
-            : "mcp:read",
+            ? "viewer member"
+            : "viewer",
       user: {
         name: "Alex Morgan",
         email: "alex@example.com",

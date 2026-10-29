@@ -124,7 +124,7 @@ void test(
         trustedBy: userId,
       });
       const attribution = withActor(actor, () =>
-        captureQueuedActor(workspaceId, ["server.prepare"]),
+        captureQueuedActor(workspaceId, ["admin"]),
       );
       await db.insert(serverPreparations).values({
         id: preparationId,
@@ -160,20 +160,21 @@ void test(
       );
       process.env.TOWBAR_LOGS_CONFIG_JSON = configuration;
       await t.test(
-        "prepare-only authority cannot grant collector access",
+        "Member authority cannot grant collector access",
         async () => {
           await db
             .update(serverPreparations)
             .set({
               requestedByActor: {
                 ...attribution.requestedByActor,
-                grants: ["server.prepare"],
+                grants: ["member"],
               },
             })
             .where(eq(serverPreparations.id, preparationId));
-          const result = await getPreparationLogCollectorContext(preparationId);
-          assert.equal(result.context, null);
-          assert.match(result.message, /cannot enable log collection/);
+          await assert.rejects(
+            getPreparationLogCollectorContext(preparationId),
+            /Access changed/,
+          );
           await db
             .update(serverPreparations)
             .set({ requestedByActor: attribution.requestedByActor })

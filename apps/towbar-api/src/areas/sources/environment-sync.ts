@@ -51,9 +51,7 @@ export async function executeEnvironmentSync(
     .where(eq(sourceEnvironments.id, sync.sourceEnvironmentId));
   if (!environment) throw notFound("Environment");
   try {
-    await authorizeQueuedEffect(sync.requestedByActor, workspaceId, [
-      "repository.sync",
-    ]);
+    await authorizeQueuedEffect(sync.requestedByActor, workspaceId, ["admin"]);
     if (
       environment.disconnectedAt ||
       environment.mappingRevision !== sync.mappingRevision
@@ -151,7 +149,7 @@ export async function executeEnvironmentSync(
       const actor = await authorizeQueuedEffect(
         sync.requestedByActor,
         workspaceId,
-        ["repository.sync"],
+        ["admin"],
       );
       const serverByIp = new Map(
         workspaceServers.map((server) => [server.canonicalIp, server]),
@@ -159,7 +157,7 @@ export async function executeEnvironmentSync(
       const { reconciliation, issues } = await withActor(actor, () =>
         reconcileRepositoryManifests(transaction, {
           workspaceId,
-          allowAutomaticDeployment: actorAllows(actor, ["deployment.create"]),
+          allowAutomaticDeployment: actorAllows(actor, ["admin"]),
           scheduleAutomaticDeployment: sync.deployAfterSync,
           environment,
           manifest: resolved.manifest,
@@ -189,9 +187,7 @@ export async function executeEnvironmentSync(
       await transaction
         .update(sourceEnvironments)
         .set({
-          ...(!actorAllows(actor, ["deployment.create"])
-            ? { autoDeployPaused: true }
-            : {}),
+          ...(!actorAllows(actor, ["admin"]) ? { autoDeployPaused: true } : {}),
           latestSuccessfulSyncId: sync.id,
           latestCommitSha: snapshot.commitSha,
           latestManifestDigest: resolved.digest,

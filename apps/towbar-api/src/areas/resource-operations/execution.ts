@@ -3,7 +3,6 @@ import { getRuntimeSourceIds } from "../manifest-lifecycle/runtime-ownership.js"
 import { validateQueuedAppJob } from "../apps/jobs.js";
 import { requireActiveAutomation } from "../auth/automation-authority.js";
 import { authorizeQueuedEffect } from "../auth/actor-context.js";
-import { operationPermissions } from "./permissions.js";
 import { resolveServerCredentials } from "../secrets/store.js";
 import type { SecretDatabase } from "../secrets/store.js";
 import { and, eq, isNull } from "drizzle-orm";
@@ -42,7 +41,7 @@ export async function getOperationExecutionContext(operationId: string) {
     await authorizeQueuedEffect(
       operation.requestedByActor,
       operation.workspaceId,
-      operationPermissions(operation.request),
+      ["admin"],
     );
     return await getCleanupExecutionContext(operation);
   }
@@ -50,7 +49,7 @@ export async function getOperationExecutionContext(operationId: string) {
     const actor = await authorizeQueuedEffect(
       operation.requestedByActor,
       operation.workspaceId,
-      operationPermissions(operation.request),
+      ["admin"],
     );
     if (
       actor.kind === "system" &&
@@ -170,7 +169,7 @@ export async function resolveOperationSecrets(operationId: string) {
         await authorizeQueuedEffect(
           operation.requestedByActor,
           operation.workspaceId,
-          ["workload.operate"],
+          ["admin"],
         );
         await validateQueuedAppJob({
           ...operation,

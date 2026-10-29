@@ -246,6 +246,13 @@
       "when": 1793197965068,
       "tag": "0035_retire_upgrades_and_providers",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793197965069,
+      "tag": "0036_broad_authorization_scopes",
+      "breakpoints": true
     }
   ]
 }

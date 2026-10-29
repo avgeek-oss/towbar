@@ -184,7 +184,7 @@ export async function removeRetiredWorkload(
           idempotencyKey: index === 0 ? key : `${key}:${server.id}`,
           temporalWorkflowId: resourceOperationWorkflowId(id),
           requestedBy: input.requestedBy,
-          ...captureQueuedActor(input.workspaceId, ["server.remove"]),
+          ...captureQueuedActor(input.workspaceId, ["admin"]),
         })
         .returning({
           id: resourceOperations.id,

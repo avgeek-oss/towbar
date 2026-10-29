@@ -6,19 +6,10 @@ import type {
   NormalizedDeployable,
   NormalizedServer,
 } from "@workspace/towbar-core";
-import type { Action } from "@workspace/towbar-access";
 import { and, eq } from "drizzle-orm";
 import { deployments } from "@workspace/towbar-database/schema";
 import { conflict, notFound } from "../../http/errors.js";
 import { getTowbarDatabase } from "../../infrastructure/database.js";
-
-export function hostLogDeploymentPermissions(
-  ...deployables: NormalizedDeployable[]
-): Action[] {
-  return deployables.some(collectsHostDockerLogs)
-    ? ["deployment.create", "server.collectLogs"]
-    : ["deployment.create"];
-}
 
 export function requireHostLogCollection(
   server: NormalizedServer,
@@ -53,7 +44,7 @@ export function rollbackHostLogConfiguration(
   };
 }
 
-export async function hostLogExecutionDeployables(context: {
+export async function hostLogExecutionApp(context: {
   app: NormalizedDeployable;
   currentServerConfig: NormalizedServer;
   environment: "production" | "preview";
@@ -89,5 +80,5 @@ export async function hostLogExecutionDeployables(context: {
       "HOST_LOG_COLLECTION_PREVIEW_FORBIDDEN",
     );
   requireHostLogCollection(context.currentServerConfig, ...deployables);
-  return { app, deployables };
+  return app;
 }

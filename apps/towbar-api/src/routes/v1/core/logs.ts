@@ -30,7 +30,7 @@ export const centralizedLogRoutes = new Hono<TowbarHonoEnvironment>();
 centralizedLogRoutes.get(
   "/observability/logs/status",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:get:"/observability/logs/status"',
     summary: "Inspect centralized log storage",
     response:
@@ -43,7 +43,7 @@ centralizedLogRoutes.get(
 centralizedLogRoutes.post(
   "/observability/logs/actions/verify",
   operation({
-    permissions: ["server.collectLogs"],
+    permissions: ["admin"],
     responseSchema: 'logs.ts:post:"/observability/logs/actions/verify"',
     summary: "Verify log storage",
     response:
@@ -57,7 +57,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.get(
   "/servers/:serverId/log-collection",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:get:"/servers/:serverId/log-collection"',
     summary: "Inspect server log collection",
     response:
@@ -76,7 +76,7 @@ centralizedLogRoutes.get(
 centralizedLogRoutes.put(
   "/servers/:serverId/log-collection",
   operation({
-    permissions: ["server.collectLogs"],
+    permissions: ["admin"],
     responseSchema: 'logs.ts:put:"/servers/:serverId/log-collection"',
     summary: "Enable or disable server log collection",
     idempotencyKey: true,
@@ -100,7 +100,7 @@ centralizedLogRoutes.put(
 centralizedLogRoutes.post(
   "/servers/:serverId/log-collection/actions/update",
   operation({
-    permissions: ["server.collectLogs"],
+    permissions: ["admin"],
     responseSchema:
       'logs.ts:post:"/servers/:serverId/log-collection/actions/update"',
     summary: "Update server log collector",
@@ -124,7 +124,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.post(
   "/logs/query",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:post:"/logs/query"',
     summary: "Search centralized logs",
     body: logQuerySchema,
@@ -145,7 +145,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.post(
   "/logs/summary",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:post:"/logs/summary"',
     summary: "Summarize centralized logs",
     body: logFilterSchema,
@@ -166,7 +166,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.post(
   "/logs/context",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:post:"/logs/context"',
     summary: "Read surrounding log records",
     body: logContextSchema,
@@ -187,7 +187,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.post(
   "/logs/follow",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:post:"/logs/follow"',
     summary: "Poll newly accepted centralized logs",
     body: logTailSchema,
@@ -211,7 +211,7 @@ centralizedLogRoutes.post(
 centralizedLogRoutes.post(
   "/logs/tail",
   operation({
-    permissions: ["logs.read"],
+    permissions: ["viewer"],
     responseSchema: 'logs.ts:post:"/logs/tail"',
     summary: "Follow centralized logs",
     body: logTailSchema,

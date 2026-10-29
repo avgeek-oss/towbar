@@ -120,9 +120,7 @@ void test(
           sourceId: environment.sourceId,
           sourceEnvironmentId: environment.id,
           mappingRevision: environment.mappingRevision,
-          ...withActor(actor, () =>
-            captureQueuedActor(workspaceId, ["repository.sync"]),
-          ),
+          ...withActor(actor, () => captureQueuedActor(workspaceId, ["admin"])),
         })
         .returning();
       assert(job);

@@ -2,7 +2,7 @@ import { validInstallationSetupSecret } from "./setup-secret.js";
 import { passkeyEnabled } from "./passkeys.js";
 import { requireRecentAuthentication } from "./recent-authentication.js";
 import { and, count, desc, eq, gt, isNull, ne, sql } from "drizzle-orm";
-import { isWorkspaceRole, roleActions } from "@workspace/towbar-access";
+import { isWorkspaceRole, roleScopes } from "@workspace/towbar-access";
 import type { DateTimePreferences } from "@workspace/towbar-core/date-time";
 import {
   authAccounts,
@@ -127,8 +127,8 @@ export async function getUserIdentity(userId: string) {
   return {
     ...identity,
     capabilities: identity.mustChangePassword
-      ? (["personal.manage"] as const)
-      : roleActions(identity.workspaceRole),
+      ? (["viewer"] as const)
+      : roleScopes(identity.workspaceRole),
   };
 }
 export async function findSession(headers: Headers) {

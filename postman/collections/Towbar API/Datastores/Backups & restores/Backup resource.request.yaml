@@ -1,8 +1,8 @@
 $kind: http-request
 id: 2035779e-1864-5fb0-8e93-1c2fb61fa918
 description:
-  "Required permissions: resource.backup. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/actions/backup"
 method: POST
 headers:

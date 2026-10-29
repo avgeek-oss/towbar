@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { roleActions, type WorkspaceRole } from "@workspace/towbar-access";
+import { roleScopes, type WorkspaceRole } from "@workspace/towbar-access";
 import type { TowbarUser } from "@workspace/towbar-web-client";
 
 import { routePermission } from "../components/access-context";
@@ -9,7 +9,7 @@ import { createApplicationSidebar } from "./application-layout";
 
 function fixtureUser(role: WorkspaceRole): TowbarUser {
   return {
-    capabilities: roleActions(role),
+    capabilities: roleScopes(role),
     email: `${role}@example.com`,
     emailVerified: true,
     id: role,
@@ -116,33 +116,18 @@ test("lifecycle links appear independently only when their count is positive", (
 });
 
 test("management routes preserve their specific permission boundaries", () => {
-  assert.equal(
-    routePermission("/manage/integrations/github"),
-    "integration.manage",
-  );
-  assert.equal(routePermission("/team-settings/ssh-keys"), "privateKey.manage");
-  assert.equal(routePermission("/manage/ssh-keys"), "privateKey.manage");
-  assert.equal(
-    routePermission("/manage/integrations/github"),
-    "integration.manage",
-  );
-  assert.equal(routePermission("/manage/shared-secrets"), "sharedSecret.list");
-  assert.equal(
-    routePermission("/team-settings/workspace-secrets"),
-    "sharedSecret.list",
-  );
+  assert.equal(routePermission("/manage/integrations/github"), "admin");
+  assert.equal(routePermission("/team-settings/ssh-keys"), "admin");
+  assert.equal(routePermission("/manage/ssh-keys"), "admin");
+  assert.equal(routePermission("/manage/integrations/github"), "admin");
+  assert.equal(routePermission("/manage/shared-secrets"), "member");
+  assert.equal(routePermission("/team-settings/workspace-secrets"), "member");
   assert.equal(
     routePermission("/repositories/repo/settings/secrets"),
-    "sharedSecret.list",
+    "member",
   );
-  assert.equal(
-    routePermission("/team-settings/integrations/github"),
-    "integration.manage",
-  );
-  assert.equal(
-    routePermission("/team-settings/shared-secrets"),
-    "sharedSecret.list",
-  );
-  assert.equal(routePermission("/team-settings/members"), "team.read");
-  assert.equal(routePermission("/system-health"), "system.read");
+  assert.equal(routePermission("/team-settings/integrations/github"), "admin");
+  assert.equal(routePermission("/team-settings/shared-secrets"), "member");
+  assert.equal(routePermission("/team-settings/members"), "admin");
+  assert.equal(routePermission("/system-health"), "admin");
 });

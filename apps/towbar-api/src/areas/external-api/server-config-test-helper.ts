@@ -50,14 +50,14 @@ export async function assertServerConfigReadback({
     const identity = (await (
       await request("/identity", write.token)
     ).json()) as Identity;
-    assert(identity.capabilities.includes("server.collectLogs"));
+    assert(identity.capabilities.includes("admin"));
     const mcpIdentity = resultData<{ identity: Identity }>(
       await client.callTool({
         name: "towbar_workspace_inspect",
         arguments: {},
       }),
     );
-    assert(!mcpIdentity.identity.capabilities.includes("server.collectLogs"));
+    assert(!mcpIdentity.identity.capabilities.includes("admin"));
     const tools = await client.listTools();
     assert(!tools.tools.some(({ name }) => name === "towbar_server_configure"));
     for (const hostLogCollection of [true, false, true]) {

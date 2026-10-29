@@ -271,7 +271,7 @@ function ResourceBackupContent({
                   )}
                 </p>
                 <ActionButton
-                  permission="resource.backup"
+                  permission="admin"
                   action={() =>
                     api.post(
                       `/v1/core/resources/${resource.id}/actions/backup`,

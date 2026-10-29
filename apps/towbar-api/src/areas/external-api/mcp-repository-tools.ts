@@ -28,7 +28,7 @@ export const repositoryTools: McpTool[] = [
         route: "/manifest-lifecycle",
         query: args,
       }),
-    { permissions: ["workload.read"] },
+    { permissions: ["viewer"] },
   ),
   action(
     "retirement_remove",
@@ -92,7 +92,7 @@ export const repositoryTools: McpTool[] = [
         ),
       };
     },
-    { permissions: ["githubInstallation.read", "integration.manage"] },
+    { permissions: ["admin"] },
   ),
   tool(
     "github_disconnect",
@@ -106,7 +106,7 @@ export const repositoryTools: McpTool[] = [
         query: { connectionId: a.connectionId },
       }),
     {
-      permissions: ["integration.manage"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: true,
       idempotent: true,

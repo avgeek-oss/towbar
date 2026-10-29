@@ -301,7 +301,7 @@ export async function requestServerCheck(input: {
     .insert(serverChecks)
     .values({
       requestedBy: input.requestedBy,
-      ...captureQueuedActor(input.workspaceId, ["server.credentials"]),
+      ...captureQueuedActor(input.workspaceId, ["admin"]),
       serverId: input.serverId,
     })
     .returning();
@@ -360,7 +360,7 @@ export async function getServerCheckExecutionContext(checkId: string) {
   if (!["queued", "running"].includes(context.status))
     throw conflict("Server check is already complete");
   await authorizeQueuedEffect(context.requestedByActor, context.workspaceId, [
-    "server.credentials",
+    "admin",
   ]);
   const credentials = await resolveServerCredentials(context);
   const login = sshLoginSecretSchema.parse({

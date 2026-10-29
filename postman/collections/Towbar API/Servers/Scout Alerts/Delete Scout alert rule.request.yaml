@@ -1,8 +1,8 @@
 $kind: http-request
 id: 3227113e-7f1a-5238-896c-4aee5d0eb072
 description:
-  "Required permissions: alert.configure. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: member. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/scout-alerts/rules/:ruleId"
 method: DELETE
 headers:

@@ -1,8 +1,8 @@
 $kind: http-request
 id: 3a0bd623-b695-5ee6-9e04-9850c1d7b564
 description:
-  "Required permissions: server.credentials. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/host-keys/actions/trust"
 method: POST
 headers:

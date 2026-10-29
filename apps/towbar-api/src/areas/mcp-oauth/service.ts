@@ -169,10 +169,10 @@ export function decideConsent(
       );
     const scope =
       accessLevel === "admin"
-        ? "mcp:read mcp:write mcp:admin"
+        ? "viewer member admin"
         : accessLevel === "write"
-          ? "mcp:read mcp:write"
-          : "mcp:read";
+          ? "viewer member"
+          : "viewer";
     const { access, includeAdmin } = oauthKeyPermissions(scope);
     if (
       !canCreateKey(member.role, {

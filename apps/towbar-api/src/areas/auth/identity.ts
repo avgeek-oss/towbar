@@ -9,7 +9,7 @@ import { apiKey } from "@better-auth/api-key";
 import { passkey } from "@better-auth/passkey";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
-import { accessControl, accessRoles } from "@workspace/towbar-access";
+import { memberAc, ownerAc } from "better-auth/plugins/organization/access";
 import {
   apiKeys,
   authAccounts,
@@ -254,8 +254,7 @@ function identityOptions(database: AuthDatabase) {
         creatorRole: "admin",
         allowUserToCreateOrganization: false,
         invitationExpiresIn: 7 * 86400,
-        ac: accessControl,
-        roles: accessRoles,
+        roles: { admin: ownerAc, member: memberAc, viewer: memberAc },
         requireEmailVerificationOnInvitation: true,
         schema: {
           organization: { modelName: "workspaces" },

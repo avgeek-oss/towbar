@@ -245,9 +245,9 @@ mcpRoutes.all("/", async (context) => {
       const requiredScope = tool.permissions.some(
         (permission) => !editPermissions.includes(permission),
       )
-        ? "mcp:read mcp:write mcp:admin"
+        ? "viewer member admin"
         : key.access === "read" && !tool.readOnly
-          ? "mcp:read mcp:write"
+          ? "viewer member"
           : undefined;
       context.header(
         "WWW-Authenticate",

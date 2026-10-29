@@ -55,7 +55,7 @@ export function SourceIndex() {
     useInventoryQuery("sources"),
   );
   const allSources = useApiQuery<{ sources: Source[] }>(
-    filtered && can("repository.sync") ? "/v1/core/sources" : null,
+    filtered && can("admin") ? "/v1/core/sources" : null,
   );
   const activeSources = (
     (filtered ? allSources.data : query.data)?.sources ?? []
@@ -179,7 +179,7 @@ export function SourceIndex() {
       icon={GitBranchIcon}
       actions={
         <div className="flex flex-wrap justify-end gap-2">
-          {can("repository.sync") && activeSources.length > 0 ? (
+          {can("admin") && activeSources.length > 0 ? (
             <ActionButton
               action={async () => {
                 const { queued, failures } = await queueRepositorySyncs(
@@ -203,7 +203,7 @@ export function SourceIndex() {
               Sync All
             </ActionButton>
           ) : null}
-          {can("repository.connect") ? (
+          {can("admin") ? (
             <AddRepositoryButton
               isDisabled={addRepositoryDisabled}
               noConfiguredProvider={noConfiguredProvider}
@@ -214,7 +214,7 @@ export function SourceIndex() {
       }
       title="Repositories"
     >
-      {addingSource && can("repository.connect") ? (
+      {addingSource && can("admin") ? (
         <SourceCreateModal onClose={() => setAddingSource(false)} />
       ) : null}
       <InventorySidebar kind="sources" counts={query.data?.counts} />
@@ -227,7 +227,7 @@ export function SourceIndex() {
           ariaLabel="Repositories"
           columns={columns}
           emptyAction={
-            can("repository.connect") ? (
+            can("admin") ? (
               <AddRepositoryButton
                 isDisabled={addRepositoryDisabled}
                 noConfiguredProvider={noConfiguredProvider}

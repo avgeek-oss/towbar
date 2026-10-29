@@ -1,8 +1,8 @@
 $kind: http-request
 id: f05149cf-60b4-56f8-8f5a-688d7ec471a8
 description:
-  "Required permissions: server.credentials. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/host-keys/:hostKeyId"
 method: DELETE
 headers:

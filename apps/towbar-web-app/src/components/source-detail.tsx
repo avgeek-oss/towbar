@@ -73,7 +73,7 @@ export function SourceDetail() {
   }>(`/v1/core/sources/${sourceId}`);
   const repository = source.data?.source;
   const branches = useApiQuery<{ branches: string[] }>(
-    repository && can("repository.read")
+    repository && can("viewer")
       ? `/v1/core/sources/${sourceId}/branches`
       : null,
   );
@@ -220,7 +220,7 @@ export function SourceDetail() {
               branches={branches.data?.branches ?? []}
             />
           ) : null}
-          {item.status === "active" && can("repository.sync") ? (
+          {item.status === "active" && can("admin") ? (
             <ActionButton
               action={async () => {
                 const result = await api.post<{
@@ -438,7 +438,7 @@ function SourceSettings({
           label: "Auto-deploy",
           content: <AutoDeployControlEditor id={sourceId} type="source" />,
         },
-        ...(can("sharedSecret.list")
+        ...(can("member")
           ? [
               {
                 value: "secrets",

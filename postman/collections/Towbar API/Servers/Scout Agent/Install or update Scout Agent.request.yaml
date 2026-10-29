@@ -1,8 +1,8 @@
 $kind: http-request
 id: 490fca06-90c2-5513-86a3-86b0bd7be254
 description:
-  "Required permissions: scout.configure. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: member. Personal keys are capped by the current member role;
+  team keys use explicit grants."
 url: "{{baseUrl}}/servers/:serverId/monitoring/actions/install"
 method: POST
 headers:

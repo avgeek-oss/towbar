@@ -1,8 +1,8 @@
 $kind: http-request
 id: 295228cd-7232-5a7d-b44a-0ec88a31bd67
 description:
-  "Required permissions: server.remove. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/retirements/:workloadId/actions/remove"
 method: POST
 headers:

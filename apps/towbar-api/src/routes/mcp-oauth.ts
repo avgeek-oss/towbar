@@ -124,7 +124,7 @@ for (const path of [
     c.json({
       resource: mcpResource(),
       authorization_servers: [oauthIssuer()],
-      scopes_supported: ["mcp:read"],
+      scopes_supported: oauthScopes,
       bearer_methods_supported: ["header"],
       resource_name: "Towbar MCP",
     }),

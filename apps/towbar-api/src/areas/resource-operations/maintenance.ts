@@ -92,7 +92,7 @@ export async function runMaintenanceSweep() {
           kind: "system",
           source: "worker",
           workspaceId: server.workspaceId,
-          grants: ["server.credentials"],
+          grants: ["admin"],
         },
         () =>
           requestServerCheck({
@@ -171,7 +171,7 @@ async function queueExpiredRestoreCleanups() {
         kind: "system",
         source: "worker",
         workspaceId: restore.workspaceId,
-        grants: ["resource.restore"],
+        grants: ["admin"],
       },
       () =>
         requestRestoreCleanup({
@@ -221,7 +221,7 @@ async function queueScheduledBackups() {
         kind: "system",
         source: "worker",
         workspaceId: resource.workspaceId,
-        grants: ["resource.backup"],
+        grants: ["admin"],
       },
       () =>
         requestDeployableOperation({

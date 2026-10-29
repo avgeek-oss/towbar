@@ -1,8 +1,8 @@
 $kind: http-request
 id: 0ad7c20f-3155-5909-a963-1f046c34f9a9
 description:
-  "Required permissions: server.update. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/servers"
 method: POST
 headers:

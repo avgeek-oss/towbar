@@ -25,7 +25,7 @@ export async function issueTestMcpToken(
     client_id: client.client_id,
     redirect_uri: redirect,
     resource: mcpResource(),
-    scope: access === "edit" ? "mcp:read mcp:write" : "mcp:read",
+    scope: access === "edit" ? "viewer member" : "viewer",
     code_challenge: digest(verifier),
     code_challenge_method: "S256",
   };

@@ -3,7 +3,7 @@ import { useRefreshFailures } from "@/hooks/query-refresh-failures";
 import { useUnsavedForm } from "@/hooks/use-unsaved-changes";
 import { pushPage, assignPage } from "@/lib/unsaved-navigation";
 import { useAccess } from "./access-context";
-import type { Action } from "@workspace/towbar-access";
+import type { Scope } from "@workspace/towbar-access";
 import {
   PageSelectionContext,
   PageSelectionTitle,
@@ -404,7 +404,7 @@ export function ActionButton<T>({
   isIconOnly?: boolean;
   isDisabled?: boolean;
   onSuccess?: (result: T) => void;
-  permission?: Action;
+  permission?: Scope;
   pendingLabel?: string;
   preserveLabelWhilePending?: boolean;
   redirectOnSuccess?: (result: T) => string;
@@ -428,7 +428,7 @@ export function ActionButton<T>({
       onSuccess?.(result);
       refreshApiQueries();
     } catch (error) {
-      toast.danger(error instanceof Error ? error.message : "Action failed");
+      toast.danger(error instanceof Error ? error.message : "Scope failed");
     } finally {
       setBusy(false);
     }

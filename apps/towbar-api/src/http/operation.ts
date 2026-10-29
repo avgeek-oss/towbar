@@ -1,4 +1,4 @@
-import { type Action, actorAllows } from "@workspace/towbar-access";
+import { type Scope, actorAllows } from "@workspace/towbar-access";
 import { withActor } from "../areas/auth/actor-context.js";
 import { forbidden } from "./errors.js";
 import { requireRecentAuthentication } from "../areas/auth/recent-authentication.js";
@@ -10,7 +10,7 @@ export type OperationDescription = {
   summary: string;
   body?: z.ZodType;
   query?: z.ZodType;
-  permissions: readonly Action[];
+  permissions: readonly Scope[];
   freshSession?: boolean;
   idempotencyKey?: boolean;
   response: string;

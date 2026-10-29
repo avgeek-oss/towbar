@@ -81,7 +81,7 @@ void test(
         client_id: client.client_id,
         redirect_uri: redirect,
         resource,
-        scope: "mcp:read",
+        scope: "viewer",
         state: secret(),
         code_challenge: digest(verifier),
         code_challenge_method: "S256",
@@ -117,9 +117,9 @@ void test(
           allow: true,
           accessLevel:
             selected ??
-            (extra.scope?.includes("mcp:admin")
+            (extra.scope?.includes("admin")
               ? "admin"
-              : extra.scope?.includes("mcp:write")
+              : extra.scope?.includes("member")
                 ? "write"
                 : "read"),
         }),
@@ -335,7 +335,6 @@ void test(
           assert.equal(key.oauthClientTrust, "unverified");
           assert.equal(key.oauthClientLogo, null);
           assert.equal(key.includeAdmin, false);
-          assert.equal(key.permissionMode, "scoped");
           assert(key.expiresAt);
           assert(
             Math.abs(
@@ -380,10 +379,7 @@ void test(
             insufficient.headers.get("www-authenticate")!,
             /insufficient_scope/,
           );
-          assert.match(
-            insufficient.headers.get("www-authenticate")!,
-            /mcp:write/,
-          );
+          assert.match(insufficient.headers.get("www-authenticate")!, /member/);
           const apiResponse = await app.request("/v1/api/session", {
             headers: { authorization: `Bearer ${issued.access_token}` },
           });
@@ -402,9 +398,9 @@ void test(
         request,
         ok,
         issue: (scope) => issue({ scope }),
-        start: () => start({ scope: "mcp:admin" }),
+        start: () => start({ scope: "admin" }),
         grant: async () => {
-          const granted = await consent({ scope: "mcp:admin" });
+          const granted = await consent({ scope: "admin" });
           return () => token(granted);
         },
       });
@@ -490,7 +486,7 @@ void test(
           assert(legacy.token);
           assert.equal(legacy.key.tokenType, "api-key");
           assert.equal(legacy.key.expiresAt, null);
-          const issued = await issue({ scope: "mcp:read mcp:write" }),
+          const issued = await issue({ scope: "viewer member" }),
             principal = await keys.findApiKey(issued.access_token);
           assert(principal);
           await db
@@ -500,7 +496,7 @@ void test(
           try {
             const current = await keys.findApiKey(issued.access_token);
             assert.equal(current, null);
-            const started = await start({ scope: "mcp:write" });
+            const started = await start({ scope: "member" });
             assert.equal(
               (
                 await request(`/v1/oauth/consent/${started.id}`, headers, {

@@ -52,11 +52,7 @@ export function environmentSecretRoutes(
   routes.get(
     "/",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository"
-          ? "sharedSecret.list"
-          : "secret.list",
-      ],
+      permissions: ["member"],
       responseSchema: 'environment-secrets.ts:get:"/"',
       summary: "List environment secrets",
       query: z
@@ -106,7 +102,7 @@ export function environmentSecretRoutes(
     routes.get(
       "/readiness",
       operation({
-        permissions: ["secret.list"],
+        permissions: ["member"],
         responseSchema: 'environment-secrets.ts:get:"/readiness"',
         summary: "Get deployment secret readiness",
         response: "Whether all required secrets can be resolved.",
@@ -126,11 +122,7 @@ export function environmentSecretRoutes(
   routes.patch(
     "/:environment/:stage",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository"
-          ? "sharedSecret.update"
-          : "secret.update",
-      ],
+      permissions: ["member"],
       responseSchema: 'environment-secrets.ts:patch:"/:environment/:stage"',
       summary: "Update environment secrets",
       body: secretMutationSchema,
@@ -163,11 +155,7 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository"
-          ? "sharedSecret.reveal"
-          : "secret.reveal",
-      ],
+      permissions: ["admin"],
       freshSession: true,
       browserOnly: true,
       responseSchema:
@@ -190,11 +178,7 @@ export function environmentSecretRoutes(
   routes.post(
     "/:environment/:stage/reveal-all",
     operation({
-      permissions: [
-        kind === "workspace" || kind === "repository"
-          ? "sharedSecret.reveal"
-          : "secret.reveal",
-      ],
+      permissions: ["admin"],
       freshSession: true,
       browserOnly: true,
       responseSchema:

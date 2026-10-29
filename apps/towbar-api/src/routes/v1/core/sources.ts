@@ -48,7 +48,7 @@ sourceRoutes.route("/:sourceId/environments", sourceEnvironmentRoutes);
 sourceRoutes.get(
   "/",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/"',
     query: sourceFilters,
     summary: "List sources",
@@ -67,7 +67,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId"',
     summary: "Get source",
     response: "JSON object containing canManageSource, source.",
@@ -76,7 +76,7 @@ sourceRoutes.get(
   async (context) => {
     const user = context.get("user");
     return context.json({
-      canManageSource: actorAllows(context.get("actor"), ["repository.update"]),
+      canManageSource: actorAllows(context.get("actor"), ["admin"]),
       source: await getSource(context.req.param("sourceId"), user.workspaceId),
     });
   },
@@ -85,7 +85,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/branches",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/branches"',
     summary: "List repository branches",
     response: "Branch names visible through the repository connection.",
@@ -106,7 +106,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/auto-deploy-control",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/auto-deploy-control"',
     summary: "Get source auto deploy control",
     response: "JSON object containing autoDeploy, canManageAutoDeploy.",
@@ -119,9 +119,7 @@ sourceRoutes.get(
         context.req.param("sourceId"),
         user.workspaceId,
       ),
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -129,7 +127,7 @@ sourceRoutes.get(
 sourceRoutes.patch(
   "/:sourceId/auto-deploy-control",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'sources.ts:patch:"/:sourceId/auto-deploy-control"',
     summary: "Update source auto deploy control",
     body: autoDeployControlPatchSchema,
@@ -150,9 +148,7 @@ sourceRoutes.patch(
     }
     return context.json({
       autoDeploy,
-      canManageAutoDeploy: actorAllows(context.get("actor"), [
-        "deployment.create",
-      ]),
+      canManageAutoDeploy: actorAllows(context.get("actor"), ["admin"]),
     });
   },
 );
@@ -160,7 +156,7 @@ sourceRoutes.patch(
 sourceRoutes.get(
   "/:sourceId/apps",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/apps"',
     summary: "List source apps",
     response: "JSON object containing apps.",
@@ -178,7 +174,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/resources",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/resources"',
     summary: "List source resources",
     response: "JSON object containing resources.",
@@ -199,7 +195,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/capacity",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/capacity"',
     summary: "List source capacity",
     response: "JSON object containing capacities.",
@@ -218,7 +214,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/deployments",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/deployments"',
     summary: "List source deployments",
     response: "JSON object containing deployments.",
@@ -239,7 +235,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/backups",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/backups"',
     summary: "List source backups",
     response: "JSON object containing backups.",
@@ -260,7 +256,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/previews",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/previews"',
     summary: "List source previews",
     response: "JSON object containing previews.",
@@ -281,7 +277,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/removal-preview",
   operation({
-    permissions: ["repository.disconnect"],
+    permissions: ["admin"],
     query: z.object({ environmentId: z.uuid().optional() }).strict(),
     responseSchema: 'sources.ts:get:"/:sourceId/removal-preview"',
     summary: "Review repository removal",
@@ -306,7 +302,7 @@ sourceRoutes.get(
 sourceRoutes.delete(
   "/:sourceId",
   operation({
-    permissions: ["repository.disconnect"],
+    permissions: ["admin"],
     responseSchema: 'sources.ts:delete:"/:sourceId"',
     summary: "Remove repository connection",
     body: repositoryRemovalSchema,
@@ -331,7 +327,7 @@ sourceRoutes.delete(
 sourceRoutes.get(
   "/:sourceId/syncs",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/syncs"',
     summary: "List source syncs",
     response: "JSON object containing syncs.",
@@ -349,7 +345,7 @@ sourceRoutes.get(
 sourceRoutes.get(
   "/:sourceId/syncs/:syncId",
   operation({
-    permissions: ["repository.read"],
+    permissions: ["viewer"],
     responseSchema: 'sources.ts:get:"/:sourceId/syncs/:syncId"',
     summary: "Get source sync",
     response: "JSON object containing sync.",
@@ -368,7 +364,7 @@ sourceRoutes.get(
 sourceRoutes.post(
   "/:sourceId/actions/change-github-connection",
   operation({
-    permissions: ["repository.update"],
+    permissions: ["admin"],
     summary: "Change GitHub repository connection",
     responseSchema:
       'sources.ts:post:"/:sourceId/actions/change-github-connection"',

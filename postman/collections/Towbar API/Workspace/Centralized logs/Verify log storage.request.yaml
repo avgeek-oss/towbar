@@ -1,8 +1,8 @@
 $kind: http-request
 id: 1d2b1a9d-eea8-59bb-aadb-8a2a002180a3
 description:
-  "Required permissions: server.collectLogs. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/observability/logs/actions/verify"
 method: POST
 headers:

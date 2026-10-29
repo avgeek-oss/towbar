@@ -1,8 +1,8 @@
 $kind: http-request
 id: 0e5b9a7f-ad70-5c5d-a501-60e56f9a85c1
 description:
-  "Required permissions: resource.restore. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/actions/restore-cleanup"
 method: POST
 headers:

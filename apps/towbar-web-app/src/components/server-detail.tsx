@@ -142,16 +142,12 @@ export function ServerDetail() {
     5_000,
   );
   const keys = useApiQuery<{ hostKeys: { id: string }[] }>(
-    can("server.credentials") ? `/v1/core/servers/${serverId}/host-keys` : null,
+    can("admin") ? `/v1/core/servers/${serverId}/host-keys` : null,
   );
   const credentials = useApiQuery<{
     credential: SecretMetadata;
     selectedPrivateKeyId: string | null;
-  }>(
-    can("server.credentials")
-      ? `/v1/core/servers/${serverId}/credentials`
-      : null,
-  );
+  }>(can("admin") ? `/v1/core/servers/${serverId}/credentials` : null);
   const preparations = useApiQuery<{ preparations: ServerPreparation[] }>(
     `/v1/core/servers/${serverId}/preparations`,
     3_000,
@@ -193,7 +189,7 @@ export function ServerDetail() {
     }
   }, [latestPreparationStatus, refreshServer]);
   const orphans = useApiQuery<{ orphans: OrphanItem[] }>(
-    can("server.remove") ? `/v1/core/servers/${serverId}/orphans` : null,
+    can("admin") ? `/v1/core/servers/${serverId}/orphans` : null,
     5_000,
   );
   const cleanup = useApiQuery<ServerCleanupPage>(
@@ -224,9 +220,9 @@ export function ServerDetail() {
     !server.data ||
     !checks.data ||
     !capacity.data ||
-    (can("server.credentials") && (!keys.data || !credentials.data)) ||
+    (can("admin") && (!keys.data || !credentials.data)) ||
     !preparations.data ||
-    (can("server.remove") && !orphans.data)
+    (can("admin") && !orphans.data)
   )
     return <QueryLoading variant="detail" />;
 
@@ -361,8 +357,7 @@ export function ServerDetail() {
             {...preparationProps}
             onQueued={setActivePreparationId}
           />
-        ) : detailNavigation.section === "checks" &&
-          can("server.credentials") ? (
+        ) : detailNavigation.section === "checks" && can("admin") ? (
           <ActionButton
             confirm={{
               title: "Check this server?",
@@ -515,7 +510,7 @@ export function ServerDetail() {
                 />
               ),
             },
-            ...(can("server.terminal")
+            ...(can("admin")
               ? [
                   {
                     value: "terminal",
@@ -671,7 +666,7 @@ export function ServerDetail() {
                       content: (
                         <LogCollectorSettings
                           serverId={serverId}
-                          canManage={can("server.collectLogs")}
+                          canManage={can("admin")}
                           ready={setupStatus === "ready"}
                         />
                       ),
@@ -693,7 +688,7 @@ export function ServerDetail() {
                         <div className="content-grid">
                           <MonitoringAgentSettings
                             serverId={serverId}
-                            canManage={can("scout.configure")}
+                            canManage={can("member")}
                             ready={setupStatus === "ready"}
                           />
                         </div>

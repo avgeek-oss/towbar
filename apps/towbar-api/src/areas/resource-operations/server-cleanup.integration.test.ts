@@ -154,7 +154,7 @@ void test(
             sourceId,
             sourceEnvironmentId: environment!.id,
             mappingRevision: environment!.mappingRevision,
-            ...captureQueuedActor(workspaceId, ["repository.sync"]),
+            ...captureQueuedActor(workspaceId, ["admin"]),
           })
           .returning(),
       );

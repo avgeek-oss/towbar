@@ -1,8 +1,8 @@
 $kind: http-request
 id: 2ae51b96-7fd6-5f86-8627-9ba4f232ce64
 description:
-  "Required permissions: repository.update. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId/environments/:environmentId"
 method: PATCH
 headers:

@@ -13,7 +13,7 @@ export const systemHealthRoutes = new Hono<TowbarHonoEnvironment>();
 systemHealthRoutes.get(
   "/",
   operation({
-    permissions: ["system.read"],
+    permissions: ["admin"],
     responseSchema: 'system-health.ts:get:"/"',
     summary: "Get system health",
     response: "Control-plane health checks.",
@@ -26,7 +26,7 @@ systemHealthRoutes.get(
 systemHealthRoutes.post(
   "/actions/check",
   operation({
-    permissions: ["system.manage"],
+    permissions: ["admin"],
     responseSchema: 'system-health.ts:post:"/actions/check"',
     summary: "Run system health checks",
     response: "Updated control-plane health checks.",

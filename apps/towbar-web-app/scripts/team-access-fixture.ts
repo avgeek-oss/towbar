@@ -30,7 +30,7 @@ import {
   constrainPersonalKey,
   isWorkspaceRole,
   keyCeiling,
-  roleActions,
+  roleScopes,
   workspaceRoles,
   type KeyAccess,
   type KeyPolicy,
@@ -253,7 +253,7 @@ export function createTeamAccessFixture(
           email: selected.email,
           teamName: team.name,
           workspaceRole: selected.role,
-          capabilities: roleActions(selected.role),
+          capabilities: roleScopes(selected.role),
           mustChangePassword: selected.mustChangePassword,
           passwordSetupRequired:
             selected.mustChangePassword && !passwords.has(selected.userId),

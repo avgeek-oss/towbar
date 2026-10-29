@@ -160,7 +160,7 @@ void test(
             mappingRevision: environment!.mappingRevision,
             deployAfterSync: true,
             ...withActor(actor, () =>
-              captureQueuedActor(workspaceId, ["repository.sync"]),
+              captureQueuedActor(workspaceId, ["admin"]),
             ),
           })
           .returning();

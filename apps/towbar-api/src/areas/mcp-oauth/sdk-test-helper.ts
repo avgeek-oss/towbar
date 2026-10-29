@@ -104,10 +104,12 @@ export async function assertOAuthDiscovery(
     "/.well-known/oauth-protected-resource",
   ]) {
     const response = await app.request(path);
-    assert.equal(
-      ((await response.json()) as { resource: string }).resource,
-      resource,
-    );
+    const metadata = (await response.json()) as {
+      resource: string;
+      scopes_supported: string[];
+    };
+    assert.equal(metadata.resource, resource);
+    assert.deepEqual(metadata.scopes_supported, ["viewer", "member", "admin"]);
   }
   const response = await app.request("/.well-known/oauth-authorization-server");
   const body = (await response.json()) as Record<string, unknown>;
@@ -116,9 +118,5 @@ export async function assertOAuthDiscovery(
   assert.equal(body.authorization_response_iss_parameter_supported, true);
   assert.deepEqual(body.code_challenge_methods_supported, ["S256"]);
   assert.deepEqual(body.grant_types_supported, ["authorization_code"]);
-  assert.deepEqual(body.scopes_supported, [
-    "mcp:read",
-    "mcp:write",
-    "mcp:admin",
-  ]);
+  assert.deepEqual(body.scopes_supported, ["viewer", "member", "admin"]);
 }

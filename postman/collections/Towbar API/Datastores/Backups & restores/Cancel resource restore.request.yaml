@@ -1,8 +1,8 @@
 $kind: http-request
 id: 6c24a473-5bd7-5c5d-8101-955546bec275
 description:
-  "Required permissions: resource.restore. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/operations/:operationId/actions/cancel"
 method: POST
 headers:

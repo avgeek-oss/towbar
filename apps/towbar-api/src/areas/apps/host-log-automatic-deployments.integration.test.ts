@@ -212,18 +212,13 @@ void test(
       await db
         .update(apiKeyPolicies)
         .set({
-          permissionMode: "scoped",
-          grants: [
-            "repository.sync",
-            "deployment.create",
-            "server.collectLogs",
-          ],
+          grants: ["admin"],
         })
         .where(eq(apiKeyPolicies.keyId, key.key.id));
       const principal = await resolveApiKeyPrincipal(key.key.id);
       assert(principal);
       const attribution = withActor(principal.actor, () =>
-        captureQueuedActor(workspaceId, ["repository.sync"]),
+        captureQueuedActor(workspaceId, ["admin"]),
       );
       await db.insert(sourceSyncs).values({
         id: syncId,
@@ -244,21 +239,19 @@ void test(
       const clearDeployments = () =>
         db.delete(deployments).where(eq(deployments.appId, appId));
       await t.test(
-        "a scoped key lacking collector authority cannot defer or resume through source or app controls",
+        "a key reduced to write access cannot defer or resume administrator operations",
         async () => {
           await db
             .update(apiKeyPolicies)
-            .set({ grants: ["repository.sync", "deployment.create"] })
+            .set({ grants: ["viewer", "member"] })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           const limited = await resolveApiKeyPrincipal(key.key.id);
           assert(limited);
+          assert.equal(limited.user.capabilities.includes("admin"), false);
+          assert.equal(limited.user.capabilities.includes("member"), true);
           await db
             .update(sourceSyncs)
-            .set(
-              withActor(limited.actor, () =>
-                captureQueuedActor(workspaceId, ["repository.sync"]),
-              ),
-            )
+            .set(attribution)
             .where(eq(sourceSyncs.id, syncId));
           for (const scope of ["source", "app"] as const) {
             if (scope === "source")
@@ -274,11 +267,10 @@ void test(
                 workspaceId,
                 paused: true,
               });
-            const paused = await scheduleSourceAutomaticDeployments(
-              syncId,
-              dependencies,
+            await assert.rejects(
+              scheduleSourceAutomaticDeployments(syncId, dependencies),
+              /Access changed/,
             );
-            assert.equal(paused.skippedDeployments?.[0]?.code, "FORBIDDEN");
             const [app] = await db
               .select()
               .from(apps)
@@ -297,21 +289,19 @@ void test(
                 },
               })
               .where(eq(apps.id, appId));
-            await withActor(limited.actor, async () => {
-              if (scope === "source")
-                await updateSourceAutoDeployControl({
-                  sourceId,
-                  workspaceId,
-                  paused: false,
-                });
-              else
-                await updateDeployableAutoDeployControl({
-                  deployableId: appId,
-                  expectedType: "app",
-                  workspaceId,
-                  paused: false,
-                });
-            });
+            if (scope === "source")
+              await updateSourceAutoDeployControl({
+                sourceId,
+                workspaceId,
+                paused: false,
+              });
+            else
+              await updateDeployableAutoDeployControl({
+                deployableId: appId,
+                expectedType: "app",
+                workspaceId,
+                paused: false,
+              });
             await admitResumedAutomaticDeployments();
             assert.equal((await queued()).length, 0);
             await db
@@ -327,11 +317,7 @@ void test(
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: [
-                "repository.sync",
-                "deployment.create",
-                "server.collectLogs",
-              ],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           await db
@@ -363,7 +349,7 @@ void test(
           });
           await db
             .update(apiKeyPolicies)
-            .set({ grants: ["repository.sync", "deployment.create"] })
+            .set({ grants: ["viewer", "member"] })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           const denied = await scheduleLatestAutomaticDeploymentsForSource({
             sourceId,
@@ -375,11 +361,7 @@ void test(
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: [
-                "repository.sync",
-                "deployment.create",
-                "server.collectLogs",
-              ],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           await db
@@ -397,11 +379,7 @@ void test(
           const [deployment] = await queued();
           assert.equal(deployment?.requestedByActor?.kind, "team-key");
           assert.equal(deployment?.requestedByActor?.keyId, key.key.id);
-          assert(
-            deployment?.requestedByActor?.grants?.includes(
-              "server.collectLogs",
-            ),
-          );
+          assert(deployment?.requestedByActor?.grants?.includes("admin"));
           await clearDeployments();
         },
       );
@@ -491,23 +469,18 @@ void test(
             .where(eq(servers.id, serverId));
           await db
             .update(apiKeyPolicies)
-            .set({ grants: ["repository.sync", "deployment.create"] })
+            .set({ grants: ["viewer", "member"] })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           effects.length = 0;
-          assert.equal(
-            (await scheduleSourceAutomaticDeployments(syncId, dependencies))
-              .skippedDeployments?.[0]?.code,
-            "FORBIDDEN",
+          await assert.rejects(
+            scheduleSourceAutomaticDeployments(syncId, dependencies),
+            /Access changed/,
           );
-          assert.deepEqual(effects, ["cleanup", "reconcile"]);
+          assert.deepEqual(effects, []);
           await db
             .update(apiKeyPolicies)
             .set({
-              grants: [
-                "repository.sync",
-                "deployment.create",
-                "server.collectLogs",
-              ],
+              grants: ["admin"],
             })
             .where(eq(apiKeyPolicies.keyId, key.key.id));
           effects.length = 0;

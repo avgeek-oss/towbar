@@ -1,7 +1,7 @@
 $kind: http-request
 id: 2f489492-193e-5423-8c51-d87771161c78
 description:
-  "Required permissions: scout.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url: "{{baseUrl}}/resources/:resourceId/metrics?range=1h&startAt=&endAt="
 method: GET

@@ -56,7 +56,7 @@ export async function synchronizeLogPolicies(workspaceId: string) {
 }
 
 export async function logReadScope(workspaceId: string) {
-  const actor = requireActor(workspaceId, ["logs.read"]);
+  const actor = requireActor(workspaceId, ["viewer"]);
   await synchronizeLogPolicies(workspaceId);
   const db = getTowbarDatabase();
   const [policies, sources] = await Promise.all([
@@ -75,7 +75,7 @@ export async function logReadScope(workspaceId: string) {
       .where(eq(logSources.workspaceId, workspaceId)),
   ]);
   return {
-    administrator: actorAllows(actor, ["logs.readAdmin"]),
+    administrator: actorAllows(actor, ["admin"]),
     restrictedIds: policies.map((p) => p.id),
     knownIds: sources.map((s) => s.id),
   };

@@ -1,8 +1,8 @@
 $kind: http-request
 id: 577cdc4d-db81-555b-bf62-dc22cdcce395
 description:
-  "Required permissions: integration.manage. Personal keys are capped by the current
-  member role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/github?connectionId="
 method: DELETE
 headers:

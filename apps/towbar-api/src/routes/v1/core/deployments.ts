@@ -34,7 +34,7 @@ export const deploymentRoutes = new Hono<TowbarHonoEnvironment>();
 deploymentRoutes.get(
   "/",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/"',
     summary: "List deployments",
     response: "JSON object containing deployments.",
@@ -48,7 +48,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/history",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/history"',
     summary: "List deployment history",
     query: historyQuerySchema,
@@ -68,7 +68,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/:deploymentId"',
     summary: "Get deployment",
     response: "JSON object containing deployment.",
@@ -85,7 +85,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/favicon",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     browserOnly: true,
     responseSchema: 'deployments.ts:get:"/:deploymentId/favicon"',
     summary: "Get a deployment workload icon",
@@ -107,7 +107,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/source-revision",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/:deploymentId/source-revision"',
     summary: "Read deployment pull request details",
     browserOnly: true,
@@ -126,7 +126,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/steps",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/:deploymentId/steps"',
     summary: "List deployment steps",
     response: "JSON object containing steps.",
@@ -143,7 +143,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/logs",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/:deploymentId/logs"',
     summary: "List deployment logs",
     query: z.object({ after: afterSchema }).strict(),
@@ -162,7 +162,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/vulnerability-scan/findings",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema:
       'deployments.ts:get:"/:deploymentId/vulnerability-scan/findings"',
     summary: "List deployment vulnerability findings",
@@ -180,7 +180,7 @@ deploymentRoutes.get(
 deploymentRoutes.get(
   "/:deploymentId/events",
   operation({
-    permissions: ["deployment.read"],
+    permissions: ["viewer"],
     responseSchema: 'deployments.ts:get:"/:deploymentId/events"',
     summary: "Watch deployment events",
     query: z
@@ -213,8 +213,7 @@ deploymentRoutes.get(
         context.req.header("last-event-id") ?? context.req.query("after"),
       );
       for (let index = 0; index < 25; index += 1) {
-        if (!(await streamStillAuthorized(context, ["deployment.read"])))
-          return;
+        if (!(await streamStillAuthorized(context, ["viewer"]))) return;
         const deployment = await getDeployment(deploymentId, workspaceId);
         const logs = await listDeploymentLogs({
           afterSequence: after,
@@ -251,7 +250,7 @@ deploymentRoutes.get(
 deploymentRoutes.post(
   "/:deploymentId/actions/cancel",
   operation({
-    permissions: ["deployment.cancel"],
+    permissions: ["admin"],
     responseSchema: 'deployments.ts:post:"/:deploymentId/actions/cancel"',
     summary: "Cancel deployment",
     response: "JSON object containing deployment.",
@@ -272,7 +271,7 @@ deploymentRoutes.post(
 deploymentRoutes.post(
   "/:deploymentId/actions/retry",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema: 'deployments.ts:post:"/:deploymentId/actions/retry"',
     summary: "Request deployment retry",
     idempotencyKey: true,
@@ -301,7 +300,7 @@ deploymentRoutes.post(
 deploymentRoutes.post(
   "/:deploymentId/vulnerability-scan/actions/rescan",
   operation({
-    permissions: ["deployment.create"],
+    permissions: ["admin"],
     responseSchema:
       'deployments.ts:post:"/:deploymentId/vulnerability-scan/actions/rescan"',
     summary: "Request deployment vulnerability scan",

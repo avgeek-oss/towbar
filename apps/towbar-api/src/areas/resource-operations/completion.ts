@@ -211,7 +211,7 @@ async function runTerminalSideEffects(
         kind: "system",
         source: "worker",
         workspaceId: operation.workspaceId,
-        grants: ["server.credentials"],
+        grants: ["admin"],
       },
       () =>
         requestServerCheck({

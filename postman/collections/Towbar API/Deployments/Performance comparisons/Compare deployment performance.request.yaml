@@ -1,7 +1,7 @@
 $kind: http-request
 id: bc7afb81-24d1-5d1b-9c6b-199fabf0158f
 description:
-  "Required permissions: alert.read. Personal keys are capped by the current member role;
+  "Required permissions: viewer. Personal keys are capped by the current member role;
   team keys use explicit grants."
 url:
   "{{baseUrl}}/workloads/:deployableId/deployment-comparison?baselineId=00000000-0000-4000-8000-\

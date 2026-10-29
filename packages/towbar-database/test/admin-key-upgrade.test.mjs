@@ -61,6 +61,9 @@ test(
       const journal = JSON.parse(
         await readFile(join(previous, "meta/_journal.json"), "utf8"),
       );
+      const historicalEntries = journal.entries.filter(
+        (entry) => entry.idx < 36,
+      );
       const index = journal.entries.findIndex(
         (entry) => entry.tag === "0017_admin_key_permissions",
       );
@@ -127,7 +130,11 @@ test(
       }
       const before =
         await client`select k.*,p.grants,p.include_admin,p.scope,p.revoked_at from towbar_api_keys k join towbar_api_key_policies p on p.key_id=k.id order by k.id`;
-      await migrate(drizzle(client), { migrationsFolder: folder });
+      await writeFile(
+        join(previous, "meta/_journal.json"),
+        JSON.stringify({ ...journal, entries: historicalEntries }),
+      );
+      await migrate(drizzle(client), { migrationsFolder: previous });
       assert.deepEqual(
         await client`select k.*,p.grants,p.include_admin,p.scope,p.revoked_at from towbar_api_keys k join towbar_api_key_policies p on p.key_id=k.id order by k.id`,
         before,
@@ -147,7 +154,7 @@ test(
           fixture.name,
         );
       }
-      await migrate(drizzle(client), { migrationsFolder: folder });
+      await migrate(drizzle(client), { migrationsFolder: previous });
       assert.deepEqual(
         await client`select k.name,p.permission_mode,p.version from towbar_api_keys k join towbar_api_key_policies p on p.key_id=k.id order by k.name`,
         policies,

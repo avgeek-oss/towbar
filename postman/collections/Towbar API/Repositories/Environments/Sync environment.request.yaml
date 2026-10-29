@@ -1,8 +1,8 @@
 $kind: http-request
 id: 6d43648c-60f3-5009-973c-14e4a96b48a4
 description:
-  "Required permissions: repository.sync. Personal keys are capped by the current member
-  role; team keys use explicit grants."
+  "Required permissions: admin. Personal keys are capped by the current member role; team
+  keys use explicit grants."
 url: "{{baseUrl}}/sources/:sourceId/environments/:environmentId/syncs"
 method: POST
 headers:

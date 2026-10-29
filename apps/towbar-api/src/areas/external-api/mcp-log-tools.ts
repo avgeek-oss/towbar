@@ -78,7 +78,7 @@ export const logTools: McpTool[] = [
           : {}),
       };
     },
-    { permissions: ["logs.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "logs_query",
@@ -91,7 +91,7 @@ export const logTools: McpTool[] = [
       boundLogOutput(
         await context.call({ method: "POST", route: "/logs/query", body }),
       ),
-    { permissions: ["logs.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "logs_summary",
@@ -122,7 +122,7 @@ export const logTools: McpTool[] = [
         partial: result.partial || truncated,
       };
     },
-    { permissions: ["logs.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "logs_follow",
@@ -133,7 +133,7 @@ export const logTools: McpTool[] = [
       boundLogOutput(
         await context.call({ method: "POST", route: "/logs/follow", body }),
       ),
-    { permissions: ["logs.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "logs_context",
@@ -146,7 +146,7 @@ export const logTools: McpTool[] = [
       boundLogOutput(
         await context.call({ method: "POST", route: "/logs/context", body }),
       ),
-    { permissions: ["logs.read"] },
+    { permissions: ["viewer"] },
   ),
   tool(
     "logs_collection_configure",
@@ -164,7 +164,7 @@ export const logTools: McpTool[] = [
         idempotencyKey: args.idempotencyKey,
       }),
     {
-      permissions: ["server.collectLogs"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: false,
       idempotent: true,
@@ -181,7 +181,7 @@ export const logTools: McpTool[] = [
         route: "/observability/logs/actions/verify",
       }),
     {
-      permissions: ["server.collectLogs"],
+      permissions: ["admin"],
       readOnly: false,
       destructive: false,
       idempotent: false,
