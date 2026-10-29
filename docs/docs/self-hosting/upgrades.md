@@ -109,6 +109,12 @@ If the migration reports an incompatible mount, keep the upgrade paused. Back up
 
 The passkey update removes authenticator codes and their secrets. Registered passkeys are preserved. Existing passkey and authenticator sessions are revoked once during migration; password-only sessions remain valid. Authenticator-only accounts can sign in with their password and add a passkey. Existing passkey users can generate recovery codes from **Account Settings → Passkeys**.
 
+## API key and MCP role scopes
+
+The role-scope update replaces granular permissions with the Viewer, Member, and Admin roles. The migration revokes every MCP connection and every personal or team API key that does not have full administrative permissions. This includes all Read-only and Edit keys. Pending MCP authorization requests are also cancelled.
+
+After upgrading, create replacement keys in **Account Settings → API Keys** or **Team Settings → API Keys** and update each consumer. Reconnect MCP clients and approve a new consent request. See [keys and permissions](/docs/api/authentication#keys-and-permissions) and [MCP setup](/docs/api/mcp).
+
 ## Admin account recovery
 
 Use **Forgot password** when SMTP and the account's mailbox are available. Host operators can reset an Admin password, change a lost Admin email address, or reset recovery codes or remove lost passkeys for any active team member. Follow [Account recovery](/docs/self-hosting/account-recovery) for the maintenance window, commands, revoked access, and verification steps.
